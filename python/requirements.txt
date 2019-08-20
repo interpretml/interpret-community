@@ -1,0 +1,9 @@
+xmlrunner
+tensorflow
+numpy
+pandas
+sklearn_pandas
+hdbscan
+lightgbm
+xgboost
+prompt-toolkit>=2.0.0

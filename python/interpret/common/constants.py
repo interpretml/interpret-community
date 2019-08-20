@@ -1,0 +1,280 @@
+# ---------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# ---------------------------------------------------------
+
+"""Defines constants for explain model."""
+
+from enum import Enum
+
+
+class BackCompat(object):
+    """Provide constants necessary for supporting old versions of our product."""
+
+    FEATURE_NAMES = 'feature_names'
+    NAME = 'name'
+    OLD_NAME = 'old_name'
+    OVERALL_FEATURE_ORDER = 'overall_feature_order'
+    OVERALL_IMPORTANCE_ORDER = 'overall_importance_order'
+    OVERALL_SUMMARY = 'overall_summary'
+    PER_CLASS_FEATURE_ORDER = 'per_class_feature_order'
+    PER_CLASS_IMPORTANCE_ORDER = 'per_class_importance_order'
+    PER_CLASS_SUMMARY = 'per_class_summary'
+    SHAP_VALUES = 'shap_values'
+
+
+class ExplanationParams(object):
+    """Provide constants for explanation parameters."""
+
+    EXPECTED_VALUES = 'expected_values'
+    CLASSES = 'classes'
+
+
+class History(object):
+    """Provide constants related to uploading assets to run history."""
+
+    BLOCK_SIZE = 'block_size'
+    CLASSES = 'classes'
+    COMMENT = 'comment'
+    EVAL_DATA = 'eval_data'
+    EVAL_DATASET_ID = 'eval_dataset_id'
+    EXPECTED_VALUES = 'expected_values'
+    EXPLANATION = 'explanation'
+    EXPLANATION_ID = 'explanation_id'
+    FEATURES = 'features'
+    GLOBAL_IMPORTANCE_NAMES = 'global_importance_names'
+    GLOBAL_IMPORTANCE_RANK = 'global_importance_rank'
+    GLOBAL_IMPORTANCE_VALUES = 'global_importance_values'
+    ID = 'id'
+    INIT_DATA = 'init_data'
+    LOCAL_IMPORTANCE_RANK = 'local_importance_rank'
+    LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
+    METHOD = 'method'
+    MODEL_ID = 'model_id'
+    NAME = 'name'
+    NUM_BLOCKS = 'num_blocks'
+    NUM_CLASSES = 'num_classes'
+    NUM_FEATURES = 'num_features'
+    ORDERED_LOCAL_IMPORTANCE_VALUES = 'ordered_local_importance_values'
+    PER_CLASS_NAMES = 'per_class_names'
+    PER_CLASS_RANK = 'per_class_rank'
+    PER_CLASS_VALUES = 'per_class_values'
+    PREFIX = 'prefix'
+    PROPERTIES = 'properties'
+    RANKED_GLOBAL_NAMES = 'ranked_global_names'
+    RANKED_GLOBAL_VALUES = 'ranked_global_values'
+    RANKED_PER_CLASS_NAMES = 'ranked_per_class_names'
+    RANKED_PER_CLASS_VALUES = 'ranked_per_class_values'
+    RICH_METADATA = 'rich_metadata'
+    TYPE = 'type'
+    UPLOAD_TIME = 'upload_time'
+    VERSION = 'version'
+    VERSION_TYPE = 'version_type'
+
+
+class ExplainType(object):
+    """Provide constants for model and explainer type information, useful for visualization."""
+
+    CLASSIFICATION = 'classification'
+    DATA = 'data_type'
+    EXPLAIN = 'explain_type'
+    EXPLAINER = 'explainer'
+    FUNCTION = 'function'
+    HAN = 'han'
+    IS_RAW = 'is_raw'
+    LIME = 'lime'
+    METHOD = 'method'
+    MIMIC = 'mimic'
+    MODEL = 'model_type'
+    MODEL_CLASS = 'model_class'
+    MODEL_TASK = 'model_task'
+    PFI = 'pfi'
+    REGRESSION = 'regression'
+    SHAP = 'shap'
+    SHAP_DEEP = 'shap_deep'
+    SHAP_KERNEL = 'shap_kernel'
+    SHAP_TREE = 'shap_tree'
+    SHAP_LINEAR = 'shap_linear'
+    TABULAR = 'tabular'
+
+
+class IO(object):
+    """Provide file input and output related constants."""
+
+    JSON = 'json'
+    PICKLE = 'pickle'
+    UTF8 = 'utf-8'
+
+
+class ExplainParams(object):
+    """Provide constants for explain model (init, explain_local and explain_global) parameters."""
+
+    BATCH_SIZE = 'batch_size'
+    CLASSES = 'classes'
+    CLASSIFICATION = 'classification'
+    EVAL_DATA = 'eval_data'
+    EXPECTED_VALUES = 'expected_values'
+    EXPLAIN_SUBSET = 'explain_subset'
+    EXPLANATION_ID = 'explanation_id'
+    FEATURES = 'features'
+    GLOBAL_IMPORTANCE_NAMES = 'global_importance_names'
+    GLOBAL_IMPORTANCE_VALUES = 'global_importance_values'
+    GLOBAL_IMPORTANCE_RANK = 'global_importance_rank'
+    ID = 'id'
+    INCLUDE_LOCAL = 'include_local'
+    INIT_DATA = 'init_data'
+    IS_RAW = 'is_raw'
+    LOCAL_EXPLANATION = 'local_explanation'
+    LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
+    METHOD = 'method'
+    MODEL_ID = 'model_id'
+    MODEL_TASK = 'model_task'
+    MODEL_TYPE = 'model_type'
+    PER_CLASS_NAMES = 'per_class_names'
+    PER_CLASS_RANK = 'per_class_rank'
+    PER_CLASS_VALUES = 'per_class_values'
+    PROBABILITIES = 'probabilities'
+    SAMPLING_POLICY = 'sampling_policy'
+    SHAP_VALUES_OUTPUT = 'shap_values_output'
+
+    @classmethod
+    def get_serializable(cls):
+        """Return only the ExplainParams properties that have meaningful data values for serialization.
+
+        :return: set of property names - e.g. 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
+        :rtype: set{str}
+        """
+        return (set(filter(lambda x: not x.startswith('__') and not callable(getattr(cls, x)),
+                vars(cls).keys())) - set(['DATA_MAPPER', 'DATA_MAPPER_INTERNAL']))
+
+
+class Defaults(object):
+    """Provide constants for default values to explain methods."""
+
+    AUTO = 'auto'
+    DEFAULT_BATCH_SIZE = 100
+    # hdbscan is an unsupervised learning library to find the optimal number of clusters in a dataset
+    # See this github repo for more details: https://github.com/scikit-learn-contrib/hdbscan
+    HDBSCAN = 'hdbscan'
+    MAX_DIM = 50
+
+
+class Attributes(object):
+    """Provide constants for attributes."""
+
+    EXPECTED_VALUE = 'expected_value'
+
+
+class Dynamic(object):
+    """Provide constants for dynamically generated classes."""
+
+    GLOBAL_EXPLANATION = 'DynamicGlobalExplanation'
+    LOCAL_EXPLANATION = 'DynamicLocalExplanation'
+
+
+class Tensorflow(object):
+    """Provide tensorflow and tensorboard related constants."""
+
+    CPU0 = '/CPU:0'
+    TFLOG = 'tflog'
+
+
+class SKLearn(object):
+    """Provide scikit-learn related constants."""
+
+    EXAMPLES = 'examples'
+    LABELS = 'labels'
+    PREDICTIONS = 'predictions'
+
+
+class Spacy(object):
+    """Provide spacy related constants."""
+
+    EN = 'en'
+    NER = 'ner'
+    TAGGER = 'tagger'
+
+
+class LoggingNamespace(object):
+    """Provide logging namespace related constants."""
+
+    AZUREML = 'azureml'
+
+
+class ModelTask(str, Enum):
+    """Provide model task constants.  Can be classification, regression or unknown.
+
+    By default we infer the model domain if Unknown, but this can be overridden by the user if they
+    specify classification or regression.
+    """
+
+    Classification = 'classification'
+    Regression = 'regression'
+    Unknown = 'unknown'
+
+
+class LightGBMParams(object):
+    """Provide constants for LightGBM."""
+
+    CATEGORICAL_FEATURE = 'categorical_feature'
+
+
+class Scoring(object):
+    """Provide constants for scoring time explainers."""
+
+    EXPLAINER = 'explainer'
+    SURROGATE_MODEL = 'surrogate_model'
+
+
+class ShapValuesOutput(str, Enum):
+    """Provide constants for the shap values output from the explainer.
+
+    Can be default, probability or teacher_probability. If teacher probability is specified,
+    we use the probabilities from the teacher model.
+    """
+
+    DEFAULT = 'default'
+    PROBABILITY = 'probability'
+    TEACHER_PROBABILITY = 'teacher_probability'
+
+
+class ExplainableModelType(str, Enum):
+    """Provide constants for the explainable model type."""
+
+    TREE_EXPLAINABLE_MODEL_TYPE = 'tree_explainable_model_type'
+    LINEAR_EXPLAINABLE_MODEL_TYPE = 'linear_explainable_model_type'
+
+
+class MimicSerializationConstants(object):
+    """Provide internal class that defines fields used for MimicExplainer serialization."""
+
+    FUNCTION = 'function'
+    IDENTITY = '_identity'
+    INITIALIZATION_EXAMPLES = 'initialization_examples'
+    LOGGER = '_logger'
+    MODEL = 'model'
+    PREDICT_PROBA_FLAG = 'predict_proba_flag'
+
+    enum_properties = ['_shap_values_output']
+    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples']
+    save_properties = ['surrogate_model']
+
+
+class LightGBMSerializationConstants(object):
+    """Provide internal class that defines fields used for MimicExplainer serialization."""
+
+    IDENTITY = '_identity'
+    LOGGER = '_logger'
+    MODEL_STR = 'model_str'
+    MULTICLASS = 'multiclass'
+    TREE_EXPLAINER = '_tree_explainer'
+
+    enum_properties = ['_shap_values_output']
+    nonify_properties = [LOGGER, TREE_EXPLAINER]
+    save_properties = ['_lgbm']
+
+
+class DNNFramework(object):
+    """Provide DNN framework constants."""
+
+    TENSORFLOW = 'tensorflow'
+    PYTORCH = 'pytorch'
