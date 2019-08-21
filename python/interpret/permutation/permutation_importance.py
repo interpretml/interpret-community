@@ -254,7 +254,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             try:
                 self.metric = metric_to_func[metric]
                 self.is_error_metric = metric in error_metrics
-            except:
+            except: # noqa
                 raise Exception('Metric \'{}\' not in supported list of metrics, please pass function instead'
                                 .format(metric))
         if self.classes is not None and not self.predict_proba_flag:

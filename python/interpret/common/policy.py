@@ -5,7 +5,7 @@
 """Defines explanation policies."""
 
 from .chained_identity import ChainedIdentity
-from .constants import History, Defaults
+from .constants import Defaults
 
 
 class SamplingPolicy(ChainedIdentity):

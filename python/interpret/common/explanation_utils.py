@@ -4,11 +4,6 @@
 
 """Defines helpful utilities for summarizing and uploading data."""
 
-import os
-from math import ceil
-import json
-import io
-import pickle
 import logging
 import numpy as np
 import scipy as sp
@@ -16,9 +11,6 @@ from scipy import sparse
 from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
-
-from .constants import History, IO
-from .chained_identity import ChainedIdentity
 
 import warnings
 

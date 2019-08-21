@@ -4,7 +4,6 @@
 
 # Common tests for tabular explainers
 from enum import Enum
-import shutil
 import numpy as np
 import scipy as sp
 import shap
@@ -109,7 +108,7 @@ class VerifyTabularTests(object):
     def _get_transformations_from_col_transformer(self, col_transformer):
         transformers = []
         for name, tr, column_name, in col_transformer.transformers_:
-            if tr is "passthrough":
+            if tr == "passthrough":
                 tr = None
             if tr != "drop":
                 transformers.append((column_name, tr))

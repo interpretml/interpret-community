@@ -19,6 +19,7 @@ test_logger.setLevel(logging.DEBUG)
 @pytest.mark.owner(email=owner_email_tools_and_ux)
 @pytest.mark.usefixtures('clean_dir')
 class TestPFIExplainer(object):
+    def setup_class(self):
         def create_explainer(model, x_train, is_function=False, **kwargs):
             # Note: we ignore x_train here!
             return PFIExplainer(model, is_function=is_function, **kwargs)

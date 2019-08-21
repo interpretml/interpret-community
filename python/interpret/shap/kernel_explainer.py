@@ -216,10 +216,10 @@ class KernelExplainer(BlackBoxExplainer):
         self.explainer = shap.KernelExplainer(function, summary)
 
     def _reset_wrapper(self):
-            self.explainer = None
-            self.current_index_list = [0]
-            self.original_data_ref = [None]
-            self.initialization_examples = DatasetWrapper(self.initialization_examples.original_dataset)
+        self.explainer = None
+        self.current_index_list = [0]
+        self.original_data_ref = [None]
+        self.initialization_examples = DatasetWrapper(self.initialization_examples.original_dataset)
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None,
