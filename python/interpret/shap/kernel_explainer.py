@@ -11,15 +11,15 @@ from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_
 from ..common.aggregate import add_explain_global_method
 from ..common.explanation_utils import _convert_to_list, _append_shap_values_instance, \
     _convert_single_instance_to_multi
-from azureml.explain.model.common.model_wrapper import _wrap_model
+from interpret.common.model_wrapper import _wrap_model
 from ..explanation.explanation import _create_local_explanation
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from azureml.explain.model.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask
-from azureml.explain.model._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from interpret.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask
+from interpret._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
 import warnings

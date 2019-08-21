@@ -4,7 +4,7 @@
 
 """Defines utilities for handling kwargs on SHAP-based explainers."""
 
-from azureml.explain.model.common.constants import ExplainParams
+from interpret.common.constants import ExplainParams
 
 
 def _get_explain_global_kwargs(sampling_policy, method, include_local, batch_size):

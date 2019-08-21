@@ -14,9 +14,9 @@ from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from azureml.explain.model.common.constants import ExplainParams, Attributes, ExplainType, \
+from interpret.common.constants import ExplainParams, Attributes, ExplainType, \
     ShapValuesOutput, Defaults
-from azureml.explain.model._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from interpret._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
 import warnings
