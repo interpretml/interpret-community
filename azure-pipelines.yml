@@ -13,7 +13,7 @@ steps:
 - script: pip install -r requirements.txt
   displayName: 'Install required packages'
 
-- script: flake8 .
+- script: flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
   displayName: "Run flake8"
 
 - script: python -m pytest test/ --junitxml=./TEST-TEST.xml 
