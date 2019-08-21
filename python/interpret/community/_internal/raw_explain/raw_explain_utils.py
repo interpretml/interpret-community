@@ -4,7 +4,7 @@
 
 """Contains functions useful for generating raw explanation."""
 
-from ..dataset.dataset_wrapper import DatasetWrapper
+from interpret.community.dataset.dataset_wrapper import DatasetWrapper
 from .data_mapper import DataMapper
 
 

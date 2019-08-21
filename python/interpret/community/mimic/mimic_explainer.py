@@ -28,7 +28,7 @@ from ..explanation.explanation import _create_local_explanation, _create_global_
 from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.constants import ExplainParams, ExplainType, ModelTask, \
-    ShapValuesOutput, LoggingNamespace, MimicSerializationConstants, ExplainableModelType, \
+    ShapValuesOutput, MimicSerializationConstants, ExplainableModelType, \
     LightGBMParams, Defaults
 import logging
 import json
@@ -492,7 +492,7 @@ class MimicExplainer(BlackBoxExplainer):
                 if key == MimicSerializationConstants.MODEL:
                     mimic.__dict__[key] = model
                 elif key == MimicSerializationConstants.LOGGER:
-                    parent = logging.getLogger(LoggingNamespace.AZUREML)
+                    parent = logging.getLogger(__name__)
                     mimic_identity = json.loads(properties[MimicSerializationConstants.IDENTITY])
                     mimic.__dict__[key] = parent.getChild(mimic_identity)
                 elif key == MimicSerializationConstants.INITIALIZATION_EXAMPLES:

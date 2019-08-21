@@ -6,7 +6,7 @@
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args
 from .tree_model_utils import _explain_local_tree_surrogate, _expected_values_tree_surrogate
-from ...common.constants import ShapValuesOutput, LoggingNamespace, \
+from ...common.constants import ShapValuesOutput, \
     LightGBMSerializationConstants, ExplainableModelType
 import json
 import warnings
@@ -253,7 +253,7 @@ class LGBMExplainableModel(BaseExplainableModel):
             # Regenerate the properties on the fly
             if key in LightGBMSerializationConstants.nonify_properties:
                 if key == LightGBMSerializationConstants.LOGGER:
-                    parent = logging.getLogger(LoggingNamespace.AZUREML)
+                    parent = logging.getLogger(__name__)
                     lightgbm_identity = json.loads(properties[LightGBMSerializationConstants.IDENTITY])
                     lightgbm.__dict__[key] = parent.getChild(lightgbm_identity)
                 elif key == LightGBMSerializationConstants.TREE_EXPLAINER:

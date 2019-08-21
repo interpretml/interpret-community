@@ -194,12 +194,6 @@ class Spacy(object):
     TAGGER = 'tagger'
 
 
-class LoggingNamespace(object):
-    """Provide logging namespace related constants."""
-
-    AZUREML = 'azureml'
-
-
 class ModelTask(str, Enum):
     """Provide model task constants.  Can be classification, regression or unknown.
 

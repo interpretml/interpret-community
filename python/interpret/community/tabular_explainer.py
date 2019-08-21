@@ -17,6 +17,9 @@ InvalidExplainerErr = 'Could not find valid explainer to explain model'
 
 
 class TabularExplainer(BaseExplainer):
+    available_explanations = ["global", "local"]
+    explainer_type = "blackbox"
+
     """The tabular explainer meta-api for returning the best explanation result based on the given model.
 
     :param model: The model or pipeline to explain.
