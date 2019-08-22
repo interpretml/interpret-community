@@ -9,10 +9,10 @@ import logging
 
 from lightgbm import LGBMClassifier, LGBMRegressor
 
-from interpret.community.shap.kernel_explainer import KernelExplainer
-from interpret.community.shap.tree_explainer import TreeExplainer
-from interpret.community.shap.deep_explainer import DeepExplainer
-from interpret.community.shap.linear_explainer import LinearExplainer
+from interpret_ext.community.shap.kernel_explainer import KernelExplainer
+from interpret_ext.community.shap.tree_explainer import TreeExplainer
+from interpret_ext.community.shap.deep_explainer import DeepExplainer
+from interpret_ext.community.shap.linear_explainer import LinearExplainer
 from common_tabular_tests import VerifyTabularTests
 from common_utils import create_keras_multiclass_classifier, create_keras_regressor, \
     create_sklearn_linear_regressor, create_sklearn_logistic_regressor

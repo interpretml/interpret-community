@@ -2,24 +2,23 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines the KernelExplainer for computing explanations on black box models or functions."""
+"""Defines an explainer for DNN models."""
 
 import numpy as np
+import sys
+import logging
 
-from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_and_summary_method, \
-    init_blackbox_decorator
-from ..common.aggregate import add_explain_global_method
-from ..common.explanation_utils import _convert_to_list, _append_shap_values_instance, \
-    _convert_single_instance_to_multi
-from interpret.community.common.model_wrapper import _wrap_model
+from ..common.structured_model_explainer import StructuredInitModelExplainer
+from ..common.explanation_utils import _get_dense_examples, _convert_to_list
 from ..explanation.explanation import _create_local_explanation
-from ..dataset.dataset_wrapper import DatasetWrapper
+from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
 from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from interpret.community.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask
-from interpret.community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from interpret_ext.community.common.constants import ExplainParams, Attributes, ExplainType, \
+    Defaults, ModelTask, DNNFramework
+from interpret_ext.community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
 import warnings
@@ -29,42 +28,123 @@ with warnings.catch_warnings():
     import shap
 
 
-@add_prepare_function_and_summary_method
-@add_explain_global_method
-class KernelExplainer(BlackBoxExplainer):
-    """Tthe Kernel Explainer for explaining black box models or functions.
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
-    :param model: The model to explain or function if is_function is True.
-    :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
+
+try:
+    import torch
+except ImportError:
+    module_logger.info('Could not import torch, required if using a pytorch model')
+
+
+class logger_redirector(object):
+    """A redirector for system error output to logger."""
+
+    def __init__(self, module_logger):
+        """Initialize the logger_redirector.
+
+        :param module_logger: The logger to use for redirection.
+        :type module_logger: logger
+        """
+        self.logger = module_logger
+        self.propagate = self.logger.propagate
+        self.logger.propagate = False
+
+    def __enter__(self):
+        """Start the redirection for logging."""
+        self.logger.debug("Redirecting user output to logger")
+        self.original_stderr = sys.stderr
+        sys.stderr = self
+
+    def write(self, data):
+        """Write the given data to logger.
+
+        :param data: The data to write to logger.
+        :type data: str
+        """
+        self.logger.debug(data)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Finishes the redirection for logging."""
+        try:
+            if exc_val:
+                # The default traceback.print_exc() expects a file-like object which
+                # OutputCollector is not. Instead manually print the exception details
+                # to the wrapped sys.stderr by using an intermediate string.
+                # trace = traceback.format_tb(exc_tb)
+                import traceback
+                trace = "".join(traceback.format_exception(exc_type, exc_val, exc_tb))
+                print(trace, file=sys.stderr)
+        finally:
+            sys.stderr = self.original_stderr
+            self.logger.debug("User scope execution complete.")
+            self.logger.propagate = self.propagate
+
+
+def _get_dnn_model_framework(model):
+    """Get the DNN model framework, taken from SHAP DeepExplainer.
+
+    TODO: Refactor out SHAP's code so we can reference this method directly from SHAP.
+
+    :return: The DNN Framework, Pytorch or Tensorflow.
+    :rtype: str
+    """
+    actual_model = model[0] if type(model) is tuple else model
+    return DNNFramework.PYTORCH if hasattr(actual_model, "named_parameters") else DNNFramework.TENSORFLOW
+
+
+def _get_summary_data(initialization_examples, nclusters, framework):
+    """Compute the summary data from the intialization examples.
+
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
         scipy.sparse.csr_matrix
-    :param is_function: Default set to false, set to True if passing function instead of model.
-    :type is_function: bool
-    :param explain_subset: List of feature indices. If specified, only selects a subset of the
-        features in the evaluation dataset for explanation, which will speed up the explanation
-        process when number of features is large and the user already knows the set of interested
-        features. The subset can be the top-k features from the model summary.
-    :type explain_subset: list[int]
-    :param nsamples: Default to 'auto'. Number of times to re-evaluate the model when
-        explaining each prediction. More samples lead to lower variance estimates of the
-        feature importance values, but incur more computation cost. When 'auto' is provided,
-        the number of samples is computed according to a heuristic rule.
-    :type nsamples: 'auto' or int
-    :param features: A list of feature names.
-    :type features: list[str]
-    :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
-    :type classes: list[str]
     :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
         samples weighted by the number of data points they each represent. When the number of initialization
         examples is larger than (10 x nclusters), those examples will be summarized with k-means where
         k = nclusters.
     :type nclusters: int
-    :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
-        when using shap_values from the KernelExplainer.
-    :type show_progress: bool
+    :param framework: The framework, pytorch or tensorflow, for underlying DNN model.
+    :type framework: str
+    :return: A summarized matrix of feature vector examples (# examples x # features)
+        for initializing the explainer.
+    :rtype: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+        scipy.sparse.csr_matrix or torch.autograd.Variable
+    """
+    initialization_examples.compute_summary(nclusters=nclusters)
+    summary = initialization_examples.dataset
+    summary_data = summary.data
+    if framework == DNNFramework.PYTORCH:
+        summary_data = torch.Tensor(summary_data)
+    return summary_data
+
+
+@add_explain_global_method
+class DeepExplainer(StructuredInitModelExplainer):
+    """An explainer for DNN models, implemented using shap's DeepExplainer, supports tensorflow and pytorch.
+
+    :param model: The DNN model to explain.
+    :type model: pytorch or tensorflow model
+    :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
+        initializing the explainer.
+    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+        scipy.sparse.csr_matrix
+    :param explain_subset: List of feature indices. If specified, only selects a subset of the
+        features in the evaluation dataset for explanation. The subset can be the top-k features
+        from the model summary.
+    :type explain_subset: list[int]
+    :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
+        samples weighted by the number of data points they each represent. When the number of initialization
+        examples is larger than (10 x nclusters), those examples will be summarized with k-means where
+        k = nclusters.
+    :type nclusters: int
+    :param features: A list of feature names.
+    :type features: list[str]
+    :param classes: Class names as a list of strings. The order of the class names should match
+        that of the model output.  Only required if explaining classifier.
+    :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
         The format for list of transformations is same as the one here:
@@ -100,52 +180,36 @@ class KernelExplainer(BlackBoxExplainer):
     :param allow_all_transformations: Allow many to many and many to one transformations
     :type allow_all_transformations: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
-        In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
-        has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
-        outputs a 1 dimensional array.
     :type model_task: str
     """
 
     @init_tabular_decorator
-    @init_blackbox_decorator
-    def __init__(self, model, initialization_examples, is_function=False, explain_subset=None,
-                 nsamples=Defaults.AUTO, features=None, classes=None, nclusters=10,
-                 show_progress=True, transformations=None, allow_all_transformations=False,
-                 model_task=ModelTask.Unknown, **kwargs):
-        """Initialize the KernelExplainer.
+    @init_aggregator_decorator
+    def __init__(self, model, initialization_examples, explain_subset=None, nclusters=10,
+                 features=None, classes=None, transformations=None, allow_all_transformations=False,
+                 model_task=ModelTask.Unknown, is_classifier=None, **kwargs):
+        """Initialize the DeepExplainer.
 
-        :param model: The model to explain or function if is_function is True.
-        :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
-            ndarray
+        :param model: The DNN model to explain.
+        :type model: pytorch or tensorflow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
-        :param is_function: Default set to false, set to True if passing function instead of model.
-        :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
-            features in the evaluation dataset for explanation, which will speed up the explanation
-            process when number of features is large and the user already knows the set of interested
-            features. The subset can be the top-k features from the model summary.
+            features in the evaluation dataset for explanation. The subset can be the top-k features
+            from the model summary.
         :type explain_subset: list[int]
-        :param nsamples: Default to 'auto'. Number of times to re-evaluate the model when
-            explaining each prediction. More samples lead to lower variance estimates of the
-            feature importance values, but incur more computation cost. When 'auto' is provided,
-            the number of samples is computed according to a heuristic rule.
-        :type nsamples: 'auto' or int
-        :param features: A list of feature names.
-        :type features: list[str]
-        :param classes: Class names as a list of strings. The order of the class names should match
-            that of the model output.  Only required if explaining classifier.
-        :type classes: list[str]
         :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
             samples weighted by the number of data points they each represent. When the number of initialization
             examples is larger than (10 x nclusters), those examples will be summarized with k-means where
             k = nclusters.
         :type nclusters: int
-        :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
-            when using shap_values from the KernelExplainer.
-        :type show_progress: bool
+        :param features: A list of feature names.
+        :type features: list[str]
+        :param classes: Class names as a list of strings. The order of the class names should match
+            that of the model output.  Only required if explaining classifier.
+        :type classes: list[str]
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
@@ -174,10 +238,12 @@ class KernelExplainer(BlackBoxExplainer):
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
-        :param model_task: Optional parameter to specify whether the model is a classification or regression model.
+        :param is_classifier: Optional parameter to specify whether the model is a classification or regression model.
             In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
             has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
             outputs a 1 dimensional array.
+        :type is_classifier: bool
+        :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         :type model_task: str
         """
         self._datamapper = None
@@ -185,41 +251,21 @@ class KernelExplainer(BlackBoxExplainer):
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
                 examples=initialization_examples, transformations=transformations,
                 allow_all_transformations=allow_all_transformations)
-        # string-index the initialization examples
-        self._column_indexer = initialization_examples.string_index()
-        wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
-        super(KernelExplainer, self).__init__(wrapped_model, is_function=is_function,
-                                              model_task=eval_ml_domain, **kwargs)
-        self._logger.debug('Initializing KernelExplainer')
-        self._method = 'shap.kernel'
-        self.initialization_examples = initialization_examples
+
+        super(DeepExplainer, self).__init__(model, initialization_examples, **kwargs)
+        self._logger.debug('Initializing DeepExplainer')
+        self._method = 'shap.deep'
         self.features = features
         self.classes = classes
         self.nclusters = nclusters
         self.explain_subset = explain_subset
-        self.show_progress = show_progress
-        self.nsamples = nsamples
         self.transformations = transformations
-        self._reset_evaluation_background(self.function, **kwargs)
-
-    def _reset_evaluation_background(self, function, **kwargs):
-        """Modify the explainer to use the new evalaution example for background data.
-
-        Note when constructing explainer an evaluation example is not available hence the initialization data is used.
-
-        :param function: Function.
-        :type function: Function that accepts a 2d ndarray
-        """
-        function, summary = self._prepare_function_and_summary(function, self.original_data_ref,
-                                                               self.current_index_list,
-                                                               explain_subset=self.explain_subset, **kwargs)
-        self.explainer = shap.KernelExplainer(function, summary)
-
-    def _reset_wrapper(self):
-        self.explainer = None
-        self.current_index_list = [0]
-        self.original_data_ref = [None]
-        self.initialization_examples = DatasetWrapper(self.initialization_examples.original_dataset)
+        self.model_task = model_task
+        self.framework = _get_dnn_model_framework(self.model)
+        summary = _get_summary_data(self.initialization_examples, nclusters, self.framework)
+        # Suppress warning message from Keras
+        with logger_redirector(self._logger):
+            self.explainer = shap.DeepExplainer(self.model, summary)
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None,
@@ -243,7 +289,7 @@ class KernelExplainer(BlackBoxExplainer):
             PerClassMixin.
         :rtype: DynamicGlobalExplanation
         """
-        kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_KERNEL, include_local, batch_size)
+        kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
         return self._explain_global(evaluation_examples, **kwargs)
@@ -257,69 +303,55 @@ class KernelExplainer(BlackBoxExplainer):
         :return: Args for explain_local.
         :rtype: dict
         """
+        self._logger.debug('Explaining deep model')
         if self._datamapper is not None:
             evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
-
-        if self._column_indexer:
-            evaluation_examples.apply_indexer(self._column_indexer)
-        # Compute subset info prior
-        if self.explain_subset:
-            evaluation_examples.take_subset(self.explain_subset)
 
         # sample the evaluation examples
         if self.sampling_policy is not None and self.sampling_policy.allow_eval_sampling:
             sampling_method = self.sampling_policy.sampling_method
             max_dim_clustering = self.sampling_policy.max_dim_clustering
             evaluation_examples.sample(max_dim_clustering, sampling_method=sampling_method)
-        kwargs = {ExplainParams.METHOD: ExplainType.SHAP_KERNEL}
+        kwargs = {ExplainParams.METHOD: ExplainType.SHAP_DEEP}
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
-        kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features,
-                                                                          explain_subset=self.explain_subset)
-        original_evaluation = evaluation_examples.original_dataset
+        kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
         evaluation_examples = evaluation_examples.dataset
-
-        self._logger.debug('Running KernelExplainer')
-
-        if self.explain_subset:
-            # Need to reset state before and after explaining a subset of data with wrapper function
-            self._reset_wrapper()
-            self.original_data_ref[0] = original_evaluation
-            self.current_index_list.append(0)
-            output_shap_values = None
-            for ex_idx, example in enumerate(evaluation_examples):
-                self.current_index_list[0] = ex_idx
-                # Note: when subsetting with KernelExplainer, for correct results we need to
-                # set the background to be the evaluation data for columns not specified in subset
-                self._reset_evaluation_background(self.function, nclusters=self.nclusters)
-                tmp_shap_values = self.explainer.shap_values(example, silent=not self.show_progress,
-                                                             nsamples=self.nsamples)
-                if output_shap_values is None:
-                    output_shap_values = _convert_single_instance_to_multi(tmp_shap_values)
-                else:
-                    output_shap_values = _append_shap_values_instance(output_shap_values, tmp_shap_values)
-            # Need to reset state before and after explaining a subset of data with wrapper function
-            self._reset_wrapper()
-            shap_values = output_shap_values
-        else:
-            shap_values = self.explainer.shap_values(evaluation_examples, silent=not self.show_progress,
-                                                     nsamples=self.nsamples)
-
+        # for now convert evaluation examples to dense format if they are sparse
+        # until DeepExplainer sparse support is added
+        dense_examples = _get_dense_examples(evaluation_examples)
+        if self.framework == DNNFramework.PYTORCH:
+            dense_examples = torch.Tensor(dense_examples)
+        shap_values = self.explainer.shap_values(dense_examples)
+        # use model task to update structure of shap values
+        if self.model_task == ModelTask.Regression and isinstance(shap_values, list) and len(shap_values) == 1:
+            shap_values = shap_values[0]
         classification = isinstance(shap_values, list)
+        if self.explain_subset:
+            if classification:
+                self._logger.debug('Classification explanation')
+                for i in range(shap_values.shape[0]):
+                    shap_values[i] = shap_values[i][:, self.explain_subset]
+            else:
+                self._logger.debug('Regression explanation')
+                shap_values = shap_values[:, self.explain_subset]
+
         expected_values = None
         if hasattr(self.explainer, Attributes.EXPECTED_VALUE):
-            expected_values = np.array(self.explainer.expected_value)
+            self._logger.debug('reporting expected values')
+            expected_values = self.explainer.expected_value
+            if isinstance(expected_values, np.ndarray):
+                expected_values = expected_values.tolist()
+        else:
+            return self._expected_values
         local_importance_values = _convert_to_list(shap_values)
         if classification:
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
         else:
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-        if self.model is not None:
-            kwargs[ExplainParams.MODEL_TYPE] = str(type(self.model))
-        else:
-            kwargs[ExplainParams.MODEL_TYPE] = ExplainType.FUNCTION
+        kwargs[ExplainParams.MODEL_TYPE] = str(type(self.model))
         kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = np.array(local_importance_values)
-        kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
+        kwargs[ExplainParams.EXPECTED_VALUES] = np.array(expected_values)
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
@@ -327,11 +359,11 @@ class KernelExplainer(BlackBoxExplainer):
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
-        """Explain the function locally by using SHAP's KernelExplainer.
+        """Explain the model by using shap's deep explainer.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: DatasetWrapper
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
             of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation

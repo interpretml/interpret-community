@@ -8,7 +8,7 @@ import numpy as np
 import logging
 from scipy.sparse import csr_matrix
 
-from interpret.community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
+from interpret_ext.community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
     _get_raw_feature_importances, _is_one_to_many, _sort_values, _sort_feature_list_single, \
     _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes
 

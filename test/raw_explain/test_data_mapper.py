@@ -9,7 +9,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from interpret.community._internal.raw_explain import DataMapper
+from interpret_ext.community._internal.raw_explain import DataMapper
 from raw_explain.utils import FuncTransformer, IdentityTransformer, SparseTransformer
 
 from constants import owner_email_tools_and_ux

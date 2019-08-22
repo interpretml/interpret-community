@@ -7,7 +7,7 @@ import logging
 
 import numpy as np
 
-from interpret.community.explanation.explanation import BaseExplanation, FeatureImportanceExplanation, \
+from interpret_ext.community.explanation.explanation import BaseExplanation, FeatureImportanceExplanation, \
     LocalExplanation, GlobalExplanation, ExpectedValuesMixin, ClassesMixin, PerClassMixin, _DatasetsMixin, \
     _ModelIdMixin
 from constants import owner_email_tools_and_ux

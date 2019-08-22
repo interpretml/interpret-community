@@ -20,9 +20,9 @@ from sklearn.model_selection import train_test_split
 
 from lightgbm import LGBMRegressor
 
-from interpret.community.common.constants import ExplainParams, ShapValuesOutput, ModelTask
-from interpret.community.common.explanation_utils import _summarize_data
-from interpret.community.common.policy import SamplingPolicy
+from interpret_ext.community.common.constants import ExplainParams, ShapValuesOutput, ModelTask
+from interpret_ext.community.common.explanation_utils import _summarize_data
+from interpret_ext.community.common.policy import SamplingPolicy
 
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_sklearn_logistic_regressor, create_iris_data, create_energy_data, create_cancer_data, \

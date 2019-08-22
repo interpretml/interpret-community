@@ -8,8 +8,8 @@ import pytest
 import json
 import logging
 import numpy as np
-from interpret.community.common.constants import ShapValuesOutput
-from interpret.community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret_ext.community.common.constants import ShapValuesOutput
+from interpret_ext.community.mimic.models.lightgbm_model import LGBMExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_iris_data, create_cancer_data, create_energy_data
 from models import retrieve_model
