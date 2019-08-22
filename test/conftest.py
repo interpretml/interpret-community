@@ -5,7 +5,6 @@
 import pytest
 import logging
 from os import environ
-from utilities import constants
 from common_utils import create_iris_data, create_boston_data, create_simple_titanic_data, \
     create_complex_titanic_data
 from constants import DatasetConstants
@@ -24,11 +23,6 @@ test_logger.setLevel(logging.DEBUG)
 def pytest_itemcollected(item):
     if not item.get_closest_marker("domain"):
         item.add_marker(pytest.mark.domain(["explain", "model"]))
-
-
-@pytest.fixture(scope="session")
-def test_suite_prefix():
-    return constants.explain_model_short_name
 
 
 @pytest.fixture(scope='session')
