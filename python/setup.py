@@ -88,5 +88,11 @@ setup(
 
     install_requires=DEPENDENCIES,
 
+    entry_points={
+        "interpret_ext_blackbox": [
+            "TabularExplainer = interpret_ext.community:TabularExplainer"
+        ]
+    },
+
     extras_require=EXTRAS
 )
