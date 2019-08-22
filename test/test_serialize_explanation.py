@@ -35,8 +35,7 @@ def iris_svm_model(iris):
 @pytest.mark.usefixtures('clean_dir')
 class TestSerializeExplanation(object):
 
-    def test_json_serialize_mimic_no_features(self, shared_workspace,
-                                              iris, iris_svm_model):
+    def test_json_serialize_mimic_no_features(self, iris, iris_svm_model):
         explainer = MimicExplainer(iris_svm_model,
                                    iris[DatasetConstants.X_TRAIN],
                                    LGBMExplainableModel,
@@ -45,8 +44,7 @@ class TestSerializeExplanation(object):
         explanation = explainer.explain_global()
         verify_serialization(explanation)
 
-    def test_json_serialize_local_explanation_classification(self, shared_workspace,
-                                                             iris, tabular_explainer, iris_svm_model):
+    def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])

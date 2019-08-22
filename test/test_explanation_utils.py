@@ -8,21 +8,14 @@ import numpy as np
 import logging
 from scipy.sparse import csr_matrix
 
-from interpret.community.common.constants import History
 from interpret.community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
-    _get_raw_feature_importances, _is_one_to_many, ArtifactUploader, _sort_values, _sort_feature_list_single, \
-    _sort_feature_list_multiclass, _two_dimensional_slice, get_feature_map_from_list_of_indexes
+    _get_raw_feature_importances, _is_one_to_many, _sort_values, _sort_feature_list_single, \
+    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes
 
-from explain_model.raw_explain.utils import _get_feature_map_from_indices_list
+from raw_explain.utils import _get_feature_map_from_indices_list
 from constants import owner_email_tools_and_ux
 
 test_logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def uploader():
-    run = None
-    return ArtifactUploader(run)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -47,17 +40,6 @@ class TestExplanationUtils(object):
         numpy_list = [numpy_2d] * 3
         list_2d = [[1] * 4] * 3
         assert _convert_to_list(numpy_list) == list_2d
-
-    def test_update_storage_policy(self, uploader):
-        uploader._update_storage_policy(4, 50)
-        assert uploader.storage_policy[History.MAX_NUM_BLOCKS] == 4
-        assert uploader.storage_policy[History.BLOCK_SIZE] == 50
-
-    def test_get_num_of_blocks(self, uploader):
-        res1 = uploader._get_num_of_blocks(75)
-        assert res1 == 1
-        res2 = uploader._get_num_of_blocks(256)
-        assert res2 == 3
 
     def test_sort_values(self):
         feature_list = ['feature0', 'feature1', 'feature2', 'feature3']
@@ -184,7 +166,7 @@ class TestExplanationUtils(object):
     def test_get_feature_map_from_list_of_indexes(self):
         feature_map_as_adjacency_list = [[0, 1, 2], [2, 3]]
 
-        feature_map = get_feature_map_from_list_of_indexes(feature_map_as_adjacency_list)
+        feature_map = _get_feature_map_from_list_of_indexes(feature_map_as_adjacency_list)
         actual_feature_map = np.zeros((2, 4))
         actual_feature_map[0, [0, 1]] = 1
         actual_feature_map[0, 2] = 0.5

@@ -4,7 +4,8 @@
 
 import pytest
 import logging
-from os import environ
+import tempfile
+import os
 from common_utils import create_iris_data, create_boston_data, create_simple_titanic_data, \
     create_complex_titanic_data
 from constants import DatasetConstants
@@ -21,6 +22,13 @@ test_logger.setLevel(logging.DEBUG)
 def pytest_itemcollected(item):
     if not item.get_closest_marker("domain"):
         item.add_marker(pytest.mark.domain(["explain", "model"]))
+
+
+@pytest.fixture()
+def clean_dir():
+    new_path = tempfile.mkdtemp()
+    print("tmp test directory: " + new_path)
+    os.chdir(new_path)
 
 
 @pytest.fixture(scope='session')
@@ -70,14 +78,6 @@ def titanic_complex():
         DatasetConstants.Y_TRAIN: y_train,
         DatasetConstants.Y_TEST: y_test
     }
-
-
-@pytest.fixture(scope="session", autouse=True)
-def attach_vm_compute_to_shared_workspace(shared_workspace):
-    from utilities.operations.cli.account import get_keyvault_secret
-    environ["amltestvmpassword"] = get_keyvault_secret("aml-build-test-vm-password")
-    from experimentation.core_sdk_test_scripts import core_sdk_test_base
-    core_sdk_test_base.attach_vm_to_workspace(shared_workspace)
 
 
 @pytest.fixture(scope='session')

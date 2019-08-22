@@ -31,7 +31,7 @@ class TestExplainerValidity(object):
     def test_working(self):
         assert True
 
-    def test_verify_pipeline_model_coefficient_explanation(self, shared_workspace):
+    def test_verify_pipeline_model_coefficient_explanation(self):
         # Validate our explainer against an explainable linear model
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=7)
@@ -61,7 +61,7 @@ class TestExplainerValidity(object):
             # Calculate the correlation
             validate_correlation(explanation.global_importance_rank, norm_coeff_imp, threshold[idx])
 
-    def test_verify_linear_model_coefficient_explanation(self, shared_workspace):
+    def test_verify_linear_model_coefficient_explanation(self):
         # Validate our explainer against an explainable linear model
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=7)
@@ -84,7 +84,7 @@ class TestExplainerValidity(object):
         # Calculate the correlation
         validate_correlation(explanation.global_importance_rank, norm_coeff_imp, 0.76)
 
-    def test_validate_against_shap(self, shared_workspace):
+    def test_validate_against_shap(self):
         # Validate our explainer against shap library directly
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.02, random_state=7)

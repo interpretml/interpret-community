@@ -11,7 +11,7 @@ from sklearn.preprocessing import OneHotEncoder
 from interpret.community._internal.raw_explain.feature_mappers import get_feature_mapper_for_pipeline, \
     IdentityMapper, PassThroughMapper, ManytoManyMapper
 
-from explain_model.raw_explain.utils import FuncTransformer, IdentityTransformer
+from raw_explain.utils import FuncTransformer, IdentityTransformer
 from constants import owner_email_tools_and_ux
 
 

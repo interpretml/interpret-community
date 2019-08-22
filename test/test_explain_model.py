@@ -37,7 +37,7 @@ class TestTabularExplainer(object):
     def test_working(self):
         assert True
 
-    def test_pandas_with_feature_names(self, shared_workspace, iris, tabular_explainer, verify_tabular):
+    def test_pandas_with_feature_names(self, iris, tabular_explainer, verify_tabular):
         # create pandas dataframes
         x_train = pd.DataFrame(data=iris[DatasetConstants.X_TRAIN], columns=iris[DatasetConstants.FEATURES])
         x_test = pd.DataFrame(data=iris[DatasetConstants.X_TEST], columns=iris[DatasetConstants.FEATURES])

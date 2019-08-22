@@ -370,3 +370,34 @@ def _sort_feature_list_multiclass(features, order):
 # do the equivalent of a numpy array slice on a two-dimensional list
 def _two_dimensional_slice(lst, end_index):
     return list(map(lambda x: x[:end_index], lst))
+
+
+def _get_feature_map_from_list_of_indexes(indices_list):
+    """Compute feature map from a list of indices from raw features to generated feature indices.
+
+    :param indices_list: list of lists of generated feature indices for each raw feature
+    :type indices_list: list[list[int]]
+    :return: feature map from raw to generated
+    :rtype: numpy.array
+    """
+    # sets for each list of generated features
+    raw_to_gen = []
+    for generated_index_list in indices_list:
+        raw_to_gen.append(set(generated_index_list))
+
+    num_gen_feats = 1 + max([max(x) for x in indices_list])
+    num_raw = len(indices_list)
+    # compute number of parents for a generated feature
+    weights = np.zeros((num_gen_feats))
+    for i in range(num_gen_feats):
+        gen_feat_num_parents = sum([1 for gen_set in raw_to_gen if i in gen_set])
+        if gen_feat_num_parents:
+            # divide a generated feature weight equally amongst the raw features.
+            weights[i] = 1.0 / gen_feat_num_parents
+
+    feature_map = np.zeros((num_raw, num_gen_feats))
+    for i in range(len(indices_list)):
+        for j in indices_list[i]:
+            feature_map[i, j] = weights[j]
+
+    return feature_map
