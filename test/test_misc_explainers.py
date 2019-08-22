@@ -29,7 +29,7 @@ class TestKernelExplainer(object):
         def create_explainer(model, x_train, **kwargs):
             return KernelExplainer(model, x_train, **kwargs)
 
-        self._verify_tabular = VerifyTabularTests("testkernelexplainer", test_logger, create_explainer)
+        self._verify_tabular = VerifyTabularTests(test_logger, create_explainer)
 
     def test_kernel_explainer_raw_transformations_list_classification(self):
         self._verify_tabular.verify_explain_model_transformations_list_classification()
@@ -51,7 +51,7 @@ class TestDeepExplainer(object):
         def create_explainer(model, x_train, **kwargs):
             return DeepExplainer(model, x_train, **kwargs)
 
-        self._verify_tabular = VerifyTabularTests("testdeepexplainer", test_logger, create_explainer)
+        self._verify_tabular = VerifyTabularTests(test_logger, create_explainer)
 
     def _get_create_model(self, classification):
         if classification:
@@ -87,7 +87,7 @@ class TestTreeExplainer(object):
         def create_explainer(model, x_train, **kwargs):
             return TreeExplainer(model, **kwargs)
 
-        self._verify_tabular = VerifyTabularTests("testtreeexplainer", test_logger, create_explainer)
+        self._verify_tabular = VerifyTabularTests(test_logger, create_explainer)
 
     def _get_create_model(self, classification):
         if classification:
@@ -124,7 +124,7 @@ class TestLinearExplainer(object):
         def create_explainer(model, x_train, **kwargs):
             return LinearExplainer(model, x_train, **kwargs)
 
-        self._verify_tabular = VerifyTabularTests("testlinearexplainer", test_logger, create_explainer)
+        self._verify_tabular = VerifyTabularTests(test_logger, create_explainer)
 
     def _get_create_model(self, classification):
         if classification:

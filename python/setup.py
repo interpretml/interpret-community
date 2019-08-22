@@ -47,6 +47,7 @@ DEPENDENCIES = [
     'pandas',
     'scipy',
     'scikit-learn',
+    'interpret',
     'shap>=0.20.0, <=0.29.3'
 ]
 
