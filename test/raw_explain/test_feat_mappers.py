@@ -8,7 +8,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from interpret._internal.raw_explain.feature_mappers import get_feature_mapper_for_pipeline, \
+from interpret.community._internal.raw_explain.feature_mappers import get_feature_mapper_for_pipeline, \
     IdentityMapper, PassThroughMapper, ManytoManyMapper
 
 from explain_model.raw_explain.utils import FuncTransformer, IdentityTransformer

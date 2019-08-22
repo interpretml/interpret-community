@@ -6,4 +6,5 @@ sklearn_pandas
 hdbscan
 lightgbm
 xgboost
+interpret
 prompt-toolkit>=2.0.0

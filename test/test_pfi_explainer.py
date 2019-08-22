@@ -7,7 +7,7 @@ import pytest
 # Tests for Permutation Feature Importance Explainer
 import logging
 
-from interpret.permutation.permutation_importance import PFIExplainer
+from interpret.community.permutation.permutation_importance import PFIExplainer
 from constants import owner_email_tools_and_ux
 
 from explain_model.common_tabular_tests import VerifyTabularTests

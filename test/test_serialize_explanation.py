@@ -11,25 +11,17 @@ import json
 import numpy as np
 import pandas as pd
 
-from azureml.core import Experiment
-from interpret.common.constants import ExplainParams
-from interpret.mimic.mimic_explainer import MimicExplainer
-from interpret.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret.explanation.explanation import save_explanation, load_explanation
+from interpret.community.common.constants import ExplainParams
+from interpret.community.mimic.mimic_explainer import MimicExplainer
+from interpret.community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret.community.explanation.explanation import save_explanation, load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
-from interpret.dataset.dataset_wrapper import DatasetWrapper
+from interpret.community.dataset.dataset_wrapper import DatasetWrapper
 from shap.common import DenseData
 
 test_logger = logging.getLogger(__name__)
-
-
-@pytest.fixture(scope='class')
-def test_download_experiment(shared_workspace):
-    experiment_name = 'testdownloadmodelexplanation'
-    Experiment(shared_workspace, experiment_name)
-    yield experiment_name
 
 
 @pytest.fixture(scope='class')
@@ -43,7 +35,7 @@ def iris_svm_model(iris):
 @pytest.mark.usefixtures('clean_dir')
 class TestSerializeExplanation(object):
 
-    def test_json_serialize_mimic_no_features(self, shared_workspace, test_download_experiment,
+    def test_json_serialize_mimic_no_features(self, shared_workspace,
                                               iris, iris_svm_model):
         explainer = MimicExplainer(iris_svm_model,
                                    iris[DatasetConstants.X_TRAIN],
@@ -53,7 +45,7 @@ class TestSerializeExplanation(object):
         explanation = explainer.explain_global()
         verify_serialization(explanation)
 
-    def test_json_serialize_local_explanation_classification(self, shared_workspace, test_download_experiment,
+    def test_json_serialize_local_explanation_classification(self, shared_workspace,
                                                              iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],

@@ -8,14 +8,12 @@ from os import environ
 from common_utils import create_iris_data, create_boston_data, create_simple_titanic_data, \
     create_complex_titanic_data
 from constants import DatasetConstants
-from interpret.tabular_explainer import TabularExplainer
+from interpret.community.tabular_explainer import TabularExplainer
 from common_tabular_tests import VerifyTabularTests
-from interpret.mimic.mimic_explainer import MimicExplainer
-from interpret.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
-from interpret.mimic.models.tree_model import DecisionTreeExplainableModel
-from interpret.scoring.scoring_explainer import TreeScoringExplainer
-from common_utils import create_sklearn_random_forest_regressor
+from interpret.community.mimic.mimic_explainer import MimicExplainer
+from interpret.community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret.community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
+from interpret.community.mimic.models.tree_model import DecisionTreeExplainableModel
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
 
@@ -163,11 +161,3 @@ def verify_mimic_special_args():
 @pytest.fixture(scope='session')
 def scoring_eval_kwargs():
     yield {}
-
-
-@pytest.fixture(scope='session')
-def boston_scoring_tree_regressor(boston):
-    x_train = boston[DatasetConstants.X_TRAIN]
-    model = create_sklearn_random_forest_regressor(x_train, boston[DatasetConstants.Y_TRAIN])
-    explainer = TabularExplainer(model, x_train, features=boston[DatasetConstants.FEATURES])
-    yield TreeScoringExplainer(explainer)

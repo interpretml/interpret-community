@@ -5,18 +5,40 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.6' 
-    addToPath: true
+- bash: echo "##vso[task.prependpath]$CONDA/bin"
+  displayName: Add conda to PATH
 
-- script: pip install -r requirements.txt
-  displayName: 'Install required packages'
+- bash: conda create --yes --quiet --name interp python=3.6
+  displayName: Create Anaconda environment
 
-- script: flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-  displayName: "Run flake8"
+- bash: |
+    source activate interp
+    conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
+  displayName: Install Anaconda packages
 
-- script: python -m pytest test/ --junitxml=./TEST-TEST.xml 
+- bash: |
+    source activate interp
+    pip install --upgrade pip
+  displayName: Upgrade pip to latest
+
+- bash: |
+    source activate interp
+    pip install -r requirements.txt
+  displayName: Install required pip packages
+
+- bash: |
+    source activate interp
+    pip install -e ./python
+  displayName: Install interpret-extensions
+
+- bash: |
+    source activate interp
+    flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
+  displayName: 'Run flake8'
+
+- bash: |
+    source activate interp
+    python -m pytest test/ --junitxml=./TEST-TEST.xml 
   displayName: 'Run tests'
 
 - task: PublishTestResults@2

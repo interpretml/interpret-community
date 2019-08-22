@@ -20,11 +20,9 @@ from sklearn.model_selection import train_test_split
 
 from lightgbm import LGBMRegressor
 
-from interpret.scoring.scoring_explainer import KernelScoringExplainer, \
-    TreeScoringExplainer, LinearScoringExplainer
-from interpret.common.constants import ExplainParams, ShapValuesOutput, ModelTask
-from interpret.common.explanation_utils import _summarize_data
-from interpret.common.policy import SamplingPolicy
+from interpret.community.common.constants import ExplainParams, ShapValuesOutput, ModelTask
+from interpret.community.common.explanation_utils import _summarize_data
+from interpret.community.common.policy import SamplingPolicy
 
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_sklearn_logistic_regressor, create_iris_data, create_energy_data, create_cancer_data, \
@@ -540,8 +538,7 @@ class VerifyTabularTests(object):
                                             expected_per_class_features)
 
     def verify_explain_model_subset_classification_dense(self, is_local=True,
-                                                         true_labels_required=False,
-                                                         create_scoring_explainer=True):
+                                                         true_labels_required=False):
         # Verify explaining a subset of the features (for scoring workflow)
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=7)
@@ -557,13 +554,6 @@ class VerifyTabularTests(object):
             o16n_explanation = explainer.explain_global(x_test, y_test)
         else:
             o16n_explanation = explainer.explain_global(x_test)
-        if create_scoring_explainer:
-            if hasattr(explainer, 'explainer') and 'TreeExplainer' in str(type(explainer.explainer)):
-                scoring_explainer = TreeScoringExplainer(explainer)
-            elif hasattr(explainer, 'explainer') and 'LinearExplainer' in str(type(explainer.explainer)):
-                scoring_explainer = LinearScoringExplainer(explainer)
-            else:
-                scoring_explainer = KernelScoringExplainer(explainer, initialization_examples=x_train[:3])
         ranked_global_names = o16n_explanation.get_ranked_global_names()
         column_subset = ranked_global_names[:5]
         # Run explain model again but this time only on the feature subset and on a single row
@@ -578,20 +568,9 @@ class VerifyTabularTests(object):
             explainer.explain_global(x_test_row)
             # Run it again but for multiple rows (the entire test set)
             explainer.explain_global(x_test)
-        if create_scoring_explainer:
-            # Run explainer on scoring model
-            scored_explanation = scoring_explainer.explain(x_test_row)
-            if is_local:
-                local_importance_values = o16n_explanation.local_importance_values
-                if isinstance(scored_explanation, (list,)):
-                    np.testing.assert_array_equal(local_importance_values[0][0], scored_explanation[0][0])
-                    np.testing.assert_array_equal(local_importance_values[1][0], scored_explanation[1][0])
-                else:
-                    np.testing.assert_array_equal(local_importance_values[0][0], scored_explanation[0])
 
     def verify_explain_model_subset_regression_sparse(self, is_local=True,
-                                                      true_labels_required=False,
-                                                      create_scoring_explainer=True):
+                                                      true_labels_required=False):
         # Verify explaining a subset of the features (for scoring workflow), but on sparse regression data
         x_train, x_test, y_train, y_test = self.create_msx_data(0.01)
         DATA_SLICE = slice(100)
@@ -609,11 +588,6 @@ class VerifyTabularTests(object):
             o16n_explanation = explainer.explain_global(x_test, y_test)
         else:
             o16n_explanation = explainer.explain_global(x_test)
-        if create_scoring_explainer:
-            if hasattr(explainer, 'explainer') and 'TreeExplainer' in str(type(explainer.explainer)):
-                scoring_explainer = TreeScoringExplainer(explainer)
-            else:
-                scoring_explainer = KernelScoringExplainer(explainer, initialization_examples=x_train[:3])
         ranked_global_names = o16n_explanation.get_ranked_global_names()
         column_subset = ranked_global_names[:5]
         # Run explain model again but this time only on the feature subset and on a single row
@@ -639,13 +613,9 @@ class VerifyTabularTests(object):
             correct_ratio = total_in_threshold / total_elems
             # Surprisingly, they are almost identical!
             assert(correct_ratio > 0.9)
-        if create_scoring_explainer:
-            # Run explainer on scoring model
-            scoring_explainer.explain(x_test_row)
 
     def verify_explain_model_subset_classification_sparse(self, is_local=True,
-                                                          true_labels_required=False,
-                                                          create_scoring_explainer=True):
+                                                          true_labels_required=False):
         # verifies explaining on a subset of features with sparse classification data
         x_train, x_test, y_train, y_test, classes = self.create_newsgroups_data()
         x_train = x_train[DATA_SLICE]
@@ -687,13 +657,8 @@ class VerifyTabularTests(object):
                 correct_ratio = total_in_threshold / total_elems
                 # Surprisingly, they are almost identical!
                 assert(correct_ratio > 0.9)
-        if create_scoring_explainer:
-            scoring_explainer = KernelScoringExplainer(explainer, initialization_examples=x_train)
-            # Run explainer on scoring model
-            scoring_explainer.explain(x_test_row)
 
-    def verify_explain_model_scoring_with_sampling_regression_sparse(self, true_labels_required=False,
-                                                                     create_scoring_explainer=True):
+    def verify_explain_model_scoring_with_sampling_regression_sparse(self, true_labels_required=False):
         # Verify that evaluation dataset can be downsampled and the scoring scenario can still be run
         x_train, x_test, y_train, y_test = self.create_msx_data(0.2)
         x_train = x_train[DATA_SLICE]
@@ -716,13 +681,6 @@ class VerifyTabularTests(object):
             explainer.explain_global(x_test[:5], y_test[:5], **policy)
         else:
             explainer.explain_global(x_test[:5], **policy)
-        if create_scoring_explainer:
-            if hasattr(explainer, 'explainer') and 'TreeExplainer' in str(type(explainer.explainer)):
-                scoring_explainer = TreeScoringExplainer(explainer)
-            else:
-                scoring_explainer = KernelScoringExplainer(explainer, initialization_examples=x_train[:3])
-            # Run explainer on scoring model for entire training set
-            scoring_explainer.explain(x_test[:3])
 
     def verify_explain_model_throws_on_bad_classifier_and_classes(self):
         # Verify that explain model throws when specifying a classifier without predict_proba and classes parameter
