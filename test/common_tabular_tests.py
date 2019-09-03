@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 
 from lightgbm import LGBMRegressor
 
-from interpret_ext.community.common.constants import ExplainParams, ShapValuesOutput, ModelTask
+from interpret_ext.community.common.constants import ExplainParams, ShapValuesOutput, ModelTask, InterpretData
 from interpret_ext.community.common.explanation_utils import _summarize_data
 from interpret_ext.community.common.policy import SamplingPolicy
 
@@ -242,6 +242,9 @@ class VerifyTabularTests(object):
         else:
             explanation = explainer.explain_global()
         assert not explanation.is_raw
+        # Validate data has global info
+        global_data = explanation.data(key=-1)
+        assert(InterpretData.OVERALL in global_data)
         ranked_global_values = explanation.get_ranked_global_values()
         ranked_global_names = explanation.get_ranked_global_names()
         # Note: DNNs may be too random to validate here
@@ -262,6 +265,12 @@ class VerifyTabularTests(object):
             explanation_local = explainer.explain_local(x_test)
             # Validate there is a local explanation per class in multiclass case
             assert(np.array(explanation_local.local_importance_values).shape[0] == len(target_names))
+            # Validate data has local info
+            local_data = explanation_local.data(key=-1)
+            assert(InterpretData.SPECIFIC in local_data)
+            local_data_0 = explanation_local.data(key=0)
+            for key in [InterpretData.NAMES, InterpretData.SCORES, InterpretData.TYPE]:
+                assert(key in local_data_0)
 
     def verify_explain_model_local(self, expected_overall_features, expected_per_class_features=None,
                                    is_per_class=True, include_evaluation_examples=True,

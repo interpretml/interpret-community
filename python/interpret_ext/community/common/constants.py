@@ -272,3 +272,18 @@ class DNNFramework(object):
 
     TENSORFLOW = 'tensorflow'
     PYTORCH = 'pytorch'
+
+
+class InterpretData(object):
+    """Provide Data and Visualize constants for interpret core."""
+
+    BASE_VALUE = 'Base Value'
+    EXTRA = 'extra'
+    NAMES = 'names'
+    OVERALL = 'overall'
+    PERF = 'perf'
+    SCORES = 'scores'
+    SPECIFIC = 'specific'
+    TYPE = 'type'
+    UNIVARIATE = 'univariate'
+    VALUES = 'values'

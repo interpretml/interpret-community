@@ -10,17 +10,21 @@ import json
 import pandas as pd
 import gc
 
+from abc import ABCMeta, abstractmethod
+
 from shap.common import DenseData
+from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
 from ..common.explanation_utils import _sort_values, _order_imp
 from ..common.constants import Dynamic, ExplainParams, ExplanationParams, History, \
-    ExplainType, ModelTask, Defaults
+    ExplainType, ModelTask, Defaults, InterpretData
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
 
 
 class BaseExplanation(ChainedIdentity):
+
     """The common explanation returned by explainers.
 
     :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
@@ -33,6 +37,8 @@ class BaseExplanation(ChainedIdentity):
     :param explanation_id: The unique identifier for the explanation.
     :type explanation_id: str
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, method, model_task, model_type=None, explanation_id=None, **kwargs):
         """Create the common base explanation.
@@ -89,6 +95,29 @@ class BaseExplanation(ChainedIdentity):
         :rtype: str
         """
         return self._id
+
+    @abstractmethod
+    def data(self, key=None):
+        """Return the data of the explanation.
+
+        :param key: The key for the local data to be retrieved.
+        :type key: int
+        :return: The explanation data.
+        :rtype: dict
+        """
+        return {}
+
+    def visualize(self, key=None):
+        return "Visualization not supported for BaseExplanation"
+
+    @property
+    @abstractmethod
+    def selector(self):
+        return None
+
+    @property
+    def name(self):
+        return gen_name_from_class(self)
 
     @staticmethod
     def _does_quack(explanation):
@@ -287,6 +316,57 @@ class LocalExplanation(FeatureImportanceExplanation):
         """
         return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
 
+    def _local_data(self, key=None):
+        """Get the local data for given key.
+
+        :param key: The key for the local data to be retrieved.
+        :type key: int
+        :return: The local data.
+        :rtype: dict
+        """
+        data_dict = super().data(key=key)
+        # Add local explanations to data
+        data_dict[InterpretData.TYPE] = InterpretData.UNIVARIATE
+        data_dict[InterpretData.NAMES] = self.features
+        # Note: we currently don't have access to predictions and y values from original dataset on explanation
+        data_dict[InterpretData.PERF] = None
+        data_dict[InterpretData.SCORES] = self._local_importance_values
+        # Note: we currently don't have access to instances on explanation
+        data_dict[InterpretData.VALUES] = None
+        return data_dict
+
+    def data(self, key=None):
+        """Return the data of the explanation with local importance values added.
+
+        :param key: The key for the local data to be retrieved.
+        :type key: int
+        :return: The explanation with local importance values metadata added.
+        :rtype: dict
+        """
+        if key is None:
+            return super().data()
+        elif key == -1:
+            num_rows = self._local_importance_values.shape[-2]
+            data_dicts = []
+            for i in range(0, num_rows):
+                data_dict = self._local_data(key=i)
+                data_dicts.append(data_dict)
+            parent_data = super().data(key=key)
+            overall_data = None
+            if InterpretData.OVERALL in parent_data:
+                overall_data = parent_data[InterpretData.OVERALL]
+            return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts}
+        else:
+            data_dict = self._local_data(key=key)
+            return data_dict
+
+    @property
+    def selector(self):
+        # TODO: Figure out a way to return a composition of selectors
+        nan_predicted = np.empty((self._local_importance_values.shape[-2], 1))
+        nan_predicted[:] = np.nan
+        return gen_local_selector(nan_predicted, None, nan_predicted.flatten())
+
     @classmethod
     def _does_quack(cls, explanation):
         """Validate that the explanation object passed in is a valid LocalExplanation.
@@ -450,6 +530,46 @@ class GlobalExplanation(FeatureImportanceExplanation):
         values = self.get_ranked_global_values(top_k=top_k)
         return dict(zip(names, values))
 
+    def _global_data(self):
+        """Add the global importance values to the overall data.
+
+        :return: The overall data with global importance values added.
+        :rtype: dict
+        """
+        overall_data_dict = {
+            InterpretData.NAMES: self.features,
+            InterpretData.SCORES: self.global_importance_values
+        }
+        return overall_data_dict
+
+    def data(self, key=None):
+        """Return the data of the explanation with global importance values added.
+
+        :param key: The key for the local data to be retrieved.
+        :type key: int
+        :return: The explanation with global importance values added.
+        :rtype: dict
+        """
+        if key is None:
+            return self._global_data()
+        elif key == -1:
+            global_data = self._global_data()
+            parent_data = super().data(key=key)
+            specific = None
+            if InterpretData.SPECIFIC in parent_data:
+                specific = parent_data[InterpretData.SPECIFIC]
+            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific}
+        else:
+            return super().data(key=key)
+
+    @property
+    def selector(self):
+        # TODO: Figure out a way to return a composition of selectors
+        nan_predicted = np.empty((1, 1))
+        nan_predicted[:] = np.nan
+        feature_types = ["numeric"] * len(self.features)
+        return gen_global_selector(nan_predicted, self.features, feature_types, self.global_importance_values)
+
     @classmethod
     def _does_quack(cls, explanation):
         """Validate that the explanation object passed in is a valid GlobalExplanation.
@@ -497,6 +617,45 @@ class ExpectedValuesMixin(object):
         if not isinstance(vals, list):
             vals = [vals]
         return vals
+
+    def _add_expected_values(self, local_data):
+        """Add the expected values to the local data.
+
+        :param local_data: The local data representation of the explanation.
+        :type local_data: dict
+        :return: The local data with expected values metadata added.
+        :rtype: dict
+        """
+        local_data[InterpretData.EXTRA] = {
+            InterpretData.NAMES: [InterpretData.BASE_VALUE],
+            InterpretData.SCORES: self.expected_values,
+            InterpretData.VALUES: [1]
+        }
+        return local_data
+
+    def data(self, key=None):
+        """Return the data of the explanation with expected values added.
+
+        :param key: The key for the local data to be retrieved.
+        :type key: int
+        :return: The explanation with expected values metadata added.
+        :rtype: dict
+        """
+        # Add expected values to data
+        if key is None:
+            return self._global_data()
+        elif key == -1:
+            global_data = self._global_data()
+            parent_data = super().data(key=key)
+            specific = None
+            if InterpretData.SPECIFIC in parent_data:
+                specific = parent_data[InterpretData.SPECIFIC]
+                for local_data in specific:
+                    self._add_expected_values(local_data)
+            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific}
+        else:
+            local_data = super().data(key=key)
+            return self._add_expected_values(local_data)
 
     @staticmethod
     def _does_quack(explanation):
