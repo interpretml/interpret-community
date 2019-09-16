@@ -47,6 +47,9 @@ except ImportError:
 
 
 class PFIExplainer(GlobalExplainer, BlackBoxMixin):
+    available_explanations = ["global"]
+    explainer_type = "blackbox"
+
     """Defines the Permutation Feature Importance Explainer for explaining black box models or functions.
 
     :param model: The black box model or function (if is_function is True) to be explained.  Also known

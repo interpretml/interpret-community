@@ -32,6 +32,9 @@ with warnings.catch_warnings():
 @add_prepare_function_and_summary_method
 @add_explain_global_method
 class KernelExplainer(BlackBoxExplainer):
+    available_explanations = ["global", "local"]
+    explainer_type = "blackbox"
+
     """Tthe Kernel Explainer for explaining black box models or functions.
 
     :param model: The model to explain or function if is_function is True.

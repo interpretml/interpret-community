@@ -90,7 +90,10 @@ setup(
 
     entry_points={
         "interpret_ext_blackbox": [
-            "TabularExplainer = interpret_ext.community:TabularExplainer"
+            "TabularExplainer = interpret_ext.community:TabularExplainer",
+            "KernelExplainer = interpret_ext.community.shap:KernelExplainer",
+            "MimicExplainer = interpret_ext.community.mimic:MimicExplainer",
+            "PFIExplainer = interpret_ext.community.permutation:PFIExplainer"
         ]
     },
 
