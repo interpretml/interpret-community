@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Setup file for explain model package."""
+"""Setup file for interpret-community package."""
 from setuptools import setup, find_packages
 import os
 import shutil
@@ -90,10 +90,10 @@ setup(
 
     entry_points={
         "interpret_ext_blackbox": [
-            "TabularExplainer = interpret_ext.community:TabularExplainer",
-            "KernelExplainer = interpret_ext.community.shap:KernelExplainer",
-            "MimicExplainer = interpret_ext.community.mimic:MimicExplainer",
-            "PFIExplainer = interpret_ext.community.permutation:PFIExplainer"
+            "TabularExplainer = interpret_community:TabularExplainer",
+            "KernelExplainer = interpret_community.shap:KernelExplainer",
+            "MimicExplainer = interpret_community.mimic:MimicExplainer",
+            "PFIExplainer = interpret_community.permutation:PFIExplainer"
         ]
     },
 

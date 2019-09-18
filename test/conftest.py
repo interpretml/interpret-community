@@ -9,12 +9,12 @@ import os
 from common_utils import create_iris_data, create_boston_data, create_simple_titanic_data, \
     create_complex_titanic_data
 from constants import DatasetConstants
-from interpret_ext.community.tabular_explainer import TabularExplainer
+from interpret_community.tabular_explainer import TabularExplainer
 from common_tabular_tests import VerifyTabularTests
-from interpret_ext.community.mimic.mimic_explainer import MimicExplainer
-from interpret_ext.community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_ext.community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
-from interpret_ext.community.mimic.models.tree_model import DecisionTreeExplainableModel
+from interpret_community.mimic.mimic_explainer import MimicExplainer
+from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
+from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
 

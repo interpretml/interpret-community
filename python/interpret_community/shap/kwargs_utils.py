@@ -4,7 +4,7 @@
 
 """Defines utilities for handling kwargs on SHAP-based explainers."""
 
-from interpret_ext.community.common.constants import ExplainParams
+from interpret_community.common.constants import ExplainParams
 
 
 def _get_explain_global_kwargs(sampling_policy, method, include_local, batch_size):

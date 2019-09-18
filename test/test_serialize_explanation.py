@@ -11,14 +11,14 @@ import json
 import numpy as np
 import pandas as pd
 
-from interpret_ext.community.common.constants import ExplainParams
-from interpret_ext.community.mimic.mimic_explainer import MimicExplainer
-from interpret_ext.community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_ext.community.explanation.explanation import save_explanation, load_explanation
+from interpret_community.common.constants import ExplainParams
+from interpret_community.mimic.mimic_explainer import MimicExplainer
+from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret_community.explanation.explanation import save_explanation, load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
-from interpret_ext.community.dataset.dataset_wrapper import DatasetWrapper
+from interpret_community.dataset.dataset_wrapper import DatasetWrapper
 from shap.common import DenseData
 
 test_logger = logging.getLogger(__name__)

@@ -11,14 +11,14 @@ import shap
 import logging
 import pandas as pd
 
-from interpret_ext.community.common.policy import SamplingPolicy
+from interpret_community.common.policy import SamplingPolicy
 
 from common_utils import create_sklearn_random_forest_classifier, create_sklearn_svm_classifier, \
     create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, create_keras_classifier, \
     create_keras_regressor, create_lightgbm_classifier, create_pytorch_classifier, create_pytorch_regressor, \
     create_xgboost_classifier
 from raw_explain.utils import _get_feature_map_from_indices_list
-from interpret_ext.community.common.constants import ModelTask
+from interpret_community.common.constants import ModelTask
 from constants import DatasetConstants
 from sklearn.model_selection import train_test_split
 

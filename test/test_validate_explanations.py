@@ -11,13 +11,13 @@ import shap
 import logging
 from sklearn.pipeline import Pipeline
 
-from interpret_ext.community.tabular_explainer import TabularExplainer
+from interpret_community.tabular_explainer import TabularExplainer
 from common_utils import create_sklearn_random_forest_classifier, \
     create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, \
     create_sklearn_logistic_regressor
 from sklearn.model_selection import train_test_split
-from interpret_ext.community.common.constants import ExplainParams
-from interpret_ext.community.common.policy import SamplingPolicy
+from interpret_community.common.constants import ExplainParams
+from interpret_community.common.policy import SamplingPolicy
 
 from constants import owner_email_tools_and_ux
 

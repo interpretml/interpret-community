@@ -2,20 +2,23 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines the LinearExplainer for returning explanations for linear models."""
+"""Defines an explainer for DNN models."""
 
 import numpy as np
+import sys
+import logging
 
 from ..common.structured_model_explainer import StructuredInitModelExplainer
-from ..common.explanation_utils import _fix_linear_explainer_shap_values
+from ..common.explanation_utils import _get_dense_examples, _convert_to_list
+from ..explanation.explanation import _create_local_explanation
 from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
-from ..dataset.decorator import tabular_decorator
-from ..explanation.explanation import _create_local_explanation, \
-    _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
+from ..dataset.decorator import tabular_decorator, init_tabular_decorator
+from ..explanation.explanation import _create_raw_feats_local_explanation, \
+    _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from interpret_ext.community.common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults
-from interpret_ext.community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
+    Defaults, ModelTask, DNNFramework
+from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
 import warnings
@@ -25,12 +28,105 @@ with warnings.catch_warnings():
     import shap
 
 
-@add_explain_global_method
-class LinearExplainer(StructuredInitModelExplainer):
-    """Defines the LinearExplainer for returning explanations for linear models.
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
-    :param model: The linear model to explain as the coefficient and intercept or scikit learn model.
-    :type model: (coef, intercept) or sklearn.linear_model.*
+
+try:
+    import torch
+except ImportError:
+    module_logger.info('Could not import torch, required if using a pytorch model')
+
+
+class logger_redirector(object):
+    """A redirector for system error output to logger."""
+
+    def __init__(self, module_logger):
+        """Initialize the logger_redirector.
+
+        :param module_logger: The logger to use for redirection.
+        :type module_logger: logger
+        """
+        self.logger = module_logger
+        self.propagate = self.logger.propagate
+        self.logger.propagate = False
+
+    def __enter__(self):
+        """Start the redirection for logging."""
+        self.logger.debug("Redirecting user output to logger")
+        self.original_stderr = sys.stderr
+        sys.stderr = self
+
+    def write(self, data):
+        """Write the given data to logger.
+
+        :param data: The data to write to logger.
+        :type data: str
+        """
+        self.logger.debug(data)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Finishes the redirection for logging."""
+        try:
+            if exc_val:
+                # The default traceback.print_exc() expects a file-like object which
+                # OutputCollector is not. Instead manually print the exception details
+                # to the wrapped sys.stderr by using an intermediate string.
+                # trace = traceback.format_tb(exc_tb)
+                import traceback
+                trace = "".join(traceback.format_exception(exc_type, exc_val, exc_tb))
+                print(trace, file=sys.stderr)
+        finally:
+            sys.stderr = self.original_stderr
+            self.logger.debug("User scope execution complete.")
+            self.logger.propagate = self.propagate
+
+
+def _get_dnn_model_framework(model):
+    """Get the DNN model framework, taken from SHAP DeepExplainer.
+
+    TODO: Refactor out SHAP's code so we can reference this method directly from SHAP.
+
+    :return: The DNN Framework, Pytorch or Tensorflow.
+    :rtype: str
+    """
+    actual_model = model[0] if type(model) is tuple else model
+    return DNNFramework.PYTORCH if hasattr(actual_model, "named_parameters") else DNNFramework.TENSORFLOW
+
+
+def _get_summary_data(initialization_examples, nclusters, framework):
+    """Compute the summary data from the intialization examples.
+
+    :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
+        initializing the explainer.
+    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+        scipy.sparse.csr_matrix
+    :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
+        samples weighted by the number of data points they each represent. When the number of initialization
+        examples is larger than (10 x nclusters), those examples will be summarized with k-means where
+        k = nclusters.
+    :type nclusters: int
+    :param framework: The framework, pytorch or tensorflow, for underlying DNN model.
+    :type framework: str
+    :return: A summarized matrix of feature vector examples (# examples x # features)
+        for initializing the explainer.
+    :rtype: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+        scipy.sparse.csr_matrix or torch.autograd.Variable
+    """
+    initialization_examples.compute_summary(nclusters=nclusters)
+    summary = initialization_examples.dataset
+    summary_data = summary.data
+    if framework == DNNFramework.PYTORCH:
+        summary_data = torch.Tensor(summary_data)
+    return summary_data
+
+
+@add_explain_global_method
+class DeepExplainer(StructuredInitModelExplainer):
+    """An explainer for DNN models, implemented using shap's DeepExplainer, supports tensorflow and pytorch.
+
+    :param model: The DNN model to explain.
+    :type model: pytorch or tensorflow model
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -39,6 +135,11 @@ class LinearExplainer(StructuredInitModelExplainer):
         features in the evaluation dataset for explanation. The subset can be the top-k features
         from the model summary.
     :type explain_subset: list[int]
+    :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
+        samples weighted by the number of data points they each represent. When the number of initialization
+        examples is larger than (10 x nclusters), those examples will be summarized with k-means where
+        k = nclusters.
+    :type nclusters: int
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
@@ -78,15 +179,19 @@ class LinearExplainer(StructuredInitModelExplainer):
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
     :param allow_all_transformations: Allow many to many and many to one transformations
     :type allow_all_transformations: bool
+    :param model_task: Optional parameter to specify whether the model is a classification or regression model.
+    :type model_task: str
     """
 
+    @init_tabular_decorator
     @init_aggregator_decorator
-    def __init__(self, model, initialization_examples, explain_subset=None, features=None, classes=None,
-                 transformations=None, allow_all_transformations=False, **kwargs):
-        """Initialize the LinearExplainer.
+    def __init__(self, model, initialization_examples, explain_subset=None, nclusters=10,
+                 features=None, classes=None, transformations=None, allow_all_transformations=False,
+                 model_task=ModelTask.Unknown, is_classifier=None, **kwargs):
+        """Initialize the DeepExplainer.
 
-        :param model: The linear model to explain as the coefficient and intercept or scikit learn model.
-        :type model: (coef, intercept) or sklearn.linear_model.*
+        :param model: The DNN model to explain.
+        :type model: pytorch or tensorflow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -95,6 +200,11 @@ class LinearExplainer(StructuredInitModelExplainer):
             features in the evaluation dataset for explanation. The subset can be the top-k features
             from the model summary.
         :type explain_subset: list[int]
+        :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
+            samples weighted by the number of data points they each represent. When the number of initialization
+            examples is larger than (10 x nclusters), those examples will be summarized with k-means where
+            k = nclusters.
+        :type nclusters: int
         :param features: A list of feature names.
         :type features: list[str]
         :param classes: Class names as a list of strings. The order of the class names should match
@@ -128,20 +238,34 @@ class LinearExplainer(StructuredInitModelExplainer):
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
+        :param is_classifier: Optional parameter to specify whether the model is a classification or regression model.
+            In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
+            has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
+            outputs a 1 dimensional array.
+        :type is_classifier: bool
+        :param model_task: Optional parameter to specify whether the model is a classification or regression model.
+        :type model_task: str
         """
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
                 examples=initialization_examples, transformations=transformations,
                 allow_all_transformations=allow_all_transformations)
-        super(LinearExplainer, self).__init__(model, initialization_examples, **kwargs)
-        self._logger.debug('Initializing LinearExplainer')
-        self._method = 'shap.linear'
-        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples)
-        self.explain_subset = explain_subset
+
+        super(DeepExplainer, self).__init__(model, initialization_examples, **kwargs)
+        self._logger.debug('Initializing DeepExplainer')
+        self._method = 'shap.deep'
         self.features = features
         self.classes = classes
+        self.nclusters = nclusters
+        self.explain_subset = explain_subset
         self.transformations = transformations
+        self.model_task = model_task
+        self.framework = _get_dnn_model_framework(self.model)
+        summary = _get_summary_data(self.initialization_examples, nclusters, self.framework)
+        # Suppress warning message from Keras
+        with logger_redirector(self._logger):
+            self.explainer = shap.DeepExplainer(self.model, summary)
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None,
@@ -165,7 +289,7 @@ class LinearExplainer(StructuredInitModelExplainer):
             PerClassMixin.
         :rtype: DynamicGlobalExplanation
         """
-        kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_LINEAR, include_local, batch_size)
+        kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
         return self._explain_global(evaluation_examples, **kwargs)
@@ -179,35 +303,55 @@ class LinearExplainer(StructuredInitModelExplainer):
         :return: Args for explain_local.
         :rtype: dict
         """
-        self._logger.debug('Explaining linear model')
-        kwargs = {ExplainParams.METHOD: ExplainType.SHAP_LINEAR}
+        self._logger.debug('Explaining deep model')
+        if self._datamapper is not None:
+            evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
+
+        # sample the evaluation examples
+        if self.sampling_policy is not None and self.sampling_policy.allow_eval_sampling:
+            sampling_method = self.sampling_policy.sampling_method
+            max_dim_clustering = self.sampling_policy.max_dim_clustering
+            evaluation_examples.sample(max_dim_clustering, sampling_method=sampling_method)
+        kwargs = {ExplainParams.METHOD: ExplainType.SHAP_DEEP}
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
         evaluation_examples = evaluation_examples.dataset
-        shap_values = self.explainer.shap_values(evaluation_examples)
-        # Temporary fix for a bug in shap for regression models
-        shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)
-        expected_values = None
-        if hasattr(self.explainer, Attributes.EXPECTED_VALUE):
-            self._logger.debug('Expected values available on explainer')
-            expected_values = np.array(self.explainer.expected_value)
+        # for now convert evaluation examples to dense format if they are sparse
+        # until DeepExplainer sparse support is added
+        dense_examples = _get_dense_examples(evaluation_examples)
+        if self.framework == DNNFramework.PYTORCH:
+            dense_examples = torch.Tensor(dense_examples)
+        shap_values = self.explainer.shap_values(dense_examples)
+        # use model task to update structure of shap values
+        if self.model_task == ModelTask.Regression and isinstance(shap_values, list) and len(shap_values) == 1:
+            shap_values = shap_values[0]
         classification = isinstance(shap_values, list)
-        # Reformat shap values result if explain_subset specified
         if self.explain_subset:
-            self._logger.debug('Getting subset of shap_values')
             if classification:
-                for i in range(len(shap_values)):
+                self._logger.debug('Classification explanation')
+                for i in range(shap_values.shape[0]):
                     shap_values[i] = shap_values[i][:, self.explain_subset]
             else:
+                self._logger.debug('Regression explanation')
                 shap_values = shap_values[:, self.explain_subset]
+
+        expected_values = None
+        if hasattr(self.explainer, Attributes.EXPECTED_VALUE):
+            self._logger.debug('reporting expected values')
+            expected_values = self.explainer.expected_value
+            if isinstance(expected_values, np.ndarray):
+                expected_values = expected_values.tolist()
+        else:
+            return self._expected_values
+        local_importance_values = _convert_to_list(shap_values)
         if classification:
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
         else:
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
         kwargs[ExplainParams.MODEL_TYPE] = str(type(self.model))
-        kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = np.array(shap_values)
-        kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
+        kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = np.array(local_importance_values)
+        kwargs[ExplainParams.EXPECTED_VALUES] = np.array(expected_values)
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
@@ -215,18 +359,15 @@ class LinearExplainer(StructuredInitModelExplainer):
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
-        """Explain the model by using shap's linear explainer.
+        """Explain the model by using shap's deep explainer.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: DatasetWrapper
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
             of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
-        if self._datamapper is not None:
-            evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
-
         kwargs = self._get_explain_local_kwargs(evaluation_examples)
         explanation = _create_local_explanation(**kwargs)
 

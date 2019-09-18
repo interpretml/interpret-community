@@ -6,7 +6,7 @@ This package has been tested with Python 2.7 and 3.6.
 
 This is the initial extensions SDK release.
 
-Machine learning (ML) explain model package is used to interpret black box ML models.
+Machine learning (ML) interpret community package is used to interpret black box ML models.
 
  * The TabularExplainer can be used to give local and global feature importances
  * The best explainer is automatically chosen for the user based on the model

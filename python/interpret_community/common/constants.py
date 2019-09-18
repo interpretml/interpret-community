@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines constants for explain model."""
+"""Defines constants for interpret community."""
 
 from enum import Enum
 
@@ -106,7 +106,7 @@ class IO(object):
 
 
 class ExplainParams(object):
-    """Provide constants for explain model (init, explain_local and explain_global) parameters."""
+    """Provide constants for interpret community (init, explain_local and explain_global) parameters."""
 
     BATCH_SIZE = 'batch_size'
     CLASSES = 'classes'
