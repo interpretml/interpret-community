@@ -96,7 +96,6 @@ class BaseExplanation(ChainedIdentity):
         """
         return self._id
 
-    @abstractmethod
     def data(self, key=None):
         """Return the data of the explanation.
 
@@ -105,10 +104,87 @@ class BaseExplanation(ChainedIdentity):
         :return: The explanation data.
         :rtype: dict
         """
-        return {}
+        return {InterpretData.MLI: []}
 
     def visualize(self, key=None):
-        return "Visualization not supported for BaseExplanation"
+        from interpret.visual.plot import (
+            plot_line,
+            plot_bar,
+            plot_horizontal_bar,
+            mli_plot_horizontal_bar,
+        )
+        from interpret.visual.plot import (
+            get_sort_indexes,
+            sort_take,
+            mli_sort_take,
+            plot_pairwise_heatmap,
+        )
+
+        data_dict = self.data(key)
+        if data_dict is None:  # pragma: no cover
+            return None
+
+        # Handle overall graphs
+        if key is None:
+            data_dict = sort_take(
+                data_dict, sort_fn=lambda x: -abs(x), top_n=15, reverse_results=True
+            )
+            return plot_horizontal_bar(data_dict)
+
+        # Handle local instance graphs
+        if LocalExplanation._does_quack(self):
+            if InterpretData.MLI in self.data(-1):
+                scores = data_dict[InterpretData.SCORES]
+                perf = data_dict[InterpretData.PERF]
+                # For classification case, take average across classes
+                if len(scores.shape) == 3:
+                    scores = scores[:, key, :]
+                    scores = np.mean(scores, axis=0)
+                else:
+                    scores = scores[key, :]
+                sort_indexes = get_sort_indexes(
+                    scores, sort_fn=lambda x: -abs(x), top_n=15
+                )
+                sorted_scores = mli_sort_take(
+                    scores, sort_indexes, reverse_results=True
+                )
+                sorted_names = mli_sort_take(
+                    self.features, sort_indexes, reverse_results=True
+                )
+                # TODO: Specify instances e.g. instances = self.data(-1)["dataset_x"]
+                return mli_plot_horizontal_bar(
+                    sorted_scores,
+                    sorted_names,
+                    values=None,
+                    perf=perf,
+                )
+            else:
+                data_dict = sort_take(
+                    data_dict, sort_fn=lambda x: -abs(x), top_n=15, reverse_results=True
+                )
+                return plot_horizontal_bar(data_dict)
+
+        # Handle global feature graphs
+        feature_type = self.feature_types[key]
+        title = self.features[key]
+        if feature_type == "continuous":
+            return plot_line(data_dict, title=title)
+        elif feature_type == "categorical":
+            return plot_bar(data_dict, title=title)
+        elif feature_type == "pairwise":
+            # TODO: Generalize this out.
+            xtitle = title.split(" x ")[0]
+            ytitle = title.split(" x ")[1]
+            return plot_pairwise_heatmap(
+                data_dict, title=title, xtitle=xtitle, ytitle=ytitle
+            )
+
+        # Handle everything else as invalid
+        raise Exception(  # pragma: no cover
+            "Not supported configuration: {0}, {1}".format(
+                self.explanation_type, feature_type
+            )
+        )
 
     @property
     @abstractmethod
@@ -355,7 +431,17 @@ class LocalExplanation(FeatureImportanceExplanation):
             overall_data = None
             if InterpretData.OVERALL in parent_data:
                 overall_data = parent_data[InterpretData.OVERALL]
-            return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts}
+            if InterpretData.MLI in parent_data:
+                mli_data = parent_data[InterpretData.MLI]
+                mli_data.append({
+                    InterpretData.EXPLANATION_TYPE: InterpretData.LOCAL_FEATURE_IMPORTANCE,
+                    InterpretData.VALUE: {
+                        InterpretData.SCORES: self.local_importance_values,
+                        InterpretData.FEATURE_LIST: self.features
+                    },
+                })
+            return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts,
+                    InterpretData.MLI: mli_data}
         else:
             data_dict = self._local_data(key=key)
             return data_dict
@@ -558,7 +644,17 @@ class GlobalExplanation(FeatureImportanceExplanation):
             specific = None
             if InterpretData.SPECIFIC in parent_data:
                 specific = parent_data[InterpretData.SPECIFIC]
-            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific}
+            if InterpretData.MLI in parent_data:
+                mli_data = parent_data[InterpretData.MLI]
+                mli_data.append({
+                    InterpretData.EXPLANATION_TYPE: InterpretData.GLOBAL_FEATURE_IMPORTANCE,
+                    InterpretData.VALUE: {
+                        InterpretData.SCORES: self.global_importance_values,
+                        InterpretData.FEATURE_LIST: self.features
+                    },
+                })
+            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific,
+                    InterpretData.MLI: mli_data}
         else:
             return super().data(key=key)
 
@@ -652,7 +748,17 @@ class ExpectedValuesMixin(object):
                 specific = parent_data[InterpretData.SPECIFIC]
                 for local_data in specific:
                     self._add_expected_values(local_data)
-            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific}
+            if InterpretData.MLI in parent_data:
+                mli_data = parent_data[InterpretData.MLI]
+                for data in mli_data:
+                    is_local_explanation = data[InterpretData.EXPLANATION_TYPE] == \
+                        InterpretData.LOCAL_FEATURE_IMPORTANCE
+                    is_global_explanation = data[InterpretData.EXPLANATION_TYPE] == \
+                        InterpretData.GLOBAL_FEATURE_IMPORTANCE
+                    if is_local_explanation or is_global_explanation:
+                        data[InterpretData.VALUE][InterpretData.INTERCEPT] = self.expected_values
+            return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific,
+                    InterpretData.MLI: mli_data}
         else:
             local_data = super().data(key=key)
             return self._add_expected_values(local_data)

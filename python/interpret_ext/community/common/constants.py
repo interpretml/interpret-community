@@ -278,7 +278,13 @@ class InterpretData(object):
     """Provide Data and Visualize constants for interpret core."""
 
     BASE_VALUE = 'Base Value'
+    EXPLANATION_TYPE = 'explanation_type'
     EXTRA = 'extra'
+    FEATURE_LIST = 'feature_list'
+    GLOBAL_FEATURE_IMPORTANCE = 'global_feature_importance'
+    INTERCEPT = 'intercept'
+    LOCAL_FEATURE_IMPORTANCE = 'local_feature_importance'
+    MLI = 'mli'
     NAMES = 'names'
     OVERALL = 'overall'
     PERF = 'perf'
@@ -286,4 +292,5 @@ class InterpretData(object):
     SPECIFIC = 'specific'
     TYPE = 'type'
     UNIVARIATE = 'univariate'
+    VALUE = 'value'
     VALUES = 'values'
