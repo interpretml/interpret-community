@@ -29,7 +29,7 @@ from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.constants import ExplainParams, ExplainType, ModelTask, \
     ShapValuesOutput, MimicSerializationConstants, ExplainableModelType, \
-    LightGBMParams, Defaults
+    LightGBMParams, Defaults, Extension
 import logging
 import json
 
@@ -41,8 +41,8 @@ with warnings.catch_warnings():
 
 
 class MimicExplainer(BlackBoxExplainer):
-    available_explanations = ["global", "local"]
-    explainer_type = "blackbox"
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.BLACKBOX
 
     """The Mimic Explainer for explaining black box models or functions.
 

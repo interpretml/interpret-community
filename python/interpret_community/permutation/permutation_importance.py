@@ -25,7 +25,7 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_raw_feats_global_explanation, \
     _get_raw_explainer_create_explanation_kwargs, _create_global_explanation
-from ..common.constants import ExplainParams, ExplainType, ModelTask
+from ..common.constants import ExplainParams, ExplainType, ModelTask, Extension
 from ..common.explanation_utils import _order_imp
 from .metric_constants import MetricConstants, error_metrics
 from ..common.progress import get_tqdm
@@ -47,8 +47,8 @@ except ImportError:
 
 
 class PFIExplainer(GlobalExplainer, BlackBoxMixin):
-    available_explanations = ["global"]
-    explainer_type = "blackbox"
+    available_explanations = [Extension.GLOBAL]
+    explainer_type = Extension.BLACKBOX
 
     """Defines the Permutation Feature Importance Explainer for explaining black box models or functions.
 

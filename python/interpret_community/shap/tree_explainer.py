@@ -15,7 +15,7 @@ from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
 from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
-    ShapValuesOutput, Defaults
+    ShapValuesOutput, Defaults, Extension
 from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
@@ -28,6 +28,9 @@ with warnings.catch_warnings():
 
 @add_explain_global_method
 class TreeExplainer(PureStructuredModelExplainer):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GREYBOX
+
     """The TreeExplainer for returning explanations for tree-based models.
 
     :param model: The tree model to explain.

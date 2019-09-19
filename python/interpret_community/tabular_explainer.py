@@ -7,7 +7,7 @@
 from .common.base_explainer import BaseExplainer
 from .common.structured_model_explainer import PureStructuredModelExplainer
 from .dataset.decorator import tabular_decorator
-from .common.constants import ExplainParams, Defaults, ModelTask
+from .common.constants import ExplainParams, Defaults, ModelTask, Extension
 from .shap.tree_explainer import TreeExplainer
 from .shap.deep_explainer import DeepExplainer
 from .shap.kernel_explainer import KernelExplainer
@@ -17,8 +17,8 @@ InvalidExplainerErr = 'Could not find valid explainer to explain model'
 
 
 class TabularExplainer(BaseExplainer):
-    available_explanations = ["global", "local"]
-    explainer_type = "blackbox"
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.BLACKBOX
 
     """The tabular explainer meta-api for returning the best explanation result based on the given model.
 

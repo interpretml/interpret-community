@@ -14,7 +14,7 @@ from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
 from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults
+    Defaults, Extension
 from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
@@ -27,6 +27,9 @@ with warnings.catch_warnings():
 
 @add_explain_global_method
 class LinearExplainer(StructuredInitModelExplainer):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GREYBOX
+
     """Defines the LinearExplainer for returning explanations for linear models.
 
     :param model: The linear model to explain as the coefficient and intercept or scikit learn model.

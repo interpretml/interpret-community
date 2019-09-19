@@ -94,6 +94,11 @@ setup(
             "KernelExplainer = interpret_community.shap:KernelExplainer",
             "MimicExplainer = interpret_community.mimic:MimicExplainer",
             "PFIExplainer = interpret_community.permutation:PFIExplainer"
+        ],
+        "interpret_ext_greybox": [
+            "LinearExplainer = interpret_community.shap:LinearExplainer",
+            "DeepExplainer = interpret_community.shap:DeepExplainer",
+            "TreeExplainer = interpret_community.shap:TreeExplainer"
         ]
     },
 

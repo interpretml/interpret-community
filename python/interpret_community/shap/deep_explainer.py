@@ -17,7 +17,7 @@ from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
 from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults, ModelTask, DNNFramework
+    Defaults, ModelTask, DNNFramework, Extension
 from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
@@ -123,6 +123,9 @@ def _get_summary_data(initialization_examples, nclusters, framework):
 
 @add_explain_global_method
 class DeepExplainer(StructuredInitModelExplainer):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GREYBOX
+
     """An explainer for DNN models, implemented using shap's DeepExplainer, supports tensorflow and pytorch.
 
     :param model: The DNN model to explain.

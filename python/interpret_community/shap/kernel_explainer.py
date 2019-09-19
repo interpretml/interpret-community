@@ -18,7 +18,8 @@ from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from interpret_community.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask
+from interpret_community.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask, \
+    Extension
 from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
@@ -32,8 +33,8 @@ with warnings.catch_warnings():
 @add_prepare_function_and_summary_method
 @add_explain_global_method
 class KernelExplainer(BlackBoxExplainer):
-    available_explanations = ["global", "local"]
-    explainer_type = "blackbox"
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.BLACKBOX
 
     """Tthe Kernel Explainer for explaining black box models or functions.
 

@@ -294,3 +294,12 @@ class InterpretData(object):
     UNIVARIATE = 'univariate'
     VALUE = 'value'
     VALUES = 'values'
+
+
+class Extension(object):
+    """Provide constants for extensions to interpret package."""
+
+    BLACKBOX = 'blackbox'
+    GLOBAL = 'global'
+    GREYBOX = 'specific'
+    LOCAL = 'local'
