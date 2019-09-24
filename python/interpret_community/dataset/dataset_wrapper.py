@@ -84,7 +84,8 @@ class DatasetWrapper(object):
         if self._dataset_is_df:
             if len(dataset.shape) == 1:
                 dataset = dataset.reshape(1, dataset.shape[0])
-            return pd.DataFrame(dataset, columns=self._features)
+            original_dtypes = self._original_dataset_with_type.dtypes
+            return pd.DataFrame(dataset, columns=self._features).astype(dict(original_dtypes))
         elif self._dataset_is_series:
             return pd.Series(dataset)
         else:

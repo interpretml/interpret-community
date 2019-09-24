@@ -203,11 +203,13 @@ class TreeExplainer(PureStructuredModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        typed_wrapper_func = evaluation_examples.typed_wrapper_func
         evaluation_examples = evaluation_examples.dataset
 
         # for now convert evaluation examples to dense format if they are sparse
         # until TreeExplainer sparse support is added
-        shap_values = self.explainer.shap_values(_get_dense_examples(evaluation_examples))
+        typed_dense_evaluation_examples = typed_wrapper_func(_get_dense_examples(evaluation_examples))
+        shap_values = self.explainer.shap_values(typed_dense_evaluation_examples)
         expected_values = None
         if hasattr(self.explainer, Attributes.EXPECTED_VALUE):
             self._logger.debug('Expected values available on explainer')
@@ -215,7 +217,8 @@ class TreeExplainer(PureStructuredModelExplainer):
         classification = isinstance(shap_values, list)
         if classification and self._shap_values_output == ShapValuesOutput.PROBABILITY:
             # Re-scale shap values to probabilities for classification case
-            shap_values = _scale_tree_shap(shap_values, expected_values, self.model.predict_proba(evaluation_examples))
+            shap_values = _scale_tree_shap(shap_values, expected_values,
+                                           self.model.predict_proba(typed_wrapper_func(evaluation_examples)))
         # Reformat shap values result if explain_subset specified
         if self.explain_subset:
             self._logger.debug('Getting subset of shap_values')

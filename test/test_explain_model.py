@@ -552,6 +552,34 @@ class TestTabularExplainer(object):
     def test_explain_model_categorical(self, verify_tabular):
         verify_tabular.verify_explain_model_categorical()
 
+    def test_explain_model_pandas_string(self, tabular_explainer):
+        np.random.seed(777)
+        num_rows = 100
+        num_ints = 10
+        num_cols = 4
+        split_ratio = 0.2
+        A = np.random.randint(num_ints, size=num_rows)
+        B = np.random.random(size=num_rows)
+        C = np.random.randn(num_rows)
+        cat = np.random.choice(['New York', 'San Francisco', 'Los Angeles',
+                                'Atlanta', 'Denver', 'Chicago', 'Miami', 'DC', 'Boston'], 100)
+        label = np.random.choice([0, 1], num_rows)
+        df = pd.DataFrame(data={'A': A, 'B': B, 'C': C, 'cat': cat, 'label': label})
+        df.cat = df.cat.astype('category')
+        X = df.drop('label', axis=1)
+        y = df.label
+
+        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=split_ratio)
+
+        clf = create_lightgbm_classifier(x_train, y_train)
+
+        explainer = tabular_explainer(clf, initialization_examples=x_train, features=x_train.columns)
+        global_explanation = explainer.explain_global(x_test)
+        local_shape = global_explanation._local_importance_values.shape
+        num_rows_expected = split_ratio * num_rows
+        assert local_shape == (num_rows_expected, num_cols)
+        assert len(global_explanation.global_importance_values) == num_cols
+
     def create_msx_data(self, test_size):
         sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
         sparse_matrix_x = sparse_matrix[:, :sparse_matrix.shape[1] - 2]
