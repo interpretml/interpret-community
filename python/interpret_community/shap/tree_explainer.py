@@ -14,10 +14,11 @@ from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
+from ..common.constants import ExplainParams, Attributes, ExplainType, \
     ShapValuesOutput, Defaults, Extension
-from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
+from ..dataset.dataset_wrapper import DatasetWrapper
 
 import warnings
 
@@ -174,8 +175,19 @@ class TreeExplainer(PureStructuredModelExplainer):
         :rtype: DynamicGlobalExplanation
         """
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_TREE, include_local, batch_size)
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
-        return self._explain_global(evaluation_examples, **kwargs)
+        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples.original_dataset_with_type
+        wrapped_evals = evaluation_examples
+        if self.transformations is not None:
+            _, evaluation_examples = get_datamapper_and_transformed_data(examples=evaluation_examples,
+                                                                         transformations=self.transformations)
+        if isinstance(evaluation_examples, DatasetWrapper):
+            evaluation_examples = evaluation_examples.original_dataset_with_type
+        if len(evaluation_examples.shape) == 1:
+            evaluation_examples = evaluation_examples.reshape(1, -1)
+        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
+        if hasattr(self.model, 'predict_proba'):
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
+        return self._explain_global(wrapped_evals, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
         """Get the kwargs for explain_local to create a local explanation.
@@ -222,6 +234,11 @@ class TreeExplainer(PureStructuredModelExplainer):
         kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        if len(evaluation_examples.shape) == 1:
+            evaluation_examples = evaluation_examples.reshape(1, -1)
+        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
+        if hasattr(self.model, 'predict_proba'):
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
         return kwargs
 
     @tabular_decorator

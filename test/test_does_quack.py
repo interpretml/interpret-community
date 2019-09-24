@@ -90,6 +90,14 @@ class _DatasetsValid(object):
     def eval_data(self):
         return[[.2, .4, .01], [.3, .2, 0]]
 
+    @property
+    def eval_y_predicted(self):
+        return None
+
+    @property
+    def eval_y_predicted_proba(self):
+        return None
+
 
 class _ModelIdValid(object):
     @property
@@ -430,6 +438,14 @@ class TestDoesQuack(object):
             @property
             def eval_data(self):
                 return [[.2, .4, .01], [.3, .2, 0]]
+
+            @property
+            def eval_y_predicted(self):
+                return None
+
+            @property
+            def eval_y_predicted_proba(self):
+                return None
         NoTrainExp = type('InvalidDatasets', (NoTrainData, BaseValid), {})
         assert not _DatasetsMixin._does_quack(NoTrainExp())
 
@@ -437,8 +453,46 @@ class TestDoesQuack(object):
             @property
             def init_data(self):
                 return 'a_dataset_id'
+
+            @property
+            def eval_y_predicted(self):
+                return None
+
+            @property
+            def eval_y_predicted_proba(self):
+                return None
         NoTestExp = type('InvalidDatasets', (NoTestData, BaseValid), {})
         assert not _DatasetsMixin._does_quack(NoTestExp())
+
+        class NoEvalYPredicted(object):
+            @property
+            def init_data(self):
+                return 'a_dataset_id'
+
+            @property
+            def eval_data(self):
+                return[[.2, .4, .01], [.3, .2, 0]]
+
+            @property
+            def eval_y_predicted_proba(self):
+                return None
+        NoEvalYPExp = type('InvalidDatasets', (NoEvalYPredicted, BaseValid), {})
+        assert not _DatasetsMixin._does_quack(NoEvalYPExp())
+
+        class NoEvalYPredictedProba(object):
+            @property
+            def init_data(self):
+                return 'a_dataset_id'
+
+            @property
+            def eval_data(self):
+                return[[.2, .4, .01], [.3, .2, 0]]
+
+            @property
+            def eval_y_predicted(self):
+                return None
+        NoEvalYPPExp = type('InvalidDatasets', (NoEvalYPredictedProba, BaseValid), {})
+        assert not _DatasetsMixin._does_quack(NoEvalYPPExp())
 
     def test_does_quack_model_id_mixin(self):
         ValidModelId = type('ValidModelId', (_ModelIdValid,), {})

@@ -272,6 +272,7 @@ class MimicExplainer(BlackBoxExplainer):
         self.surrogate_model = _model_distill(self.function, explainable_model, training_data,
                                               original_training_data, explainable_model_args)
         self._method = self.surrogate_model._method
+        self._original_eval_examples = None
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -360,11 +361,20 @@ class MimicExplainer(BlackBoxExplainer):
             will also have the properties of PerClassMixin.
         :rtype: DynamicGlobalExplanation
         """
+        if self._original_eval_examples is None:
+            if isinstance(evaluation_examples, DatasetWrapper):
+                self._original_eval_examples = evaluation_examples.original_dataset_with_type
+            else:
+                self._original_eval_examples = evaluation_examples
         kwargs = self._get_explain_global_kwargs(evaluation_examples=evaluation_examples, include_local=include_local,
                                                  batch_size=batch_size)
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
-        if evaluation_examples is not None and include_local:
-            return _aggregate_global_from_local_explanation(**kwargs)
+        kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
+        if evaluation_examples is not None:
+            kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+            ys_dict = self._get_ys_dict(self._original_eval_examples, transformations=self.transformations)
+            kwargs.update(ys_dict)
+            if include_local:
+                return _aggregate_global_from_local_explanation(**kwargs)
 
         explanation = _create_global_explanation(**kwargs)
 
@@ -383,8 +393,8 @@ class MimicExplainer(BlackBoxExplainer):
         :rtype: dict
         """
         kwargs = {}
+        original_evaluation_examples = evaluation_examples.typed_dataset
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
-            original_evaluation_examples = evaluation_examples.typed_dataset
             # Outputting shap values in terms of the probabilities of the teacher model
             kwargs[ExplainParams.PROBABILITIES] = self.function(original_evaluation_examples)
         if self._column_indexer:
@@ -426,6 +436,10 @@ class MimicExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = local_importance_values
         kwargs[ExplainParams.EXPECTED_VALUES] = np.array(expected_values)
         kwargs[ExplainParams.CLASSIFICATION] = classification
+        kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
+        kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
+        ys_dict = self._get_ys_dict(self._original_eval_examples, transformations=self.transformations)
+        kwargs.update(ys_dict)
         return kwargs
 
     @tabular_decorator
@@ -439,6 +453,11 @@ class MimicExplainer(BlackBoxExplainer):
             it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
+        if self._original_eval_examples is None:
+            if isinstance(evaluation_examples, DatasetWrapper):
+                self._original_eval_examples = evaluation_examples.original_dataset_with_type
+            else:
+                self._original_eval_examples = evaluation_examples
         if self._datamapper is not None:
             evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
 
@@ -499,6 +518,8 @@ class MimicExplainer(BlackBoxExplainer):
                     mimic_identity = json.loads(properties[MimicSerializationConstants.IDENTITY])
                     mimic.__dict__[key] = parent.getChild(mimic_identity)
                 elif key == MimicSerializationConstants.INITIALIZATION_EXAMPLES:
+                    mimic.__dict__[key] = None
+                elif key == MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES:
                     mimic.__dict__[key] = None
                 elif key == MimicSerializationConstants.FUNCTION:
                     # TODO add third case if is_function was passed to mimic explainer

@@ -10,8 +10,11 @@ from functools import wraps
 
 from .base_explainer import BaseExplainer
 from .aggregate import init_aggregator_decorator
-from .constants import ModelTask
+from .constants import ModelTask, ExplainParams
 from .chained_identity import ChainedIdentity
+
+from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data
+from ..dataset.dataset_wrapper import DatasetWrapper
 
 
 class _Wrapper(object):
@@ -97,6 +100,35 @@ class BlackBoxMixin(ChainedIdentity):
                 # If classifier, but there is no predict_proba method, throw an exception
                 if model_task == ModelTask.Classification:
                     raise Exception("No predict_proba method on model which has model_task='classifier'")
+
+    def _get_ys_dict(self, evaluation_examples, transformations=None):
+        """Get the predicted ys to be incorporated into a kwargs dictionary.
+        :param evaluation_examples: The same ones we usually work with, must be able to be passed into the
+            model or function.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: The dictionary with none, one, or both of predicted ys and predicted proba ys for eval
+            examples.
+        :rtype: dict
+        """
+        if transformations is not None:
+            _, evaluation_examples = get_datamapper_and_transformed_data(examples=evaluation_examples,
+                                                                         transformations=transformations)
+        if isinstance(evaluation_examples, DatasetWrapper):
+            evaluation_examples = evaluation_examples.original_dataset_with_type
+        if len(evaluation_examples.shape) == 1:
+            evaluation_examples = evaluation_examples.reshape(1, -1)
+        ys_dict = {}
+        if self.model is not None:
+            ys_dict[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
+            if self.predict_proba_flag:
+                ys_dict[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
+        else:
+            predictions = self.function(evaluation_examples)
+            pred_function = ExplainParams.EVAL_Y_PRED
+            if len(predictions.shape) > 1:
+                pred_function = ExplainParams.EVAL_Y_PRED_PROBA
+            ys_dict[pred_function] = predictions
+        return ys_dict
 
 
 class BlackBoxExplainer(BaseExplainer, BlackBoxMixin):

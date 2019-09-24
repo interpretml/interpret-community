@@ -37,6 +37,8 @@ class History(object):
     COMMENT = 'comment'
     EVAL_DATA = 'eval_data'
     EVAL_DATASET_ID = 'eval_dataset_id'
+    EVAL_Y_PRED = 'eval_y_predicted'
+    EVAL_Y_PRED_PROBA = 'eval_y_predicted_proba'
     EXPECTED_VALUES = 'expected_values'
     EXPLANATION = 'explanation'
     EXPLANATION_ID = 'explanation_id'
@@ -112,6 +114,8 @@ class ExplainParams(object):
     CLASSES = 'classes'
     CLASSIFICATION = 'classification'
     EVAL_DATA = 'eval_data'
+    EVAL_Y_PRED = 'eval_y_predicted'
+    EVAL_Y_PRED_PROBA = 'eval_y_predicted_proba'
     EXPECTED_VALUES = 'expected_values'
     EXPLAIN_SUBSET = 'explain_subset'
     EXPLANATION_ID = 'explanation_id'
@@ -246,10 +250,11 @@ class MimicSerializationConstants(object):
     INITIALIZATION_EXAMPLES = 'initialization_examples'
     LOGGER = '_logger'
     MODEL = 'model'
+    ORIGINAL_EVAL_EXAMPLES = '_original_eval_examples'
     PREDICT_PROBA_FLAG = 'predict_proba_flag'
 
     enum_properties = ['_shap_values_output']
-    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples']
+    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples', '_original_eval_examples']
     save_properties = ['surrogate_model']
 
 

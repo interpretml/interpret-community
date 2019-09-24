@@ -956,6 +956,8 @@ class _DatasetsMixin(object):
     def __init__(self,
                  init_data=None,
                  eval_data=None,
+                 eval_y_predicted=None,
+                 eval_y_predicted_proba=None,
                  **kwargs):
         """Create the dataset mixin for storing datasets or their reference IDs.
 
@@ -965,10 +967,17 @@ class _DatasetsMixin(object):
         :type init_data: np.array or str
         :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
         :type eval_data: np.array or str
+        :param eval_ys_predicted: The predicted ys for the evaluation data. Not available from the DeepExplainer.
+        :type eval_ys_predicted: np.array
+        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data. Not available from the
+            DeepExplainer.
+        :type eval_ys_predicted_proba: np.array
         """
         super(_DatasetsMixin, self).__init__(**kwargs)
         self._init_data = init_data
         self._eval_data = eval_data
+        self._eval_y_predicted = eval_y_predicted
+        self._eval_y_predicted_proba = eval_y_predicted_proba
 
     @property
     def init_data(self):
@@ -988,6 +997,24 @@ class _DatasetsMixin(object):
         """
         return self._eval_data
 
+    @property
+    def eval_y_predicted(self):
+        """Get predicted ys for the evaluation data.
+
+        :return: The predicted ys for the evaluation data.
+        :rtype: np.array
+        """
+        return self._eval_y_predicted
+
+    @property
+    def eval_y_predicted_proba(self):
+        """Get predicted probability ys for the evaluation data.
+
+        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
+        :type eval_ys_predicted_proba: np.array
+        """
+        return self._eval_y_predicted_proba
+
     @staticmethod
     def _does_quack(explanation):
         """Validate that the explanation object passed in is a valid _DatasetsMixin.
@@ -997,7 +1024,8 @@ class _DatasetsMixin(object):
         :return: True if valid else False
         :rtype: bool
         """
-        return hasattr(explanation, History.INIT_DATA) and hasattr(explanation, History.EVAL_DATA)
+        has_ys = hasattr(explanation, History.EVAL_Y_PRED) and hasattr(explanation, History.EVAL_Y_PRED_PROBA)
+        return hasattr(explanation, History.INIT_DATA) and hasattr(explanation, History.EVAL_DATA) and has_ys
 
 
 class _ModelIdMixin(object):
@@ -1038,7 +1066,8 @@ class _ModelIdMixin(object):
 
 
 def _create_local_explanation(expected_values=None, classification=True, explanation_id=None, init_data=None,
-                              eval_data=None, model_id=None, **kwargs):
+                              eval_data=None, eval_ys_predicted=None, eval_ys_predicted_proba=None, model_id=None,
+                              **kwargs):
     """Dynamically creates an explanation based on local type and specified data.
 
     :param expected_values: The expected values of the model.
@@ -1052,6 +1081,10 @@ def _create_local_explanation(expected_values=None, classification=True, explana
     :type init_data: list
     :param eval_data: The evaluation (testing) data for the explanation.
     :type eval_data: list
+    :param eval_ys_predicted: The predicted ys for the evaluation data.
+    :type eval_ys_predicted: np.array
+    :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
+    :type eval_ys_predicted_proba: np.array
     :param model_id: The model ID.
     :type model_id: str
     :return: A model explanation object. It is guaranteed to be a LocalExplanation. If expected_values is not None, it
@@ -1076,6 +1109,10 @@ def _create_local_explanation(expected_values=None, classification=True, explana
             kwargs[History.INIT_DATA] = init_data
         if eval_data is not None:
             kwargs[History.EVAL_DATA] = eval_data
+        if eval_ys_predicted is not None:
+            kwargs[History.EVAL_Y_PRED] = eval_ys_predicted
+        if eval_ys_predicted_proba is not None:
+            kwargs[History.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
     if model_id is not None:
         mixins.append(_ModelIdMixin)
         kwargs[History.MODEL_ID] = model_id
@@ -1085,7 +1122,8 @@ def _create_local_explanation(expected_values=None, classification=True, explana
 
 
 def _create_global_explanation_kwargs(local_explanation=None, expected_values=None, classification=True,
-                                      explanation_id=None, init_data=None, eval_data=None, model_id=None, **kwargs):
+                                      explanation_id=None, init_data=None, eval_data=None, eval_ys_predicted=None,
+                                      eval_ys_predicted_proba=None, model_id=None, **kwargs):
     """Return the arguments for dynamically creating a global explanation.
 
     :param local_explanation: The local explanation information to include with global,
@@ -1101,6 +1139,11 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     :param init_data: The initialization (background) data for the explanation.
     :type init_data: list
     :param eval_data: The evaluation (testing) data for the explanation.
+    :type eval_data: list
+    :param eval_ys_predicted: The predicted ys for the evaluation data.
+    :type eval_ys_predicted: np.array
+    :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
+    :type eval_ys_predicted_proba: np.array
     :param eval_data: list
     :param model_id: The model ID.
     :type model_id: str
@@ -1140,6 +1183,10 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
             kwargs[History.INIT_DATA] = init_data
         if eval_data is not None:
             kwargs[History.EVAL_DATA] = eval_data
+        if eval_ys_predicted is not None:
+            kwargs[History.EVAL_Y_PRED] = eval_ys_predicted
+        if eval_ys_predicted_proba is not None:
+            kwargs[History.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
     if model_id is not None:
         mixins.append(_ModelIdMixin)
         kwargs[History.MODEL_ID] = model_id
@@ -1373,7 +1420,9 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
         raise ValueError("Both explanation and kwargs cannot be set")
 
     keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
-            ExplainParams.CLASSIFICATION]
+            ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
+            ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
+            ExplainParams.EVAL_Y_PRED_PROBA]
 
     def has_value(x):
         if explanation is None:

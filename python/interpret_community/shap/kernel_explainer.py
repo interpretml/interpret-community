@@ -11,16 +11,16 @@ from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_
 from ..common.aggregate import add_explain_global_method
 from ..common.explanation_utils import _convert_to_list, _append_shap_values_instance, \
     _convert_single_instance_to_multi
-from interpret_community.common.model_wrapper import _wrap_model
+from ..common.model_wrapper import _wrap_model
+from ..common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask, \
+    Extension
 from ..explanation.explanation import _create_local_explanation
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from interpret_community.common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask, \
-    Extension
-from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
+from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
 import warnings
@@ -249,7 +249,10 @@ class KernelExplainer(BlackBoxExplainer):
         """
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_KERNEL, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        original_evaluation_examples = evaluation_examples.typed_dataset
+        kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
+        ys_dict = self._get_ys_dict(original_evaluation_examples, transformations=self.transformations)
+        kwargs.update(ys_dict)
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -261,6 +264,7 @@ class KernelExplainer(BlackBoxExplainer):
         :return: Args for explain_local.
         :rtype: dict
         """
+        original_evaluation_examples = evaluation_examples.typed_dataset
         if self._datamapper is not None:
             evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
 
@@ -326,7 +330,9 @@ class KernelExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
+        ys_dict = self._get_ys_dict(original_evaluation_examples, transformations=self.transformations)
+        kwargs.update(ys_dict)
         return kwargs
 
     @tabular_decorator
