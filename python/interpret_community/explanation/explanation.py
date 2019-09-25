@@ -297,7 +297,13 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: For a model with a single output such as regression, this
             returns a list of feature importance values for each data point. For models with vector outputs this
             function returns a list of such lists, one for each output. The dimension of this matrix
-            is (# examples x # features).
+            is (# examples x # features) or (# classes x # examples x # features).
+
+            In the classification case, the order of classes is the order of the numeric indices that the classifier
+            outputs. For example, if your target values are [2, 2, 0, 1, 2, 1, 0], where 0 is "dog", 1 is "cat", and
+            2 is "fish", the first 2d matrix of importance values will be for "dog", the second will be for "cat", and
+            the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
+            be passed in using this same order.
         :rtype: list[list[float]] or list[list[list[float]]]
         """
         return self._local_importance_values.tolist()
@@ -307,7 +313,10 @@ class LocalExplanation(FeatureImportanceExplanation):
 
         For example, if original features are
         [f0, f1, f2, f3] and in local importance order for the first data point they are [f2, f3, f0, f1],
-        local_importance_rank[0] would be [2, 3, 0, 1] (or local_importance_rank[0][0] if classification)
+        local_importance_rank[0] would be [2, 3, 0, 1] (or local_importance_rank[0][0] if classification).
+
+        For documentation regarding order of classes in the classification case, please see the docstring for
+        local_importance_values.
 
         :return: The feature indexes sorted by importance.
         :rtype: list[list[int]] or list[list[list[int]]]
@@ -316,6 +325,9 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     def get_ranked_local_names(self, top_k=None):
         """Get feature names sorted by local feature importance values, highest to lowest.
+
+        For documentation regarding order of classes in the classification case, please see the docstring for
+        local_importance_values.
 
         :param top_k: If specified, only the top k names will be returned.
         :type top_k: int
@@ -337,6 +349,9 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     def get_ranked_local_values(self, top_k=None):
         """Get local feature importance sorted from highest to lowest.
+
+        For documentation regarding order of classes in the classification case, please see the docstring for
+        local_importance_values.
 
         :param top_k: If specified, only the top k values will be returned.
         :type top_k: int
@@ -384,6 +399,9 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     def get_raw_feature_importances(self, raw_to_output_maps):
         """Get local raw feature importance.
+
+        For documentation regarding order of classes in the classification case, please see the docstring for
+        local_importance_values.
 
         :param raw_to_output_maps: list of feature maps from raw to generated feature.
         :type raw_to_output_maps: list[numpy.array]
@@ -704,6 +722,9 @@ class ExpectedValuesMixin(object):
     def expected_values(self):
         """Get the expected values.
 
+        In the classification case where there are multiple expected values, they will be in the same order as the
+        numeric indices that the classifier outputs.
+
         :return: The expected value of the model applied to the set of initialization examples.
         :rtype: list
         """
@@ -869,6 +890,12 @@ class PerClassMixin(ClassesMixin):
         upload_model_explanation or download_model_explanation. In those cases, returns the most important k values
         in highest to lowest importance order.
 
+        The order of classes in the output is the order of the numeric indices that the classifier
+        outputs. For example, if your target values are [2, 2, 0, 1, 2, 1, 0], where 0 is "dog", 1 is "cat", and
+        2 is "fish", the first 2d matrix of importance values will be for "dog", the second will be for "cat", and
+        the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
+        be passed in using this same order.
+
         :return: The model level per class feature importance values in original feature order.
         :rtype: list
         """
@@ -884,6 +911,8 @@ class PerClassMixin(ClassesMixin):
         [f0, f1, f2, f3] and in per class importance order they are [[f2, f3, f0, f1], [f0, f2, f3, f1]],
         per_class_rank would be [[2, 3, 0, 1], [0, 2, 3, 1]].
 
+        For documentation regarding order of classes, please see the docstring for per_class_values.
+
         :return: The per class indexes that would sort per_class_values.
         :rtype: list
         """
@@ -891,6 +920,8 @@ class PerClassMixin(ClassesMixin):
 
     def get_ranked_per_class_names(self, top_k=None):
         """Get feature names sorted by per class feature importance values, highest to lowest.
+
+        For documentation regarding order of classes, please see the docstring for per_class_values.
 
         :param top_k: If specified, only the top k names will be returned.
         :type top_k: int
@@ -911,6 +942,8 @@ class PerClassMixin(ClassesMixin):
 
     def get_ranked_per_class_values(self, top_k=None):
         """Get per class feature importance sorted from highest to lowest.
+
+        For documentation regarding order of classes, please see the docstring for per_class_values.
 
         :param top_k: If specified, only the top k values will be returned.
         :type top_k: int
