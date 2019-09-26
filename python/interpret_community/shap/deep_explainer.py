@@ -35,7 +35,7 @@ module_logger.setLevel(logging.INFO)
 try:
     import torch
 except ImportError:
-    module_logger.info('Could not import torch, required if using a pytorch model')
+    module_logger.debug('Could not import torch, required if using a pytorch model')
 
 
 class logger_redirector(object):
