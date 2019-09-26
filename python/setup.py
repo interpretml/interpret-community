@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.0'
+_major = '0.1'
 _minor = '0.0'
 
 shutil.copyfile('../LICENSE', 'LICENSE.txt')
@@ -32,7 +32,7 @@ CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
-    'License :: Other/Proprietary License',
+    'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
@@ -63,23 +63,22 @@ EXTRAS = {
     ]
 }
 
-with open('README.rst', 'r', encoding='utf-8') as f:
+with open('README.md', 'r', encoding='utf-8') as f:
     README = f.read()
 with open('HISTORY.rst', 'r', encoding='utf-8') as f:
     HISTORY = f.read()
-with open('../LICENSE', 'r', encoding='utf-8') as f:
-    inline_license = f.read()
 
 setup(
-    name='interpret-extensions',
+    name='interpret-community',
 
     version=SELFVERSION,
 
-    description='',
-    long_description=README + '\n\n' + HISTORY,
-    long_description_content_type='text/x-rst',
+    description='Microsoft Interpret Extensions SDK for Python',
+    long_description=README,
+    long_description_content_type='text/markdown',
     author='Microsoft Corp',
-    license=inline_license,
+    author_email='ilmat@microsoft.com',
+    license='MIT License',
     url='https://docs.microsoft.com/en-us/azure/machine-learning/service/',
 
     classifiers=CLASSIFIERS,
