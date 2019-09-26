@@ -101,18 +101,25 @@ class BlackBoxMixin(ChainedIdentity):
                 if model_task == ModelTask.Classification:
                     raise Exception("No predict_proba method on model which has model_task='classifier'")
 
-    def _get_ys_dict(self, evaluation_examples, transformations=None):
+    def _get_ys_dict(self, evaluation_examples, transformations=None, allow_all_transformations=False):
         """Get the predicted ys to be incorporated into a kwargs dictionary.
         :param evaluation_examples: The same ones we usually work with, must be able to be passed into the
             model or function.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param transformations: See documentation on any explainer.
+        :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
+        :param allow_all_transformations: Allow many to many and many to one transformations
+        :type allow_all_transformations: bool
         :return: The dictionary with none, one, or both of predicted ys and predicted proba ys for eval
             examples.
         :rtype: dict
         """
         if transformations is not None:
-            _, evaluation_examples = get_datamapper_and_transformed_data(examples=evaluation_examples,
-                                                                         transformations=transformations)
+            _, evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples,
+                transformations=transformations,
+                allow_all_transformations=allow_all_transformations
+            )
         if isinstance(evaluation_examples, DatasetWrapper):
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:

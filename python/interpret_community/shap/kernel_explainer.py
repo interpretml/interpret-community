@@ -204,6 +204,7 @@ class KernelExplainer(BlackBoxExplainer):
         self.show_progress = show_progress
         self.nsamples = nsamples
         self.transformations = transformations
+        self._allow_all_transformations = allow_all_transformations
         self._reset_evaluation_background(self.function, **kwargs)
 
     def _reset_evaluation_background(self, function, **kwargs):
@@ -251,7 +252,9 @@ class KernelExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         original_evaluation_examples = evaluation_examples.typed_dataset
         kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
-        ys_dict = self._get_ys_dict(original_evaluation_examples, transformations=self.transformations)
+        ys_dict = self._get_ys_dict(original_evaluation_examples,
+                                    transformations=self.transformations,
+                                    allow_all_transformations=self._allow_all_transformations)
         kwargs.update(ys_dict)
         return self._explain_global(evaluation_examples, **kwargs)
 
@@ -331,7 +334,9 @@ class KernelExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
-        ys_dict = self._get_ys_dict(original_evaluation_examples, transformations=self.transformations)
+        ys_dict = self._get_ys_dict(original_evaluation_examples,
+                                    transformations=self.transformations,
+                                    allow_all_transformations=self._allow_all_transformations)
         kwargs.update(ys_dict)
         return kwargs
 

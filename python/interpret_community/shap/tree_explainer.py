@@ -150,6 +150,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         self.features = features
         self.classes = classes
         self.transformations = transformations
+        self._allow_all_transformations = allow_all_transformations
         self._shap_values_output = shap_values_output
 
     @tabular_decorator
@@ -178,8 +179,11 @@ class TreeExplainer(PureStructuredModelExplainer):
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples.original_dataset_with_type
         wrapped_evals = evaluation_examples
         if self.transformations is not None:
-            _, evaluation_examples = get_datamapper_and_transformed_data(examples=evaluation_examples,
-                                                                         transformations=self.transformations)
+            _, evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples,
+                transformations=self.transformations,
+                allow_all_transformations=self._allow_all_transformations
+            )
         if isinstance(evaluation_examples, DatasetWrapper):
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:
@@ -189,12 +193,14 @@ class TreeExplainer(PureStructuredModelExplainer):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
         return self._explain_global(wrapped_evals, **kwargs)
 
-    def _get_explain_local_kwargs(self, evaluation_examples):
+    def _get_explain_local_kwargs(self, evaluation_examples, original_evals):
         """Get the kwargs for explain_local to create a local explanation.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param original_evals: The original data that the user passed into explain_local.
+        :type original_evals: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Args for explain_local.
         :rtype: dict
         """
@@ -236,7 +242,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = np.array(local_importance_values)
         kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
         kwargs[ExplainParams.CLASSIFICATION] = classification
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        kwargs[ExplainParams.EVAL_DATA] = original_evals
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
@@ -255,10 +261,11 @@ class TreeExplainer(PureStructuredModelExplainer):
             of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
+        original_evals = evaluation_examples.original_dataset_with_type
         if self._datamapper is not None:
             evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
 
-        kwargs = self._get_explain_local_kwargs(evaluation_examples)
+        kwargs = self._get_explain_local_kwargs(evaluation_examples, original_evals)
         explanation = _create_local_explanation(**kwargs)
 
         if self._datamapper is None:
