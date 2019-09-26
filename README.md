@@ -1,4 +1,4 @@
-Microsoft Interpret Extensions SDK for Python
+Machine Learning Interpret SDK for Python
 =============================================================
 
 This package has been tested with Python 2.7 and 3.6.
