@@ -273,6 +273,7 @@ class MimicExplainer(BlackBoxExplainer):
                                               original_training_data, explainable_model_args)
         self._method = self.surrogate_model._method
         self._original_eval_examples = None
+        self._allow_all_transformations = allow_all_transformations
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -371,7 +372,9 @@ class MimicExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         if evaluation_examples is not None:
             kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
-            ys_dict = self._get_ys_dict(self._original_eval_examples, transformations=self.transformations)
+            ys_dict = self._get_ys_dict(self._original_eval_examples,
+                                        transformations=self.transformations,
+                                        allow_all_transformations=self._allow_all_transformations)
             kwargs.update(ys_dict)
             if include_local:
                 return _aggregate_global_from_local_explanation(**kwargs)
@@ -438,7 +441,9 @@ class MimicExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.CLASSIFICATION] = classification
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
-        ys_dict = self._get_ys_dict(self._original_eval_examples, transformations=self.transformations)
+        ys_dict = self._get_ys_dict(self._original_eval_examples,
+                                    transformations=self.transformations,
+                                    allow_all_transformations=self._allow_all_transformations)
         kwargs.update(ys_dict)
         return kwargs
 

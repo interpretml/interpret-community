@@ -20,7 +20,13 @@ from common_utils import create_sklearn_random_forest_classifier, create_sklearn
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
 from constants import DatasetConstants
+
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.compose import ColumnTransformer
 
 from constants import owner_email_tools_and_ux
 from datasets import retrieve_dataset
@@ -536,6 +542,46 @@ class TestTabularExplainer(object):
         local_raw_importances = local_explanation.get_raw_feature_importances([feature_map])
         assert len(local_raw_importances) == len(iris[DatasetConstants.CLASSES]), \
             'length of local importances does not match number of classes'
+
+    def test_explain_raw_feats_titanic(self, tabular_explainer):
+        titanic_url = ('https://raw.githubusercontent.com/amueller/'
+                       'scipy-2017-sklearn/091d371/notebooks/datasets/titanic3.csv')
+        data = pd.read_csv(titanic_url)
+        # fill missing values
+        data = data.fillna(method="ffill")
+        data = data.fillna(method="bfill")
+        numeric_features = ['age', 'fare']
+        categorical_features = ['embarked', 'sex', 'pclass']
+        y = data['survived'].values
+        X = data[categorical_features + numeric_features]
+        # Split data into train and test
+        x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        many_to_one_transformer = FunctionTransformer(lambda x: x.sum(axis=1).reshape(-1, 1))
+        many_to_many_transformer = FunctionTransformer(lambda x: np.hstack(
+            (np.prod(x, axis=1).reshape(-1, 1), (np.prod(x, axis=1)**2).reshape(-1, 1))
+        ))
+        transformations = ColumnTransformer([
+            ("age_fare_1", Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='median')),
+                ('scaler', StandardScaler())
+            ]), ["age", "fare"]),
+            ("age_fare_2", many_to_one_transformer, ["age", "fare"]),
+            ("age_fare_3", many_to_many_transformer, ["age", "fare"]),
+            ("embarked", Pipeline(steps=[
+                ("imputer", SimpleImputer(strategy='constant', fill_value='missing')),
+                ("encoder", OneHotEncoder(sparse=False))]), ["embarked"]),
+            ("sex_pclass", OneHotEncoder(sparse=False), ["sex", "pclass"])
+        ])
+        clf = Pipeline(steps=[('preprocessor', transformations),
+                              ('classifier', LogisticRegression(solver='lbfgs'))])
+        clf.fit(x_train, y_train)
+        explainer = tabular_explainer(clf.steps[-1][1],
+                                      initialization_examples=x_train,
+                                      features=x_train.columns,
+                                      transformations=transformations,
+                                      allow_all_transformations=True)
+        explainer.explain_global(x_test)
+        explainer.explain_local(x_test)
 
     def test_explain_with_transformations_list_classification(self, verify_tabular):
         verify_tabular.verify_explain_model_transformations_list_classification()
