@@ -395,6 +395,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         """
         raw_kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=self)
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
+        raw_kwargs[ExplainParams.IS_RAW] = True
         return _create_raw_feats_local_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
     def get_raw_feature_importances(self, raw_to_output_maps):
@@ -606,6 +607,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         """
         raw_kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=self)
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
+        raw_kwargs[ExplainParams.IS_RAW] = True
         return _create_raw_feats_global_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
     def get_raw_feature_importances(self, feature_maps):
