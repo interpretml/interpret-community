@@ -1473,6 +1473,8 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
 
     kwarg_dict = dict([(key, get_value(key)) for key in keys if has_value(key)])
     kwarg_dict[ExplainParams.IS_RAW] = True
+    if not has_value(ExplainParams.CLASSIFICATION) and has_value(ExplainParams.MODEL_TASK):
+        kwarg_dict[ExplainParams.CLASSIFICATION] = kwarg_dict[ExplainParams.MODEL_TASK] == ModelTask.Classification
     return kwarg_dict
 
 
