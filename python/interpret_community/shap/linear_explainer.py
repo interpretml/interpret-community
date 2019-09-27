@@ -146,6 +146,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         self.features = features
         self.classes = classes
         self.transformations = transformations
+        self._allow_all_transformations = allow_all_transformations
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None,
