@@ -184,13 +184,20 @@ class TreeExplainer(PureStructuredModelExplainer):
                 transformations=self.transformations,
                 allow_all_transformations=self._allow_all_transformations
             )
+        typed_wrapper_func = None
         if isinstance(evaluation_examples, DatasetWrapper):
+            typed_wrapper_func = evaluation_examples.typed_wrapper_func
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:
+            # TODO: is this needed?
             evaluation_examples = evaluation_examples.reshape(1, -1)
-        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
+        if typed_wrapper_func is not None:
+            typed_evaluation_examples = typed_wrapper_func(evaluation_examples)
+        else:
+            typed_evaluation_examples = evaluation_examples
+        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(typed_evaluation_examples)
         if hasattr(self.model, 'predict_proba'):
-            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(typed_evaluation_examples)
         return self._explain_global(wrapped_evals, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples, original_evals):
@@ -245,9 +252,9 @@ class TreeExplainer(PureStructuredModelExplainer):
         kwargs[ExplainParams.EVAL_DATA] = original_evals
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
-        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
+        kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(typed_wrapper_func(evaluation_examples))
         if hasattr(self.model, 'predict_proba'):
-            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(typed_wrapper_func(evaluation_examples))
         return kwargs
 
     @tabular_decorator
