@@ -201,7 +201,7 @@ class BaseExplanation(ChainedIdentity):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not hasattr(explanation, History.METHOD) or not isinstance(explanation.method, str):
@@ -261,7 +261,7 @@ class FeatureImportanceExplanation(BaseExplanation):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not super()._does_quack(explanation):
@@ -404,9 +404,9 @@ class LocalExplanation(FeatureImportanceExplanation):
         For documentation regarding order of classes in the classification case, please see the docstring for
         local_importance_values.
 
-        :param raw_to_output_maps: list of feature maps from raw to generated feature.
+        :param raw_to_output_maps: A list of feature maps from raw to generated feature.
         :type raw_to_output_maps: list[numpy.array]
-        :return: raw feature importances
+        :return: Raw feature importance.
         :rtype: list[list] or list[list[list]]
         """
         return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
@@ -478,7 +478,7 @@ class LocalExplanation(FeatureImportanceExplanation):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not super()._does_quack(explanation):
@@ -613,11 +613,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
     def get_raw_feature_importances(self, feature_maps):
         """Get global raw feature importance.
 
-        :param raw_feat_indices: list of lists of generated feature indices for each raw feature
+        :param raw_feat_indices: A list of lists of generated feature indices for each raw feature.
         :type raw_feat_indices: list[list]
-        :param weights: list of list of weights to be applied to the generated feature importance
+        :param weights: A list of list of weights to be applied to the generated feature importance.
         :type weights: list[list]
-        :return: raw feature importances
+        :return: Raw feature importances.
         :rtype: list[list] or list[list[list]]
 
         """
@@ -692,7 +692,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not super()._does_quack(explanation):
@@ -792,7 +792,7 @@ class ExpectedValuesMixin(object):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not hasattr(explanation, History.EXPECTED_VALUES) or explanation.expected_values is None:
@@ -838,7 +838,7 @@ class ClassesMixin(object):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         return hasattr(explanation, History.CLASSES)
@@ -965,7 +965,7 @@ class PerClassMixin(ClassesMixin):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         if not super()._does_quack(explanation):
@@ -1056,7 +1056,7 @@ class _DatasetsMixin(object):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         has_ys = hasattr(explanation, History.EVAL_Y_PRED) and hasattr(explanation, History.EVAL_Y_PRED_PROBA)
@@ -1094,7 +1094,7 @@ class _ModelIdMixin(object):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid else False
+        :return: True if valid, else False
         :rtype: bool
         """
         return hasattr(explanation, History.MODEL_ID)

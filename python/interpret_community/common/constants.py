@@ -176,7 +176,7 @@ class Dynamic(object):
 
 
 class Tensorflow(object):
-    """Provide tensorflow and tensorboard related constants."""
+    """Provide TensorFlow and Tensorboard related constants."""
 
     CPU0 = '/CPU:0'
     TFLOG = 'tflog'
