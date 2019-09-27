@@ -22,8 +22,8 @@ class GlobalExplainer(ChainedIdentity):
     def explain_global(self, *args, **kwargs):
         """Abstract method to globally explain the given model.
 
-        Note evaluation examples can be optional on derived classes since some explainers,
-        for example MimicExplainer, don't support it.
+        Note evaluation examples can be optional on derived classes since some explainers
+        don't support it, for example MimicExplainer.
 
         :return: A model explanation object containing the global explanation.
         :rtype: GlobalExplanation

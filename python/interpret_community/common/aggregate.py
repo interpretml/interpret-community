@@ -26,7 +26,7 @@ def init_aggregator_decorator(init_func):
 
 
 def add_explain_global_method(cls):
-    """Decorate explainer to allow aggregating local explanations to global.
+    """Decorate an explainer to allow aggregating local explanations to global.
 
     Adds a protected method _explain_global that creates local explanations
     and then aggregates them to a global explanation by averaging.

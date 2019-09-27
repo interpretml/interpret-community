@@ -375,9 +375,9 @@ def _two_dimensional_slice(lst, end_index):
 def _get_feature_map_from_list_of_indexes(indices_list):
     """Compute feature map from a list of indices from raw features to generated feature indices.
 
-    :param indices_list: list of lists of generated feature indices for each raw feature
+    :param indices_list: A list of lists of generated feature indices for each raw feature.
     :type indices_list: list[list[int]]
-    :return: feature map from raw to generated
+    :return: A feature map from raw to generated.
     :rtype: numpy.array
     """
     # sets for each list of generated features
