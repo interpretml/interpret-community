@@ -4,7 +4,7 @@
 
 """Defines an explainable tree model."""
 
-from ...common.constants import ShapValuesOutput, ExplainableModelType
+from ...common.constants import ShapValuesOutput, ExplainableModelType, Extension
 from .explainable_model import BaseExplainableModel, _get_initializer_args
 from .tree_model_utils import _explain_local_tree_surrogate, \
     _expected_values_tree_surrogate
@@ -21,6 +21,9 @@ DEFAULT_RANDOM_STATE = 123
 
 
 class DecisionTreeExplainableModel(BaseExplainableModel):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
     """Decision Tree explainable model.
 
     :param multiclass: Set to true to generate a multiclass model.

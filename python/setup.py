@@ -98,6 +98,12 @@ setup(
             "LinearExplainer = interpret_community.shap:LinearExplainer",
             "DeepExplainer = interpret_community.shap:DeepExplainer",
             "TreeExplainer = interpret_community.shap:TreeExplainer"
+        ],
+        "interpret_ext_glassbox": [
+            "LGBMExplainableModel = interpret_community.mimic.models:LGBMExplainableModel",
+            "LinearExplainableModel = interpret_community.mimic.models:LinearExplainableModel",
+            "SGDExplainableModel = interpret_community.mimic.models:SGDExplainableModel",
+            "DecisionTreeExplainableModel = interpret_community.mimic.models:DecisionTreeExplainableModel"
         ]
     },
 

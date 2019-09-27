@@ -6,8 +6,8 @@
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args
 from .tree_model_utils import _explain_local_tree_surrogate, _expected_values_tree_surrogate
-from ...common.constants import ShapValuesOutput, \
-    LightGBMSerializationConstants, ExplainableModelType
+from ...common.constants import ShapValuesOutput, LightGBMSerializationConstants, \
+    ExplainableModelType, Extension
 import json
 import warnings
 import logging
@@ -30,6 +30,9 @@ _N_CLASSES = '_n_classes'
 
 
 class LGBMExplainableModel(BaseExplainableModel):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
     """LightGBM (fast, high performance framework based on decision tree) explainable model.
 
     Please see documentation for more details: https://github.com/Microsoft/LightGBM

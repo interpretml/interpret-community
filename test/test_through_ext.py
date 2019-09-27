@@ -31,3 +31,19 @@ def test_import_tree():
 
 def test_import_deep():
     from interpret.ext.greybox import DeepExplainer  # noqa
+
+
+def test_import_lgbm_explainable_model():
+    from interpret.ext.glassbox import LGBMExplainableModel  # noqa
+
+
+def test_import_linear_explainable_model():
+    from interpret.ext.glassbox import LinearExplainableModel  # noqa
+
+
+def test_import_sgd_explainable_model():
+    from interpret.ext.glassbox import SGDExplainableModel  # noqa
+
+
+def test_import_decision_tree_explainable_model():
+    from interpret.ext.glassbox import DecisionTreeExplainableModel  # noqa

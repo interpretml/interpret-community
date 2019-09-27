@@ -8,7 +8,7 @@ import scipy as sp
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args
 from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
-from ...common.constants import ExplainableModelType
+from ...common.constants import ExplainableModelType, Extension
 
 import warnings
 
@@ -79,6 +79,9 @@ def _compute_local_shap_values(linear_explainer, evaluation_examples, classifica
 
 
 class LinearExplainableModel(BaseExplainableModel):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
     """Linear explainable model.
 
     :param multiclass: Set to true to generate a multiclass model.
@@ -244,6 +247,9 @@ class LinearExplainableModel(BaseExplainableModel):
 
 
 class SGDExplainableModel(BaseExplainableModel):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
     """Stochastic Gradient Descent explainable model.
 
     :param multiclass: Set to true to generate a multiclass model.
