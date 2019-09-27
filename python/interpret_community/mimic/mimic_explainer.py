@@ -252,23 +252,19 @@ class MimicExplainer(BlackBoxExplainer):
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
             self._one_hot_encoder = initialization_examples.one_hot_encode(columns=categorical_features)
 
-        # Note: Keeping this field as None for backwards compatibility as of April 16, 2019 (to be removed)
-        # Although it seems it is needed for LinearExplainer when creating scoring model
-        self.initialization_examples = None
         self.classes = classes
         self.explain_subset = explain_subset
         self.transformations = transformations
         self._shap_values_output = shap_values_output
         # Train the mimic model on the given model
         training_data = initialization_examples.dataset
+        self.initialization_examples = initialization_examples
         if isinstance(training_data, DenseData):
             training_data = training_data.data
 
         explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
         if self._supports_shap_values_output(explainable_model):
             explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
-        else:
-            self.initialization_examples = initialization_examples
         self.surrogate_model = _model_distill(self.function, explainable_model, training_data,
                                               original_training_data, explainable_model_args)
         self._method = self.surrogate_model._method

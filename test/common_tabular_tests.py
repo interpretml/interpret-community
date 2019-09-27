@@ -784,6 +784,8 @@ class VerifyTabularTests(object):
         explanation = explainer.explain_global(x_test)
         is_probability = shap_values_output != ShapValuesOutput.DEFAULT
         self.validate_explanation(explanation, is_multiclass=True, is_probability=is_probability)
+        # validate explanation has init_data on it
+        assert(explanation.init_data is not None)
 
     def verify_explain_model_shap_values_binary(self, shap_values_output=ShapValuesOutput.DEFAULT):
         x_train, x_test, y_train, _, feature_names, target_names = create_cancer_data()
