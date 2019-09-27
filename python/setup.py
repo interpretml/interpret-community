@@ -10,7 +10,12 @@ import shutil
 _major = '0.1'
 _minor = '0.0'
 
-shutil.copyfile('../LICENSE', 'LICENSE.txt')
+README_FILE = 'README.md'
+LICENSE_FILE = 'LICENSE.txt'
+
+# Note: used when generating the wheel but not on pip install of the package
+if os.path.exists('../LICENSE'):
+    shutil.copyfile('../LICENSE', LICENSE_FILE)
 
 if os.path.exists('../major.version'):
     with open('../major.version', 'rt') as bf:
@@ -63,10 +68,8 @@ EXTRAS = {
     ]
 }
 
-with open('README.md', 'r', encoding='utf-8') as f:
+with open(README_FILE, 'r', encoding='utf-8') as f:
     README = f.read()
-with open('HISTORY.rst', 'r', encoding='utf-8') as f:
-    HISTORY = f.read()
 
 setup(
     name='interpret-community',
