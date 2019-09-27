@@ -305,6 +305,7 @@ class Extension(object):
     """Provide constants for extensions to interpret package."""
 
     BLACKBOX = 'blackbox'
+    GLASSBOX = 'model'
     GLOBAL = 'global'
     GREYBOX = 'specific'
     LOCAL = 'local'
