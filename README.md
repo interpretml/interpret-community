@@ -118,14 +118,15 @@ jupyter notebook
 
 # Models
 
-# Mehrnoosh todo: this section requires rewording
-Add ref to
-https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explain.model?view=azure-ml-py
+[//]: #  (Mehrnoosh todo: this section requires rewording )
+
+[//]: #  (Add ref to
+https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explain.model?view=azure-ml-py)
 
 * The API supports both dense (numpy or pandas) and sparse (scipy) datasets
 
 * For more advanced users, individual explainers can be used
- (details?)
+
 * The TabularExplainer provides local and global feature importances  
     *  The best explainer is automatically chosen for the user based on the model
         - Best implies fastest execution time and highest interpretabilty accuracy.
@@ -137,7 +138,6 @@ https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explai
  * The DeepExplainer is for DNN tensorflow or pytorch models
 [shap](https://github.com/slundberg/shap) and [lime](https://github.com/marcotcr/lime) have docs
 
-global surrogate is ???
 
 <a name=Example></a>
 
@@ -146,8 +146,7 @@ global surrogate is ???
 <a name=Contributing></a>
 
 # Contributing
-
-# Vincent: is CLA required when we go public?
+[//]: #  (Vincent: is CLA required when we go public? )
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
