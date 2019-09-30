@@ -166,7 +166,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ## Reporting Security Issues
 
-# Vincent: can we delete this section?
+[//]: #  (# Vincent: can we delete this section? )
 
 Security issues and bugs should be reported privately, via email, to the Microsoft Security
 Response Center (MSRC) at [secure@microsoft.com](mailto:secure@microsoft.com). You should
