@@ -15,7 +15,7 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 # Contents
 
 - [Try our notebooks in your favorite cloud](#try)
-- [Getting Started](#gettingstarted) 
+- [Getting Started](#getting-started)
 - [Models](#models)
 - [Example](#Example)
 - [Contributing](#Contributing)
