@@ -7,21 +7,6 @@
 from enum import Enum
 
 
-class BackCompat(object):
-    """Provide constants necessary for supporting old versions of our product."""
-
-    FEATURE_NAMES = 'feature_names'
-    NAME = 'name'
-    OLD_NAME = 'old_name'
-    OVERALL_FEATURE_ORDER = 'overall_feature_order'
-    OVERALL_IMPORTANCE_ORDER = 'overall_importance_order'
-    OVERALL_SUMMARY = 'overall_summary'
-    PER_CLASS_FEATURE_ORDER = 'per_class_feature_order'
-    PER_CLASS_IMPORTANCE_ORDER = 'per_class_importance_order'
-    PER_CLASS_SUMMARY = 'per_class_summary'
-    SHAP_VALUES = 'shap_values'
-
-
 class ExplanationParams(object):
     """Provide constants for explanation parameters."""
 
@@ -97,14 +82,6 @@ class ExplainType(object):
     SHAP_TREE = 'shap_tree'
     SHAP_LINEAR = 'shap_linear'
     TABULAR = 'tabular'
-
-
-class IO(object):
-    """Provide file input and output related constants."""
-
-    JSON = 'json'
-    PICKLE = 'pickle'
-    UTF8 = 'utf-8'
 
 
 class ExplainParams(object):

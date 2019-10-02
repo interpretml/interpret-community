@@ -49,7 +49,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         Currently only types 'default' and 'probability' are supported.  If 'probability'
         is specified, then we approximately scale the raw log-odds values from the TreeExplainer
         to probabilities.
-    :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+    :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
         The format for list of transformations is same as the one here:
@@ -107,7 +107,7 @@ class TreeExplainer(PureStructuredModelExplainer):
             Currently only types 'default' and 'probability' are supported.  If 'probability'
             is specified, then we approximately scale the raw log-odds values from the TreeExplainer
             to probabilities.
-        :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+        :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
