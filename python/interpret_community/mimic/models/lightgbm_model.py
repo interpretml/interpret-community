@@ -11,6 +11,7 @@ from ...common.constants import ShapValuesOutput, LightGBMSerializationConstants
 import json
 import warnings
 import logging
+import inspect
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
@@ -269,14 +270,19 @@ class LGBMExplainableModel(BaseExplainableModel):
                 # See here for more info:
                 # https://github.com/Microsoft/LightGBM/issues/1942
                 # https://github.com/Microsoft/LightGBM/issues/1217
+                booster_args = {LightGBMSerializationConstants.MODEL_STR: value}
+                if LightGBMSerializationConstants.MODEL_STR in inspect.getargspec(Booster).args:
+                    extras = {LightGBMSerializationConstants.OBJECTIVE: LightGBMSerializationConstants.MULTICLASS}
+                    lgbm_booster = Booster(**booster_args, params=extras)
+                else:
+                    # For backwards compatibility with older versions of lightgbm
+                    lgbm_booster = Booster(params=booster_args)
                 if json.loads(properties[LightGBMSerializationConstants.MULTICLASS]):
                     new_lgbm = LGBMClassifier()
-                    lgbm_booster = Booster(params={LightGBMSerializationConstants.MODEL_STR: value})
                     new_lgbm._Booster = lgbm_booster
                     new_lgbm._n_classes = _n_classes
                 else:
                     new_lgbm = LGBMRegressor()
-                    lgbm_booster = Booster(params={LightGBMSerializationConstants.MODEL_STR: value})
                     new_lgbm._Booster = lgbm_booster
                 new_lgbm._n_features = _n_features
                 lightgbm.__dict__[key] = new_lgbm
