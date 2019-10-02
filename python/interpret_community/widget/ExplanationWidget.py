@@ -16,7 +16,7 @@ class ExplanationWidget(widgets.DOMWidget):
     _model_name = Unicode('ExplanationModel').tag(sync=True)
     _view_module = Unicode('interpret-ml-widget').tag(sync=True)
     _model_module = Unicode('interpret-ml-widget').tag(sync=True)
-    _view_module_version = Unicode('^0.1.0').tag(sync=True)
+    _view_module_version = Unicode('^0.1.1').tag(sync=True)
     _model_module_version = Unicode('^0.1.0').tag(sync=True)
     value = Dict().tag(sync=True)
     request = Dict().tag(sync=True)

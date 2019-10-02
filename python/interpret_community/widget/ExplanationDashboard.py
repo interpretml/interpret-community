@@ -65,7 +65,7 @@ class ExplanationDashboard(object):
         local_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_LOCAL_EXPLANATION_KEY)
         global_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_GLOBAL_EXPLANATION_KEY)
         ebm_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EBM_GLOBAL_EXPLANATION_KEY)
-        dataset_explanation = self._find_first_explanation(ExplanationDashboardInterface.EXPLANATION_DATASET_KEY)
+        dataset_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EXPLANATION_DATASET_KEY)
 
         dataset_x = None
         dataset_y = None
