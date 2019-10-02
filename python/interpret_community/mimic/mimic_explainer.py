@@ -55,7 +55,7 @@ class MimicExplainer(BlackBoxExplainer):
         scipy.sparse.csr_matrix
     :param explainable_model: The uninitialized surrogate model used to explain the black box model.
         Also known as the student model.
-    :type explainable_model: azureml.explain.model.mimic.models.BaseExplainableModel
+    :type explainable_model: interpret_community.mimic.models.BaseExplainableModel
     :param explainable_model_args: An optional map of arguments to pass to the explainable model
         for initialization.
     :type explainable_model_args: dict
@@ -115,7 +115,7 @@ class MimicExplainer(BlackBoxExplainer):
         are specified, we approximate the feature importance values as probabilities instead
         of using the default values. If teacher probability is specified, we use the probabilities
         from the teacher model as opposed to the surrogate model.
-    :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+    :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param categorical_features: Categorical feature names or indexes.
         If names are passed, they will be converted into indexes first.
     :type categorical_features: Union[list[str], list[int]]
@@ -200,7 +200,7 @@ class MimicExplainer(BlackBoxExplainer):
             are specified, we approximate the feature importance values as probabilities instead
             of using the default values. If teacher probability is specified, we use the probabilities
             from the teacher model as opposed to the surrogate model.
-        :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+        :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
         :param categorical_features: Categorical feature names or indexes.
             If names are passed, they will be converted into indexes first.
         :type categorical_features: Union[list[str], list[int]]
@@ -504,7 +504,7 @@ class MimicExplainer(BlackBoxExplainer):
         :param properties: A serialized dictionary representation of the mimic explainer.
         :type properties: dict
         :return: The deserialized MimicExplainer.
-        :rtype: azureml.explain.model.mimic.MimicExplainer
+        :rtype: interpret_community.mimic.MimicExplainer
         """
         # create the MimicExplainer without any properties using the __new__ function, similar to pickle
         mimic = MimicExplainer.__new__(MimicExplainer)

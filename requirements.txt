@@ -1,10 +1,10 @@
 xmlrunner
-tensorflow
+tensorflow<2.0.0
 numpy
 pandas
 sklearn_pandas
 hdbscan
-lightgbm
+lightgbm<2.3.0
 xgboost
 prompt-toolkit>=2.0.0
 pytest
