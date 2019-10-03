@@ -4,11 +4,11 @@
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
 ![versions](https://img.shields.io/badge/python-2.7%20%7C%203.6-blue)
 
-Interpret Community Extensions SDK
+Interpret Community SDK
 =============================================================
 
 
-The Interpret Community Extensions builds on [InterpretML](https://github.com/Microsoft/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, by adding additional extensions from the community to interpret ML models.
+The Interpret Community Extensions builds on [Interpret](https://github.com/Microsoft/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, by adding additional extensions from the community to interpret ML models.
 
 This repository contains an SDK and Jupyter notebooks with examples to showcase its use.
 
