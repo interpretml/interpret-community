@@ -243,6 +243,7 @@ class LightGBMSerializationConstants(object):
     MODEL_STR = 'model_str'
     MULTICLASS = 'multiclass'
     TREE_EXPLAINER = '_tree_explainer'
+    OBJECTIVE = 'objective'
 
     enum_properties = ['_shap_values_output']
     nonify_properties = [LOGGER, TREE_EXPLAINER]
