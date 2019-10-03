@@ -15,15 +15,15 @@ import pandas as pd
 class ExplanationDashboard(object):
     """The dashboard class, wraps the dashboard component."""
 
-    def __init__(self, explanationObject, learner=None, dataset=None, trueY=None):
+    def __init__(self, explanationObject, model=None,* , dataset=None, trueY=None):
         """Initialize the Explanation Dashboard.
 
         :param explanationObject: An object that represents an explanation.
         :type explanationObject: ExplanationMixin
-        :param learner: An object that represents a model. It is assumed that for the classification case
+        :param model: An object that represents a model. It is assumed that for the classification case
             it has a method of predict_proba() returning the prediction probabilities for each
             class and for the regression case a method of predict() returning the prediction value.
-        :type learner: object
+        :type model: object
         :param dataset:  A matrix of feature vector examples (# examples x # features), the same sampels
             used to build the explanationObject. Will be overwritten if set on explanation object already
         :type dataset: numpy.array or list[][]
@@ -31,8 +31,8 @@ class ExplanationDashboard(object):
         :tpye trueY: numpy.array or list[]
         """
         self._widget_instance = ExplanationWidget()
-        self._learner = learner
-        self._is_classifier = hasattr(learner, 'predict_proba') and learner.predict_proba is not None
+        self._model = model
+        self._is_classifier = hasattr(model, 'predict_proba') and model.predict_proba is not None
         self._dataframeColumns = None
         if isinstance(dataset, pd.DataFrame) and hasattr(dataset, 'columns'):
             self._dataframeColumns = dataset.columns
@@ -41,7 +41,7 @@ class ExplanationDashboard(object):
         except:
             raise ValueError("Unsupported dataset type")
         try:
-            y_pred = learner.predict(dataset)
+            y_pred = model.predict(dataset)
         except:
             raise ValueError("Model does not support predict method for given dataset type")
         try:
@@ -83,9 +83,9 @@ class ExplanationDashboard(object):
             list_dataset = self._convertToList(dataset_x)
         except:
             raise ValueError("Unsupported dataset type")
-        if predicted_y is None and dataset_x is not None and learner is not None:
+        if predicted_y is None and dataset_x is not None and model is not None:
             try:
-                predicted_y = learner.predict(dataset_x)
+                predicted_y = model.predict(dataset_x)
             except:
                 raise ValueError("Model does not support predict method for given dataset type")
             try:
@@ -143,9 +143,9 @@ class ExplanationDashboard(object):
                 raise ValueError("Class vector length mismatch: \
                     class names length differs from local explanations dimension")
             dataArg[ExplanationDashboardInterface.CLASS_NAMES] = self._convertToList(explanationObject.classes)
-        if hasattr(learner, 'predict_proba') and learner.predict_proba is not None:
+        if hasattr(model, 'predict_proba') and model.predict_proba is not None:
             try:
-                probability_y = learner.predict_proba(dataset)
+                probability_y = model.predict_proba(dataset)
             except:
                 raise ValueError("Model does not support predict_proba method for given dataset type")
             try:
@@ -163,9 +163,9 @@ class ExplanationDashboard(object):
             if self._dataframeColumns is not None:
                 data = pd.DataFrame(data, columns=self._dataframeColumns)
             if (self._is_classifier):
-                prediction = self._convertToList(self._learner.predict_proba(data))
+                prediction = self._convertToList(self._model.predict_proba(data))
             else:
-                prediction = self._convertToList(self._learner.predict(data))
+                prediction = self._convertToList(self._model.predict(data))
             self._widget_instance.response = {
                 WidgetRequestResponseConstants.DATA: prediction,
                 WidgetRequestResponseConstants.ID: change.new[WidgetRequestResponseConstants.ID]}

@@ -4,7 +4,7 @@ import * as memoize from "memoize-one";
 import { PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/components/ComboBox";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
+import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps } from "office-ui-fabric-react/lib/Pivot";
 import * as React from "react";
 import { localization } from "../Localization/localization";
 import { IPlotlyProperty, SelectionContext } from "../Shared";
@@ -254,20 +254,40 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     private static buildModelMetadata(props: IExplanationDashboardProps): IExplanationModelMetadata {
         const modelType = ExplanationDashboard.getModelType(props);
         let featureNames = props.dataSummary.featureNames;
-        if (featureNames === undefined) {
+        let featureNamesAbridged: string[];
+        const maxLength = 18;
+        if (featureNames !== undefined) {
+            if (!featureNames.every(name => typeof name === "string")) {
+                featureNames = featureNames.map(x => x.toString());
+            }
+            featureNamesAbridged = featureNames.map(name => {
+                return name.length <= maxLength ? name : `${name.slice(0, maxLength)}...`;
+            });
+        } else {
             let featureLength = 0;
             if (props.testData && props.testData[0] !== undefined) {
                 featureLength = props.testData[0].length;
             } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
                 featureLength = props.precomputedExplanations.globalFeatureImportance.scores.length;
+            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+                const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
+                if ((localImportances as number[][][]).every(dim1 => {
+                    return dim1.every(dim2 => Array.isArray(dim2));
+                })) {
+                    featureLength = (props.precomputedExplanations.localFeatureImportance.scores[0][0] as number[]).length;
+                } else {
+                    featureLength = (props.precomputedExplanations.localFeatureImportance.scores[0] as number[]).length;
+                }
             }
             featureNames = ModelMetadata.buildIndexedNames(featureLength, localization.defaultFeatureNames);
+            featureNamesAbridged = featureNames;
         }
         const classNames = props.dataSummary.classNames || ModelMetadata.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
             featureNames,
+            featureNamesAbridged,
             classNames,
             featureIsCategorical,
             featureRanges,
@@ -330,6 +350,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         }
     }
 
+    private pivotItems: IPivotItemProps[];
+
     constructor(props: IExplanationDashboardProps) {
         super(props);
         const explanationContext: IExplanationContext = ExplanationDashboard.buildInitialExplanationContext(props);
@@ -339,6 +361,26 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         this.onClearSelection = this.onClearSelection.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.handleLocalTabClick = this.handleLocalTabClick.bind(this);
+        this.pivotItems = [];
+        if (explanationContext.testDataset.dataset !== undefined) {
+            this.pivotItems.push({headerText: localization.dataExploration, itemKey: ExplanationDashboard.globalTabKeys[0]})
+        }
+        if (explanationContext.globalExplanation !== undefined) {
+            this.pivotItems.push({headerText: localization.globalImportance, itemKey: ExplanationDashboard.globalTabKeys[1]})
+        }
+        if (explanationContext.localExplanation !== undefined && explanationContext.testDataset.dataset !== undefined) {
+            this.pivotItems.push({headerText: localization.explanationExploration, itemKey: ExplanationDashboard.globalTabKeys[2]})
+        }
+        if (explanationContext.localExplanation !== undefined) {
+            this.pivotItems.push({headerText: localization.summaryImportance, itemKey: ExplanationDashboard.globalTabKeys[3]})
+        }
+        if (explanationContext.ebmExplanation !== undefined) {
+            this.pivotItems.push({headerText: localization.summaryImportance, itemKey: ExplanationDashboard.globalTabKeys[4]})
+        }
+        if (explanationContext.customVis !== undefined) {
+            this.pivotItems.push({headerText: localization.summaryImportance, itemKey: ExplanationDashboard.globalTabKeys[5]})
+        }
+
         this.state = {
             dashboardContext: {
                 weightContext: {
@@ -348,7 +390,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 },
                 explanationContext
             },
-            activeGlobalTab: this.props.testData ? 0 : 1,
+            activeGlobalTab: this.pivotItems.length > 0 ? ( ExplanationDashboard.globalTabKeys.indexOf(this.pivotItems[0].itemKey)) : 0,
             activeLocalTab: (explanationContext.localExplanation === undefined && this.props.requestPredictions) ? 1 : 0,
             configs: {
                 [BarId]: {displayMode: FeatureImportanceModes.bar, topK: defaultTopK, id: BarId},
@@ -408,33 +450,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 headersOnly={true}
                                 styles={FabricStyles.verticalTabsStyle}
                             >
-                                {this.state.dashboardContext.explanationContext.testDataset.dataset !== undefined && (
-                                    <PivotItem headerText={localization.dataExploration} itemKey={ExplanationDashboard.globalTabKeys[0]} />
-                                )}
-                                {this.state.dashboardContext.explanationContext.globalExplanation !== undefined && (
-                                    <PivotItem headerText={localization.globalImportance} itemKey={ExplanationDashboard.globalTabKeys[1]} />
-                                )}
-                                {this.state.dashboardContext.explanationContext.localExplanation !== undefined &&
-                                 this.state.dashboardContext.explanationContext.testDataset.dataset !== undefined &&(
-                                    <PivotItem
-                                        headerText={localization.explanationExploration}
-                                        itemKey={ExplanationDashboard.globalTabKeys[2]} />
-                                )}
-                                {this.state.dashboardContext.explanationContext.localExplanation !== undefined && (
-                                    <PivotItem
-                                        headerText={localization.summaryImportance}
-                                        itemKey={ExplanationDashboard.globalTabKeys[3]} />
-                                )}
-                                {this.state.dashboardContext.explanationContext.ebmExplanation !== undefined && (
-                                    <PivotItem
-                                        headerText={localization.summaryImportance}
-                                        itemKey={ExplanationDashboard.globalTabKeys[4]} />
-                                )}
-                                {this.state.dashboardContext.explanationContext.customVis !== undefined && (
-                                    <PivotItem
-                                        headerText={localization.summaryImportance}
-                                        itemKey={ExplanationDashboard.globalTabKeys[5]} />
-                                )}
+                                {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
                             {this.state.activeGlobalTab === 0 && (
                                 <DataExploration

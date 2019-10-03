@@ -97,7 +97,10 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
                 }
             });
             return series;
-        }).reduce((prev, curr) => { return prev.concat(...curr)}, []);
+        }).reduce((prev, curr) => { 
+            prev.push(...curr);
+            return prev;
+        }, []);
         computedSeries.sort((a, b) => {
             return data.modelMetadata.classNames.indexOf(a.name) - data.modelMetadata.classNames.indexOf(b.name)
         })

@@ -25,45 +25,29 @@ export class ChartBuilder {
         // for bubble charts, we scale all sizes to the max size, only needs to be done once since its global
         // Due to https://github.com/plotly/plotly.js/issues/2080 we have to set size explicitly rather than use
         // the prefered solution of sizeref
-        const maxBubbleValue = Math.max(...projectedRows.map(run => Math.abs(run.size))) || 10;
+        const maxBubbleValue = 10;
         projectedRows.forEach((row, rowIndex) => {
-            let series: Partial<Data> = _.cloneDeep(datum);
-            // defining an x/y accessor will overwrite any hardcoded x or y values.
-            if (datum.xAccessor) {
-                series.x = [];
-            }
-            if (datum.yAccessor) {
-                series.y = [];
-            }
-            if (datum.sizeAccessor) {
-                series.marker!.size = [];
-            }
-
-            if (datum.datapointLevelAccessors !== undefined) {
-                Object.keys(datum.datapointLevelAccessors).forEach(key => {
-                    const plotlyPath = datum.datapointLevelAccessors![key].plotlyPath;
-                    _.set(series, plotlyPath, []);
-                });
-            }
+            let series: Partial<Data>;
 
             // Handle mutiple group by in the future
             if (datum.groupBy && datum.groupBy.length > 0) {
                 const key = row.group;
                 if (key === undefined || key === null) {
                     if (defaultSeries === undefined) {
-                        defaultSeries = series;
+                        defaultSeries = ChartBuilder.buildDefaultSeries(datum);
                     }
                     series = defaultSeries;
                 } else {
                     if (groupingDictionary[key] === undefined) {
-                        series.name = key;
-                        groupingDictionary[key] = series;
+                        const temp = ChartBuilder.buildDefaultSeries(datum);
+                        temp.name = key;
+                        groupingDictionary[key] = temp;
                     }
                     series = groupingDictionary[key];
                 }
             } else {
                 if (defaultSeries === undefined) {
-                    defaultSeries = series;
+                    defaultSeries = ChartBuilder.buildDefaultSeries(datum);
                 }
                 series = defaultSeries;
             }
@@ -105,14 +89,22 @@ export class ChartBuilder {
             }
 
             if (datum.xAccessor) {
-                series.x = (series.x as Datum[]).concat(row.x);
+                if (Array.isArray(row.x)) {
+                    (series.x as Datum[]).push(...row.x);
+                } else {
+                    (series.x as Datum[]).push(row.x);
+                }
             }
             if (datum.yAccessor) {
-                series.y = (series.y as Datum[]).concat(row.y);
+                if (Array.isArray(row.y)) {
+                    (series.y as Datum[]).push(...row.y);
+                } else {
+                    (series.y as Datum[]).push(row.y);
+                }
             }
             if (datum.sizeAccessor) {
                 const size = (row.size * (datum.maxMarkerSize || 40) ** 2) / (2.0 * maxBubbleValue);
-                series.marker!.size = (series.marker!.size as number[]).concat(Math.abs(size));
+                (series.marker!.size as number[]).push(Math.abs(size));
             }
             if (datum.datapointLevelAccessors !== undefined) {
                 Object.keys(datum.datapointLevelAccessors).forEach(key => {
@@ -132,8 +124,14 @@ export class ChartBuilder {
                         }
                         value.length = maxLength;
                     }
-                    const newArray = _.get(series, plotlyPath).concat(value);
-                    _.set(series, plotlyPath, newArray);
+                    if (!_.has(series, plotlyPath)) {
+                        _.set(series, plotlyPath, []);
+                    }
+                    if (Array.isArray(value)) {
+                        _.get(series, plotlyPath).push(...value);
+                    } else {
+                        _.get(series, plotlyPath).push(value);
+                    }
                 });
             }
         });
@@ -142,5 +140,26 @@ export class ChartBuilder {
             result.push(groupingDictionary[key]);
         });
         return result;
+    }
+
+    private static buildDefaultSeries(datum: IData): Partial<Data> {
+        let series: Partial<Data> = _.cloneDeep(datum);
+        // defining an x/y accessor will overwrite any hardcoded x or y values.
+        if (datum.xAccessor) {
+            series.x = [];
+        }
+        if (datum.yAccessor) {
+            series.y = [];
+        }
+        if (datum.sizeAccessor) {
+            series.marker!.size = [];
+        }
+        if (datum.datapointLevelAccessors !== undefined) {
+            Object.keys(datum.datapointLevelAccessors).forEach(key => {
+                const plotlyPath = datum.datapointLevelAccessors![key].plotlyPath;
+                _.set(series, plotlyPath, []);
+            });
+        }
+        return series;
     }
 }

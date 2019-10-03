@@ -210,7 +210,10 @@ export class ScatterUtils {
             const result = _.cloneDeep(plotlyProps);
             result.data = result.data
                 .map(series => ChartBuilder.buildPlotlySeries(series, data) as any)
-                .reduce((prev, curr) => prev.concat(...curr), []);
+                .reduce((prev, curr) => {
+                    prev.push(...curr);
+                    return prev;
+                }, []);
             return result as any;
         },
         _.isEqual

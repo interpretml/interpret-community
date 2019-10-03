@@ -21,6 +21,7 @@ export interface IBeehiveState {
     calloutContent?: React.ReactNode;
     calloutId?: string;
     selectedColorOption?: string;
+    plotlyProps: IPlotlyProperty;
 }
 
 interface IDataArray {
@@ -79,7 +80,10 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                     tooltip: Beehive.buildTooltip(data, rowIndex, featureIndex)
                 };
             });
-        }).reduce((prev, curr) => prev.concat(...curr), []);
+        }).reduce((prev, curr) => {
+            prev.push(...curr);
+            return prev;
+        }, []);
     }, _.isEqual);
 
     private static buildPlotlyProps: (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption) => IPlotlyProperty
@@ -87,13 +91,15 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
     (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption): IPlotlyProperty => {
         const plotlyProps = _.cloneDeep(Beehive.BasePlotlyProps);
         const rows = Beehive.projectData(explanationContext, sortVector);
-        _.set(plotlyProps, 'layout.xaxis.ticktext', sortVector.map(i => explanationContext.modelMetadata.featureNames[i]));
+        _.set(plotlyProps, 'layout.xaxis.ticktext', sortVector.map(i => explanationContext.modelMetadata.featureNamesAbridged[i]));
         _.set(plotlyProps, 'layout.xaxis.tickvals', sortVector.map((val, index) => index));
         if (explanationContext.modelMetadata.modelType === ModelTypes.binary) {
             _.set(plotlyProps, 'layout.yaxis.title',
                 `${localization.featureImportance}<br> ${localization.ExplanationScatter.class} : ${explanationContext.modelMetadata.classNames[0]}`);
         }
-        if (selectedOption) {
+        if (selectedOption === undefined || selectedOption.key === "none") {
+            PlotlyUtils.clearColorProperties(plotlyProps);
+        } else {
             PlotlyUtils.setColorProperty(plotlyProps, selectedOption, explanationContext.modelMetadata, selectedOption.text);
             if (selectedOption.data.isNormalized) {
                 plotlyProps.data[0].marker.colorscale = [[0, 'rgba(0,0,255,0.5)'], [1, 'rgba(255,0,0,0.5)']];
@@ -108,28 +114,34 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
     }, _.isEqual);
 
     private static buildTooltip(data: IExplanationContext, rowIndex: number, featureIndex: number): string {
+        const isLarge = data.localExplanation.flattenedValues.length > 500;
         const result = [];
-        result.push(localization.formatString(localization.AggregateImportance.featureLabel, data.modelMetadata.featureNames[featureIndex]));
+        // The formatString imputs are keys to loc object. This is because format string tries to use them as keys first, and only uses the passed in string after
+        // trowing an exception in a try block. This is very slow for repeated calls.
+        result.push(localization.formatString('AggregateImportance.featureLabel', data.modelMetadata.featureNames[featureIndex]));
         if (data.testDataset.dataset) {
-            result.push(localization.formatString(localization.AggregateImportance.valueLabel,data.testDataset.dataset[rowIndex][featureIndex]));
+            result.push(localization.formatString('AggregateImportance.valueLabel',data.testDataset.dataset[rowIndex][featureIndex]));
         }
+        // formatting strings is slow, only do for small numbers
+        const formattedImportance = isLarge ? 
+            data.localExplanation.flattenedValues[rowIndex][featureIndex] :
+            data.localExplanation.flattenedValues[rowIndex][featureIndex].toLocaleString(undefined, {minimumFractionDigits: 3});
         result.push(localization.formatString(
-            localization.AggregateImportance.importanceLabel, 
-            data.localExplanation.flattenedValues[rowIndex][featureIndex].toLocaleString(undefined, {minimumFractionDigits: 3})
+            'AggregateImportance.importanceLabel', formattedImportance
         ));
         if (data.modelMetadata.modelType === ModelTypes.regression) {
             if (data.testDataset.predictedY) {
-                result.push(localization.formatString(localization.AggregateImportance.predictedOutputTooltip, data.testDataset.predictedY[rowIndex]));
+                result.push(localization.formatString('AggregateImportance.predictedOutputTooltip', data.testDataset.predictedY[rowIndex]));
             }
             if (data.testDataset.trueY) {
-                result.push(localization.formatString(localization.AggregateImportance.trueOutputTooltip, data.testDataset.trueY[rowIndex]));
+                result.push(localization.formatString('AggregateImportance.trueOutputTooltip', data.testDataset.trueY[rowIndex]));
             }
         } else {
             if (data.testDataset.predictedY) {
-                result.push(localization.formatString(localization.AggregateImportance.predictedClassTooltip, data.modelMetadata.classNames[data.testDataset.predictedY[rowIndex]]));
+                result.push(localization.formatString('AggregateImportance.predictedClassTooltip', data.modelMetadata.classNames[data.testDataset.predictedY[rowIndex]]));
             }
             if (data.testDataset.trueY) {
-                result.push(localization.formatString(localization.AggregateImportance.trueClassTooltip, data.modelMetadata.classNames[data.testDataset.trueY[rowIndex]]));
+                result.push(localization.formatString('AggregateImportance.trueClassTooltip', data.modelMetadata.classNames[data.testDataset.trueY[rowIndex]]));
             }
         }
         return result.join('<br>');
@@ -198,6 +210,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
     private readonly _crossClassIconId = 'cross-class-icon-id';
     private readonly _globalSortIconId = 'global-sort-icon-id';
     private colorOptions: IDropdownOption[];
+    private rowCount: number;
 
     constructor(props: IGlobalFeatureImportanceProps) {
         super(props);
@@ -208,8 +221,11 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         this.setK = this.setK.bind(this);
         this.setColor = this.setColor.bind(this);
         this.colorOptions = this.buildColorOptions();
-        this.state = { 
-            selectedColorOption: this.colorOptions.length > 0 ? this.colorOptions[0].key as string : undefined
+        this.rowCount = this.props.dashboardContext.explanationContext.localExplanation.flattenedValues.length;
+        const selectedColorIndex = (this.colorOptions.length > 1 && this.rowCount < 500) ? 1 : 0;
+        this.state = {
+            selectedColorOption: this.colorOptions[selectedColorIndex].key as string,
+            plotlyProps: undefined
         };
     }
 
@@ -217,6 +233,13 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         if (this.props.dashboardContext.explanationContext.testDataset !== undefined &&
             this.props.dashboardContext.explanationContext.localExplanation !== undefined &&
             this.props.dashboardContext.explanationContext.localExplanation.values !== undefined) {
+            if (this.rowCount > 10000) {
+                return <NoDataMessage explanationStrings={[{displayText: localization.AggregateImportance.tooManyRows, format: 'text'}]}/>;
+            }
+            if (this.state.plotlyProps === undefined) {
+                this.loadProps();
+                return <LoadingSpinner/>;
+            }
             const sortVector = Beehive.generateSortVector(this.props.dashboardContext.explanationContext).slice(-1 * Beehive.maxFeatures).reverse();
             const plotlyProps = Beehive.buildPlotlyProps(this.props.dashboardContext.explanationContext, sortVector, this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption)));
             const weightContext = this.props.dashboardContext.weightContext;
@@ -322,6 +345,19 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         return <NoDataMessage explanationStrings={explanationStrings}/>;
     }
 
+    private loadProps(): void {
+        setTimeout(() => {
+        const sortVector = Beehive.generateSortVector(this.props.dashboardContext.explanationContext).slice(-1 * Beehive.maxFeatures).reverse();
+        const props = Beehive.buildPlotlyProps(
+            this.props.dashboardContext.explanationContext, 
+            sortVector,
+            this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption))
+        );
+        this.setState({plotlyProps: props})
+        }, 1);
+
+    }
+
     private showCrossClassInfo(): void {
         if (this.state.calloutContent) {
             this.onDismiss();
@@ -359,7 +395,12 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
 
     private buildColorOptions(): IComboBoxOption[] {
         const isRegression = this.props.dashboardContext.explanationContext.modelMetadata.modelType === ModelTypes.regression;
-        const result: IComboBoxOption[] = [];
+        const result: IComboBoxOption[] = [
+            {
+                key: "none",
+                text: localization.AggregateImportance.noColor
+            }
+        ];
         if (this.props.dashboardContext.explanationContext.testDataset.dataset) {
             result.push({
                 key: 'normalizedFeatureValue',
@@ -401,7 +442,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
     }
 
     private setColor(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        this.setState({ selectedColorOption: item.key as any });
+        this.setState({ selectedColorOption: item.key as any, plotlyProps: undefined });
     }
 
     private setK(newValue: number): void {

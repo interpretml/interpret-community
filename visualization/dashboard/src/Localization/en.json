@@ -54,7 +54,9 @@
         "predictedValue": "Predicted Value",
         "predictedClass": "Predicted Class",
         "trueValue": "True Value",
-        "trueClass": "True Class"
+        "trueClass": "True Class",
+        "noColor": "None",
+        "tooManyRows": "The provided dataset is larger than this chart can support"
     },
     "BarChart": {
         "classLabel": "Class: {0}",

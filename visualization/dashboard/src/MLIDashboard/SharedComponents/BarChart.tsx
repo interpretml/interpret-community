@@ -6,6 +6,7 @@ import uuidv4 from 'uuid/v4';
 import { PlotlyThemes } from "../../ChartTools/PlotlyThemes";
 import { IPlotlyProperty } from "../../Shared/IPlotlyProperty";
 import { ModelExplanationUtils } from "../ModelExplanationUtils";
+import _ from "lodash";
 
 export interface IBarChartProps {
     featureByClassMatrix: number[][];
@@ -35,6 +36,16 @@ export class BarChart extends React.PureComponent<IBarChartProps> {
             }
             return result.join('<br>');
         });
+    }
+
+    private static buildInterceptTooltip(value: number, className?: string): string {
+        let result = [];
+        result.push(localization.intercept);
+        result.push(localization.formatString(localization.AggregateImportance.importanceLabel, value.toLocaleString(undefined, {minimumFractionDigits: 3})));
+        if (className) {
+            result.push(localization.formatString(localization.BarChart.classLabel, className));
+        }
+        return result.join('<br>');
     }
 
     public render(): React.ReactNode {
@@ -88,12 +99,20 @@ export class BarChart extends React.PureComponent<IBarChartProps> {
                 const visible = (this.props.defaultVisibleClasses !== undefined && this.props.defaultVisibleClasses.indexOf(classIndex) === -1) ?
                     'legendonly' :
                     true;
-                const x = sortedIndexVector.map(index => this.props.modelMetadata.featureNames[index]);
+                const x = sortedIndexVector.map((unused, index) => index);
                 const y = sortedIndexVector.map(index => singleSeries[index]);
+                const text = BarChart.buildTextArray(
+                    sortedIndexVector,
+                    singleSeries,
+                    this.props.modelMetadata.featureNames,
+                    this.props.modelMetadata.modelType === ModelTypes.multiclass ? this.props.modelMetadata.classNames[classIndex] : undefined,
+                    this.props.additionalRowData);
                 if (this.props.intercept) {
-                    x.unshift(localization.intercept);
+                    x.unshift(-1);
                     y.unshift(this.props.intercept[classIndex]);
+                    text.unshift(BarChart.buildInterceptTooltip(this.props.intercept[classIndex], this.props.modelMetadata.modelType === ModelTypes.multiclass ? this.props.modelMetadata.classNames[classIndex] : undefined));
                 }
+
                 const orientation = 'v';
                 baseSeries.data.push({
                     hoverinfo: 'text',
@@ -103,15 +122,18 @@ export class BarChart extends React.PureComponent<IBarChartProps> {
                     name: this.props.modelMetadata.modelType === ModelTypes.multiclass ? this.props.modelMetadata.classNames[classIndex] : '',
                     x,
                     y,
-                    text: BarChart.buildTextArray(
-                        sortedIndexVector,
-                        singleSeries,
-                        this.props.modelMetadata.featureNames,
-                        this.props.modelMetadata.modelType === ModelTypes.multiclass ? this.props.modelMetadata.classNames[classIndex] : undefined,
-                        this.props.additionalRowData)
+                    text: text
                 } as any);
             });
         }
+        const ticktext = sortedIndexVector.map(i =>this.props.modelMetadata.featureNamesAbridged[i]);
+        const tickvals = sortedIndexVector.map((val, index) => index);
+        if (this.props.intercept) {
+            ticktext.unshift(localization.intercept);
+            tickvals.unshift(-1);
+        }
+        _.set(baseSeries, 'layout.xaxis.ticktext', ticktext);
+        _.set(baseSeries, 'layout.xaxis.tickvals', tickvals);
         return baseSeries;
     }
 }
