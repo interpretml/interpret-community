@@ -37,7 +37,7 @@ class ExplanationDashboard(object):
         """
         self._widget_instance = ExplanationWidget()
         self._model = model
-        self._is_classifier = model is not None and hasattr(model, 'predict_proba') and
+        self._is_classifier = model is not None and hasattr(model, 'predict_proba') and \
             model.predict_proba is not None
         self._dataframeColumns = None
         dataArg = {}
