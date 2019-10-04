@@ -14,50 +14,6 @@ class ExplanationParams(object):
     CLASSES = 'classes'
 
 
-class History(object):
-    """Provide constants related to uploading assets to run history."""
-
-    BLOCK_SIZE = 'block_size'
-    CLASSES = 'classes'
-    COMMENT = 'comment'
-    EVAL_DATA = 'eval_data'
-    EVAL_DATASET_ID = 'eval_dataset_id'
-    EVAL_Y_PRED = 'eval_y_predicted'
-    EVAL_Y_PRED_PROBA = 'eval_y_predicted_proba'
-    EXPECTED_VALUES = 'expected_values'
-    EXPLANATION = 'explanation'
-    EXPLANATION_ID = 'explanation_id'
-    FEATURES = 'features'
-    GLOBAL_IMPORTANCE_NAMES = 'global_importance_names'
-    GLOBAL_IMPORTANCE_RANK = 'global_importance_rank'
-    GLOBAL_IMPORTANCE_VALUES = 'global_importance_values'
-    ID = 'id'
-    INIT_DATA = 'init_data'
-    LOCAL_IMPORTANCE_RANK = 'local_importance_rank'
-    LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
-    METHOD = 'method'
-    MODEL_ID = 'model_id'
-    NAME = 'name'
-    NUM_BLOCKS = 'num_blocks'
-    NUM_CLASSES = 'num_classes'
-    NUM_FEATURES = 'num_features'
-    ORDERED_LOCAL_IMPORTANCE_VALUES = 'ordered_local_importance_values'
-    PER_CLASS_NAMES = 'per_class_names'
-    PER_CLASS_RANK = 'per_class_rank'
-    PER_CLASS_VALUES = 'per_class_values'
-    PREFIX = 'prefix'
-    PROPERTIES = 'properties'
-    RANKED_GLOBAL_NAMES = 'ranked_global_names'
-    RANKED_GLOBAL_VALUES = 'ranked_global_values'
-    RANKED_PER_CLASS_NAMES = 'ranked_per_class_names'
-    RANKED_PER_CLASS_VALUES = 'ranked_per_class_values'
-    RICH_METADATA = 'rich_metadata'
-    TYPE = 'type'
-    UPLOAD_TIME = 'upload_time'
-    VERSION = 'version'
-    VERSION_TYPE = 'version_type'
-
-
 class ExplainType(object):
     """Provide constants for model and explainer type information, useful for visualization."""
 

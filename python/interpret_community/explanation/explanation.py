@@ -16,7 +16,7 @@ from shap.common import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
 from ..common.explanation_utils import _sort_values, _order_imp
-from ..common.constants import Dynamic, ExplainParams, ExplanationParams, History, \
+from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
     ExplainType, ModelTask, Defaults, InterpretData
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
@@ -204,9 +204,9 @@ class BaseExplanation(ChainedIdentity):
         :return: True if valid, else False
         :rtype: bool
         """
-        if not hasattr(explanation, History.METHOD) or not isinstance(explanation.method, str):
+        if not hasattr(explanation, ExplainParams.METHOD) or not isinstance(explanation.method, str):
             return False
-        if not hasattr(explanation, History.ID) or not isinstance(explanation.id, str):
+        if not hasattr(explanation, ExplainParams.ID) or not isinstance(explanation.id, str):
             return False
         if not hasattr(explanation, ExplainParams.MODEL_TASK) or not isinstance(explanation.model_task, str):
             return False
@@ -266,7 +266,7 @@ class FeatureImportanceExplanation(BaseExplanation):
         """
         if not super()._does_quack(explanation):
             return False
-        if not hasattr(explanation, History.FEATURES):
+        if not hasattr(explanation, ExplainParams.FEATURES):
             return False
         if not hasattr(explanation, ExplainType.IS_RAW) or not isinstance(explanation.is_raw, bool):
             return False
@@ -483,7 +483,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         """
         if not super()._does_quack(explanation):
             return False
-        if not hasattr(explanation, History.LOCAL_IMPORTANCE_VALUES):
+        if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
         if not isinstance(explanation.local_importance_values, list):
             return False
@@ -697,9 +697,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
         """
         if not super()._does_quack(explanation):
             return False
-        if not hasattr(explanation, History.GLOBAL_IMPORTANCE_VALUES) or explanation.global_importance_values is None:
+        has_global_values_attr = hasattr(explanation, ExplainParams.GLOBAL_IMPORTANCE_VALUES)
+        if not has_global_values_attr or explanation.global_importance_values is None:
             return False
-        if not hasattr(explanation, History.GLOBAL_IMPORTANCE_RANK) or explanation.global_importance_rank is None:
+        has_global_rank_attr = hasattr(explanation, ExplainParams.GLOBAL_IMPORTANCE_RANK)
+        if not has_global_rank_attr or explanation.global_importance_rank is None:
             return False
         return True
 
@@ -795,7 +797,7 @@ class ExpectedValuesMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
-        if not hasattr(explanation, History.EXPECTED_VALUES) or explanation.expected_values is None:
+        if not hasattr(explanation, ExplainParams.EXPECTED_VALUES) or explanation.expected_values is None:
             return False
         return True
 
@@ -841,7 +843,7 @@ class ClassesMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
-        return hasattr(explanation, History.CLASSES)
+        return hasattr(explanation, ExplainParams.CLASSES)
 
 
 class PerClassMixin(ClassesMixin):
@@ -970,9 +972,9 @@ class PerClassMixin(ClassesMixin):
         """
         if not super()._does_quack(explanation):
             return False
-        if not hasattr(explanation, History.PER_CLASS_VALUES) or explanation.per_class_values is None:
+        if not hasattr(explanation, ExplainParams.PER_CLASS_VALUES) or explanation.per_class_values is None:
             return False
-        if not hasattr(explanation, History.PER_CLASS_RANK) or explanation.per_class_rank is None:
+        if not hasattr(explanation, ExplainParams.PER_CLASS_RANK) or explanation.per_class_rank is None:
             return False
         return True
 
@@ -1059,8 +1061,12 @@ class _DatasetsMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
-        has_ys = hasattr(explanation, History.EVAL_Y_PRED) and hasattr(explanation, History.EVAL_Y_PRED_PROBA)
-        return hasattr(explanation, History.INIT_DATA) and hasattr(explanation, History.EVAL_DATA) and has_ys
+        has_eval_y_pred = hasattr(explanation, ExplainParams.EVAL_Y_PRED)
+        has_eval_y_pred_proba = hasattr(explanation, ExplainParams.EVAL_Y_PRED_PROBA)
+        has_ys = has_eval_y_pred and has_eval_y_pred_proba
+        has_init_data = hasattr(explanation, ExplainParams.INIT_DATA)
+        has_eval_data = hasattr(explanation, ExplainParams.EVAL_DATA)
+        return has_init_data and has_eval_data and has_ys
 
 
 class _ModelIdMixin(object):
@@ -1097,7 +1103,7 @@ class _ModelIdMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
-        return hasattr(explanation, History.MODEL_ID)
+        return hasattr(explanation, ExplainParams.MODEL_ID)
 
 
 def _create_local_explanation(expected_values=None, classification=True, explanation_id=None, init_data=None,
@@ -1141,16 +1147,16 @@ def _create_local_explanation(expected_values=None, classification=True, explana
     if init_data is not None or eval_data is not None:
         mixins.append(_DatasetsMixin)
         if init_data is not None:
-            kwargs[History.INIT_DATA] = init_data
+            kwargs[ExplainParams.INIT_DATA] = init_data
         if eval_data is not None:
-            kwargs[History.EVAL_DATA] = eval_data
+            kwargs[ExplainParams.EVAL_DATA] = eval_data
         if eval_ys_predicted is not None:
-            kwargs[History.EVAL_Y_PRED] = eval_ys_predicted
+            kwargs[ExplainParams.EVAL_Y_PRED] = eval_ys_predicted
         if eval_ys_predicted_proba is not None:
-            kwargs[History.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
     if model_id is not None:
         mixins.append(_ModelIdMixin)
-        kwargs[History.MODEL_ID] = model_id
+        kwargs[ExplainParams.MODEL_ID] = model_id
     DynamicLocalExplanation = type(Dynamic.LOCAL_EXPLANATION, tuple(mixins), {})
     local_explanation = DynamicLocalExplanation(explanation_id=exp_id, **kwargs)
     return local_explanation
@@ -1215,16 +1221,16 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     if init_data is not None or eval_data is not None:
         mixins.append(_DatasetsMixin)
         if init_data is not None:
-            kwargs[History.INIT_DATA] = init_data
+            kwargs[ExplainParams.INIT_DATA] = init_data
         if eval_data is not None:
-            kwargs[History.EVAL_DATA] = eval_data
+            kwargs[ExplainParams.EVAL_DATA] = eval_data
         if eval_ys_predicted is not None:
-            kwargs[History.EVAL_Y_PRED] = eval_ys_predicted
+            kwargs[ExplainParams.EVAL_Y_PRED] = eval_ys_predicted
         if eval_ys_predicted_proba is not None:
-            kwargs[History.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
+            kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = eval_ys_predicted_proba
     if model_id is not None:
         mixins.append(_ModelIdMixin)
-        kwargs[History.MODEL_ID] = model_id
+        kwargs[ExplainParams.MODEL_ID] = model_id
     return kwargs, mixins
 
 
