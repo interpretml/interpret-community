@@ -15,7 +15,7 @@ import pandas as pd
 class ExplanationDashboard(object):
     """The dashboard class, wraps the dashboard component."""
 
-    def __init__(self, explanationObject, model=None,* , dataset=None, trueY=None):
+    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None):
         """Initialize the Explanation Dashboard.
 
         :param explanationObject: An object that represents an explanation.
@@ -24,42 +24,24 @@ class ExplanationDashboard(object):
             it has a method of predict_proba() returning the prediction probabilities for each
             class and for the regression case a method of predict() returning the prediction value.
         :type model: object
-        :param dataset:  A matrix of feature vector examples (# examples x # features), the same sampels
-            used to build the explanationObject. Will be overwritten if set on explanation object already
-        :type dataset: numpy.array or list[][]
-        :param trueY: The true labels for the provided dataset. Will be overwritten if set on explanation object already
-        :tpye trueY: numpy.array or list[]
+        :param datasetX:  A matrix of feature vector examples (# examples x # features), the same samples
+            used to build the explanationObject. Will overwrite any set on explanation object already
+        :type datasetX: numpy.array or list[][]
+        :param trueY: The true labels for the provided dataset. Will overwrite any set on
+            explanation object already
+        :type trueY: numpy.array or list[]
+        :param classes: The class names
+        :type classes: numpy.array or list[]
+        :param features: Feature names
+        :type features: numpy.array or list[]
         """
         self._widget_instance = ExplanationWidget()
         self._model = model
-        self._is_classifier = hasattr(model, 'predict_proba') and model.predict_proba is not None
+        self._is_classifier = model is not None and hasattr(model, 'predict_proba') and
+            model.predict_proba is not None
         self._dataframeColumns = None
-        if isinstance(dataset, pd.DataFrame) and hasattr(dataset, 'columns'):
-            self._dataframeColumns = dataset.columns
-        try:
-            list_dataset = self._convertToList(dataset)
-        except:
-            raise ValueError("Unsupported dataset type")
-        try:
-            y_pred = model.predict(dataset)
-        except:
-            raise ValueError("Model does not support predict method for given dataset type")
-        try:
-            y_pred = self._convertToList(y_pred)
-        except:
-            raise ValueError("Model prediction output of unsupported type")
-        try:
-            trueY = self._convertToList(trueY)
-        except:
-            raise ValueError("True Y array of unsupported type")
-
         dataArg = {}
 
-        row_length, feature_length = np.shape(list_dataset)
-        if row_length > 100000:
-            raise ValueError("Exceeds maximum number of rows for visualization (100000)")
-        if feature_length > 1000:
-            raise ValueError("Exceeds maximum number of features for visualization (1000)")
         # List of explanations, key of explanation type is "explanation_type"
         self._mli_explanations = explanationObject.data(-1)["mli"]
         local_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_LOCAL_EXPLANATION_KEY)
@@ -67,40 +49,38 @@ class ExplanationDashboard(object):
         ebm_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EBM_GLOBAL_EXPLANATION_KEY)
         dataset_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EXPLANATION_DATASET_KEY)
 
-        dataset_x = None
-        dataset_y = None
         predicted_y = None
         if dataset_explanation is not None:
-            dataset_x = dataset_explanation[ExplanationDashboardInterface.MLI_DATASET_X_KEY]
-            dataset_y = dataset_explanation[ExplanationDashboardInterface.MLI_DATASET_Y_KEY]
-        if dataset_x is None and dataset is not None:
-            dataset_x = dataset
-        if dataset_y is None and trueY is not None:
-            dataset_y = trueY
-        if isinstance(dataset_x, pd.DataFrame) and hasattr(dataset_x, 'columns'):
-            self._dataframeColumns = dataset_x.columns
+            if datasetX is None:
+                datasetX = dataset_explanation[ExplanationDashboardInterface.MLI_DATASET_X_KEY]
+            if trueY is None:
+                trueY = dataset_explanation[ExplanationDashboardInterface.MLI_DATASET_Y_KEY]
+
+        if isinstance(datasetX, pd.DataFrame) and hasattr(datasetX, 'columns'):
+            self._dataframeColumns = datasetX.columns
         try:
-            list_dataset = self._convertToList(dataset_x)
-        except:
+            list_dataset = self._convertToList(datasetX)
+        except Exception:
             raise ValueError("Unsupported dataset type")
-        if predicted_y is None and dataset_x is not None and model is not None:
+        if datasetX is not None and model is not None:
             try:
-                predicted_y = model.predict(dataset_x)
-            except:
+                predicted_y = model.predict(datasetX)
+            except Exception:
                 raise ValueError("Model does not support predict method for given dataset type")
             try:
                 predicted_y = self._convertToList(predicted_y)
-            except:
+            except Exception:
                 raise ValueError("Model prediction output of unsupported type")
         if predicted_y is not None:
-            dataArg[ExplanationDashboardInterface.PREDICTED_Y] = y_pred
-        if dataset_x is not None:
-            try:
-                list_dataset = self._convertToList(dataset_x)
-            except:
-                raise ValueError("Unsupported dataset type")
-            ExplanationDashboardInterface.TRAINING_DATA: list_dataset
-            ExplanationDashboardInterface.IS_CLASSIFIER: self._is_classifier
+            dataArg[ExplanationDashboardInterface.PREDICTED_Y] = predicted_y
+        if list_dataset is not None:
+            row_length, feature_length = np.shape(list_dataset)
+            if row_length > 100000:
+                raise ValueError("Exceeds maximum number of rows for visualization (100000)")
+            if feature_length > 1000:
+                raise ValueError("Exceeds maximum number of features for visualization (1000)")
+            dataArg[ExplanationDashboardInterface.TRAINING_DATA] = list_dataset
+            dataArg[ExplanationDashboardInterface.IS_CLASSIFIER] = self._is_classifier
 
         local_dim = None
 
@@ -111,48 +91,55 @@ class ExplanationDashboard(object):
             try:
                 local_explanation["scores"] = self._convertToList(local_explanation["scores"])
                 dataArg[ExplanationDashboardInterface.LOCAL_EXPLANATIONS] = local_explanation
-            except:
+            except Exception:
                 raise ValueError("Unsupported local explanation type")
-            local_dim = np.shape(local_explanation["scores"])
-            if len(local_dim) != 2 and len(local_dim) != 3:
-                raise ValueError("Local explanation expected to be a 2D or 3D list")
-            if len(local_dim) == 2 and (local_dim[1] != feature_length or local_dim[0] != row_length):
-                raise ValueError("Shape mismatch: local explanation length differs from dataset")
-            if len(local_dim) == 3 and (local_dim[2] != feature_length or local_dim[1] != row_length):
-                raise ValueError("Shape mismatch: local explanation length differs from dataset")
+            if list_dataset is not None:
+                local_dim = np.shape(local_explanation["scores"])
+                if len(local_dim) != 2 and len(local_dim) != 3:
+                    raise ValueError("Local explanation expected to be a 2D or 3D list")
+                if len(local_dim) == 2 and (local_dim[1] != feature_length or local_dim[0] != row_length):
+                    raise ValueError("Shape mismatch: local explanation length differs from dataset")
+                if len(local_dim) == 3 and (local_dim[2] != feature_length or local_dim[1] != row_length):
+                    raise ValueError("Shape mismatch: local explanation length differs from dataset")
         if local_explanation is None and global_explanation is not None:
             try:
                 global_explanation["scores"] = self._convertToList(global_explanation["scores"])
                 dataArg[ExplanationDashboardInterface.GLOBAL_EXPLANATION] = global_explanation
-            except:
+            except Exception:
                 raise ValueError("Unsupported global explanation type")
         if ebm_explanation is not None:
             try:
                 dataArg[ExplanationDashboardInterface.EBM_EXPLANATION] = ebm_explanation
-            except:
+            except Exception:
                 raise ValueError("Unsupported ebm explanation type")
-        if hasattr(explanationObject, 'features') and explanationObject.features is not None:
+
+        if features is None and hasattr(explanationObject, 'features') and explanationObject.features is not None:
+            features = explanationObject.features
+        if features is not None:
             features = self._convertToList(explanationObject.features)
             if len(features) != feature_length:
                 raise ValueError("Feature vector length mismatch: \
                     feature names length differs from local explanations dimension")
             dataArg[ExplanationDashboardInterface.FEATURE_NAMES] = features
-        if hasattr(explanationObject, 'classes') and explanationObject.classes is not None:
+        if classes is None and hasattr(explanationObject, 'classes') and explanationObject.classes is not None:
+            classes = explanationObject.classes
+        if classes is not None:
             classes = self._convertToList(explanationObject.classes)
             if local_dim is not None and len(classes) != local_dim[0]:
                 raise ValueError("Class vector length mismatch: \
                     class names length differs from local explanations dimension")
-            dataArg[ExplanationDashboardInterface.CLASS_NAMES] = self._convertToList(explanationObject.classes)
-        if hasattr(model, 'predict_proba') and model.predict_proba is not None:
+            dataArg[ExplanationDashboardInterface.CLASS_NAMES] = classes
+        if model is not None and hasattr(model, 'predict_proba') and model.predict_proba is not None:
             try:
-                probability_y = model.predict_proba(dataset)
-            except:
+                probability_y = model.predict_proba(datasetX)
+            except Exception:
                 raise ValueError("Model does not support predict_proba method for given dataset type")
             try:
                 probability_y = self._convertToList(probability_y)
-            except:
+            except Exception:
                 raise ValueError("Model predict_proba output of unsupported type")
             dataArg[ExplanationDashboardInterface.PROBABILITY_Y] = probability_y
+        dataArg[ExplanationDashboardInterface.HAS_MODEL] = model is not None
         self._widget_instance.value = dataArg
         self._widget_instance.observe(self._on_request, names=WidgetRequestResponseConstants.REQUEST)
         display(self._widget_instance)
@@ -169,7 +156,7 @@ class ExplanationDashboard(object):
             self._widget_instance.response = {
                 WidgetRequestResponseConstants.DATA: prediction,
                 WidgetRequestResponseConstants.ID: change.new[WidgetRequestResponseConstants.ID]}
-        except:
+        except Exception:
             self._widget_instance.response = {
                 WidgetRequestResponseConstants.ERROR: "Model threw exeption while predicting",
                 WidgetRequestResponseConstants.DATA: [],
@@ -191,7 +178,7 @@ class ExplanationDashboard(object):
 
     def _find_first_explanation(self, key):
         new_array = [explanation for explanation in self._mli_explanations
-        if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
+            if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
         if len(new_array) > 0:
             return new_array[0]["value"]
         return None

@@ -25,6 +25,7 @@ class ExplanationDashboardInterface(object):
     MLI_EXPLANATION_DATASET_KEY = "evaluation_dataset"
     MLI_DATASET_X_KEY = "dataset_x"
     MLI_DATASET_Y_KEY = "dataset_y"
+    HAS_MODEL = "has_model"
 
 
 class WidgetRequestResponseConstants(object):

@@ -71,7 +71,7 @@ export class ExplanationView extends DOMWidgetView {
                 ebmGlobalExplanation: data.ebmGlobalExplanation,
                 customVis: data.customVisual}}
             stringParams={{contextualHelp: this.messages as any}}
-            requestPredictions={this.invokePredictor.bind(this)}
+            requestPredictions={data.has_model ? this.invokePredictor.bind(this) : undefined}
         />, root_element);
         this.el.appendChild(root_element)
     }
