@@ -8,7 +8,7 @@ import os
 import shutil
 
 _major = '0.1'
-_minor = '0.1'
+_minor = '0.2'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -53,7 +53,7 @@ DEPENDENCIES = [
     'scipy',
     'scikit-learn',
     'packaging',
-    'interpret',
+    'interpret>=0.1.17',
     'shap>=0.20.0, <=0.29.3'
 ]
 
