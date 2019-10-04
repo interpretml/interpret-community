@@ -179,8 +179,8 @@ class ExplanationDashboard(object):
         return array
 
     def _find_first_explanation(self, key):
-        new_array = [explanation for explanation in self._mli_explanations \
-            if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
+        new_array = [explanation for explanation in self._mli_explanations
+                    if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
         if len(new_array) > 0:
             return new_array[0]["value"]
         return None
