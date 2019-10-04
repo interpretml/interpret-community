@@ -36,7 +36,7 @@ export interface IGlobalExplanation {
 
 export interface IMultiClassBoundedCoordinates {
     type: string;
-    names: number[];
+    names: number[] | string[];
     scores: number[][];
     scoresRange?: number[];
     upperBounds?: number[][];

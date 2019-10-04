@@ -278,6 +278,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 } else {
                     featureLength = (props.precomputedExplanations.localFeatureImportance.scores[0] as number[]).length;
                 }
+            } else if (props.precomputedExplanations && props.precomputedExplanations.ebmGlobalExplanation) {
+                featureLength = props.precomputedExplanations.ebmGlobalExplanation.feature_list.length;
             }
             featureNames = ModelMetadata.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
