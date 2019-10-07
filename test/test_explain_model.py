@@ -484,17 +484,17 @@ class TestTabularExplainer(object):
         self.verify_boston_overall_features_lr(explanation.get_ranked_global_names(),
                                                explanation.get_ranked_global_values())
 
-    def test_explain_model_subset_classification_dense(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_classification_dense(**scoring_eval_kwargs)
+    def test_explain_model_subset_classification_dense(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_classification_dense()
 
-    def test_explain_model_subset_regression_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_regression_sparse(**scoring_eval_kwargs)
+    def test_explain_model_subset_regression_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_regression_sparse()
 
-    def test_explain_model_subset_classification_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_classification_sparse(**scoring_eval_kwargs)
+    def test_explain_model_subset_classification_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_classification_sparse()
 
-    def test_explain_model_scoring_with_sampling_regression_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_scoring_with_sampling_regression_sparse(**scoring_eval_kwargs)
+    def test_explain_model_with_sampling_regression_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_with_sampling_regression_sparse()
 
     def test_explain_raw_feats_regression(self, boston, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
