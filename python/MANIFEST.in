@@ -1,0 +1,4 @@
+include interpret_community/widget/static/extension.js
+include interpret_community/widget/static/index.js
+recursive-include jupyter-config *.json
+recursive-include interpret_community/widget/static *.js.map
