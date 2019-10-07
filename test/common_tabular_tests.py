@@ -548,7 +548,7 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_subset_classification_dense(self, is_local=True,
                                                          true_labels_required=False):
-        # Verify explaining a subset of the features (for scoring workflow)
+        # Verify explaining a subset of the features
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=7)
         # Fit a tree model
@@ -580,7 +580,7 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_subset_regression_sparse(self, is_local=True,
                                                       true_labels_required=False):
-        # Verify explaining a subset of the features (for scoring workflow), but on sparse regression data
+        # Verify explaining a subset of the features, but on sparse regression data
         x_train, x_test, y_train, y_test = self.create_msx_data(0.01)
         DATA_SLICE = slice(100)
         x_train = x_train[DATA_SLICE]
@@ -667,8 +667,8 @@ class VerifyTabularTests(object):
                 # Surprisingly, they are almost identical!
                 assert(correct_ratio > 0.9)
 
-    def verify_explain_model_scoring_with_sampling_regression_sparse(self, true_labels_required=False):
-        # Verify that evaluation dataset can be downsampled and the scoring scenario can still be run
+    def verify_explain_model_with_sampling_regression_sparse(self, true_labels_required=False):
+        # Verify that evaluation dataset can be downsampled
         x_train, x_test, y_train, y_test = self.create_msx_data(0.2)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
@@ -679,13 +679,13 @@ class VerifyTabularTests(object):
         # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=list(range(x_train.shape[1])))
         self.test_logger.info('Running explain global for '
-                              'verify_explain_model_scoring_with_sampling_regression_sparse')
+                              'verify_explain_model_with_sampling_regression_sparse')
         # Sample the evaluation dataset with multiple runs of KMeans
         if self.specify_policy:
             policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=True)}
         else:
             policy = {}
-        # Get most important features and create a scoring model
+        # Get most important features
         if true_labels_required:
             explainer.explain_global(x_test[:5], y_test[:5], **policy)
         else:

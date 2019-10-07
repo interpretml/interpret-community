@@ -149,13 +149,6 @@ class LightGBMParams(object):
     CATEGORICAL_FEATURE = 'categorical_feature'
 
 
-class Scoring(object):
-    """Provide constants for scoring time explainers."""
-
-    EXPLAINER = 'explainer'
-    SURROGATE_MODEL = 'surrogate_model'
-
-
 class ShapValuesOutput(str, Enum):
     """Provide constants for the shap values output from the explainer.
 
