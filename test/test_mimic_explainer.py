@@ -239,7 +239,7 @@ class TestMimicExplainer(object):
 
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
         (240, {}),
-        (20, {'fruit':['apple', 'grape'], 'store':[100, 200, 50]})])
+        (20, {'fruit': ['apple', 'grape'], 'store': [100, 200, 50]})])
     def test_dataframe_model(self, mimic_explainer, sample_cnt_per_grain, grains_dict):
         X, _ = create_timeseries_data(sample_cnt_per_grain, 'time', 'y', grains_dict)
         model = DataFrameTestModel(X.copy())

@@ -360,10 +360,10 @@ def create_complex_titanic_data():
 
 
 def create_timeseries_data(sample_cnt_per_grain,
-                    time_column_name,
-                    target_column_name,
-                    grains_dict = {},
-                    freq = 'D'):
+                           time_column_name,
+                           target_column_name,
+                           grains_dict={},
+                           freq='D'):
     data = []
     for grain_comb in _get_all_combinations(grains_dict):
         row_data = {
@@ -383,12 +383,12 @@ def create_timeseries_data(sample_cnt_per_grain,
     y = X.pop(target_column_name).values
     return X, y
 
+
 def _get_all_combinations(input_dict):
     input_list = [(k, v) for k, v in input_dict.items()]
     len_list = [len(kv[1]) for kv in input_list]
 
     input_idx = [0] * len(input_dict)
-    
     if len(input_dict) == 0:
         return [{}]
 
@@ -396,7 +396,7 @@ def _get_all_combinations(input_dict):
 
     done = False
     while True:
-        new_combination = {input_list[i][0]:input_list[i][1][idx] for i,idx in enumerate(input_idx)}
+        new_combination = {input_list[i][0]: input_list[i][1][idx] for i, idx in enumerate(input_idx)}
         output.append(new_combination)
 
         input_idx[-1] += 1
@@ -411,11 +411,12 @@ def _get_all_combinations(input_dict):
                 carry_check_pos -= 1
             else:
                 break
-        
+
         if done:
             break
-    
+
     return output
+
 
 def _common_model_generator(feature_number, output_length=1):
     model = Sequential()
