@@ -20,7 +20,7 @@ variables:
   value: "codecoverage"
 
 jobs:
-  - job: $(buildname)
+  - job: "codecover"
 
     steps:
       - bash: echo "##vso[task.prependpath]$CONDA/bin"
