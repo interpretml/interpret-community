@@ -14,14 +14,12 @@ schedules:
 pool:
   vmImage: "ubuntu-latest"
 
-parameters:
-  name: "codecoverage"
-
-jobs:
-  - job: ${{ parameters.name }}
-
 variables:
   artifactFeed: interpret-extensions-feed
+  buildname: "codecoverage"
+
+jobs:
+  - job: $(buildname)
 
 steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
@@ -61,7 +59,7 @@ steps:
 
   - bash: |
       source activate interp && \
-      python -m pytest test/ --junitxml=./TEST-TEST.xml --cov=interpret --cov-report=xml --cov-report=html -o unit_suite_name="${{ parameters.name }}"
+      python -m pytest test/ --junitxml=./TEST-TEST.xml --cov=interpret --cov-report=xml --cov-report=html -o unit_suite_name=$(buildname)
     displayName: "Run tests"
 
   - task: PublishTestResults@2
