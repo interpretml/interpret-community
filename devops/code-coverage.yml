@@ -53,7 +53,8 @@ steps:
       cd ..
     displayName: Create a wheel
 
-  - script: source activate interp && \
+  - script: |
+      source activate interp && \
       python -m pytest test/ --junitxml=./TEST-TEST.xml --cov=interpret --cov-report=xml --cov-report=html -o unit_suite_name="${{ parameters.name }}"
     displayName: "Run tests"
 
