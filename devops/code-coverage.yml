@@ -16,7 +16,8 @@ pool:
 
 variables:
   artifactFeed: interpret-extensions-feed
-  buildname: "codecoverage"
+  name: buildname
+  value: "codecoverage"
 
 jobs:
   - job: $(buildname)
