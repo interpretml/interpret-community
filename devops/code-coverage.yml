@@ -11,9 +11,6 @@ schedules:
         - dev
     always: true
 
-jobs:
-  - template: code-coverage-job-template.yml
-
 pool:
   vmImage: "ubuntu-latest"
 
