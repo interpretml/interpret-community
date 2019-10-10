@@ -13,7 +13,7 @@ import gc
 from abc import ABCMeta, abstractmethod
 
 from shap.common import DenseData
-from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
+from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
 
 from ..common.explanation_utils import _sort_values, _order_imp
 from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
@@ -119,7 +119,6 @@ class BaseExplanation(ChainedIdentity):
             mli_sort_take,
             plot_pairwise_heatmap,
         )
-
         data_dict = self.data(key)
         if data_dict is None:  # pragma: no cover
             return None
@@ -163,7 +162,6 @@ class BaseExplanation(ChainedIdentity):
                     data_dict, sort_fn=lambda x: -abs(x), top_n=15, reverse_results=True
                 )
                 return plot_horizontal_bar(data_dict)
-
         # Handle global feature graphs
         feature_type = self.feature_types[key]
         title = self.features[key]
@@ -411,7 +409,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         """
         return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
 
-    def _local_data(self, key=None):
+    def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
 
         :param key: The key for the local data to be retrieved.
@@ -419,16 +417,26 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The local data.
         :rtype: dict
         """
-        data_dict = super().data(key=key)
         # Add local explanations to data
-        data_dict[InterpretData.TYPE] = InterpretData.UNIVARIATE
-        data_dict[InterpretData.NAMES] = self.features
+        parent_data[InterpretData.TYPE] = InterpretData.UNIVARIATE
+        parent_data[InterpretData.NAMES] = self.features
         # Note: we currently don't have access to predictions and y values from original dataset on explanation
-        data_dict[InterpretData.PERF] = None
-        data_dict[InterpretData.SCORES] = self._local_importance_values
+        parent_data[InterpretData.PERF] = None
+        parent_data[InterpretData.SCORES] = self._local_importance_values
+        if ExpectedValuesMixin._does_quack(self):
+            parent_data[InterpretData.INTERCEPT] = self.expected_values
         # Note: we currently don't have access to instances on explanation
-        data_dict[InterpretData.VALUES] = None
-        return data_dict
+        parent_data[InterpretData.VALUES] = None
+        if key is not None:
+            # Note: the first argument should be the true y's but we don't have that
+            # available currently, using predicted instead for now
+            parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
+            if isinstance(self.eval_data, DatasetWrapper):
+                eval_data = self.eval_data
+            else:
+                eval_data = DatasetWrapper(self.eval_data)
+            parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
+        return parent_data
 
     def data(self, key=None):
         """Return the data of the explanation with local importance values added.
@@ -438,15 +446,17 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The explanation with local importance values metadata added.
         :rtype: dict
         """
+        parent_data = super().data(key=key)
         if key is None:
-            return super().data()
+            return parent_data
         elif key == -1:
             num_rows = self._local_importance_values.shape[-2]
             data_dicts = []
+            perf_list = []
             for i in range(0, num_rows):
-                data_dict = self._local_data(key=i)
+                data_dict = self._local_data(parent_data, key=i)
                 data_dicts.append(data_dict)
-            parent_data = super().data(key=key)
+                perf_list.append(data_dict[InterpretData.PERF])
             overall_data = None
             if InterpretData.OVERALL in parent_data:
                 overall_data = parent_data[InterpretData.OVERALL]
@@ -456,21 +466,20 @@ class LocalExplanation(FeatureImportanceExplanation):
                     InterpretData.EXPLANATION_TYPE: InterpretData.LOCAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
                         InterpretData.SCORES: self.local_importance_values,
-                        InterpretData.FEATURE_LIST: self.features
+                        InterpretData.PERF: perf_list
                     },
                 })
             return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts,
                     InterpretData.MLI: mli_data}
         else:
-            data_dict = self._local_data(key=key)
+            data_dict = self._local_data(parent_data, key=key)
             return data_dict
 
     @property
     def selector(self):
-        # TODO: Figure out a way to return a composition of selectors
-        nan_predicted = np.empty((self._local_importance_values.shape[-2], 1))
-        nan_predicted[:] = np.nan
-        return gen_local_selector(nan_predicted, None, nan_predicted.flatten())
+        predicted = self.eval_y_predicted
+        dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
+        return gen_local_selector(dataset_shape, None, predicted.flatten())
 
     @classmethod
     def _does_quack(cls, explanation):
@@ -636,17 +645,15 @@ class GlobalExplanation(FeatureImportanceExplanation):
         values = self.get_ranked_global_values(top_k=top_k)
         return dict(zip(names, values))
 
-    def _global_data(self):
+    def _global_data(self, parent_data):
         """Add the global importance values to the overall data.
 
         :return: The overall data with global importance values added.
         :rtype: dict
         """
-        overall_data_dict = {
-            InterpretData.NAMES: self.features,
-            InterpretData.SCORES: self.global_importance_values
-        }
-        return overall_data_dict
+        parent_data[InterpretData.NAMES] = self.features
+        parent_data[InterpretData.SCORES] = self.global_importance_values
+        return parent_data
 
     def data(self, key=None):
         """Return the data of the explanation with global importance values added.
@@ -656,16 +663,19 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :return: The explanation with global importance values added.
         :rtype: dict
         """
+        parent_data = super().data(key=key)
         if key is None:
-            return self._global_data()
+            return self._global_data(parent_data)
         elif key == -1:
-            global_data = self._global_data()
-            parent_data = super().data(key=key)
+            global_data = self._global_data(parent_data)
             specific = None
             if InterpretData.SPECIFIC in parent_data:
                 specific = parent_data[InterpretData.SPECIFIC]
             if InterpretData.MLI in parent_data:
                 mli_data = parent_data[InterpretData.MLI]
+                for local_mli_data in mli_data:
+                    if local_mli_data[InterpretData.EXPLANATION_TYPE] == InterpretData.LOCAL_FEATURE_IMPORTANCE:
+                        local_mli_data[InterpretData.VALUE][InterpretData.INTERCEPT] = self.expected_values
                 mli_data.append({
                     InterpretData.EXPLANATION_TYPE: InterpretData.GLOBAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
@@ -676,11 +686,12 @@ class GlobalExplanation(FeatureImportanceExplanation):
             return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific,
                     InterpretData.MLI: mli_data}
         else:
-            return super().data(key=key)
+            return parent_data
 
     @property
     def selector(self):
-        # TODO: Figure out a way to return a composition of selectors
+        if LocalExplanation._does_quack(self):
+            return LocalExplanation.selector.__get__(self)
         nan_predicted = np.empty((1, 1))
         nan_predicted[:] = np.nan
         feature_types = ["numeric"] * len(self.features)
@@ -739,7 +750,7 @@ class ExpectedValuesMixin(object):
             vals = [vals]
         return vals
 
-    def _add_expected_values(self, local_data):
+    def _add_expected_values_local(self, local_data):
         """Add the expected values to the local data.
 
         :param local_data: The local data representation of the explanation.
@@ -754,6 +765,17 @@ class ExpectedValuesMixin(object):
         }
         return local_data
 
+    def _add_expected_value_global(self, global_data):
+        """Add the expected values to the global data.
+
+        :param global_data: The local data representation of the explanation.
+        :type global_data: dict
+        :return: The global data with expected values metadata added.
+        :rtype: dict
+        """
+        global_data[InterpretData.INTERCEPT] = self.expected_values
+        return global_data
+
     def data(self, key=None):
         """Return the data of the explanation with expected values added.
 
@@ -763,16 +785,16 @@ class ExpectedValuesMixin(object):
         :rtype: dict
         """
         # Add expected values to data
+        parent_data = super().data(key=key)
         if key is None:
-            return self._global_data()
+            return self._add_expected_value_global(parent_data)
         elif key == -1:
-            global_data = self._global_data()
-            parent_data = super().data(key=key)
+            global_data = self._add_expected_value_global(parent_data)
             specific = None
             if InterpretData.SPECIFIC in parent_data:
                 specific = parent_data[InterpretData.SPECIFIC]
                 for local_data in specific:
-                    self._add_expected_values(local_data)
+                    self._add_expected_values_local(local_data)
             if InterpretData.MLI in parent_data:
                 mli_data = parent_data[InterpretData.MLI]
                 for data in mli_data:
@@ -785,8 +807,7 @@ class ExpectedValuesMixin(object):
             return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific,
                     InterpretData.MLI: mli_data}
         else:
-            local_data = super().data(key=key)
-            return self._add_expected_values(local_data)
+            return self._add_expected_values_local(parent_data)
 
     @staticmethod
     def _does_quack(explanation):
