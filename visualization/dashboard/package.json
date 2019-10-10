@@ -12,7 +12,7 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools && node-sass-chokidar src/FairnessDashboard -o rel/ && node-sass-chokidar src/FairnessDashboard -o rel/FairnessDashboard"
+    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",
