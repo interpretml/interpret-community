@@ -1,6 +1,6 @@
 {
   "name": "mlchartlib",
-  "version": "0.1.19",
+  "version": "0.1.25",
   "license": "See license file 'LICENSE'",
   "description": "ML Chart Lib",
   "main": "rel/index.js",
