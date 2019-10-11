@@ -500,7 +500,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 <iframe srcDoc={this.state.dashboardContext.explanationContext.customVis}/>
                             )}
                         </div>
-                        <div className="local-charts-wrapper">
+                        {this.state.dashboardContext.explanationContext.localExplanation && (<div className="local-charts-wrapper">
                             {this.state.selectedRow === undefined && (
                                 <div className="local-placeholder">
                                     <div className="placeholder-text">
@@ -565,6 +565,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 </div>
             </>
