@@ -14,6 +14,9 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 
 # Contents
 
+- [Overview of Interpret-Community](#intro)
+- [Interpret vs. Interpret-Community](#comparison)
+- [Target Audience](#target)
 - [Try our notebooks in your favorite cloud](#try)
 - [Getting Started](#getting-started)
 - [Models](#models)
@@ -22,6 +25,37 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Code of Conduct](#code)
 - [Build Status](#BuildStatus)
 - [Additional References](#Refs)
+
+# <a name="intro"></a> 
+
+# Overview of Interpret-Community
+Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. Data scientists, machine learning engineers, and researchers can easily add their own interpretability techniques via the set of extension hooks built into the peer repository, Interpret, and expand this repository to include their custom-made interpretability techniques.
+
+
+This repository incorporates experimental and community developed interpretability techniques under one roof with a unified set of data structures and API. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit: 
+1. Actively incorporates experimental interpretability techniques, and allows for further expansion by researchers and data scientists 
+2. Creates a common API across the integrated libraries    
+3. Applies optimizations to make it possible to run on real-world datasets at scale   
+4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
+5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
+# <a name="comparison"></a> 
+
+# Interpret vs. Interpret-Community
+
+
+Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights about the model predictions and insight into why the model made the predictions it did. The peer repository, Interpret, hosts the interpretability techniques that are widely accepted by the research community and have been published in prestigous publications and press (e.g., SHAP, EBM). Interpret-Community is an extension to Interpret and hosts experimental interpretability techniques that are yet to receive acceptance from the research community and functionality for data scientists and software engineers to simplify their workflow.            
+
+
+
+
+  # <a name="target"></a> 
+
+ # Target Audience
+1. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
+
+2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques. 
+3. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential bias and use this insight to help establish stronger governance capabilities., and establish a strong governance framework around the use of AI applications.
+  
 
 # <a name="try"></a> 
 
@@ -34,7 +68,7 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 
 ## Getting Started
 
-This repo uses Anaconda to simplify package and environment management.
+This repository uses Anaconda to simplify package and environment management.
 
 To setup on your local machine:
 
@@ -75,7 +109,7 @@ To setup on your local machine:
  
 <details>
 
-<summary><strong><em>2. Clone the interpret-community repository</em></strong></summary>
+<summary><strong><em>2. Clone the Interpret-Community repository</em></strong></summary>
 
 Clone and cd into the repository
 ```
@@ -91,7 +125,7 @@ cd interpret-community
 ```
 pip install -e ./python 
 ```
-If you intend to run repo tests:
+If you intend to run repository tests:
 ```
 pip install -r requirements.txt
 ```
@@ -123,21 +157,32 @@ jupyter notebook
 [//]: #  (Add ref to
 https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explain.model?view=azure-ml-py)
 
-* The API supports both dense (numpy or pandas) and sparse (scipy) datasets
 
-* For more advanced users, individual explainers can be used
 
-* The TabularExplainer provides local and global feature importances  
-    *  The best explainer is automatically chosen for the user based on the model
-        - Best implies fastest execution time and highest interpretabilty accuracy.
-* Local feature importances are for each evaluation row
-* Global feature importances summarize the most importance features at the model-level
- * The KernelExplainer and MimicExplainer are for BlackBox models
- * The MimicExplainer is faster but less accurate than the KernelExplainer
- * The TreeExplainer is for tree-based models
- * The DeepExplainer is for DNN tensorflow or pytorch models
-[shap](https://github.com/slundberg/shap) and [lime](https://github.com/marcotcr/lime) have docs
+Any models that are trained on datasets in Python numpy.array, pandas.DataFrame, iml.datatypes.DenseData, or scipy.sparse.csr_matrix format are supported by this API.
+The explanation functions accept both models and pipelines as input. If a model is provided, the model must implement the prediction function predict or predict_proba that conforms to the Scikit convention.  If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via PyTorch, TensorFlow, and Keras deep learning frameworks. The following are a list of the experimental explainers available in the community repository:
 
+
+
+
+* [SHAP](https://github.com/slundberg/shap) Tree Explainer: SHAP’s tree explainer, which focuses on polynomial time fast SHAP value estimation algorithm specific to trees and ensembles of trees.
+* [SHAP](https://github.com/slundberg/shap) Deep Explainer: Based on the explanation from SHAP, Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the SHAP NIPS paper. TensorFlow models and Keras models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".
+* [SHAP](https://github.com/slundberg/shap) Kernel Explainer: SHAP's Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for any model.
+* [SHAP](https://github.com/slundberg/shap): SHAP's Linear Explainer computes SHAP values for a linear model, optionally accounting for inter-feature correlations.
+
+* Mimic Explainer: Mimic explainer is based on the idea of [global surrogate models](https://christophm.github.io/interpretable-ml-book/global.html)'s. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of a black box model as accurately as possible. Data scientist can interpret the surrogate model to draw conclusions about the black box model. This repository supporots the following interpretable models as surrogate model: LightGBM (LGBMExplainableModel), Linear/Logistic Regression (LinearExplainableModel), Stochastic Gradient Descent explainable model (SGDExplainableModel), and Decision Tree (DecisionTreeExplainableModel).
+* Permutation Feature Importance Explainer: Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by [Breiman's Random Forests paper](https://www.stat.berkeley.edu/%7Ebreiman/randomforest2001.pdf) (section 10). At a high level, it works by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest decreases. The larger the change, the more important that feature is.
+* LIME Explainer: LIME Explainer uses the state-of-the-art Local interpretable model-agnostic explanations [(LIME)](https://github.com/marcotcr/lime) algorithm to create local surrogate models. Unlike the global surrogate models, LIME focuses on training local surrogate models to explain individual predictions.
+
+Tabular Explainer: Used with tabular datasets, it currently employs the following logic to invoke the direct SHAP explainers:
+
+
+| Original Model   | Invoked Explainer  |
+|-----|-----|
+| Tree-based models | SHAP TreeExplainer|
+| Deep Neural Network models| SHAP DeepExplainer|
+| Linear models | SHAP LinearExplainer |
+| None of the above  | SHAP KernelExplainer |
 
 <a name=Example></a>
 
@@ -154,7 +199,7 @@ the rights to use your contribution. For details, visit https://cla.opensource.m
 
 When you submit a pull request, a CLA bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+provided by the bot. You will only need to do this once across all repositories using our CLA.
 
 <a name=Code></a>
 
