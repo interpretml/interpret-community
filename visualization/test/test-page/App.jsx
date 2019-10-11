@@ -1,11 +1,12 @@
 import React from 'react';
-import { ExplanationDashboard, FairnessDashboard } from '../../dashboard/rel';
+import { ExplanationDashboard } from '../../dashboard/rel';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
 import {bostonData} from '../__mock_data/bostonData';
-import {ebmData } from './ebmData';
-import {irisNoData} from './irisNoData';
+import {ebmData } from '../__mock_data/ebmData';
+import {irisNoData} from '../__mock_data/irisNoData';
+import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
 
   var ibmNoClass = _.cloneDeep(ibmData);
   ibmNoClass.classNames = undefined;
@@ -29,7 +30,8 @@ import {irisNoData} from './irisNoData';
         {label: 'ibmNoClass', data: ibmNoClass},
         {label: 'irisNoFeature', data: irisNoFeatures},
         {label: 'ebmData', data: ebmData},
-        {label: 'irisNoData', data: irisNoData}
+        {label: 'irisNoData', data: irisNoData},
+        {label: 'largeFeatureCount', data: largeFeatureCount}
       ]
 
       messages = {
@@ -75,9 +77,8 @@ import {irisNoData} from './irisNoData';
       render() {
         const data = _.cloneDeep(App.choices[this.state.value].data);
         // data.localExplanations = undefined;
-        const classDimension = data.localExplanations && Array.isArray(data.localExplanations[0][0]) ?
+        const classDimension = data.localExplanations && Array.isArray(data.localExplanations.scores[0][0]) ?
           data.localExplanations.length : 1;
-
         return (
           <div style={{backgroundColor: 'grey', height:'100%'}}>
             <label>
@@ -88,11 +89,11 @@ import {irisNoData} from './irisNoData';
             </select>
               <div style={{ width: '80vw', backgroundColor: 'white', margin:'50px auto'}}>
                   <div style={{ width: '100%'}}>
-                      <FairnessDashboard
+                      <ExplanationDashboard
                         modelInformation={{modelClass: 'blackbox'}}
                         dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}
                         testData={data.trainingData}
-                        predictedY={newPredY}
+                        predictedY={data.predictedY}
                         probabilityY={data.probabilityY}
                         trueY={data.trueY}
                         precomputedExplanations={{

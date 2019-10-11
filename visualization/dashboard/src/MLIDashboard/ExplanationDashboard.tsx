@@ -618,23 +618,39 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClassSelect(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         this.setState(prevState => {
-            const newState = _.cloneDeep(prevState);
-            newState.dashboardContext.weightContext.selectedKey = item.key as any;
+            const newWeightContext = _.cloneDeep(prevState.dashboardContext.weightContext);
+            newWeightContext.selectedKey = item.key as any;
+
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(
                 prevState.dashboardContext.explanationContext.localExplanation.values,
                 prevState.dashboardContext.explanationContext.modelMetadata.modelType,
                 prevState.dashboardContext.explanationContext.testDataset,
                 item.key as any);
-            newState.dashboardContext.explanationContext.localExplanation.flattenedValues = flattenedFeatureMatrix;
-            return newState;
+            return {
+                dashboardContext: {
+                    explanationContext: {
+                        modelMetadata: prevState.dashboardContext.explanationContext.modelMetadata,
+                        testDataset: prevState.dashboardContext.explanationContext.testDataset,
+                        localExplanation: {
+                            flattenedValues: flattenedFeatureMatrix,
+                            intercepts:  prevState.dashboardContext.explanationContext.localExplanation.intercepts,
+                            values: prevState.dashboardContext.explanationContext.localExplanation.values
+                        },
+                        globalExplanation: prevState.dashboardContext.explanationContext.globalExplanation,
+                        explanationGenerators: prevState.dashboardContext.explanationContext.explanationGenerators,
+                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived
+                    },
+                    weightContext: newWeightContext
+                }
+            };
         });
     }
 
     private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig, configId: string): void {
         this.setState(prevState => {
-            const newState = _.cloneDeep(prevState);
-            newState.configs[configId] = newConfig;
-            return newState;
+            const newConfigs = _.cloneDeep(prevState.configs);
+            newConfigs[configId] = newConfig;
+            return {configs: newConfigs};
         });
     }
 
