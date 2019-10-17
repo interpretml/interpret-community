@@ -9,11 +9,17 @@ schedules:
         - master
     always: true
 
-pool:
-  vmImage: "ubuntu-latest"
+strategy:
+  matrix:
+    linux:
+      imageName: "ubuntu-16.04"
+    mac:
+      imageName: "macos-10.13"
+    windows:
+      imageName: "vs2017-win2016"
 
-variables:
-  artifactFeed: interpret-extensions-feed
+pool:
+  vmImage: $(imageName)
 
 steps:
   - task: UsePythonVersion@0
