@@ -27,23 +27,23 @@ steps:
     inputs:
       versionSpec: 3.6
 
-  - bash: |
+  - : |
       pip3 install torch===1.3.0 torchvision===0.4.1 -f https://download.pytorch.org/whl/torch_stable.html
     displayName: Install Anaconda packages
 
-  - bash: |
+  - script: |
       pip install --upgrade pip
     displayName: Upgrade pip to latest
 
-  - bash: |
+  - script: |
       pip install -r requirements.txt
     displayName: Install required pip packages
 
-  - bash: |
+  - script: |
       pip install -e ./python
     displayName: Install interpret-extensions
 
-  - bash: |
+  - script: |
       pip install --upgrade setuptools wheel twine
       cd ./python
       python setup.py bdist_wheel
@@ -55,17 +55,17 @@ steps:
     inputs:
       artifactFeeds: $(artifactFeed)
 
-  - bash: |
+  - script: |
       cd ./python
       twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
       cd ..
     displayName: Publish artifacts
 
-  - bash: |
+  - script: |
       flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
     displayName: "Run flake8"
 
-  - bash: |
+  - script: |
       python -m pytest test/ --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
