@@ -33,13 +33,13 @@ steps:
   - script: pip install --upgrade pip --user
     displayName: Upgrade pip to latest
 
-  - script: pip install -r requirements.txt --user
+  - script: pip install -r requirements.txt
     displayName: Install required pip packages
 
-  - script: pip install -e ./python --user
+  - script: pip install -e ./python
     displayName: Install interpret-extensions
 
-  - script: pip install --upgrade setuptools wheel twine --user
+  - script: pip install --upgrade setuptools wheel twine
       cd ./python
       python setup.py bdist_wheel
       cd ..
