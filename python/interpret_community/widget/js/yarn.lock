@@ -3961,10 +3961,10 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.26:
-  version "0.1.26"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.26.tgz#8470aeb249743c3d8f9c8ec9020d2dda1db446e4"
-  integrity sha512-6H8+d1VJ3Hgz3jhFUafazuGi+ieWi4d+1CZjijmD+RW76rq9ORFTUWCh9ztKQ1eCvkLMS5j+e0T+t41rbjwD8Q==
+mlchartlib@0.1.29:
+  version "0.1.29"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.29.tgz#2efc471829e3bca6d89c1f1ea2536b2f2b3401c7"
+  integrity sha512-/ScBPrNmMRuSCF+4XOFOZQeitpzDLs5hqyYsQmiu3ySRoGbbVoJm7/zpEmhH2/cYypjAkV5VCLpppwODkUPutg==
   dependencies:
     jmespath "^0.15.0"
     localized-strings "^0.2.2"

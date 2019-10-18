@@ -113,11 +113,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             let localFeatureMatrix = ExplanationDashboard.buildLocalFeatureMatrix(props.precomputedExplanations.localFeatureImportance.scores, modelMetadata.modelType);
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(localFeatureMatrix, modelMetadata.modelType, testDataset, weighting);
             let intercepts = undefined;
-            if (props.precomputedExplanations.localFeatureImportance.intercept) {
-                intercepts = (modelMetadata.modelType === ModelTypes.regression ?
-                    [props.precomputedExplanations.localFeatureImportance.intercept] :
-                    props.precomputedExplanations.localFeatureImportance.intercept) as number[];
-            }
+            // if (props.precomputedExplanations.localFeatureImportance.intercept) {
+            //     intercepts = (modelMetadata.modelType === ModelTypes.regression ?
+            //         [props.precomputedExplanations.localFeatureImportance.intercept] :
+            //         props.precomputedExplanations.localFeatureImportance.intercept) as number[];
+            // }
             localExplanation = {
                 values: localFeatureMatrix,
                 flattenedValues: flattenedFeatureMatrix,
@@ -129,9 +129,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         let isGlobalDerived: boolean = false;
         if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined) {
             let intercepts = undefined;
-            if (props.precomputedExplanations.globalFeatureImportance.intercept) {
-                intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
-            }
+            // if (props.precomputedExplanations.globalFeatureImportance.intercept) {
+            //     intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
+            // }
             // determine if passed in vaules is 1D or 2D
             // Use the global explanation if its been computed and is 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
@@ -246,8 +246,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static buildGlobalExplanationFromLocal(localExplanation: ILocalExplanation): IGlobalExplanation {
         return {
-           perClassFeatureImportances: ModelExplanationUtils.absoluteAverageTensor(localExplanation.values),
-           intercepts: localExplanation.intercepts ? localExplanation.intercepts.map(val => Math.abs(val)) : undefined
+           perClassFeatureImportances: ModelExplanationUtils.absoluteAverageTensor(localExplanation.values)
+           // intercepts: localExplanation.intercepts ? localExplanation.intercepts.map(val => Math.abs(val)) : undefined
         };
     }
 
