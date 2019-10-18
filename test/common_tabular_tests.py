@@ -226,7 +226,7 @@ class VerifyTabularTests(object):
                                            is_per_class=True, include_evaluation_examples=True,
                                            include_local=True, has_explain_local=True,
                                            true_labels_required=False, num_overall_features_equal=-1):
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=feature_names, classes=target_names,
                                           model_task=ModelTask.Classification)
         self.test_logger.info('Running explain global for verify_explain_model_local')
@@ -322,7 +322,7 @@ class VerifyTabularTests(object):
                                                       feature_names, include_evaluation_examples=True,
                                                       include_local=True, has_explain_local=True,
                                                       true_labels_required=False):
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=feature_names, model_task=ModelTask.Regression)
         self.test_logger.info('Running explain global for verify_explain_model_local_regression')
         if include_evaluation_examples:
@@ -423,7 +423,7 @@ class VerifyTabularTests(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=feature_names, classes=target_names)
         self.test_logger.info('Running explain global for verify_explain_model_int_features')
         if include_evaluation_examples:
@@ -447,7 +447,7 @@ class VerifyTabularTests(object):
         y_test = y_test[DATA_SLICE]
         # Fit a linear regression model
         model = create_sklearn_linear_regressor(x_train, y_train.toarray().flatten())
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train)
         self.test_logger.info('Running explain global for verify_explain_model_npz_linear')
         if self.specify_policy:
@@ -479,7 +479,7 @@ class VerifyTabularTests(object):
         else:
             background = x_train
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, background)
         self.test_logger.info('Running explain global for verify_explain_model_sparse')
         if self.specify_policy:
@@ -512,7 +512,7 @@ class VerifyTabularTests(object):
             background = _summarize_data(x_train)
         else:
             background = x_train
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, background)
         if self.specify_policy:
             policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=True)}
@@ -532,7 +532,7 @@ class VerifyTabularTests(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         summary = _summarize_data(x_train, 10)
         explainer = self.create_explainer(model, summary, features=feature_names, classes=target_names)
         self.test_logger.info('Running explain global for verify_explain_model_with_summarize_data')
@@ -548,13 +548,13 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_subset_classification_dense(self, is_local=True,
                                                          true_labels_required=False):
-        # Verify explaining a subset of the features (for scoring workflow)
+        # Verify explaining a subset of the features
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=7)
         # Fit a tree model
         model = create_sklearn_logistic_regressor(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         classes = [" <=50K", " >50K"]
         explainer = self.create_explainer(model, x_train, features=list(range(x_train.shape[1])), classes=classes)
         self.test_logger.info('Running explain global for verify_explain_model_subset_classification_dense')
@@ -580,7 +580,7 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_subset_regression_sparse(self, is_local=True,
                                                       true_labels_required=False):
-        # Verify explaining a subset of the features (for scoring workflow), but on sparse regression data
+        # Verify explaining a subset of the features, but on sparse regression data
         x_train, x_test, y_train, y_test = self.create_msx_data(0.01)
         DATA_SLICE = slice(100)
         x_train = x_train[DATA_SLICE]
@@ -589,7 +589,7 @@ class VerifyTabularTests(object):
         y_test = y_test[DATA_SLICE]
         # Fit a linear regression model
         model = create_sklearn_linear_regressor(x_train, y_train.toarray().flatten())
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=list(range(x_train.shape[1])))
         self.test_logger.info('Running explain global for verify_explain_model_subset_regression_sparse')
         # Get most important features
@@ -633,7 +633,7 @@ class VerifyTabularTests(object):
         y_test = y_test[DATA_SLICE]
         # Fit a logistic regression classification model
         model = create_sklearn_logistic_regressor(x_train, y_train)
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=list(range(x_train.shape[1])), classes=classes)
         self.test_logger.info('Running explain global for verify_explain_model_subset_classification_sparse')
         # Get most important features
@@ -667,8 +667,8 @@ class VerifyTabularTests(object):
                 # Surprisingly, they are almost identical!
                 assert(correct_ratio > 0.9)
 
-    def verify_explain_model_scoring_with_sampling_regression_sparse(self, true_labels_required=False):
-        # Verify that evaluation dataset can be downsampled and the scoring scenario can still be run
+    def verify_explain_model_with_sampling_regression_sparse(self, true_labels_required=False):
+        # Verify that evaluation dataset can be downsampled
         x_train, x_test, y_train, y_test = self.create_msx_data(0.2)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
@@ -676,16 +676,16 @@ class VerifyTabularTests(object):
         y_test = y_test[DATA_SLICE]
         # Fit a linear regression model
         model = create_sklearn_linear_regressor(x_train, y_train.toarray().flatten())
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         explainer = self.create_explainer(model, x_train, features=list(range(x_train.shape[1])))
         self.test_logger.info('Running explain global for '
-                              'verify_explain_model_scoring_with_sampling_regression_sparse')
+                              'verify_explain_model_with_sampling_regression_sparse')
         # Sample the evaluation dataset with multiple runs of KMeans
         if self.specify_policy:
             policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=True)}
         else:
             policy = {}
-        # Get most important features and create a scoring model
+        # Get most important features
         if true_labels_required:
             explainer.explain_global(x_test[:5], y_test[:5], **policy)
         else:
@@ -776,7 +776,7 @@ class VerifyTabularTests(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         kwargs = {}
         kwargs[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
         explainer = self.create_explainer(model, x_train, features=feature_names, classes=target_names, **kwargs)
@@ -792,7 +792,7 @@ class VerifyTabularTests(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         kwargs = {}
         kwargs[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
         explainer = self.create_explainer(model, x_train, features=feature_names, classes=target_names, **kwargs)
@@ -811,7 +811,7 @@ class VerifyTabularTests(object):
         # Fit a linear model
         model = create_sklearn_linear_regressor(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         kwargs = {}
         kwargs[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
         explainer = self.create_explainer(model, x_train, features=feature_names, **kwargs)

@@ -76,9 +76,8 @@ class TestPFIExplainer(object):
             .verify_explain_model_subset_classification_sparse(true_labels_required=True,
                                                                is_local=False)
 
-    def test_explain_model_scoring_with_sampling_regression_sparse(self):
-        self.verify_tabular \
-            .verify_explain_model_scoring_with_sampling_regression_sparse(true_labels_required=True)
+    def test_explain_model_with_sampling_regression_sparse(self):
+        self.verify_tabular.verify_explain_model_with_sampling_regression_sparse(true_labels_required=True)
 
     def test_explain_model_throws_on_bad_classifier_and_classes(self):
         self.verify_tabular.verify_explain_model_throws_on_bad_classifier_and_classes()
