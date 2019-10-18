@@ -132,9 +132,9 @@ class TestMimicExplainer(object):
         for verifier in verify_sparse_mimic:
             verifier.verify_explain_model_subset_classification_sparse(is_local=False)
 
-    def test_explain_model_scoring_with_sampling_regression_sparse(self, verify_sparse_mimic):
+    def test_explain_model_with_sampling_regression_sparse(self, verify_sparse_mimic):
         for verifier in verify_sparse_mimic:
-            verifier.verify_explain_model_scoring_with_sampling_regression_sparse()
+            verifier.verify_explain_model_with_sampling_regression_sparse()
 
     def test_explain_model_local_single(self, verify_sparse_mimic):
         for verifier in verify_sparse_mimic:

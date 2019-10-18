@@ -43,7 +43,7 @@ class TestExplainerValidity(object):
             # Fit a logistic regression classifier
             model = create_sklearn_logistic_regressor(x_train, y_train, pipeline=is_pipeline)
 
-            # Create local tabular explainer without run history
+            # Create tabular explainer
             exp = TabularExplainer(model, x_train, features=list(range(x_train.shape[1])))
             test_logger.info("Running explain model for test_verify_linear_model_coefficient_explanation")
             # Validate evaluation sampling
@@ -68,7 +68,7 @@ class TestExplainerValidity(object):
         # Fit a logistic regression classifier
         model = create_sklearn_logistic_regressor(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = TabularExplainer(model, x_train, features=list(range(x_train.shape[1])))
         test_logger.info("Running explain model for test_verify_linear_model_coefficient_explanation")
         # Validate evaluation sampling
@@ -134,7 +134,7 @@ class TestExplainerValidity(object):
 
 
 def tabular_explainer_imp(model, x_train, x_test, allow_eval_sampling=True):
-    # Create local tabular explainer without run history
+    # Create tabular explainer
     exp = TabularExplainer(model, x_train, features=list(range(x_train.shape[1])))
     # Validate evaluation sampling
     policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=allow_eval_sampling)}

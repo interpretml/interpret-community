@@ -24,7 +24,7 @@ def _explain_local_tree_surrogate(tree_model, evaluation_examples, tree_explaine
         Currently only types 'default', 'probability' and 'teacher_probability' are supported.  If
         'probability' is specified, then we approximately scale the raw log-odds values from the
         TreeExplainer to probabilities.
-    :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+    :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param classification: Indicates if this is a classification or regression explanation.
     :type classification: bool
     :param probabilities: If output_type is probability, can specify the teacher model's
@@ -76,7 +76,7 @@ def _expected_values_tree_surrogate(tree_model, tree_explainer, shap_values_outp
         Currently only types 'default', 'probability' and 'teacher_probability' are supported.  If
         'probability' is specified, then we approximately scale the raw log-odds values from the
         TreeExplainer to probabilities.
-    :type shap_values_output: azureml.explain.model.common.constants.ShapValuesOutput
+    :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param classification: Indicates if this is a classification or regression explanation.
     :type classification: bool
     :param multiclass: True if the tree_model is a multiclass model.

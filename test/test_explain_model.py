@@ -203,7 +203,7 @@ class TestTabularExplainer(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, iris[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model,
                                 x_train,
                                 features=iris[DatasetConstants.FEATURES],
@@ -225,7 +225,7 @@ class TestTabularExplainer(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, iris[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train, classes=iris[DatasetConstants.CLASSES])
         test_logger.info("Running explain global for test_explain_model_local")
         explanation = exp.explain_global(x_test)
@@ -240,7 +240,7 @@ class TestTabularExplainer(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], classes=iris[DatasetConstants.CLASSES])
         test_logger.info("Running explain global for test_explain_model_local")
         explanation = exp.explain_global(iris[DatasetConstants.X_TEST])
@@ -262,7 +262,7 @@ class TestTabularExplainer(object):
         y_train = y_train[DATA_SLICE]
         # Fit a random forest regression model
         model = create_sklearn_random_forest_regressor(x_train, y_train.toarray().flatten())
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train)
         test_logger.info('Running explain global for test_explain_model_npz_tree')
         exp.explain_global(x_test)
@@ -279,7 +279,7 @@ class TestTabularExplainer(object):
         shape = 1, cols
         background = sp.sparse.csr_matrix(shape, dtype=x_train.dtype)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, background)
         test_logger.info('Running explain global for test_explain_model_sparse_tree')
         policy = SamplingPolicy(allow_eval_sampling=True)
@@ -300,7 +300,7 @@ class TestTabularExplainer(object):
         # Fit a tree model
         model = create_sklearn_random_forest_classifier(x_train, y_train)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train, features=X.columns.values)
         test_logger.info('Running explain global for test_explain_model_random_forest_classification')
         explanation = exp.explain_global(x_test)
@@ -316,7 +316,7 @@ class TestTabularExplainer(object):
         # Fit a lightgbm model
         model = create_lightgbm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
                                 classes=iris[DatasetConstants.CLASSES])
         test_logger.info('Running explain global for test_explain_model_lightgbm_multiclass')
@@ -328,7 +328,7 @@ class TestTabularExplainer(object):
         # Fit an xgboost model
         model = create_xgboost_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
                                 classes=iris[DatasetConstants.CLASSES])
         test_logger.info('Running explain global for test_explain_model_xgboost_multiclass')
@@ -344,7 +344,7 @@ class TestTabularExplainer(object):
         model = create_lightgbm_classifier(x_train, y_train)
 
         classes = ["<50k", ">50k"]
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train, features=X.columns.values,
                                 classes=classes)
         test_logger.info('Running explain global for test_explain_model_lightgbm_binary')
@@ -353,7 +353,7 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values) == len(classes)
 
     def _explain_model_dnn_common(self, tabular_explainer, model, x_train, x_test, y_train, features):
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train.values, features=features)
         policy = SamplingPolicy(allow_eval_sampling=True)
         exp.explain_global(x_test.values, sampling_policy=policy)
@@ -379,7 +379,7 @@ class TestTabularExplainer(object):
         model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
                                                        boston[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
         test_logger.info('Running explain global for test_explain_model_random_forest_regression')
         explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
@@ -391,7 +391,7 @@ class TestTabularExplainer(object):
         model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
                                                        boston[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
         test_logger.info('Running explain local for test_explain_model_local_tree_regression')
         explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
@@ -403,7 +403,7 @@ class TestTabularExplainer(object):
 
     def _explain_model_local_dnn_classification_common(self, tabular_explainer, model, x_train,
                                                        x_test, y_train, features):
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train.values, features=features)
         explanation = exp.explain_local(x_test.values)
         assert explanation.local_importance_values is not None
@@ -430,7 +430,7 @@ class TestTabularExplainer(object):
 
     def _explain_model_local_dnn_regression_common(self, tabular_explainer, model, x_train,
                                                    x_test, y_train, features):
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, x_train, features=features, model_task=ModelTask.Regression)
         explanation = exp.explain_local(x_test)
         assert explanation.local_importance_values is not None
@@ -461,7 +461,7 @@ class TestTabularExplainer(object):
         # Fit a linear regression model
         model = create_sklearn_linear_regressor(boston[DatasetConstants.X_TRAIN], boston[DatasetConstants.Y_TRAIN])
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
         test_logger.info('Running explain local for test_explain_model_regression')
         explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
@@ -477,24 +477,24 @@ class TestTabularExplainer(object):
                                                 boston[DatasetConstants.Y_TRAIN],
                                                 pipeline=True)
 
-        # Create local tabular explainer without run history
+        # Create tabular explainer
         exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
         test_logger.info('Running explain global for test_explain_model_regression')
         explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
         self.verify_boston_overall_features_lr(explanation.get_ranked_global_names(),
                                                explanation.get_ranked_global_values())
 
-    def test_explain_model_subset_classification_dense(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_classification_dense(**scoring_eval_kwargs)
+    def test_explain_model_subset_classification_dense(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_classification_dense()
 
-    def test_explain_model_subset_regression_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_regression_sparse(**scoring_eval_kwargs)
+    def test_explain_model_subset_regression_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_regression_sparse()
 
-    def test_explain_model_subset_classification_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_subset_classification_sparse(**scoring_eval_kwargs)
+    def test_explain_model_subset_classification_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_subset_classification_sparse()
 
-    def test_explain_model_scoring_with_sampling_regression_sparse(self, verify_tabular, scoring_eval_kwargs):
-        verify_tabular.verify_explain_model_scoring_with_sampling_regression_sparse(**scoring_eval_kwargs)
+    def test_explain_model_with_sampling_regression_sparse(self, verify_tabular):
+        verify_tabular.verify_explain_model_with_sampling_regression_sparse()
 
     def test_explain_raw_feats_regression(self, boston, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances

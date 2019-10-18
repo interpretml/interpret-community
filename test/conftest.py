@@ -156,8 +156,3 @@ def verify_mimic_special_args():
                              sgd_create_explainer, tree_create_explainer]:
         verify_mimic_special_args.append(VerifyTabularTests(test_logger, create_explainer, specify_policy=False))
     return verify_mimic_special_args
-
-
-@pytest.fixture(scope='session')
-def scoring_eval_kwargs():
-    yield {}
