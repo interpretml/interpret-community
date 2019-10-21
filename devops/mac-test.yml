@@ -13,7 +13,8 @@ steps:
 
 - bash: |
     source activate interp
-    conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
+    # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
+    conda install pytorch torchvision -c pytorch
   displayName: Install Anaconda packages
 
 - bash: |
