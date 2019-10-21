@@ -19,6 +19,12 @@ steps:
 
 - bash: |
     source activate interp
+    # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
+    conda install --yes -c conda-forge lightgbm
+  displayName: Install lightgbm from conda
+
+- bash: |
+    source activate interp
     pip install --upgrade pip
   displayName: Upgrade pip to latest
 
