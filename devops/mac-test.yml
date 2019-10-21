@@ -11,11 +11,11 @@ steps:
 - bash: conda create --yes --quiet --name interp python=3.6
   displayName: Create Anaconda environment
 
-- bash: |
-    source activate interp
-    # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-    conda install pytorch torchvision -c pytorch
-  displayName: Install Anaconda packages
+# - bash: |
+#     source activate interp
+#     # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
+#     conda install pytorch torchvision -c pytorch
+#   displayName: Install Anaconda packages
 
 - bash: |
     source activate interp
@@ -31,6 +31,12 @@ steps:
     source activate interp
     pip install -e ./python
   displayName: Install interpret-extensions
+
+- bash: |
+    source activate interp
+    pip install torch
+    pip install torchvision
+  displayName: Install torch
 
 - bash: |
     source activate interp
