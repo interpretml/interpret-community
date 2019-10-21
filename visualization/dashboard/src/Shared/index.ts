@@ -4,5 +4,7 @@ export * from "./IData";
 export * from "./IModelMetadata";
 export * from "./INumericRange";
 export * from "./IPlotlyProperty";
+export * from "./ModelMetadata";
 export * from "./PlotlyMode";
+export * from "./RangeTypes";
 export * from "./SelectionContext";
