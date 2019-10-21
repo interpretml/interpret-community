@@ -1,6 +1,6 @@
 {
   "name": "mlchartlib",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "license": "See license file 'LICENSE'",
   "description": "ML Chart Lib",
   "main": "rel/index.js",
@@ -12,13 +12,15 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools"
+    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools",
+    "build-dev": "npm run build && npm run copy",
+    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\fairlearn-dashboard\\rel\" /e /y"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",
     "@types/lodash": "4.14.123",
+    "@types/plotly.js-dist": "npm:@types/plotly.js",
     "@types/memoize-one": "4.1.1",
-    "@types/plotly.js": "1.44.0",
     "@types/react": "16.8.10",
     "@types/uuid": "3.4.4",
     "identity-obj-proxy": "^3.0.0",
@@ -39,7 +41,7 @@
     "memoize-one": "^5.0.2",
     "moment": "^2.24.0",
     "office-ui-fabric-react": "^7.11.0",
-    "plotly.js": "^1.45.3",
+    "plotly.js-dist": "^1.45.3",
     "uuid": "^3.3.2"
   }
 }

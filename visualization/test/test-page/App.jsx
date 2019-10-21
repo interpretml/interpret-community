@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExplanationDashboard } from '../../dashboard/rel';
+import { ExplanationDashboard } from 'mlchartlib';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';

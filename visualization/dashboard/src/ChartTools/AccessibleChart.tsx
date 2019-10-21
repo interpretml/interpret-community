@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import * as Plotly from 'plotly.js';
-import { PlotlyHTMLElement, Layout } from 'plotly.js';
+import * as Plotly from 'plotly.js-dist';
+import { PlotlyHTMLElement, Layout } from 'plotly.js-dist';
 import * as React from 'react';
 import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
