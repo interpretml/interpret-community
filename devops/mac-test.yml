@@ -19,7 +19,6 @@ steps:
 
 - bash: |
     source activate interp
-    # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
     conda install --yes -c conda-forge lightgbm
   displayName: Install lightgbm from conda
 
@@ -43,6 +42,11 @@ steps:
     pip install torch
     pip install torchvision
   displayName: Install torch
+
+- bash: |
+    source activate interp
+    pip install libomp
+  displayName: Install libomp for lightgbm
 
 - bash: |
     source activate interp
