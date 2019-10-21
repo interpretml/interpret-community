@@ -237,6 +237,7 @@ class TestMimicExplainer(object):
         for verifier in verify_mimic:
             verifier.verify_explain_model_categorical(pass_categoricals=True)
 
+    @pytest.mark.skip(reason='Pandas indexes not supported yet')
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
         (240, {}),
         (20, {'fruit': ['apple', 'grape'], 'store': [100, 200, 50]})])
