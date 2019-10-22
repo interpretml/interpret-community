@@ -5,7 +5,7 @@ pool:
   vmImage: 'macos-latest'
 
 steps:
-- bash: |
+- script: |
     echo "##vso[task.prependpath]$CONDA/bin" && \
     conda create --yes --quiet --name interp python=3.6
   displayName: Add conda to PATH
