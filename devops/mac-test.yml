@@ -21,6 +21,7 @@ steps:
 
 - bash: |
     source activate interp
+    pip install libomp
     conda install --yes -c conda-forge lightgbm
   displayName: Install lightgbm from conda
 
