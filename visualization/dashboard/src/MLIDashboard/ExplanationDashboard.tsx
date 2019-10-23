@@ -113,11 +113,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             let localFeatureMatrix = ExplanationDashboard.buildLocalFeatureMatrix(props.precomputedExplanations.localFeatureImportance.scores, modelMetadata.modelType);
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(localFeatureMatrix, modelMetadata.modelType, testDataset, weighting);
             let intercepts = undefined;
-            if (props.precomputedExplanations.localFeatureImportance.intercept) {
-                intercepts = (modelMetadata.modelType === ModelTypes.regression ?
-                    [props.precomputedExplanations.localFeatureImportance.intercept] :
-                    props.precomputedExplanations.localFeatureImportance.intercept) as number[];
-            }
+            // if (props.precomputedExplanations.localFeatureImportance.intercept) {
+            //     intercepts = (modelMetadata.modelType === ModelTypes.regression ?
+            //         [props.precomputedExplanations.localFeatureImportance.intercept] :
+            //         props.precomputedExplanations.localFeatureImportance.intercept) as number[];
+            // }
             localExplanation = {
                 values: localFeatureMatrix,
                 flattenedValues: flattenedFeatureMatrix,
@@ -129,9 +129,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         let isGlobalDerived: boolean = false;
         if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined) {
             let intercepts = undefined;
-            if (props.precomputedExplanations.globalFeatureImportance.intercept) {
-                intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
-            }
+            // if (props.precomputedExplanations.globalFeatureImportance.intercept) {
+            //     intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
+            // }
             // determine if passed in vaules is 1D or 2D
             // Use the global explanation if its been computed and is 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
@@ -246,8 +246,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static buildGlobalExplanationFromLocal(localExplanation: ILocalExplanation): IGlobalExplanation {
         return {
-           perClassFeatureImportances: ModelExplanationUtils.absoluteAverageTensor(localExplanation.values),
-           intercepts: localExplanation.intercepts ? localExplanation.intercepts.map(val => Math.abs(val)) : undefined
+           perClassFeatureImportances: ModelExplanationUtils.absoluteAverageTensor(localExplanation.values)
+           // intercepts: localExplanation.intercepts ? localExplanation.intercepts.map(val => Math.abs(val)) : undefined
         };
     }
 
@@ -500,7 +500,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 <iframe srcDoc={this.state.dashboardContext.explanationContext.customVis}/>
                             )}
                         </div>
-                        <div className="local-charts-wrapper">
+                        {this.state.dashboardContext.explanationContext.localExplanation && (<div className="local-charts-wrapper">
                             {this.state.selectedRow === undefined && (
                                 <div className="local-placeholder">
                                     <div className="placeholder-text">
@@ -565,6 +565,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 </div>
             </>
@@ -617,23 +618,39 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClassSelect(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         this.setState(prevState => {
-            const newState = _.cloneDeep(prevState);
-            newState.dashboardContext.weightContext.selectedKey = item.key as any;
+            const newWeightContext = _.cloneDeep(prevState.dashboardContext.weightContext);
+            newWeightContext.selectedKey = item.key as any;
+
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(
                 prevState.dashboardContext.explanationContext.localExplanation.values,
                 prevState.dashboardContext.explanationContext.modelMetadata.modelType,
                 prevState.dashboardContext.explanationContext.testDataset,
                 item.key as any);
-            newState.dashboardContext.explanationContext.localExplanation.flattenedValues = flattenedFeatureMatrix;
-            return newState;
+            return {
+                dashboardContext: {
+                    explanationContext: {
+                        modelMetadata: prevState.dashboardContext.explanationContext.modelMetadata,
+                        testDataset: prevState.dashboardContext.explanationContext.testDataset,
+                        localExplanation: {
+                            flattenedValues: flattenedFeatureMatrix,
+                            intercepts:  prevState.dashboardContext.explanationContext.localExplanation.intercepts,
+                            values: prevState.dashboardContext.explanationContext.localExplanation.values
+                        },
+                        globalExplanation: prevState.dashboardContext.explanationContext.globalExplanation,
+                        explanationGenerators: prevState.dashboardContext.explanationContext.explanationGenerators,
+                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived
+                    },
+                    weightContext: newWeightContext
+                }
+            };
         });
     }
 
     private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig, configId: string): void {
         this.setState(prevState => {
-            const newState = _.cloneDeep(prevState);
-            newState.configs[configId] = newConfig;
-            return newState;
+            const newConfigs = _.cloneDeep(prevState.configs);
+            newConfigs[configId] = newConfig;
+            return {configs: newConfigs};
         });
     }
 

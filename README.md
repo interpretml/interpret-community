@@ -29,13 +29,13 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. Data scientists, machine learning engineers, and researchers can easily add their own interpretability techniques via the set of extension hooks built into the peer repository, Interpret, and expand this repository to include their custom-made interpretability techniques.
+Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. 
 
 
-This repository incorporates experimental and community developed interpretability techniques under one roof with a unified set of data structures and API. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit:
-1. Actively incorporates experimental interpretability techniques, and allows for further expansion by researchers and data scientists
-2. Creates a common API across the integrated libraries
-3. Applies optimizations to make it possible to run on real-world datasets at scale
+This repository incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit: 
+1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists 
+2. Creates a common API across the integrated libraries    
+3. Applies optimizations to make it possible to run on real-world datasets at scale   
 4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
 5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
 # <a name="comparison"></a>
@@ -43,8 +43,7 @@ This repository incorporates experimental and community developed interpretabili
 # Interpret vs. Interpret-Community
 
 
-Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights about the model predictions and insight into why the model made the predictions it did. The peer repository, Interpret, hosts the interpretability techniques that are widely accepted by the research community and have been published in prestigous publications and press (e.g., SHAP, EBM). Interpret-Community is an extension to Interpret and hosts experimental interpretability techniques that are yet to receive acceptance from the research community and functionality for data scientists and software engineers to simplify their workflow.
-
+Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights on machine learning models. The peer repository, Interpret, hosts a core set of interpretability techniques from the research community. Interpret-Community extends Interpret with additional interpretability techniques and additional utility functions to handle real-world datasets and workflows.            
 
 
 

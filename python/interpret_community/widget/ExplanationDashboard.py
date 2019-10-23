@@ -105,7 +105,8 @@ class ExplanationDashboard(object):
         if local_explanation is None and global_explanation is not None:
             try:
                 global_explanation["scores"] = self._convertToList(global_explanation["scores"])
-                global_explanation["intercept"] = self._convertToList(global_explanation["intercept"])
+                if 'intercept' in global_explanation:
+                    global_explanation["intercept"] = self._convertToList(global_explanation["intercept"])
                 dataArg[ExplanationDashboardInterface.GLOBAL_EXPLANATION] = global_explanation
             except Exception:
                 raise ValueError("Unsupported global explanation type")
@@ -118,7 +119,7 @@ class ExplanationDashboard(object):
         if features is None and hasattr(explanationObject, 'features') and explanationObject.features is not None:
             features = explanationObject.features
         if features is not None:
-            features = self._convertToList(explanationObject.features)
+            features = self._convertToList(features)
             if len(features) != feature_length:
                 raise ValueError("Feature vector length mismatch: \
                     feature names length differs from local explanations dimension")
@@ -126,7 +127,7 @@ class ExplanationDashboard(object):
         if classes is None and hasattr(explanationObject, 'classes') and explanationObject.classes is not None:
             classes = explanationObject.classes
         if classes is not None:
-            classes = self._convertToList(explanationObject.classes)
+            classes = self._convertToList(classes)
             if local_dim is not None and len(classes) != local_dim[0]:
                 raise ValueError("Class vector length mismatch: \
                     class names length differs from local explanations dimension")
