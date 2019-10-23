@@ -1,6 +1,6 @@
 
 
-[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/microsoft.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
+[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/interpretml.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
 ![versions](https://img.shields.io/badge/python-2.7%20%7C%203.6-blue)
 
@@ -26,7 +26,7 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Build Status](#BuildStatus)
 - [Additional References](#Refs)
 
-# <a name="intro"></a> 
+# <a name="intro"></a>
 
 # Overview of Interpret-Community
 Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. 
@@ -38,7 +38,7 @@ This repository incorporates community developed interpretability techniques und
 3. Applies optimizations to make it possible to run on real-world datasets at scale   
 4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
 5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
-# <a name="comparison"></a> 
+# <a name="comparison"></a>
 
 # Interpret vs. Interpret-Community
 
@@ -47,16 +47,16 @@ Interpret-Community and its peer repository, Interpret, both serve as a tool for
 
 
 
-  # <a name="target"></a> 
+  # <a name="target"></a>
 
  # Target Audience
 1. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
 
-2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques. 
+2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques.
 3. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential bias and use this insight to help establish stronger governance capabilities., and establish a strong governance framework around the use of AI applications.
-  
 
-# <a name="try"></a> 
+
+# <a name="try"></a>
 
 # Try our notebooks in your favorite cloud
 
@@ -73,15 +73,15 @@ To setup on your local machine:
 
 <details><summary><strong><em>1. Set up Environment</em></strong></summary>
 
-    a. Install Anaconda with Python >= 3.6 
+    a. Install Anaconda with Python >= 3.6
        [Miniconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) is a quick way to get started.
 
- 
+
     b. Create conda environment named interp and install packages
 
 ```
     conda create --name interp python=3.6 anaconda
-    
+
 ```
 
     Optional, additional reading:
@@ -105,7 +105,7 @@ To setup on your local machine:
 </details>
 <br></br>
 </details>
- 
+
 <details>
 
 <summary><strong><em>2. Clone the Interpret-Community repository</em></strong></summary>
@@ -122,7 +122,7 @@ cd interpret-community
 
 
 ```
-pip install -e ./python 
+pip install -e ./python
 ```
 If you intend to run repository tests:
 ```
