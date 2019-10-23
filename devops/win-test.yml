@@ -13,7 +13,8 @@ steps:
 
 - bash: |
     source activate interp
-    pip install torch===1.3.0 torchvision===0.4.1 -f https://download.pytorch.org/whl/torch_stable.html --user
+    pip install https://download.pytorch.org/whl/cpu/torch-1.0.1-cp36-cp36m-win_amd64.whl
+    pip install torchvision
   displayName: Install torch
 
 - bash: |
