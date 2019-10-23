@@ -11,6 +11,9 @@ steps:
 - bash: conda create --yes --quiet --name interp python=3.6
   displayName: Create Anaconda environment
 
+- bash: brew install libomp
+  displayName: Use Homebrew to install libomp
+
 # - bash: |
 #     source activate interp
 #     # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
