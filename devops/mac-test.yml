@@ -5,13 +5,12 @@ pool:
   vmImage: 'macos-latest'
 
 steps:
-- script: |
+- bash: |
     echo "##vso[task.prependpath]$CONDA/bin" && \
-    conda create --yes --quiet --name interp python=3.6
   displayName: Add conda to PATH
 
-# - script: conda create --yes --quiet --name interp python=3.6
-#   displayName: Create Anaconda environment
+- bash: conda create --yes --quiet --name interp python=3.6
+  displayName: Create Anaconda environment
 
 # - bash: |
 #     source activate interp
@@ -21,7 +20,6 @@ steps:
 
 - bash: |
     source activate interp
-    pip install libomp
     conda install --yes -c conda-forge lightgbm
   displayName: Install lightgbm from conda
 
