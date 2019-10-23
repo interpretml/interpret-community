@@ -34,6 +34,7 @@ steps:
 
 - bash: |
     source activate interp
+    pip install --upgrade certifi --ignore-installed
     pip install -e ./python
   displayName: Install interpret-extensions
 
