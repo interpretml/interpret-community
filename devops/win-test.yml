@@ -5,11 +5,13 @@ pool:
   vmImage: 'vs2017-win2016'
 
 steps:
-- bash: echo "##vso[task.prependpath]$CONDA/bin"
+- bash: |
+    echo "##vso[task.prependpath]$CONDA/bin"
+    conda create --yes --quiet --name interp python=3.6
   displayName: Add conda to PATH
 
-- bash: conda create --yes --quiet --name interp python=3.6
-  displayName: Create Anaconda environment
+# - bash: conda create --yes --quiet --name interp python=3.6
+#   displayName: Create Anaconda environment
 
 - bash: |
     source activate interp
