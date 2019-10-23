@@ -13,7 +13,7 @@ import gc
 from abc import ABCMeta, abstractmethod
 
 from shap.common import DenseData
-from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
+from interpret.core.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
 
 from ..common.explanation_utils import _sort_values, _order_imp
 from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
