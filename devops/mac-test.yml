@@ -14,12 +14,6 @@ steps:
 - bash: brew install libomp
   displayName: Use Homebrew to install libomp
 
-# - bash: |
-#     source activate interp
-#     # conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-#     conda install pytorch torchvision -c pytorch
-#   displayName: Install Anaconda packages
-
 - bash: |
     source activate interp
     conda install --yes -c conda-forge lightgbm
@@ -46,11 +40,6 @@ steps:
     pip install torch
     pip install torchvision
   displayName: Install torch
-
-- bash: |
-    source activate interp
-    pip install libomp
-  displayName: Install libomp for lightgbm
 
 - bash: |
     source activate interp
