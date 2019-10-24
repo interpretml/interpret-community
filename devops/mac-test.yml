@@ -10,10 +10,10 @@ schedules:
     always: true
 
 pool:
-  vmimage: 'macos-latest'
+  vmImage: 'macos-latest'
 
 steps:
-- bash: echo "##vso[task.prependpath]$conda/bin"
+- bash: echo "##vso[task.prependpath]$CONDA/bin"
   displayName: Add conda to PATH
 
 - bash: conda create --yes --quiet --force --name interp python=3.6
