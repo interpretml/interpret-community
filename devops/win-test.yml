@@ -1,0 +1,72 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+steps:
+- powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+  displayName: Add conda to PATH
+
+- script: conda create --yes --quiet --name interp python=3.6
+  displayName: Create Anaconda environment
+
+- bash: |
+    source activate interp
+    pip install https://download.pytorch.org/whl/cpu/torch-1.3.0%2Bcpu-cp36-cp36m-win_amd64.whl
+    pip install torchvision==0.4.1
+  displayName: Install torch
+
+- bash: |
+    source activate interp
+    conda install --yes -c conda-forge lightgbm
+  displayName: Install lightgbm from conda
+
+- bash: |
+    source activate interp
+    pip install --upgrade pip
+  displayName: Upgrade pip to latest
+
+- bash: |
+    source activate interp
+    pip install -r requirements.txt
+  displayName: Install required pip packages
+
+- bash: |
+    source activate interp
+    pip install -e ./python
+  displayName: Install interpret-extensions
+
+- bash: |
+    source activate interp
+    pip install --upgrade setuptools wheel twine
+    cd ./python
+    python setup.py bdist_wheel
+    cd ..
+  displayName: Create a wheel
+
+- task: TwineAuthenticate@0
+  displayName: Configure twine authentication
+  inputs:
+    artifactFeeds: $(artifactFeed)
+
+- bash: |
+    source activate interp
+    cd ./python
+    twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
+    cd ..
+  displayName: Publish artifacts
+
+- bash: |
+    source activate interp
+    flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
+  displayName: 'Run flake8'
+
+- bash: |
+    source activate interp
+    python -m pytest test/ --junitxml=./TEST-TEST.xml
+  displayName: 'Run tests'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results **/TEST-*.xml'
+  condition: succeededOrFailed()
