@@ -1,7 +1,7 @@
 import { IExplanationModelMetadata, ModelTypes } from "../IExplanationContext";
 import React from "react";
 import { localization } from "../../Localization/localization";
-import Plotly from "plotly.js";
+import Plotly from "plotly.js-dist";
 import uuidv4 from 'uuid/v4';
 import { PlotlyThemes } from "../../ChartTools/PlotlyThemes";
 import { IPlotlyProperty } from "../../Shared/IPlotlyProperty";

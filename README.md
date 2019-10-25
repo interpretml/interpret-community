@@ -1,6 +1,6 @@
 
 
-[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/microsoft.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
+[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/interpretml.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
 ![versions](https://img.shields.io/badge/python-2.7%20%7C%203.6-blue)
 
@@ -17,7 +17,6 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Overview of Interpret-Community](#intro)
 - [Interpret vs. Interpret-Community](#comparison)
 - [Target Audience](#target)
-- [Try our notebooks in your favorite cloud](#try)
 - [Getting Started](#getting-started)
 - [Models](#models)
 - [Example](#Example)
@@ -26,43 +25,37 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Build Status](#BuildStatus)
 - [Additional References](#Refs)
 
-# <a name="intro"></a> 
+# <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. Data scientists, machine learning engineers, and researchers can easily add their own interpretability techniques via the set of extension hooks built into the peer repository, Interpret, and expand this repository to include their custom-made interpretability techniques.
+Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models.
 
 
-This repository incorporates experimental and community developed interpretability techniques under one roof with a unified set of data structures and API. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit: 
-1. Actively incorporates experimental interpretability techniques, and allows for further expansion by researchers and data scientists 
-2. Creates a common API across the integrated libraries    
-3. Applies optimizations to make it possible to run on real-world datasets at scale   
+This repository incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit:
+1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists
+2. Creates a common API across the integrated libraries
+3. Applies optimizations to make it possible to run on real-world datasets at scale
 4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
 5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
-# <a name="comparison"></a> 
+# <a name="comparison"></a>
 
 # Interpret vs. Interpret-Community
 
 
-Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights about the model predictions and insight into why the model made the predictions it did. The peer repository, Interpret, hosts the interpretability techniques that are widely accepted by the research community and have been published in prestigous publications and press (e.g., SHAP, EBM). Interpret-Community is an extension to Interpret and hosts experimental interpretability techniques that are yet to receive acceptance from the research community and functionality for data scientists and software engineers to simplify their workflow.            
+Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights on machine learning models. The peer repository, Interpret, hosts a core set of interpretability techniques from the research community. Interpret-Community extends Interpret with additional interpretability techniques and additional utility functions to handle real-world datasets and workflows.
 
 
 
-
-  # <a name="target"></a> 
+  # <a name="target"></a>
 
  # Target Audience
 1. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
 
-2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques. 
+2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques.
 3. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential bias and use this insight to help establish stronger governance capabilities., and establish a strong governance framework around the use of AI applications.
-  
 
-# <a name="try"></a> 
 
-# Try our notebooks in your favorite cloud
-
-[![Azure Notebooks](https://notebooks.azure.com/launch.png)](https://notebooks.azure.com/import/gh/microsoft/interpret-community)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/interpretml/interpret-community)
+# <a name="try"></a>
 
 <a name="getting started"></a>
 
@@ -74,15 +67,15 @@ To setup on your local machine:
 
 <details><summary><strong><em>1. Set up Environment</em></strong></summary>
 
-    a. Install Anaconda with Python >= 3.6 
+    a. Install Anaconda with Python >= 3.6
        [Miniconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) is a quick way to get started.
 
- 
+
     b. Create conda environment named interp and install packages
 
 ```
     conda create --name interp python=3.6 anaconda
-    
+
 ```
 
     Optional, additional reading:
@@ -98,7 +91,7 @@ To setup on your local machine:
 ```
 </details>
 
-<details><summary><strong><em>On Linux:</em> c. Activate conda environment</em></strong></summary>
+<details><summary><strong><em>On Linux and Mac:</em> c. Activate conda environment</em></strong></summary>
 
 ```
     source activate interp
@@ -106,7 +99,7 @@ To setup on your local machine:
 </details>
 <br></br>
 </details>
- 
+
 <details>
 
 <summary><strong><em>2. Clone the Interpret-Community repository</em></strong></summary>
@@ -123,11 +116,48 @@ cd interpret-community
 
 
 ```
-pip install -e ./python 
+pip install -e ./python
 ```
 If you intend to run repository tests:
 ```
 pip install -r requirements.txt
+```
+
+
+<details><summary><strong><em>On Windows: </strong></em></summary>
+
+Pytorch installation if desired:
+```
+    pip install https://download.pytorch.org/whl/cpu/torch-1.3.0%2Bcpu-cp36-cp36m-win_amd64.whl
+    pip install torchvision==0.4.1
+```
+
+lightgbm installation if desired:
+```
+    conda install --yes -c conda-forge lightgbm
+```
+
+</details>
+
+
+<details><summary><strong><em>On MacOS: </strong></em></summary>
+
+Pytorch installation if desired:
+```
+    pip install torch==1.3.0
+    pip install torchvision==0.4.1
+```
+
+lightgbm installation if desired (requires Homebrew):
+```
+    brew install libomp
+    conda install --yes -c conda-forge lightgbm
+```
+
+If installing the package generally gives an error about the `certifi` package, run this first:
+```
+    pip install --upgrade certifi --ignore-installed
+    pip install interpret-community
 ```
 
 </details>

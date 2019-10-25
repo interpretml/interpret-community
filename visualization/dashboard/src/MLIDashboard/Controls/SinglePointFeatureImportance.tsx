@@ -120,6 +120,7 @@ export class SinglePointFeatureImportance extends React.PureComponent<ISinglePoi
         const result = this.props.explanationContext.localExplanation.values[this.props.selectedRow];
         // Binary classifier just has feature importance for class 0 stored, class one is equal and oposite.
         if (this.props.explanationContext.modelMetadata.modelType === ModelTypes.binary &&
+            this.props.explanationContext.testDataset.predictedY !== undefined &&
             this.props.explanationContext.testDataset.predictedY[this.props.selectedRow] !== 0) {
             return result.map(classVector => classVector.map(value => -1 * value));
         }
@@ -128,9 +129,9 @@ export class SinglePointFeatureImportance extends React.PureComponent<ISinglePoi
 
     private buildSortOptions(): IDropdownOption[] {
         const result: IDropdownOption[] = [{key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal}];
-        if (!this.props.explanationContext.testDataset.predictedY) {
-            return result;
-        }
+        // if (!this.props.explanationContext.testDataset.predictedY) {
+        //     return result;
+        // }
         if (this.props.explanationContext.modelMetadata.modelType !== ModelTypes.multiclass) {
             result.push({key: FeatureKeys.absoluteLocal, text: localization.BarChart.absoluteLocal})
         }
