@@ -1,6 +1,14 @@
 trigger: none
 pr: none
 
+schedules:
+  - cron: "30 4 * * *" # Time is UTC
+    displayName: Nightly Mac build
+    branches:
+      include:
+        - master
+    always: true
+
 pool:
   vmImage: 'macos-latest'
 
