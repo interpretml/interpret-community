@@ -1,14 +1,6 @@
 trigger: none
 pr: none
 
-schedules:
-  - cron: "30 5 * * *" # Time is UTC
-    displayName: Nightly Code Coverage Build
-    branches:
-      include:
-        - master
-    always: true
-
 pool:
   vmImage: "ubuntu-latest"
 
