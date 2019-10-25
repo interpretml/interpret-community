@@ -168,6 +168,7 @@ class WrappedRegressionModel(object):
         """
         return self._eval_function(dataset)
 
+
 def wrap_model(model, examples, model_task):
     """If needed, wraps the model in a common API based on model task and prediction function contract.
 
@@ -184,6 +185,7 @@ def wrap_model(model, examples, model_task):
     :rtype model
     """
     return _wrap_model(model, examples, model_task, False)
+
 
 def _wrap_model(model, examples, model_task, is_function):
     """If needed, wraps the model or function in a common API based on model task and prediction function contract.
