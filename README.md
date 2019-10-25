@@ -29,13 +29,13 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. 
+Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models.
 
 
-This repository incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit: 
-1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists 
-2. Creates a common API across the integrated libraries    
-3. Applies optimizations to make it possible to run on real-world datasets at scale   
+This repository incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit:
+1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists
+2. Creates a common API across the integrated libraries
+3. Applies optimizations to make it possible to run on real-world datasets at scale
 4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
 5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
 # <a name="comparison"></a>
@@ -43,7 +43,7 @@ This repository incorporates community developed interpretability techniques und
 # Interpret vs. Interpret-Community
 
 
-Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights on machine learning models. The peer repository, Interpret, hosts a core set of interpretability techniques from the research community. Interpret-Community extends Interpret with additional interpretability techniques and additional utility functions to handle real-world datasets and workflows.            
+Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights on machine learning models. The peer repository, Interpret, hosts a core set of interpretability techniques from the research community. Interpret-Community extends Interpret with additional interpretability techniques and additional utility functions to handle real-world datasets and workflows.
 
 
 
@@ -97,7 +97,7 @@ To setup on your local machine:
 ```
 </details>
 
-<details><summary><strong><em>On Linux:</em> c. Activate conda environment</em></strong></summary>
+<details><summary><strong><em>On Linux and Mac:</em> c. Activate conda environment</em></strong></summary>
 
 ```
     source activate interp
@@ -127,6 +127,43 @@ pip install -e ./python
 If you intend to run repository tests:
 ```
 pip install -r requirements.txt
+```
+
+
+<details><summary><strong><em>On Windows: </strong></em></summary>
+
+Pytorch installation if desired:
+```
+    pip install https://download.pytorch.org/whl/cpu/torch-1.3.0%2Bcpu-cp36-cp36m-win_amd64.whl
+    pip install torchvision==0.4.1
+```
+
+lightgbm installation if desired:
+```
+    conda install --yes -c conda-forge lightgbm
+```
+
+</details>
+
+
+<details><summary><strong><em>On MacOS: </strong></em></summary>
+
+Pytorch installation if desired:
+```
+    pip install torch==1.3.0
+    pip install torchvision==0.4.1
+```
+
+lightgbm installation if desired (requires Homebrew):
+```
+    brew install libomp
+    conda install --yes -c conda-forge lightgbm
+```
+
+If installing the package generally gives an error about the `certifi` package, run this first:
+```
+    pip install --upgrade certifi --ignore-installed
+    pip install -e ./python
 ```
 
 </details>
