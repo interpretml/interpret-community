@@ -1,14 +1,6 @@
 trigger: none
 pr: none
 
-schedules:
-  - cron: "30 3 * * *" # Time is UTC
-    displayName: Nightly Windows build
-    branches:
-      include:
-        - master
-    always: true
-
 pool:
   vmImage: 'vs2017-win2016'
 
