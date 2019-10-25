@@ -163,7 +163,6 @@ lightgbm installation if desired (requires Homebrew):
 If installing the package generally gives an error about the `certifi` package, run this first:
 ```
     pip install --upgrade certifi --ignore-installed
-    pip install -e ./python
 ```
 
 </details>
