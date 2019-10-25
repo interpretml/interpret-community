@@ -1,42 +1,55 @@
 trigger: none
 pr: none
 
-pool:
-  vmImage: "ubuntu-latest"
+schedules:
+  - cron: "30 5 * * *" # Time is UTC
+    displayName: Nightly Code Coverage Build
+    branches:
+      include:
+        - master
+    always: true
 
-variables:
-  artifactFeed: interpret-extensions-feed
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: echo hello from Linux
+- job: macOS
+  pool:
+    vmImage: 'macOS-latest'
+  steps:
+  - script: echo hello from macOS
+- job: Windows
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - script: echo hello from Windows
+
+  matrix:
+    python35:
+      imageName: '3.5'
+    python36:
+      imageName: '3.6'
+  - template: nightly_template.yml
 
 steps:
-  - bash: echo "##vso[task.prependpath]$CONDA/bin"
-    displayName: Add conda to PATH
-
-  - bash: conda create --yes --quiet --name interp python=3.6
-    displayName: Create Anaconda environment
+  - script: python -m pip install --upgrade pip
+    displayName: 'Install tools'
 
   - bash: |
-      source activate interp
-      conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-
-    displayName: Install Anaconda packages
-
-  - bash: |
-      source activate interp
       pip install --upgrade pip
     displayName: Upgrade pip to latest
 
   - bash: |
-      source activate interp
       pip install -r requirements.txt
     displayName: Install required pip packages
 
   - bash: |
-      source activate interp
       pip install -e ./python
     displayName: Install interpret-extensions
 
   - bash: |
-      source activate interp
       pip install --upgrade setuptools wheel twine
       cd ./python
       python setup.py bdist_wheel
@@ -49,19 +62,16 @@ steps:
       artifactFeeds: $(artifactFeed)
 
   - bash: |
-      source activate interp
       cd ./python
       twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
       cd ..
     displayName: Publish artifacts
 
   - bash: |
-      source activate interp
       flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
     displayName: "Run flake8"
 
   - bash: |
-      source activate interp
       python -m pytest test/ --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
