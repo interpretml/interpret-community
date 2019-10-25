@@ -9,33 +9,12 @@ schedules:
         - master
     always: true
 
-jobs:
-- job: Linux
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-  - script: echo hello from Linux
-- job: macOS
-  pool:
-    vmImage: 'macOS-latest'
-  steps:
-  - script: echo hello from macOS
-- job: Windows
-  pool:
-    vmImage: 'windows-latest'
-  steps:
-  - script: echo hello from Windows
-
-  matrix:
-    python35:
-      imageName: '3.5'
-    python36:
-      imageName: '3.6'
-  - template: nightly_template.yml
+pool:
+  vmImage: "ubuntu-latest"
 
 steps:
   - script: python -m pip install --upgrade pip
-    displayName: 'Install tools'
+    displayName: "Install tools"
 
   - bash: |
       pip install --upgrade pip
