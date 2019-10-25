@@ -8,7 +8,7 @@ import os
 import shutil
 
 _major = '0.1'
-_minor = '0.3'
+_minor = '0.4'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
