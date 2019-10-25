@@ -327,8 +327,12 @@ class DeepExplainer(StructuredInitModelExplainer):
             dense_examples = torch.Tensor(dense_examples)
         shap_values = self.explainer.shap_values(dense_examples)
         # use model task to update structure of shap values
-        if self.model_task == ModelTask.Regression and isinstance(shap_values, list) and len(shap_values) == 1:
-            shap_values = shap_values[0]
+        single_output = isinstance(shap_values, list) and len(shap_values) == 1
+        if single_output:
+            if self.model_task == ModelTask.Regression:
+                shap_values = shap_values[0]
+            elif self.model_task == ModelTask.Classification:
+                shap_values = [-shap_values[0], shap_values[0]]
         classification = isinstance(shap_values, list)
         if self.explain_subset:
             if classification:

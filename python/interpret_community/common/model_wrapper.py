@@ -140,7 +140,7 @@ class WrappedClassificationModel(object):
         """
         is_sequential = str(type(self._model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
-            return self._model.predict_classes(dataset)
+            return self._model.predict_classes(dataset).flatten()
         return self._model.predict(dataset)
 
     def predict_proba(self, dataset):
