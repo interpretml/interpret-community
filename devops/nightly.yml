@@ -16,20 +16,13 @@ steps:
   - script: python -m pip install --upgrade pip
     displayName: "Install tools"
 
-  - bash: |
-      pip install --upgrade pip
-    displayName: Upgrade pip to latest
-
-  - bash: |
-      pip install -r requirements.txt
+  - bash: pip install -r requirements.txt
     displayName: Install required pip packages
 
-  - bash: |
-      pip install -e ./python
+  - bash: pip install -e ./python
     displayName: Install interpret-extensions
 
-  - bash: |
-      pip install --upgrade setuptools wheel twine
+  - bash: pip install --upgrade setuptools wheel twine
       cd ./python
       python setup.py bdist_wheel
       cd ..
@@ -40,18 +33,15 @@ steps:
     inputs:
       artifactFeeds: $(artifactFeed)
 
-  - bash: |
-      cd ./python
+  - bash: cd ./python
       twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
       cd ..
     displayName: Publish artifacts
 
-  - bash: |
-      flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
+  - bash: flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
     displayName: "Run flake8"
 
-  - bash: |
-      python -m pytest test/ --junitxml=./TEST-TEST.xml
+  - bash: python -m pytest test/ --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
