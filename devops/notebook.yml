@@ -61,7 +61,8 @@ steps:
 
   - bash: |
       source activate interp
-      python -m pytest notebooks/ --junitxml=./TEST-TEST.xml
+      pip install nbval && \
+      python -m pytest notebooks/ --nbval --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
