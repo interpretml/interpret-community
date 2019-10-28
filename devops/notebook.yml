@@ -1,5 +1,5 @@
-trigger:
-  - master
+trigger: none
+pr: none
 
 pool:
   vmImage: "ubuntu-latest"
