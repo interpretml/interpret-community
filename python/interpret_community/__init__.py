@@ -25,6 +25,7 @@ if interpretc_logs is not None:
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
     logger.info('Initializing logging file for interpret-community')
+
     def close_handler():
         handler.close()
         logger.removeHandler(handler)
