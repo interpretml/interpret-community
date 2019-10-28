@@ -17,7 +17,6 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Overview of Interpret-Community](#intro)
 - [Interpret vs. Interpret-Community](#comparison)
 - [Target Audience](#target)
-- [Try our notebooks in your favorite cloud](#try)
 - [Getting Started](#getting-started)
 - [Models](#models)
 - [Example](#Example)
@@ -57,11 +56,6 @@ Interpret-Community and its peer repository, Interpret, both serve as a tool for
 
 
 # <a name="try"></a>
-
-# Try our notebooks in your favorite cloud
-
-[![Azure Notebooks](https://notebooks.azure.com/launch.png)](https://notebooks.azure.com/import/gh/microsoft/interpret-community)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/interpretml/interpret-community)
 
 <a name="getting started"></a>
 

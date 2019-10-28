@@ -12,6 +12,6 @@ class ChainedIdentity(object):
 
     def __init__(self, **kwargs):
         """Initialize the ChainedIdentity."""
-        self._logger = logging.getLogger("interpret").getChild(self.__class__.__name__)
+        self._logger = logging.getLogger("interpret_community").getChild(self.__class__.__name__)
         self._identity = self.__class__.__name__
         super(ChainedIdentity, self).__init__(**kwargs)
