@@ -354,7 +354,7 @@ class TestTabularExplainer(object):
 
     def _explain_model_dnn_common(self, tabular_explainer, model, x_train, x_test, y_train, features):
         # Create tabular explainer
-        exp = tabular_explainer(model, x_train.values, features=features)
+        exp = tabular_explainer(model, x_train.values, features=features, model_task=ModelTask.Classification)
         policy = SamplingPolicy(allow_eval_sampling=True)
         exp.explain_global(x_test.values, sampling_policy=policy)
 
@@ -404,7 +404,7 @@ class TestTabularExplainer(object):
     def _explain_model_local_dnn_classification_common(self, tabular_explainer, model, x_train,
                                                        x_test, y_train, features):
         # Create tabular explainer
-        exp = tabular_explainer(model, x_train.values, features=features)
+        exp = tabular_explainer(model, x_train.values, features=features, model_task=ModelTask.Classification)
         explanation = exp.explain_local(x_test.values)
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values[0]) == len(x_test.values)
@@ -623,7 +623,7 @@ class TestTabularExplainer(object):
         global_explanation = explainer.explain_global(x_test)
         local_shape = global_explanation._local_importance_values.shape
         num_rows_expected = split_ratio * num_rows
-        assert local_shape == (num_rows_expected, num_cols)
+        assert local_shape == (2, num_rows_expected, num_cols)
         assert len(global_explanation.global_importance_values) == num_cols
 
     def create_msx_data(self, test_size):
