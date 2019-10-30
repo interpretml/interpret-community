@@ -118,6 +118,8 @@ class MimicExplainer(BlackBoxExplainer):
     :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param categorical_features: Categorical feature names or indexes.
         If names are passed, they will be converted into indexes first.
+        Note if pandas indexes are categorical, you can either pass the name of the index or the index
+        as if the pandas index was inserted at the end of the input dataframe.
     :type categorical_features: Union[list[str], list[int]]
     :param allow_all_transformations: Allow many to many and many to one transformations
     :type allow_all_transformations: bool
@@ -126,6 +128,9 @@ class MimicExplainer(BlackBoxExplainer):
         has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
         outputs a 1 dimensional array.
     :type model_task: str
+    :param reset_index: Uses the pandas DataFrame index column as part of the features when training
+        the surrogate model.
+    :type reset_index: bool
     """
 
     @init_tabular_decorator
@@ -133,7 +138,7 @@ class MimicExplainer(BlackBoxExplainer):
                  is_function=False, augment_data=True, max_num_of_augmentations=10, explain_subset=None,
                  features=None, classes=None, transformations=None, allow_all_transformations=False,
                  shap_values_output=ShapValuesOutput.DEFAULT, categorical_features=None,
-                 model_task=ModelTask.Unknown, **kwargs):
+                 model_task=ModelTask.Unknown, reset_index=False, **kwargs):
         """Initialize the MimicExplainer.
 
         :param model: The black box model or function (if is_function is True) to be explained.  Also known
@@ -203,6 +208,8 @@ class MimicExplainer(BlackBoxExplainer):
         :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
         :param categorical_features: Categorical feature names or indexes.
             If names are passed, they will be converted into indexes first.
+            Note if pandas indexes are categorical, you can either pass the name of the index or the index
+            as if the pandas index was inserted at the end of the input dataframe.
         :type categorical_features: Union[list[str], list[int]]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
@@ -211,10 +218,15 @@ class MimicExplainer(BlackBoxExplainer):
             has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
             outputs a 1 dimensional array.
         :type model_task: str
+        :param reset_index: Uses the pandas DataFrame index column as part of the features when training
+            the surrogate model.
+        :type reset_index: bool
         """
         if transformations is not None and explain_subset is not None:
             raise ValueError("explain_subset not supported with transformations")
-
+        self.reset_index = reset_index
+        if reset_index:
+            initialization_examples.reset_index()
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
@@ -239,6 +251,10 @@ class MimicExplainer(BlackBoxExplainer):
         # If categorical_features is a list of string column names instead of indexes, make sure to convert to indexes
         if not all(isinstance(categorical_feature, int) for categorical_feature in categorical_features):
             categorical_features = initialization_examples.get_column_indexes(self.features, categorical_features)
+
+        # Featurize any timestamp columns
+        # TODO: more sophisticated featurization
+        self._timestamp_featurizer = initialization_examples.timestamp_featurizer()
 
         # If model is a linear model or isn't able to handle categoricals, one-hot-encode categoricals
         is_tree_model = explainable_model.explainable_model_type == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
@@ -391,11 +407,15 @@ class MimicExplainer(BlackBoxExplainer):
         :return: Args for explain_local.
         :rtype: dict
         """
+        if self.reset_index:
+            evaluation_examples.reset_index()
         kwargs = {}
         original_evaluation_examples = evaluation_examples.typed_dataset
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
             kwargs[ExplainParams.PROBABILITIES] = self.function(original_evaluation_examples)
+        if self._timestamp_featurizer:
+            evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
             evaluation_examples.apply_indexer(self._column_indexer, bucket_unknown=True)
         if self._one_hot_encoder:
@@ -406,6 +426,7 @@ class MimicExplainer(BlackBoxExplainer):
         expected_values = self.surrogate_model.expected_values
         kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
         kwargs[ExplainParams.FEATURES] = self.features
+
         if self.predict_proba_flag:
             if self.surrogate_model.multiclass:
                 # For multiclass case, convert to array
@@ -521,6 +542,8 @@ class MimicExplainer(BlackBoxExplainer):
                 elif key == MimicSerializationConstants.INITIALIZATION_EXAMPLES:
                     mimic.__dict__[key] = None
                 elif key == MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES:
+                    mimic.__dict__[key] = None
+                elif key == MimicSerializationConstants.TIMESTAMP_FEATURIZER:
                     mimic.__dict__[key] = None
                 elif key == MimicSerializationConstants.FUNCTION:
                     # TODO add third case if is_function was passed to mimic explainer
