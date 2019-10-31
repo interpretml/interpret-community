@@ -151,9 +151,10 @@ jupyter notebook
 # <a name="models"></a>
 # Supported Models
 
-Any models that are trained on datasets in Python `numpy.array`, `pandas.DataFrame`, `iml.datatypes.DenseData`, or `scipy.sparse.csr_matrix` format are supported by this API.
+This API supports models that are trained on datasets in Python `numpy.array`, `pandas.DataFrame`, `iml.datatypes.DenseData`, or `scipy.sparse.csr_matrix` format.
 
-The explanation functions accept both models and pipelines as input. If a model is provided, the model must implement the prediction function predict or predict_proba that conforms to the Scikit convention.  If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via PyTorch, TensorFlow, and Keras deep learning frameworks.
+
+The explanation functions accept both models and pipelines as input, as long as the model or pipeline implements the prediction function predict or predict_proba that conforms to the Scikit convention. If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via PyTorch, TensorFlow, and Keras deep learning frameworks.
 
 
 # Supported Explainers
@@ -196,7 +197,8 @@ The following are a list of the experimental explainers available in the communi
 ## Interpretability in training
 
 
-1. Train your model in a local Jupyter notebook.
+1. Train your model in a Jupyter notebook running on your local machine.
+
 
     ```python
     # load breast cancer dataset, a well-known small dataset that comes with scikit-learn
@@ -216,7 +218,7 @@ The following are a list of the experimental explainers available in the communi
     model = clf.fit(x_train, y_train)
     ```
 
-2. Call the explainer locally: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, and `PFIExplainer` locally. `TabularExplainer` is calling one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, or `KernelExplainer`), and is automatically selecting the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
+2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, or `KernelExplainer`), and automatically selects the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
 
     ```python
     from interpret.ext.blackbox import TabularExplainer
@@ -263,7 +265,11 @@ The following are a list of the experimental explainers available in the communi
                              features=breast_cancer_data.feature_names, 
                              classes=classes)
     ```
-## Overal (Global) feature importance values
+
+
+
+The following two sections demonstrate how you can get global and local feature importance values. Local measures focus on the contribution of features for a specific prediction (e.g., why the model predicted an 80% chance of breast cancer for Mary?), whereas global measures take all predictions into account (Overall, what are the top K important features in predicting a high risk for breast cancer?):
+## Overall (Global) feature importance values
 
 Get the global feature importance values.
     
@@ -278,7 +284,7 @@ global_explanation = explainer.explain_global(x_train)
 # sorted feature importance values and feature names
 sorted_global_importance_values = global_explanation.get_ranked_global_values()
 sorted_global_importance_names = global_explanation.get_ranked_global_names()
-dict(zip(sorted_global_importance_names, sorted_global_importance_values))
+
 
 # alternatively, you can print out a dictionary that holds the top K feature names and values
 global_explanation.get_feature_importance_dict()
@@ -311,6 +317,7 @@ sorted_local_importance_values = local_explanation.get_ranked_local_values()
 ## Raw feature transformations
 
 Optionally, you can pass your feature transformation pipeline to the explainer to receive explanations in terms of the raw features before the transformation (rather than engineered features). If you skip this, the explainer provides explanations in terms of engineered features.
+
 
 The format of supported transformations is same as the one described in [sklearn-pandas](https://github.com/scikit-learn-contrib/sklearn-pandas). In general, any transformations are supported as long as they operate on a single column and are therefore clearly one to many. 
 
