@@ -82,9 +82,9 @@ To setup on your local machine:
 
     Optional, additional reading:
 
-    [conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
-    [jupyter](https://pypi.org/project/jupyter/)
-    [nb_conda](https://github.com/Anaconda-Platform/nb_conda)
+[conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
+[jupyter](https://pypi.org/project/jupyter/)
+[nb_conda](https://github.com/Anaconda-Platform/nb_conda)
 
 <details><summary><strong><em>On Windows: c. Activate conda environment</strong></em></summary>
 
@@ -99,7 +99,7 @@ To setup on your local machine:
     source activate interp
 ```
 </details>
-<br></br>
+
 </details>
 
 <details>
@@ -140,7 +140,18 @@ lightgbm installation if desired:
 ```
 
 </details>
+<details><summary><strong><em>On Linux: </strong></em></summary>
+Pytorch installation if desired:
+```
+    pip install torch==1.3.0
+    pip install torchvision==0.4.1
+```
 
+lightgbm installation if desired:
+```
+    conda install --yes -c conda-forge lightgbm
+```
+</details>
 
 <details><summary><strong><em>On MacOS: </strong></em></summary>
 
@@ -494,9 +505,7 @@ provided by the bot. You will only need to do this once across all repositories 
 
 # Code of Conduct
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the his project has adopted the [GitHub Community Guidelines](https://help.github.com/en/github/site-policy/github-community-guidelines).” .
 
 ## Reporting Security Issues
 
