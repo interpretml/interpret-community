@@ -9,6 +9,7 @@ They have admin access to the repo and provide support reviewing issues and pull
 
 * **[Beth Zeranski](https://github.com/bethz)**
    * DevOps Pipelines for building repository and running tests
+   * Added example notebooks
    * Documentation
 * **[Brandon Horn](https://github.com/rihorn2)**
    * Explanation Visualization dashboard
