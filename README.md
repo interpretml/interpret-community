@@ -24,8 +24,6 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Use Interpret-Community](#Example)
 - [Contributing](#Contributing)
 - [Code of Conduct](#code)
-- [Build Status](#BuildStatus)
-- [Additional References](#Refs)
 
 # <a name="intro"></a>
 
@@ -81,11 +79,10 @@ To setup on your local machine:
 ```
 
     Optional, additional reading:
-```
+
 [conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
 [jupyter](https://pypi.org/project/jupyter/)
 [nb_conda](https://github.com/Anaconda-Platform/nb_conda)
-```
 
 <details><summary><strong><em>On Linux and Windows: c. Activate conda environment</strong></em></summary>
 
@@ -143,6 +140,7 @@ lightgbm installation if desired:
 </details>
 <details><summary><strong><em>On Linux: </strong></em></summary>
 Pytorch installation if desired:
+
 ```
     pip install torch==1.3.0
     pip install torchvision==0.4.1
@@ -492,7 +490,7 @@ ExplanationDashboard(global_explanation, model, x_test)
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to the Github Developer Certificate of Origin, DCO.
 For details, please visit https://probot.github.io/apps/dco/.
-
+```
 The Developer Certificate of Origin (DCO) is a lightweight way for contributors to certify that they wrote or otherwise have the right to submit the code they are contributing to the project. Here is the full text of the DCO, reformatted for readability:
 By making a contribution to this project, I certify that:
 (a) The contribution was created in whole or in part by me and I have the right to submit it under the open source license indicated in the file; or
@@ -505,6 +503,7 @@ This is my commit message
 Signed-off-by: Random J Developer <random@developer.example.org>
 Git even has a -s command line option to append this automatically to your commit message:
 $ git commit -s -m 'This is my commit message'
+```
 
 When you submit a pull request, a DCO bot will automatically determine whether you need to certify.
 Simply follow the instructions provided by the bot. 
@@ -513,7 +512,7 @@ Simply follow the instructions provided by the bot.
 
 # Code of Conduct
 
-This project has adopted the his project has adopted the [GitHub Community Guidelines](https://help.github.com/en/github/site-policy/github-community-guidelines).” .
+This project has adopted the his project has adopted the [GitHub Community Guidelines](https://help.github.com/en/github/site-policy/github-community-guidelines).
 
 ## Reporting Security Issues
 
@@ -526,12 +525,3 @@ email to ensure we received your original message. Further information, includin
 [MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155) key, can be found in
 the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
 
-<a name=BuildStatus></a>
-
-# Build Status
-
-[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/microsoft.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
-
-<a name=Refs></a>
-
-# Additional References
