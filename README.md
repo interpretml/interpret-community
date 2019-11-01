@@ -9,7 +9,7 @@ Interpret Community SDK
 =============================================================
 
 
-The Interpret Community builds on [Interpret](https://github.com/Microsoft/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, by adding additional extensions from the community to interpret ML models.
+The Interpret Community builds on [Interpret](https://github.com/interpretml/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, by adding additional extensions from the community to interpret ML models.
 
 This repository contains an SDK and Jupyter notebooks with examples to showcase its use.
 
@@ -106,7 +106,7 @@ To setup on your local machine:
 
 Clone and cd into the repository
 ```
-git clone https://github.com/Microsoft/Interpret-community
+git clone https://github.com/interpretml/interpret-community
 cd interpret-community
 ```
 </details>
