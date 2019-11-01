@@ -82,9 +82,9 @@ To setup on your local machine:
 
     Optional, additional reading:
 
-    - [conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
-    - [jupyter](https://pypi.org/project/jupyter/)
-    - [nb_conda](https://github.com/Anaconda-Platform/nb_conda)
+    [conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
+    [jupyter](https://pypi.org/project/jupyter/)
+    [nb_conda](https://github.com/Anaconda-Platform/nb_conda)
 
 <details><summary><strong><em>On Windows: c. Activate conda environment</strong></em></summary>
 
@@ -175,6 +175,7 @@ if needed:
 then:
 jupyter notebook
 ```
+</details>
 </details>
 
 <!---{% from interpret.ext.blackbox import TabularExplainer %}
