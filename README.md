@@ -2,8 +2,8 @@
 
 [![Build Status](https://dev.azure.com/responsibleai/interpret-community/_apis/build/status/Nightly?branchName=master)](https://dev.azure.com/responsibleai/interpret-community/_build/latest?definitionId=41&branchName=master)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
-![versions](https://img.shields.io/badge/python-3.6-blue)
-![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue)
+![versions](https://img.shields.io/badge/python-3.6-blue?link=https://www.python.org/downloads/release/python-360)
+![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue?link=http://pypi.org/project/interpret-community/)
 
 Interpret Community SDK
 =============================================================
@@ -24,8 +24,6 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 - [Use Interpret-Community](#Example)
 - [Contributing](#Contributing)
 - [Code of Conduct](#code)
-- [Build Status](#BuildStatus)
-- [Additional References](#Refs)
 
 # <a name="intro"></a>
 
@@ -82,24 +80,24 @@ To setup on your local machine:
 
     Optional, additional reading:
 
-    - [conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
-    - [jupyter](https://pypi.org/project/jupyter/)
-    - [nb_conda](https://github.com/Anaconda-Platform/nb_conda)
+[conda cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
+[jupyter](https://pypi.org/project/jupyter/)
+[nb_conda](https://github.com/Anaconda-Platform/nb_conda)
 
-<details><summary><strong><em>On Windows: c. Activate conda environment</strong></em></summary>
+<details><summary><strong><em>On Linux and Windows: c. Activate conda environment</strong></em></summary>
 
 ```
     activate interp
 ```
 </details>
 
-<details><summary><strong><em>On Linux and Mac:</em> c. Activate conda environment</em></strong></summary>
+<details><summary><strong><em>On Mac:</em> c. Activate conda environment</em></strong></summary>
 
 ```
     source activate interp
 ```
 </details>
-<br></br>
+
 </details>
 
 <details>
@@ -118,7 +116,7 @@ cd interpret-community
 
 
 ```
-pip install -e ./python
+pip install interpret-community
 ```
 If you intend to run repository tests:
 ```
@@ -140,7 +138,19 @@ lightgbm installation if desired:
 ```
 
 </details>
+<details><summary><strong><em>On Linux: </strong></em></summary>
+Pytorch installation if desired:
 
+```
+    pip install torch==1.3.0
+    pip install torchvision==0.4.1
+```
+
+lightgbm installation if desired:
+```
+    conda install --yes -c conda-forge lightgbm
+```
+</details>
 
 <details><summary><strong><em>On MacOS: </strong></em></summary>
 
@@ -171,10 +181,10 @@ Install and run Jupyter Notebook
 ```
 if needed:
           pip install jupyter
-          conda install nb_conda
 then:
 jupyter notebook
 ```
+</details>
 </details>
 
 <!---{% from interpret.ext.blackbox import TabularExplainer %}
@@ -198,9 +208,6 @@ https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explai
 
 
 The following are a list of the experimental explainers available in the community repository:
-
-
-
 
 * [SHAP](https://github.com/slundberg/shap) Tree Explainer: SHAP’s tree explainer, which focuses on polynomial time fast SHAP value estimation algorithm specific to trees and ensembles of trees.
 * [SHAP](https://github.com/slundberg/shap) Deep Explainer: Based on the explanation from SHAP, Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the SHAP NIPS paper. TensorFlow models and Keras models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".
@@ -481,21 +488,32 @@ ExplanationDashboard(global_explanation, model, x_test)
 # Contributing
 [//]: #  (Vincent: is CLA required when we go public? )
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This project welcomes contributions and suggestions.  Most contributions require you to agree to the Github Developer Certificate of Origin, DCO.
+For details, please visit https://probot.github.io/apps/dco/.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repositories using our CLA.
+The Developer Certificate of Origin (DCO) is a lightweight way for contributors to certify that they wrote or otherwise have the right to submit the code they are contributing to the project. Here is the full text of the DCO, reformatted for readability:
+```
+By making a contribution to this project, I certify that:
+(a) The contribution was created in whole or in part by me and I have the right to submit it under the open source license indicated in the file; or
+(b) The contribution is based upon previous work that, to the best of my knowledge, is covered under an appropriate open source license and I have the right under that license to submit that work with modifications, whether created in whole or in part by me, under the same open source license (unless I am permitted to submit under a different license), as indicated in the file; or
+(c) The contribution was provided directly to me by some other person who certified (a), (b) or (c) and I have not modified it.
+(d) I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
+Contributors sign-off that they adhere to these requirements by adding a Signed-off-by line to commit messages.
+This is my commit message
+
+Signed-off-by: Random J Developer <random@developer.example.org>
+Git even has a -s command line option to append this automatically to your commit message:
+$ git commit -s -m 'This is my commit message'
+```
+
+When you submit a pull request, a DCO bot will automatically determine whether you need to certify.
+Simply follow the instructions provided by the bot. 
 
 <a name=Code></a>
 
 # Code of Conduct
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the his project has adopted the [GitHub Community Guidelines](https://help.github.com/en/github/site-policy/github-community-guidelines).
 
 ## Reporting Security Issues
 
@@ -508,12 +526,3 @@ email to ensure we received your original message. Further information, includin
 [MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155) key, can be found in
 the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
 
-<a name=BuildStatus></a>
-
-# Build Status
-
-[![Build Status](https://dev.azure.com/responsibleai/interpret-extensions/_apis/build/status/microsoft.interpret-community?branchName=master)](https://dev.azure.com/responsibleai/interpret-extensions/_build/latest?definitionId=5&branchName=master)
-
-<a name=Refs></a>
-
-# Additional References
