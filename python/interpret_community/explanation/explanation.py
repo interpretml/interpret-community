@@ -220,17 +220,20 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, is_raw=False, **kwargs):
+    def __init__(self, features=None, is_raw=False, is_eng=False, **kwargs):
         """Create the feature importance explanation from the given feature names.
 
         :param features: The feature names.
         :type features: Union[list[str], list[int]]
-        :param is_raw: Whether the explanation is on the original (raw) features or engineered ones.
+        :param is_raw: Whether the explanation is on the original (raw) features or not.
         :type is_raw: bool
+        :param is_eng: Whether the explanation is on engineered features or not.
+        :type is_eng: bool
         """
         super(FeatureImportanceExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing FeatureImportanceExplanation')
         self._features = features
+        self._is_eng = is_eng
         self._is_raw = is_raw
 
     @property
@@ -248,10 +251,19 @@ class FeatureImportanceExplanation(BaseExplanation):
     def is_raw(self):
         """Get the raw explanation flag.
 
-        :return: A boolean, True if it's a raw explanation.
+        :return: A boolean, True if it's a raw explanation. False if engineered or unknown.
         :rtype: bool
         """
         return self._is_raw
+
+    @property
+    def is_eng(self):
+        """Get the engineered explanation flag.
+
+        :return: A boolean, True if it's an engineered explanation (specifically not raw). False if raw or unknown.
+        :rtype: bool
+        """
+        return self._is_eng
 
     @classmethod
     def _does_quack(cls, explanation):
@@ -267,6 +279,8 @@ class FeatureImportanceExplanation(BaseExplanation):
         if not hasattr(explanation, ExplainParams.FEATURES):
             return False
         if not hasattr(explanation, ExplainType.IS_RAW) or not isinstance(explanation.is_raw, bool):
+            return False
+        if not hasattr(explanation, ExplainType.IS_ENG) or not isinstance(explanation.is_eng, bool):
             return False
         return True
 
@@ -394,6 +408,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         raw_kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=self)
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
+        self._is_eng = True
         return _create_raw_feats_local_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
     def get_raw_feature_importances(self, raw_to_output_maps):
@@ -617,6 +632,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         raw_kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=self)
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
+        self._is_eng = True
         return _create_raw_feats_global_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
     def get_raw_feature_importances(self, feature_maps):
@@ -1305,6 +1321,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     features = local_explanation.features
     kwargs[ExplainParams.FEATURES] = features
     kwargs[ExplainParams.IS_RAW] = local_explanation.is_raw
+    kwargs[ExplainParams.IS_ENG] = local_explanation.is_eng
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
