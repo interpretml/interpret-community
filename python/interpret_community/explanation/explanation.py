@@ -220,7 +220,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, is_raw=False, is_engineered=False, **kwargs):
+    def __init__(self, features=None, num_features=None, num_classes=None, is_raw=False, is_engineered=False, **kwargs):
         """Create the feature importance explanation from the given feature names.
 
         :param features: The feature names.
@@ -233,6 +233,8 @@ class FeatureImportanceExplanation(BaseExplanation):
         super(FeatureImportanceExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing FeatureImportanceExplanation')
         self._features = features
+        self._num_features = num_features
+        self._num_classes = num_classes
         self._is_eng = is_engineered
         self._is_raw = is_raw
 
@@ -246,6 +248,14 @@ class FeatureImportanceExplanation(BaseExplanation):
         if not isinstance(self._features, list) and self._features is not None:
             return self._features.tolist()
         return self._features
+
+    @property
+    def num_features(self):
+        if self._features is not None and self._num_features is not None:
+            if len(self._features) != len(self._num_features):
+                raise Exception('The number of feature names passed in must be the same as the number of '
+                                'columns in the data.')
+        return self._num_features
 
     @property
     def is_raw(self):
@@ -292,7 +302,7 @@ class LocalExplanation(FeatureImportanceExplanation):
     :type local_importance_values: numpy.array
     """
 
-    def __init__(self, local_importance_values=None, **kwargs):
+    def __init__(self, local_importance_values=None, num_examples=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
@@ -319,6 +329,13 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: list[list[float]] or list[list[list[float]]]
         """
         return self._local_importance_values.tolist()
+
+    @property
+    def num_examples(self):
+        if ClassesMixin._does_quack(self):
+            return len(self.local_importance_values[0])
+        else:
+            return len(self.local_importance_values)
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -853,7 +870,7 @@ class ClassesMixin(object):
     :type classes: list[str]
     """
 
-    def __init__(self, classes=None, **kwargs):
+    def __init__(self, classes=None, num_classes=None, **kwargs):
         """Create the classes mixin and set the classes.
 
         :param classes: Class names as a list of strings. The order of
@@ -862,6 +879,7 @@ class ClassesMixin(object):
         """
         super(ClassesMixin, self).__init__(**kwargs)
         self._classes = classes
+        self._num_classes = num_classes
 
     @property
     def classes(self):
@@ -871,6 +889,14 @@ class ClassesMixin(object):
         :rtype: list
         """
         return self._classes
+
+    @property
+    def num_classes(self):
+        if self._classes is not None and self._num_classes is not None:
+            if len(self._classes) != len(self._num_classes):
+                raise Exception('The number of classes passed in must be the same as the number of classes '
+                                'in the data.')
+        return self._num_classes
 
     @staticmethod
     def _does_quack(explanation):
