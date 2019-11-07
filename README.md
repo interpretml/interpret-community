@@ -9,14 +9,13 @@ Interpret Community SDK
 =============================================================
 
 
-The Interpret Community builds on [Interpret](https://github.com/interpretml/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, by adding additional extensions from the community to interpret ML models.
+The Interpret Community extends [Interpret](https://github.com/interpretml/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, with additional interpretability techniques and  utility functions to handle real-world datasets and workflows.
 
 This repository contains an SDK and Jupyter notebooks with examples to showcase its use.
 
 # Contents
 
 - [Overview of Interpret-Community](#intro)
-- [Interpret vs. Interpret-Community](#comparison)
 - [Target Audience](#target)
 - [Getting Started](#getting-started)
 - [Supported Models](#models)
@@ -28,32 +27,20 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models.
-
-
-This repository incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques, and/or add their custom-made interpretability techniques and more easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific data point using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this released open source toolkit:
+Interpret-Community incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques and easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific prediction using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this open-source toolkit:
 1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists
 2. Creates a common API across the integrated libraries
 3. Applies optimizations to make it possible to run on real-world datasets at scale
-4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide users with feature importance values and model interpretability insights in terms of the original raw features rather than engineered features
+4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide model insights in terms of the original raw features rather than engineered features
 5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
-# <a name="comparison"></a>
 
-# Interpret vs. Interpret-Community
-
-
-Interpret-Community and its peer repository, Interpret, both serve as a tool for researchers, machine learning engineers, software developers, data scientists, and business executives to get insights on machine learning models. The peer repository, Interpret, hosts a core set of interpretability techniques from the research community. Interpret-Community extends Interpret with additional interpretability techniques and additional utility functions to handle real-world datasets and workflows.
-
-
-
-  # <a name="target"></a>
+ # <a name="target"></a>
 
  # Target Audience
-1. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
 
-2. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques.
-3. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential unfairness, and establish a strong governance framework around the use of AI applications.
-
+1. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques.
+2. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential unfairness, and establish a strong governance framework around the use of AI applications.
+3. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
 
 # <a name="try"></a>
 
