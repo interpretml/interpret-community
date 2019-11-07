@@ -130,7 +130,9 @@ class TestTabularExplainer(object):
         local_explanation = exp.explain_local(iris[DatasetConstants.X_TEST][0])
 
         assert len(local_explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
+        assert local_explanation.num_classes == len(iris[DatasetConstants.CLASSES])
         assert len(local_explanation.local_importance_values[0]) == len(iris[DatasetConstants.FEATURES])
+        assert local_explanation.num_features == len(iris[DatasetConstants.FEATURES])
 
         local_rank = local_explanation.get_local_importance_rank()
         assert len(local_rank) == len(iris[DatasetConstants.CLASSES])
@@ -154,8 +156,11 @@ class TestTabularExplainer(object):
         local_explanation = exp.explain_local(iris[DatasetConstants.X_TEST])
 
         assert len(local_explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
+        assert local_explanation.num_classes == len(iris[DatasetConstants.CLASSES])
         assert len(local_explanation.local_importance_values[0]) == len(iris[DatasetConstants.X_TEST])
+        assert local_explanation.num_examples == len(iris[DatasetConstants.X_TEST])
         assert len(local_explanation.local_importance_values[0][0]) == len(iris[DatasetConstants.FEATURES])
+        assert local_explanation.num_features == len(iris[DatasetConstants.FEATURES])
 
         local_rank = local_explanation.get_local_importance_rank()
         assert len(local_rank) == len(iris[DatasetConstants.CLASSES])
@@ -182,6 +187,7 @@ class TestTabularExplainer(object):
         local_explanation = exp.explain_local(boston[DatasetConstants.X_TEST][0])
 
         assert len(local_explanation.local_importance_values) == len(boston[DatasetConstants.FEATURES])
+        assert local_explanation.num_features == len(boston[DatasetConstants.FEATURES])
 
         local_rank = local_explanation.get_local_importance_rank()
         assert len(local_rank) == len(boston[DatasetConstants.FEATURES])
@@ -322,7 +328,9 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_lightgbm_multiclass')
         explanation = exp.explain_global(iris[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values[0]) == len(iris[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(iris[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
+        assert explanation.num_classes == len(iris[DatasetConstants.CLASSES])
 
     def test_explain_model_xgboost_multiclass(self, tabular_explainer, iris):
         # Fit an xgboost model
@@ -334,7 +342,9 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_xgboost_multiclass')
         explanation = exp.explain_global(iris[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values[0]) == len(iris[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(iris[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
+        assert explanation.num_classes == len(iris[DatasetConstants.CLASSES])
 
     def test_explain_model_lightgbm_binary(self, tabular_explainer):
         X, y = shap.datasets.adult()
@@ -396,7 +406,9 @@ class TestTabularExplainer(object):
         explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values) == len(boston[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(boston[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values[0]) == len(boston[DatasetConstants.FEATURES])
+        assert explanation.num_features == len(boston[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
                                                                    self.boston_local_features_first_five_rf)
 
@@ -407,7 +419,9 @@ class TestTabularExplainer(object):
         explanation = exp.explain_local(x_test.values)
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values[0]) == len(x_test.values)
+        assert explanation.num_examples == len(x_test.values)
         assert len(explanation.local_importance_values[0][0]) == len(features)
+        assert explanation.num_features == len(features)
 
     def test_explain_model_local_keras_classification(self, tabular_explainer):
         X, y = shap.datasets.adult()
@@ -434,7 +448,9 @@ class TestTabularExplainer(object):
         explanation = exp.explain_local(x_test)
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values) == len(x_test)
+        assert explanation.num_examples == len(x_test.values)
         assert len(explanation.local_importance_values[0]) == len(features)
+        assert explanation.num_features == len(features)
 
     def test_explain_model_local_keras_regression(self, boston, tabular_explainer):
         x_train = boston[DatasetConstants.X_TRAIN]
@@ -466,7 +482,9 @@ class TestTabularExplainer(object):
         explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values) == len(boston[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(boston[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values[0]) == len(boston[DatasetConstants.FEATURES])
+        assert explanation.num_features == len(boston[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
                                                                    self.boston_local_features_first_five_lr)
 
@@ -513,11 +531,11 @@ class TestTabularExplainer(object):
         feature_map = _get_feature_map_from_indices_list(raw_feat_indices, num_raw_cols=2,
                                                          num_generated_cols=num_generated_cols)
         global_raw_importances = global_explanation.get_raw_feature_importances([feature_map])
-        assert len(global_raw_importances) == len(raw_feat_indices), 'length of global importances ' \
-                                                                     'does not match number of features'
+        assert len(global_raw_importances) == len(raw_feat_indices), ('length of global importances '
+                                                                      'does not match number of features')
         local_raw_importances = local_explanation.get_raw_feature_importances([feature_map])
-        assert len(local_raw_importances) == x_test.shape[0], 'length of local importances does not match number ' \
-                                                              'of samples'
+        assert len(local_raw_importances) == x_test.shape[0], ('length of local importances does not match number '
+                                                               'of samples')
 
     def test_explain_raw_feats_classification(self, iris, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
@@ -624,6 +642,7 @@ class TestTabularExplainer(object):
         num_rows_expected = split_ratio * num_rows
         assert local_shape == (2, num_rows_expected, num_cols)
         assert len(global_explanation.global_importance_values) == num_cols
+        assert global_explanation.num_features == num_cols
 
     def create_msx_data(self, test_size):
         sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
@@ -639,7 +658,7 @@ class TestTabularExplainer(object):
                         'Age', 'Hours per week', 'Capital Loss', 'Sex', 'Occupation',
                         'Country', 'Race', 'Workclass']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == 12)
+        assert(len(ranked_global_values) == len(exp_features))
 
     def verify_adult_per_class_features(self, ranked_per_class_names, ranked_per_class_values):
         # Verify order of features
@@ -650,8 +669,8 @@ class TestTabularExplainer(object):
                         ['Relationship', 'Marital Status', 'Education-Num', 'Capital Gain', 'Age', 'Hours per week',
                          'Capital Loss', 'Sex', 'Occupation', 'Country', 'Race', 'Workclass']]
         np.testing.assert_array_equal(ranked_per_class_names, exp_features)
-        assert(len(ranked_per_class_values) == 2)
-        assert(len(ranked_per_class_values[0]) == 12)
+        assert(len(ranked_per_class_values) == len(exp_features))
+        assert(len(ranked_per_class_values[0]) == len(exp_features[0]))
 
     def verify_iris_overall_features(self, ranked_global_names, ranked_global_values, verify_tabular):
         # Verify order of features
@@ -665,7 +684,7 @@ class TestTabularExplainer(object):
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
         exp_features = [2, 3, 0, 1]
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == 4)
+        assert(len(ranked_global_values) == len(exp_features))
 
     def verify_iris_per_class_features(self, ranked_per_class_names, ranked_per_class_values):
         # Verify order of features
@@ -680,8 +699,8 @@ class TestTabularExplainer(object):
                         [2, 3, 0, 1],
                         [2, 3, 0, 1]]
         np.testing.assert_array_equal(ranked_per_class_names, exp_features)
-        assert(len(ranked_per_class_values) == 3)
-        assert(len(ranked_per_class_values[0]) == 4)
+        assert(len(ranked_per_class_values) == len(exp_features))
+        assert(len(ranked_per_class_values[0]) == len(exp_features[0]))
 
     def verify_boston_overall_features_rf(self, ranked_global_names, ranked_global_values):
         # Note: the order seems to differ from one machine to another, so we won't validate exact order
@@ -695,7 +714,7 @@ class TestTabularExplainer(object):
         exp_features = ['RM', 'RAD', 'DIS', 'LSTAT', 'TAX', 'PTRATIO', 'NOX', 'CRIM', 'B', 'ZN', 'AGE',
                         'CHAS', 'INDUS']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == 13)
+        assert(len(ranked_global_values) == len(exp_features))
 
     def verify_top_rows_local_features_with_and_without_top_k(self, explanation, local_features,
                                                               is_classification=False, top_rows=5):

@@ -252,7 +252,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     @property
     def num_features(self):
         if self._features is not None and self._num_features is not None:
-            if len(self._features) != len(self._num_features):
+            if len(self._features) != self._num_features:
                 raise Exception('The number of feature names passed in must be the same as the number of '
                                 'columns in the data.')
         return self._num_features
@@ -893,7 +893,7 @@ class ClassesMixin(object):
     @property
     def num_classes(self):
         if self._classes is not None and self._num_classes is not None:
-            if len(self._classes) != len(self._num_classes):
+            if len(self._classes) != self._num_classes:
                 raise Exception('The number of classes passed in must be the same as the number of classes '
                                 'in the data.')
         return self._num_classes
@@ -1204,7 +1204,7 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplanationParams.EXPECTED_VALUES] = expected_values
     if classification:
         mixins.append(ClassesMixin)
-    if classification:
+        kwargs['num_classes'] = len(kwargs['local_importance_values'])
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
@@ -1272,6 +1272,7 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     # but currently in other cases when we aggregate local explanations we get per class
     if classification:
         if local_explanation is not None or ExplainParams.PER_CLASS_VALUES in kwargs:
+            kwargs['num_classes'] = len(kwargs[ExplainParams.PER_CLASS_VALUES])
             mixins.append(PerClassMixin)
         else:
             mixins.append(ClassesMixin)

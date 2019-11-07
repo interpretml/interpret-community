@@ -5,6 +5,7 @@
 """Defines the KernelExplainer for computing explanations on black box models or functions."""
 
 import numpy as np
+import scipy as sp
 
 from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_and_summary_method, \
     init_blackbox_decorator
@@ -289,6 +290,12 @@ class KernelExplainer(BlackBoxExplainer):
                                                                           explain_subset=self.explain_subset)
         original_evaluation = evaluation_examples.original_dataset
         evaluation_examples = evaluation_examples.dataset
+        if len(evaluation_examples.shape) == 1:
+            kwargs['num_features'] = len(evaluation_examples)
+        elif sp.sparse.issparse(evaluation_examples):
+            kwargs['num_features'] = evaluation_examples.shape[1]
+        else:
+            kwargs['num_features'] = len(evaluation_examples[0])
 
         self._logger.debug('Running KernelExplainer')
 
