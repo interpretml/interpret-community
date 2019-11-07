@@ -5,6 +5,7 @@
 """Defines an explainer for DNN models."""
 
 import numpy as np
+import scipy as sp
 import sys
 import logging
 
@@ -320,6 +321,14 @@ class DeepExplainer(StructuredInitModelExplainer):
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
         evaluation_examples = evaluation_examples.dataset
+
+        if len(evaluation_examples.shape) == 1:
+            kwargs['num_features'] = len(evaluation_examples)
+        elif sp.sparse.issparse(evaluation_examples):
+            kwargs['num_features'] = evaluation_examples.shape[1]
+        else:
+            kwargs['num_features'] = len(evaluation_examples[0])
+
         # for now convert evaluation examples to dense format if they are sparse
         # until DeepExplainer sparse support is added
         dense_examples = _get_dense_examples(evaluation_examples)

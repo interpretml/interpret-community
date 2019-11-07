@@ -448,7 +448,7 @@ class TestTabularExplainer(object):
         explanation = exp.explain_local(x_test)
         assert explanation.local_importance_values is not None
         assert len(explanation.local_importance_values) == len(x_test)
-        assert explanation.num_examples == len(x_test.values)
+        assert explanation.num_examples == len(x_test)
         assert len(explanation.local_importance_values[0]) == len(features)
         assert explanation.num_features == len(features)
 

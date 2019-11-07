@@ -189,6 +189,17 @@ class TreeExplainer(PureStructuredModelExplainer):
         if isinstance(evaluation_examples, DatasetWrapper):
             typed_wrapper_func = evaluation_examples.typed_wrapper_func
             evaluation_examples = evaluation_examples.original_dataset_with_type
+
+        import pandas as pd
+        if isinstance(evaluation_examples, pd.DataFrame):
+            evaluation_examples = evaluation_examples.values
+        if len(evaluation_examples.shape) == 1:
+            kwargs['num_features'] = len(evaluation_examples)
+        elif sp.sparse.issparse(evaluation_examples):
+            kwargs['num_features'] = evaluation_examples.shape[1]
+        else:
+            kwargs['num_features'] = len(evaluation_examples[0])
+
         if len(evaluation_examples.shape) == 1:
             # TODO: is this needed?
             evaluation_examples = evaluation_examples.reshape(1, -1)

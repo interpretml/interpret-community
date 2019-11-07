@@ -5,6 +5,7 @@
 """Defines the LinearExplainer for returning explanations for linear models."""
 
 import numpy as np
+import scipy as sp
 
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
@@ -206,6 +207,14 @@ class LinearExplainer(StructuredInitModelExplainer):
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
         evaluation_examples = evaluation_examples.dataset
+
+        if len(evaluation_examples.shape) == 1:
+            kwargs['num_features'] = len(evaluation_examples)
+        elif sp.sparse.issparse(evaluation_examples):
+            kwargs['num_features'] = evaluation_examples.shape[1]
+        else:
+            kwargs['num_features'] = len(evaluation_examples[0])
+
         shap_values = self.explainer.shap_values(evaluation_examples)
         # Temporary fix for a bug in shap for regression models
         shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)

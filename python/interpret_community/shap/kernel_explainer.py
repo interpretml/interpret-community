@@ -290,6 +290,7 @@ class KernelExplainer(BlackBoxExplainer):
                                                                           explain_subset=self.explain_subset)
         original_evaluation = evaluation_examples.original_dataset
         evaluation_examples = evaluation_examples.dataset
+
         if len(evaluation_examples.shape) == 1:
             kwargs['num_features'] = len(evaluation_examples)
         elif sp.sparse.issparse(evaluation_examples):

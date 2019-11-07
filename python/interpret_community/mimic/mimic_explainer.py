@@ -11,6 +11,7 @@ be used to explain the teacher model.
 """
 
 import numpy as np
+import scipy as sp
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -315,6 +316,16 @@ class MimicExplainer(BlackBoxExplainer):
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
+            import pandas as pd
+            if isinstance(evaluation_examples, pd.DataFrame):
+                evaluation_examples = evaluation_examples.values
+            if len(evaluation_examples.shape) == 1:
+                kwargs['num_features'] = len(evaluation_examples)
+            elif sp.sparse.issparse(evaluation_examples):
+                kwargs['num_features'] = evaluation_examples.shape[1]
+            else:
+                kwargs['num_features'] = len(evaluation_examples[0])
+
             # Aggregate local explanation to global, either through computing the local
             # explanation and then aggregating or streaming the local explanation to global
             if include_local:
@@ -329,6 +340,7 @@ class MimicExplainer(BlackBoxExplainer):
                 if not isinstance(evaluation_examples, DatasetWrapper):
                     self._logger.debug('Eval examples not wrapped, wrapping')
                     evaluation_examples = DatasetWrapper(evaluation_examples)
+
                 kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task,
                                                                 self.features, batch_size, **kwargs)
             return kwargs
@@ -420,7 +432,19 @@ class MimicExplainer(BlackBoxExplainer):
             evaluation_examples.apply_indexer(self._column_indexer, bucket_unknown=True)
         if self._one_hot_encoder:
             evaluation_examples.apply_one_hot_encoder(self._one_hot_encoder)
+
         dataset = evaluation_examples.dataset
+
+        import pandas as pd
+        if isinstance(dataset, pd.DataFrame):
+            dataset = dataset.values
+        if len(dataset.shape) == 1:
+            kwargs['num_features'] = len(dataset)
+        elif sp.sparse.issparse(dataset):
+            kwargs['num_features'] = dataset.shape[1]
+        else:
+            kwargs['num_features'] = len(dataset[0])
+
         local_importance_values = self.surrogate_model.explain_local(dataset, **kwargs)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
         expected_values = self.surrogate_model.expected_values
