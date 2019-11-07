@@ -42,6 +42,10 @@ class FeatureImportanceValid(object):
     def is_raw(self):
         return False
 
+    @property
+    def is_engineered(self):
+        return False
+
 
 class LocalValuesValid(object):
     @property
@@ -247,12 +251,20 @@ class TestDoesQuack(object):
             def is_raw(self):
                 return True
 
+            @property
+            def is_engineered(self):
+                return False
+
         FeatImpNoFeaturesExp = type('InvalidFeatureImportanceExplanation', (FeatImpNoFeatures, BaseValid), {})
         assert not FeatureImportanceExplanation._does_quack(FeatImpNoFeaturesExp())
 
         class FeatImpNoRawTag(object):
             @property
             def features(self):
+                return None
+
+            @property
+            def is_engineered(self):
                 return None
 
         FeatImpNoRawTagExp = type('InvalidFeatureImportanceExplanation', (FeatImpNoRawTag, BaseValid), {})
@@ -266,6 +278,10 @@ class TestDoesQuack(object):
             @property
             def is_raw(self):
                 return [1, 2, 3]
+
+            @property
+            def is_engineered(self):
+                return False
 
         FeatImpIsRawNonBoolExp = type('InvalidFeatureImportanceExplanation', (FeatImpIsRawNonBool, BaseValid), {})
         assert not FeatureImportanceExplanation._does_quack(FeatImpIsRawNonBoolExp())
