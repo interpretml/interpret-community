@@ -220,20 +220,20 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, is_raw=False, is_eng=False, **kwargs):
+    def __init__(self, features=None, is_raw=False, is_engineered=False, **kwargs):
         """Create the feature importance explanation from the given feature names.
 
         :param features: The feature names.
         :type features: Union[list[str], list[int]]
-        :param is_raw: Whether the explanation is on the original (raw) features or not.
+        :param is_raw: Whether the explanation is on the original (raw) features.
         :type is_raw: bool
-        :param is_eng: Whether the explanation is on engineered features or not.
-        :type is_eng: bool
+        :param is_engineered: Whether the explanation is on engineered features.
+        :type is_engineered: bool
         """
         super(FeatureImportanceExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing FeatureImportanceExplanation')
         self._features = features
-        self._is_eng = is_eng
+        self._is_eng = is_engineered
         self._is_raw = is_raw
 
     @property
@@ -257,7 +257,7 @@ class FeatureImportanceExplanation(BaseExplanation):
         return self._is_raw
 
     @property
-    def is_eng(self):
+    def is_engineered(self):
         """Get the engineered explanation flag.
 
         :return: A boolean, True if it's an engineered explanation (specifically not raw). False if raw or unknown.
@@ -280,7 +280,7 @@ class FeatureImportanceExplanation(BaseExplanation):
             return False
         if not hasattr(explanation, ExplainType.IS_RAW) or not isinstance(explanation.is_raw, bool):
             return False
-        if not hasattr(explanation, ExplainType.IS_ENG) or not isinstance(explanation.is_eng, bool):
+        if not hasattr(explanation, ExplainType.IS_ENG) or not isinstance(explanation.is_engineered, bool):
             return False
         return True
 
@@ -1321,7 +1321,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     features = local_explanation.features
     kwargs[ExplainParams.FEATURES] = features
     kwargs[ExplainParams.IS_RAW] = local_explanation.is_raw
-    kwargs[ExplainParams.IS_ENG] = local_explanation.is_eng
+    kwargs[ExplainParams.IS_ENG] = local_explanation.is_engineered
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:

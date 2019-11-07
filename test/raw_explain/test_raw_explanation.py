@@ -23,7 +23,7 @@ class TestRawExplanations:
 
         global_explanation = exp.explain_global(iris[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
-        assert not global_explanation.is_eng
+        assert not global_explanation.is_engineered
         num_engineered_feats = len(iris[DatasetConstants.FEATURES])
 
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
@@ -32,7 +32,7 @@ class TestRawExplanations:
         global_raw_explanation = global_explanation.get_raw_explanation(
             [feature_map], raw_feature_names=feature_names[:feature_map.shape[0]])
         assert not global_explanation.is_raw
-        assert global_explanation.is_eng
+        assert global_explanation.is_engineered
 
         per_class_values = global_raw_explanation.get_ranked_per_class_values()
         assert len(per_class_values) == len(iris[DatasetConstants.CLASSES])
@@ -42,7 +42,7 @@ class TestRawExplanations:
         assert feat_imps_global_local.shape[-1] == feature_map.shape[0]
 
         assert global_raw_explanation.is_raw
-        assert not global_raw_explanation.is_eng
+        assert not global_raw_explanation.is_engineered
         assert len(global_raw_explanation.get_ranked_global_values()) == feature_map.shape[0]
         assert len(global_raw_explanation.get_ranked_global_names()) == feature_map.shape[0]
         assert (global_raw_explanation.classes == iris[DatasetConstants.CLASSES]).all()
@@ -61,18 +61,18 @@ class TestRawExplanations:
 
         global_explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
-        assert not global_explanation.is_eng
+        assert not global_explanation.is_engineered
         num_engineered_feats = len(boston[DatasetConstants.FEATURES])
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map])
         assert not global_explanation.is_raw
-        assert global_explanation.is_eng
+        assert global_explanation.is_engineered
 
         assert np.array(global_raw_explanation.local_importance_values).shape[-1] == feature_map.shape[0]
 
         assert global_raw_explanation.is_raw
-        assert not global_raw_explanation.is_eng
+        assert not global_raw_explanation.is_engineered
         assert np.array(global_raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
 
     def test_get_local_raw_explanations_classification(self, iris, tabular_explainer):

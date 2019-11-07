@@ -43,7 +43,7 @@ class FeatureImportanceValid(object):
         return False
 
     @property
-    def is_eng(self):
+    def is_engineered(self):
         return False
 
 
@@ -252,7 +252,7 @@ class TestDoesQuack(object):
                 return True
 
             @property
-            def is_eng(self):
+            def is_engineered(self):
                 return False
 
         FeatImpNoFeaturesExp = type('InvalidFeatureImportanceExplanation', (FeatImpNoFeatures, BaseValid), {})
@@ -264,7 +264,7 @@ class TestDoesQuack(object):
                 return None
 
             @property
-            def is_eng(self):
+            def is_engineered(self):
                 return None
 
         FeatImpNoRawTagExp = type('InvalidFeatureImportanceExplanation', (FeatImpNoRawTag, BaseValid), {})
@@ -280,7 +280,7 @@ class TestDoesQuack(object):
                 return [1, 2, 3]
 
             @property
-            def is_eng(self):
+            def is_engineered(self):
                 return False
 
         FeatImpIsRawNonBoolExp = type('InvalidFeatureImportanceExplanation', (FeatImpIsRawNonBool, BaseValid), {})
