@@ -54,7 +54,7 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.29.3'
+    'shap>=0.20.0, <=0.32.1'
 ]
 
 EXTRAS = {
@@ -62,7 +62,9 @@ EXTRAS = {
         'hdbscan'
     ],
     'deep': [
-        'tensorflow'
+        'tensorflow',
+        'pyyaml',
+        'keras'
     ],
     'mimic': [
         'lightgbm'
