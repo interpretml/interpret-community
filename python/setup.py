@@ -7,8 +7,8 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.1'
-_minor = '0.4'
+_major = '0.2'
+_minor = '0'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
