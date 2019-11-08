@@ -1426,6 +1426,7 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
+    kwargs['num_features'] = len(raw_importances[0][0]) if isinstance(raw_importances[0][0], list) else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
 
 
@@ -1529,7 +1530,7 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
             ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
             ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
-            ExplainParams.EVAL_Y_PRED_PROBA]
+            ExplainParams.EVAL_Y_PRED_PROBA, 'num_features']
 
     def has_value(x):
         if explanation is None:

@@ -199,7 +199,7 @@ class VerifyTabularTests(object):
             assert np.array(local_explanation.local_importance_values).shape[-1] == len(feature_names)
             assert np.array(global_explanation.local_importance_values).shape[-1] == len(feature_names)
             assert local_explanation.num_features == len(feature_names)
-            assert global_explanation.num_features == len(feature_names)
+            assert global_explanation.num_features == local_explanation.num_features
 
         assert global_explanation.is_raw
         assert np.array(global_explanation.global_importance_values).shape[-1] == len(feature_names)

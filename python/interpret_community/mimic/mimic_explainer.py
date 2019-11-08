@@ -317,14 +317,15 @@ class MimicExplainer(BlackBoxExplainer):
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
             import pandas as pd
-            if isinstance(evaluation_examples, pd.DataFrame):
-                evaluation_examples = evaluation_examples.values
-            if len(evaluation_examples.shape) == 1:
-                kwargs['num_features'] = len(evaluation_examples)
-            elif sp.sparse.issparse(evaluation_examples):
-                kwargs['num_features'] = evaluation_examples.shape[1]
+            evaluation_examples_temp = evaluation_examples
+            if isinstance(evaluation_examples_temp, pd.DataFrame):
+                evaluation_examples_temp = evaluation_examples_temp.values
+            if len(evaluation_examples_temp.shape) == 1:
+                kwargs['num_features'] = len(evaluation_examples_temp)
+            elif sp.sparse.issparse(evaluation_examples_temp):
+                kwargs['num_features'] = evaluation_examples_temp.shape[1]
             else:
-                kwargs['num_features'] = len(evaluation_examples[0])
+                kwargs['num_features'] = len(evaluation_examples_temp[0])
 
             # Aggregate local explanation to global, either through computing the local
             # explanation and then aggregating or streaming the local explanation to global
@@ -423,9 +424,10 @@ class MimicExplainer(BlackBoxExplainer):
             evaluation_examples.reset_index()
         kwargs = {}
         original_evaluation_examples = evaluation_examples.typed_dataset
+        probabilities = None
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
-            kwargs[ExplainParams.PROBABILITIES] = self.function(original_evaluation_examples)
+            probabilities = self.function(original_evaluation_examples)
         if self._timestamp_featurizer:
             evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
@@ -445,10 +447,10 @@ class MimicExplainer(BlackBoxExplainer):
         else:
             kwargs['num_features'] = len(dataset[0])
 
-        local_importance_values = self.surrogate_model.explain_local(dataset, **kwargs)
+        local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
         expected_values = self.surrogate_model.expected_values
-        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
+        kwargs[ExplainParams.METHOD] = ExplainType.MIMIC
         kwargs[ExplainParams.FEATURES] = self.features
 
         if self.predict_proba_flag:
