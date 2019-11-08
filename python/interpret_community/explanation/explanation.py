@@ -445,12 +445,13 @@ class LocalExplanation(FeatureImportanceExplanation):
         if key is not None:
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
-            parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
-            if isinstance(self.eval_data, DatasetWrapper):
-                eval_data = self.eval_data
-            else:
-                eval_data = DatasetWrapper(self.eval_data)
-            parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
+            if _DatasetsMixin._does_quack(self):
+                parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
+                if isinstance(self.eval_data, DatasetWrapper):
+                    eval_data = self.eval_data
+                else:
+                    eval_data = DatasetWrapper(self.eval_data)
+                parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
         return parent_data
 
     def data(self, key=None):
