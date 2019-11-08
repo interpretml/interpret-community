@@ -11,12 +11,86 @@ import numpy as np
 from ..common.explanation_utils import _summarize_data, _generate_augmented_data
 from ..common.explanation_utils import module_logger
 from ..common.constants import Defaults
+from sklearn.base import TransformerMixin, BaseEstimator
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     from shap.common import DenseData
+
+
+class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
+    """An estimator for featurizing timestamp columns to numeric data.
+
+    :param features: Feature column names.
+    :type features: list[str]
+    """
+
+    def __init__(self, features):
+        """Initialize the CustomTimestampFeaturizer.
+
+        :param features: Feature column names.
+        :type features: list[str]
+        """
+        self._features = features
+        self._time_col_names = []
+        return
+
+    def fit(self, X):
+        """Fits the CustomTimestampFeaturizer.
+
+        :param X: The dataset containing timestamp columns to featurize.
+        :type X: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+            scipy.sparse.csr_matrix
+        """
+        # If the data was previously successfully summarized, then there are no
+        # timestamp columns as it must be numeric.
+        # Also, if the dataset is sparse, we can assume there are no timestamps
+        if isinstance(X, DenseData) or sp.sparse.issparse(X):
+            return self
+        tmp_dataset = X
+        # Temporarily convert to pandas for easier and uniform timestamp handling
+        if isinstance(X, np.ndarray):
+            tmp_dataset = pd.DataFrame(X, columns=self._features)
+        self._time_col_names = [column for column in tmp_dataset.columns if is_datetime(tmp_dataset[column])]
+        # Calculate the min date for each column
+        self._min = []
+        for time_col_name in self._time_col_names:
+            self._min.append(tmp_dataset[time_col_name].map(lambda x: x.timestamp()).min())
+        return self
+
+    def transform(self, X):
+        """Transforms the timestamp columns to numeric type in the given dataset.
+
+        Specifically, extracts the year, month, day, hour, minute, second and time
+        since min timestamp in the training dataset.
+
+        :param X: The dataset containing timestamp columns to featurize.
+        :type X: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+            scipy.sparse.csr_matrix
+        :return: The transformed dataset.
+        :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse.csr_matrix
+        """
+        tmp_dataset = X
+        if len(self._time_col_names) > 0:
+            # Temporarily convert to pandas for easier and uniform timestamp handling
+            if isinstance(X, np.ndarray):
+                tmp_dataset = pd.DataFrame(X, columns=self._features)
+            # Get the year, day, month, hour, minute, second
+            for idx, time_col_name in enumerate(self._time_col_names):
+                tmp_dataset[time_col_name + '_year'] = tmp_dataset[time_col_name].map(lambda x: x.year)
+                tmp_dataset[time_col_name + '_month'] = tmp_dataset[time_col_name].map(lambda x: x.month)
+                tmp_dataset[time_col_name + '_day'] = tmp_dataset[time_col_name].map(lambda x: x.day)
+                tmp_dataset[time_col_name + '_hour'] = tmp_dataset[time_col_name].map(lambda x: x.hour)
+                tmp_dataset[time_col_name + '_minute'] = tmp_dataset[time_col_name].map(lambda x: x.minute)
+                tmp_dataset[time_col_name + '_second'] = tmp_dataset[time_col_name].map(lambda x: x.second)
+                # Replace column itself with difference from min value, leave as same name
+                # to keep index so order of other columns remains the same for other transformations
+                tmp_dataset[time_col_name] = tmp_dataset[time_col_name].map(lambda x: x.timestamp() - self._min[idx])
+            X = tmp_dataset.values
+        return X
 
 
 class DatasetWrapper(object):
@@ -40,6 +114,8 @@ class DatasetWrapper(object):
         self._original_dataset_with_type = dataset
         self._dataset_is_df = isinstance(dataset, pd.DataFrame)
         self._dataset_is_series = isinstance(dataset, pd.Series)
+        self._default_index = True
+        self._default_index_cols = 'index'
         if self._dataset_is_df:
             self._features = dataset.columns.values.tolist()
         if self._dataset_is_df or self._dataset_is_series:
@@ -53,6 +129,8 @@ class DatasetWrapper(object):
         self._string_indexed = False
         self._one_hot_encoded = False
         self._one_hot_encoder = None
+        self._timestamp_featurized = False
+        self._timestamp_featurizer = None
 
     @property
     def dataset(self):
@@ -85,7 +163,10 @@ class DatasetWrapper(object):
             if len(dataset.shape) == 1:
                 dataset = dataset.reshape(1, dataset.shape[0])
             original_dtypes = self._original_dataset_with_type.dtypes
-            return pd.DataFrame(dataset, columns=self._features).astype(dict(original_dtypes))
+            dataframe = pd.DataFrame(dataset, columns=self._features)
+            if not self._default_index:
+                dataframe = dataframe.set_index(self._default_index_cols)
+            return dataframe.astype(dict(original_dtypes))
         elif self._dataset_is_series:
             return pd.Series(dataset)
         else:
@@ -119,6 +200,28 @@ class DatasetWrapper(object):
         :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse.csr_matrix
         """
         return self._summary_dataset
+
+    def reset_index(self):
+        """Reset index to be part of the features on the dataset.
+        """
+        dataset = self._original_dataset_with_type
+        if self._dataset_is_df:
+            self._default_index = pd.Index(np.arange(0, len(dataset))).equals(dataset.index)
+            reset_dataset = dataset
+            if not self._default_index:
+                if dataset.index.name is not None:
+                    self._default_index_cols = dataset.index.name
+                if dataset.index.names is not None:
+                    self._default_index_cols = dataset.index.names
+                reset_dataset = dataset.reset_index()
+                # Move index columns to the end of the dataframe to ensure
+                # index arguments are still valid to original dataset
+                dcols = reset_dataset.columns.tolist()
+                for default_index_col in self._default_index_cols:
+                    dcols.insert(len(dcols), dcols.pop(dcols.index(default_index_col)))
+                reset_dataset = reset_dataset.reindex(columns=dcols)
+            self._features = reset_dataset.columns.values.tolist()
+            self._dataset = reset_dataset.values
 
     def get_features(self, features=None, explain_subset=None, **kwargs):
         """Get the features of the dataset if None on current kwargs.
@@ -184,8 +287,12 @@ class DatasetWrapper(object):
             else:
                 categorical_col_indices = [all_columns.get_loc(col_name) for col_name in categorical_col_names]
             ordinal_enc = OrdinalEncoder()
-            ct = ColumnTransformer([('ord', ordinal_enc, categorical_col_indices)], remainder='passthrough')
-            self._dataset = ct.fit_transform(tmp_dataset)
+            ct = ColumnTransformer([('ord', ordinal_enc, categorical_col_indices)], remainder='drop')
+            string_indexes_dataset = ct.fit_transform(tmp_dataset)
+            # Inplace replacement of columns
+            # (danger: using remainder=passthrough with ColumnTransformer will change column order!)
+            for idx, categorical_col_index in enumerate(categorical_col_indices):
+                self._dataset[:, categorical_col_index] = string_indexes_dataset[:, idx]
             self._column_indexer = ct
         return self._column_indexer
 
@@ -214,6 +321,25 @@ class DatasetWrapper(object):
         self._one_hot_encoder = OneHotEncoder(categorical_features=columns, handle_unknown='ignore', sparse=False)
         self._dataset = self._one_hot_encoder.fit_transform(self._dataset)
         return self._one_hot_encoder
+
+    def timestamp_featurizer(self):
+        """Featurizes the timestamp columns.
+
+        :return: The transformation steps to featurize the timestamp columns.
+        :rtype: DatasetWrapper
+        """
+        if self._timestamp_featurized:
+            return self._timestamp_featurizer
+        # Optimization so we don't redo this operation multiple times on the same dataset
+        self._timestamp_featurized = True
+        # If the data was previously successfully summarized, then there are no
+        # categorical columns as it must be numeric.
+        # Also, if the dataset is sparse, we can assume there are no categorical strings
+        if isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
+            return None
+        self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(self._dataset)
+        self._dataset = self._timestamp_featurizer.transform(self._dataset)
+        return self._timestamp_featurizer
 
     def apply_indexer(self, column_indexer, bucket_unknown=False):
         """Indexes categorical string features on the dataset.
@@ -261,6 +387,17 @@ class DatasetWrapper(object):
             return
         self._dataset = one_hot_encoder.transform(self._dataset)
         self._one_hot_encoded = True
+
+    def apply_timestamp_featurizer(self, timestamp_featurizer):
+        """Apply timestamp featurization on the dataset.
+
+        :param timestamp_featurizer: The transformation steps to featurize timestamps in the given dataset.
+        :type timestamp_featurizer: CustomTimestampFeaturizer
+        """
+        if self._timestamp_featurized or sp.sparse.issparse(self._dataset):
+            return
+        self._dataset = timestamp_featurizer.transform(self._dataset)
+        self._timestamp_featurized = True
 
     def compute_summary(self, nclusters=10, **kwargs):
         """Summarizes the dataset if it hasn't been summarized yet."""

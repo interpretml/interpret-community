@@ -180,9 +180,11 @@ class MimicSerializationConstants(object):
     MODEL = 'model'
     ORIGINAL_EVAL_EXAMPLES = '_original_eval_examples'
     PREDICT_PROBA_FLAG = 'predict_proba_flag'
+    TIMESTAMP_FEATURIZER = '_timestamp_featurizer'
 
     enum_properties = ['_shap_values_output']
-    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples', '_original_eval_examples']
+    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples',
+                         '_original_eval_examples', '_timestamp_featurizer']
     save_properties = ['surrogate_model']
 
 

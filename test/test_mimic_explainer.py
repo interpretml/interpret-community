@@ -237,7 +237,6 @@ class TestMimicExplainer(object):
         for verifier in verify_mimic:
             verifier.verify_explain_model_categorical(pass_categoricals=True)
 
-    @pytest.mark.skip(reason='Pandas indexes not supported yet')
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
         (240, {}),
         (20, {'fruit': ['apple', 'grape'], 'store': [100, 200, 50]})])
@@ -245,9 +244,11 @@ class TestMimicExplainer(object):
         X, _ = create_timeseries_data(sample_cnt_per_grain, 'time', 'y', grains_dict)
         model = DataFrameTestModel(X.copy())
         model = Pipeline([('test', model)])
-        features = list(X.columns)
+        features = list(X.columns.values) + list(X.index.names)
         model_task = ModelTask.Unknown
-        kwargs = {'explainable_model_args': {'n_jobs': 1}, 'augment_data': False}
+        kwargs = {'explainable_model_args': {'n_jobs': 1}, 'augment_data': False, 'reset_index': True}
+        if grains_dict:
+            kwargs['categorical_features'] = ['fruit']
         mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
 
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
