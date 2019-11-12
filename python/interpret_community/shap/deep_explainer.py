@@ -296,6 +296,16 @@ class DeepExplainer(StructuredInitModelExplainer):
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        import pandas as pd
+        original_evaluation_examples = evaluation_examples.typed_dataset
+        if isinstance(original_evaluation_examples, pd.DataFrame):
+            original_evaluation_examples = original_evaluation_examples.values
+        if len(original_evaluation_examples.shape) == 1:
+            kwargs['num_features'] = len(original_evaluation_examples)
+        elif sp.sparse.issparse(original_evaluation_examples):
+            kwargs['num_features'] = original_evaluation_examples.shape[1]
+        else:
+            kwargs['num_features'] = len(original_evaluation_examples[0])
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
