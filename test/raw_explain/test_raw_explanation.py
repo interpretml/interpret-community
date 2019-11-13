@@ -34,6 +34,10 @@ class TestRawExplanations:
         assert not global_explanation.is_raw
         assert global_explanation.is_engineered
 
+        assert global_raw_explanation.expected_values == global_explanation.expected_values
+        assert global_raw_explanation.init_data == global_explanation.init_data
+        assert np.all(global_raw_explanation.eval_data == global_explanation.eval_data)
+
         per_class_values = global_raw_explanation.get_ranked_per_class_values()
         assert len(per_class_values) == len(iris[DatasetConstants.CLASSES])
         assert len(per_class_values[0]) == feature_map.shape[0]
