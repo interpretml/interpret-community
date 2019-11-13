@@ -570,4 +570,8 @@ class MimicExplainer(BlackBoxExplainer):
                 mimic.__dict__[key] = ShapValuesOutput(json.loads(value))
             else:
                 mimic.__dict__[key] = json.loads(value)
+        if MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES] = None
+        if MimicSerializationConstants.TIMESTAMP_FEATURIZER not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.TIMESTAMP_FEATURIZER] = None
         return mimic
