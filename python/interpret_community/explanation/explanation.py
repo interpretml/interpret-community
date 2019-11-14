@@ -1350,6 +1350,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     kwargs[ExplainParams.FEATURES] = features
     kwargs[ExplainParams.IS_RAW] = local_explanation.is_raw
     kwargs[ExplainParams.IS_ENG] = local_explanation.is_engineered
+    kwargs['num_features'] = local_explanation.num_features
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
@@ -1402,6 +1403,7 @@ def _aggregate_global_from_local_explanation(local_explanation=None, include_loc
 def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
     order = _order_imp(np.array(raw_importances))
+    kwargs['num_features'] = len(raw_importances)
     new_kwargs = kwargs.copy()
     new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
