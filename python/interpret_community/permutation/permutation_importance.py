@@ -412,11 +412,11 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         if isinstance(dataset, pd.DataFrame):
             dataset = dataset.values
         if len(dataset.shape) == 1:
-            kwargs['num_features'] = len(dataset)
+            kwargs[ExplainParams.NUM_FEATURES] = len(dataset)
         elif sp.sparse.issparse(dataset):
-            kwargs['num_features'] = dataset.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = dataset.shape[1]
         else:
-            kwargs['num_features'] = len(dataset[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(dataset[0])
 
         def generate_predict_function():
             if self.model is not None:

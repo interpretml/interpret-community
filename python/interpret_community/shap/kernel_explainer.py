@@ -262,11 +262,11 @@ class KernelExplainer(BlackBoxExplainer):
         if isinstance(original_evaluation_examples, pd.DataFrame):
             original_evaluation_examples = original_evaluation_examples.values
         if len(original_evaluation_examples.shape) == 1:
-            kwargs['num_features'] = len(original_evaluation_examples)
+            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples)
         elif sp.sparse.issparse(original_evaluation_examples):
-            kwargs['num_features'] = original_evaluation_examples.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = original_evaluation_examples.shape[1]
         else:
-            kwargs['num_features'] = len(original_evaluation_examples[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples[0])
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -302,11 +302,11 @@ class KernelExplainer(BlackBoxExplainer):
         evaluation_examples = evaluation_examples.dataset
 
         if len(evaluation_examples.shape) == 1:
-            kwargs['num_features'] = len(evaluation_examples)
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
         elif sp.sparse.issparse(evaluation_examples):
-            kwargs['num_features'] = evaluation_examples.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
         else:
-            kwargs['num_features'] = len(evaluation_examples[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         self._logger.debug('Running KernelExplainer')
 

@@ -194,11 +194,11 @@ class TreeExplainer(PureStructuredModelExplainer):
         if isinstance(evaluation_examples, pd.DataFrame):
             evaluation_examples = evaluation_examples.values
         if len(evaluation_examples.shape) == 1:
-            kwargs['num_features'] = len(evaluation_examples)
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
         elif sp.sparse.issparse(evaluation_examples):
-            kwargs['num_features'] = evaluation_examples.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
         else:
-            kwargs['num_features'] = len(evaluation_examples[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         if len(evaluation_examples.shape) == 1:
             # TODO: is this needed?
@@ -231,11 +231,11 @@ class TreeExplainer(PureStructuredModelExplainer):
         typed_wrapper_func = evaluation_examples.typed_wrapper_func
         evaluation_examples = evaluation_examples.dataset
         if len(evaluation_examples.shape) == 1:
-            kwargs['num_features'] = len(evaluation_examples)
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
         elif sp.sparse.issparse(evaluation_examples):
-            kwargs['num_features'] = evaluation_examples.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
         else:
-            kwargs['num_features'] = len(evaluation_examples[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         # for now convert evaluation examples to dense format if they are sparse
         # until TreeExplainer sparse support is added

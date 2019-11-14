@@ -321,11 +321,11 @@ class MimicExplainer(BlackBoxExplainer):
             if isinstance(evaluation_examples_temp, pd.DataFrame):
                 evaluation_examples_temp = evaluation_examples_temp.values
             if len(evaluation_examples_temp.shape) == 1:
-                kwargs['num_features'] = len(evaluation_examples_temp)
+                kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples_temp)
             elif sp.sparse.issparse(evaluation_examples_temp):
-                kwargs['num_features'] = evaluation_examples_temp.shape[1]
+                kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples_temp.shape[1]
             else:
-                kwargs['num_features'] = len(evaluation_examples_temp[0])
+                kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples_temp[0])
 
             # Aggregate local explanation to global, either through computing the local
             # explanation and then aggregating or streaming the local explanation to global
@@ -441,11 +441,11 @@ class MimicExplainer(BlackBoxExplainer):
         if isinstance(dataset, pd.DataFrame):
             dataset = dataset.values
         if len(dataset.shape) == 1:
-            kwargs['num_features'] = len(dataset)
+            kwargs[ExplainParams.NUM_FEATURES] = len(dataset)
         elif sp.sparse.issparse(dataset):
-            kwargs['num_features'] = dataset.shape[1]
+            kwargs[ExplainParams.NUM_FEATURES] = dataset.shape[1]
         else:
-            kwargs['num_features'] = len(dataset[0])
+            kwargs[ExplainParams.NUM_FEATURES] = len(dataset[0])
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag

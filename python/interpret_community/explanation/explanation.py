@@ -1205,7 +1205,7 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplanationParams.EXPECTED_VALUES] = expected_values
     if classification:
         mixins.append(ClassesMixin)
-        kwargs['num_classes'] = len(kwargs['local_importance_values'])
+        kwargs[ExplainParams.NUM_CLASSES] = len(kwargs['local_importance_values'])
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
@@ -1273,7 +1273,7 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     # but currently in other cases when we aggregate local explanations we get per class
     if classification:
         if local_explanation is not None or ExplainParams.PER_CLASS_VALUES in kwargs:
-            kwargs['num_classes'] = len(kwargs[ExplainParams.PER_CLASS_VALUES])
+            kwargs[ExplainParams.NUM_CLASSES] = len(kwargs[ExplainParams.PER_CLASS_VALUES])
             mixins.append(PerClassMixin)
         else:
             mixins.append(ClassesMixin)
@@ -1351,7 +1351,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     kwargs[ExplainParams.FEATURES] = features
     kwargs[ExplainParams.IS_RAW] = local_explanation.is_raw
     kwargs[ExplainParams.IS_ENG] = local_explanation.is_engineered
-    kwargs['num_features'] = local_explanation.num_features
+    kwargs[ExplainParams.NUM_FEATURES] = local_explanation.num_features
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
@@ -1404,7 +1404,7 @@ def _aggregate_global_from_local_explanation(local_explanation=None, include_loc
 def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
     order = _order_imp(np.array(raw_importances))
-    kwargs['num_features'] = len(raw_importances)
+    kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
     new_kwargs = kwargs.copy()
     new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
@@ -1430,7 +1430,7 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
     is_3d = isinstance(raw_importances[0][0], list)
-    kwargs['num_features'] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
+    kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
 
 
@@ -1534,7 +1534,7 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
             ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
             ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
-            ExplainParams.EVAL_Y_PRED_PROBA, 'num_features']
+            ExplainParams.EVAL_Y_PRED_PROBA, ExplainParams.NUM_FEATURES]
 
     def has_value(x):
         if explanation is None:
