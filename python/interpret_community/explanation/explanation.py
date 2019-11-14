@@ -220,7 +220,8 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, num_features=None, num_classes=None, is_raw=False, is_engineered=False, **kwargs):
+    def __init__(self, features=None, num_features=None, num_classes=None, is_raw=False, is_engineered=False,
+                 **kwargs):
         """Create the feature importance explanation from the given feature names.
 
         :param features: The feature names.
@@ -1428,7 +1429,8 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
-    kwargs['num_features'] = len(raw_importances[0][0]) if isinstance(raw_importances[0][0], list) else len(raw_importances[0])
+    is_3d = isinstance(raw_importances[0][0], list)
+    kwargs['num_features'] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
 
 
