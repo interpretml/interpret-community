@@ -251,7 +251,8 @@ class MimicExplainer(BlackBoxExplainer):
 
         # If categorical_features is a list of string column names instead of indexes, make sure to convert to indexes
         if not all(isinstance(categorical_feature, int) for categorical_feature in categorical_features):
-            categorical_features = initialization_examples.get_column_indexes(self._init_features, categorical_features)
+            categorical_features = initialization_examples.get_column_indexes(self._init_features,
+                                                                              categorical_features)
 
         # Featurize any timestamp columns
         # TODO: more sophisticated featurization
