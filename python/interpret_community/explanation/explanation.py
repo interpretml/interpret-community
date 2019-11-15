@@ -220,7 +220,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, num_features=None, num_classes=None, is_raw=False, is_engineered=False,
+    def __init__(self, features=None, num_features=None, is_raw=False, is_engineered=False,
                  **kwargs):
         """Create the feature importance explanation from the given feature names.
 
@@ -235,7 +235,6 @@ class FeatureImportanceExplanation(BaseExplanation):
         self._logger.debug('Initializing FeatureImportanceExplanation')
         self._features = features
         self._num_features = num_features
-        self._num_classes = num_classes
         self._is_eng = is_engineered
         self._is_raw = is_raw
 
@@ -1429,8 +1428,12 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
-    is_3d = isinstance(raw_importances[0][0], list)
-    kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
+    is_1d = not isinstance(raw_importances[0], list)
+    is_3d = not is_1d and isinstance(raw_importances[0][0], list)
+    if is_1d:
+        kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
+    else:
+        kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
 
 
