@@ -194,7 +194,11 @@ class DatasetWrapper(object):
 
     @property
     def num_features(self):
-        import pandas as pd
+        """Get the number of features (columns) on the dataset.
+
+        :return: The number of features (columns) in the dataset.
+        :rtype: int
+        """
         evaluation_examples_temp = self._dataset
         if isinstance(evaluation_examples_temp, pd.DataFrame):
             evaluation_examples_temp = evaluation_examples_temp.values

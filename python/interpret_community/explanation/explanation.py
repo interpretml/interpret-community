@@ -226,6 +226,8 @@ class FeatureImportanceExplanation(BaseExplanation):
 
         :param features: The feature names.
         :type features: Union[list[str], list[int]]
+        :param num_features: The number of features on the explanation.
+        :type num_features: int
         :param is_raw: Whether the explanation is on the original (raw) features.
         :type is_raw: bool
         :param is_engineered: Whether the explanation is on engineered features.
@@ -251,6 +253,11 @@ class FeatureImportanceExplanation(BaseExplanation):
 
     @property
     def num_features(self):
+        """Get the number of features on the explanation.
+
+        :return: The number of features on the explanation.
+        :rtype: int
+        """
         if self._features is not None and self._num_features is not None:
             if len(self._features) != self._num_features:
                 raise Exception('The number of feature names passed in must be the same as the number of '
@@ -307,6 +314,8 @@ class LocalExplanation(FeatureImportanceExplanation):
 
         :param local_importance_values: The feature importance values.
         :type local_importance_values: numpy.array
+        :param num_examples: The number of examples on the explanation.
+        :type num_examples: int
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -332,6 +341,11 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     @property
     def num_examples(self):
+        """Get the number of examples on the explanation.
+
+        :return: The number of examples on the explanation.
+        :rtype: int
+        """
         if ClassesMixin._does_quack(self):
             return len(self.local_importance_values[0])
         else:
@@ -876,6 +890,8 @@ class ClassesMixin(object):
         :param classes: Class names as a list of strings. The order of
             the class names should match that of the model output.
         :type classes: list[str]
+        :param num_classes: The number of examples on the explanation.
+        :type num_classes: int
         """
         super(ClassesMixin, self).__init__(**kwargs)
         self._classes = classes
@@ -892,6 +908,11 @@ class ClassesMixin(object):
 
     @property
     def num_classes(self):
+        """Get the number of classes on the explanation.
+
+        :return: The number of classes on the explanation.
+        :rtype: int
+        """
         if self._classes is not None and self._num_classes is not None:
             if len(self._classes) != self._num_classes:
                 raise Exception('The number of classes passed in must be the same as the number of classes '
