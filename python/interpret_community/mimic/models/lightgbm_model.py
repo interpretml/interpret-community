@@ -92,7 +92,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                             '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
                             LGBMRegressor.__init__.__doc__)
     except Exception:
-        print("Could not import lightgbm, required if using LGBMExplainableModel")
+        pass
 
     def fit(self, dataset, labels, **kwargs):
         """Call lightgbm fit to fit the explainable model.
@@ -111,7 +111,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                        '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
                        LGBMRegressor.fit.__doc__)
     except Exception:
-        print("Could not import lightgbm, required if using LGBMExplainableModel")
+        pass
 
     def predict(self, dataset, **kwargs):
         """Call lightgbm predict to predict labels using the explainable model.
@@ -130,7 +130,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                            '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
                            LGBMRegressor.predict.__doc__)
     except Exception:
-        print("Could not import lightgbm, required if using LGBMExplainableModel")
+        pass
 
     def predict_proba(self, dataset, **kwargs):
         """Call lightgbm predict_proba to predict probabilities using the explainable model.
@@ -152,7 +152,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                                  '\nOtherwise predict_proba is not supported for ' +
                                  'regression or binary classification.\n')
     except Exception:
-        print("Could not import lightgbm, required if using LGBMExplainableModel")
+        pass
 
     def explain_global(self, **kwargs):
         """Call lightgbm feature importances to get the global feature importances from the explainable model.
