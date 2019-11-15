@@ -193,6 +193,23 @@ class DatasetWrapper(object):
         return self._original_dataset_with_type
 
     @property
+    def num_features(self):
+        """Get the number of features (columns) on the dataset.
+
+        :return: The number of features (columns) in the dataset.
+        :rtype: int
+        """
+        evaluation_examples_temp = self._dataset
+        if isinstance(evaluation_examples_temp, pd.DataFrame):
+            evaluation_examples_temp = evaluation_examples_temp.values
+        if len(evaluation_examples_temp.shape) == 1:
+            return len(evaluation_examples_temp)
+        elif sp.sparse.issparse(evaluation_examples_temp):
+            return evaluation_examples_temp.shape[1]
+        else:
+            return len(evaluation_examples_temp[0])
+
+    @property
     def summary_dataset(self):
         """Get the summary dataset without any subsetting.
 

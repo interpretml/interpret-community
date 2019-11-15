@@ -181,6 +181,7 @@ class LinearExplainer(StructuredInitModelExplainer):
                 allow_all_transformations=self._allow_all_transformations
             )
         if isinstance(evaluation_examples, DatasetWrapper):
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
@@ -205,7 +206,9 @@ class LinearExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
+
         shap_values = self.explainer.shap_values(evaluation_examples)
         # Temporary fix for a bug in shap for regression models
         shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)

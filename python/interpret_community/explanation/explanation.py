@@ -220,11 +220,14 @@ class FeatureImportanceExplanation(BaseExplanation):
     :type features: Union[list[str], list[int]]
     """
 
-    def __init__(self, features=None, is_raw=False, is_engineered=False, **kwargs):
+    def __init__(self, features=None, num_features=None, is_raw=False, is_engineered=False,
+                 **kwargs):
         """Create the feature importance explanation from the given feature names.
 
         :param features: The feature names.
         :type features: Union[list[str], list[int]]
+        :param num_features: The number of features on the explanation.
+        :type num_features: int
         :param is_raw: Whether the explanation is on the original (raw) features.
         :type is_raw: bool
         :param is_engineered: Whether the explanation is on engineered features.
@@ -233,6 +236,7 @@ class FeatureImportanceExplanation(BaseExplanation):
         super(FeatureImportanceExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing FeatureImportanceExplanation')
         self._features = features
+        self._num_features = num_features
         self._is_eng = is_engineered
         self._is_raw = is_raw
 
@@ -246,6 +250,19 @@ class FeatureImportanceExplanation(BaseExplanation):
         if not isinstance(self._features, list) and self._features is not None:
             return self._features.tolist()
         return self._features
+
+    @property
+    def num_features(self):
+        """Get the number of features on the explanation.
+
+        :return: The number of features on the explanation.
+        :rtype: int
+        """
+        if self._features is not None and self._num_features is not None:
+            if len(self._features) != self._num_features:
+                raise Exception('The number of feature names passed in must be the same as the number of '
+                                'columns in the data.')
+        return self._num_features
 
     @property
     def is_raw(self):
@@ -292,11 +309,13 @@ class LocalExplanation(FeatureImportanceExplanation):
     :type local_importance_values: numpy.array
     """
 
-    def __init__(self, local_importance_values=None, **kwargs):
+    def __init__(self, local_importance_values=None, num_examples=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
         :type local_importance_values: numpy.array
+        :param num_examples: The number of examples on the explanation.
+        :type num_examples: int
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -319,6 +338,18 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: list[list[float]] or list[list[list[float]]]
         """
         return self._local_importance_values.tolist()
+
+    @property
+    def num_examples(self):
+        """Get the number of examples on the explanation.
+
+        :return: The number of examples on the explanation.
+        :rtype: int
+        """
+        if ClassesMixin._does_quack(self):
+            return len(self.local_importance_values[0])
+        else:
+            return len(self.local_importance_values)
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -853,15 +884,18 @@ class ClassesMixin(object):
     :type classes: list[str]
     """
 
-    def __init__(self, classes=None, **kwargs):
+    def __init__(self, classes=None, num_classes=None, **kwargs):
         """Create the classes mixin and set the classes.
 
         :param classes: Class names as a list of strings. The order of
             the class names should match that of the model output.
         :type classes: list[str]
+        :param num_classes: The number of examples on the explanation.
+        :type num_classes: int
         """
         super(ClassesMixin, self).__init__(**kwargs)
         self._classes = classes
+        self._num_classes = num_classes
 
     @property
     def classes(self):
@@ -871,6 +905,19 @@ class ClassesMixin(object):
         :rtype: list
         """
         return self._classes
+
+    @property
+    def num_classes(self):
+        """Get the number of classes on the explanation.
+
+        :return: The number of classes on the explanation.
+        :rtype: int
+        """
+        if self._classes is not None and self._num_classes is not None:
+            if len(self._classes) != self._num_classes:
+                raise Exception('The number of classes passed in must be the same as the number of classes '
+                                'in the data.')
+        return self._num_classes
 
     @staticmethod
     def _does_quack(explanation):
@@ -1178,7 +1225,7 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplanationParams.EXPECTED_VALUES] = expected_values
     if classification:
         mixins.append(ClassesMixin)
-    if classification:
+        kwargs[ExplainParams.NUM_CLASSES] = len(kwargs['local_importance_values'])
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
@@ -1246,6 +1293,7 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     # but currently in other cases when we aggregate local explanations we get per class
     if classification:
         if local_explanation is not None or ExplainParams.PER_CLASS_VALUES in kwargs:
+            kwargs[ExplainParams.NUM_CLASSES] = len(kwargs[ExplainParams.PER_CLASS_VALUES])
             mixins.append(PerClassMixin)
         else:
             mixins.append(ClassesMixin)
@@ -1323,6 +1371,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     kwargs[ExplainParams.FEATURES] = features
     kwargs[ExplainParams.IS_RAW] = local_explanation.is_raw
     kwargs[ExplainParams.IS_ENG] = local_explanation.is_engineered
+    kwargs[ExplainParams.NUM_FEATURES] = local_explanation.num_features
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
@@ -1375,6 +1424,7 @@ def _aggregate_global_from_local_explanation(local_explanation=None, include_loc
 def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
     order = _order_imp(np.array(raw_importances))
+    kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
     new_kwargs = kwargs.copy()
     new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
@@ -1399,6 +1449,12 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
+    is_1d = not isinstance(raw_importances[0], list)
+    is_3d = not is_1d and isinstance(raw_importances[0][0], list)
+    if is_1d:
+        kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
+    else:
+        kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
 
 
@@ -1502,7 +1558,7 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
             ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
             ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
-            ExplainParams.EVAL_Y_PRED_PROBA]
+            ExplainParams.EVAL_Y_PRED_PROBA, ExplainParams.NUM_FEATURES]
 
     def has_value(x):
         if explanation is None:
