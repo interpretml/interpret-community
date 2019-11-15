@@ -5,7 +5,6 @@
 """Defines the KernelExplainer for computing explanations on black box models or functions."""
 
 import numpy as np
-import scipy as sp
 
 from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_and_summary_method, \
     init_blackbox_decorator
@@ -257,16 +256,8 @@ class KernelExplainer(BlackBoxExplainer):
                                     transformations=self.transformations,
                                     allow_all_transformations=self._allow_all_transformations)
         kwargs.update(ys_dict)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
 
-        import pandas as pd
-        if isinstance(original_evaluation_examples, pd.DataFrame):
-            original_evaluation_examples = original_evaluation_examples.values
-        if len(original_evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples)
-        elif sp.sparse.issparse(original_evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = original_evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples[0])
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -299,14 +290,8 @@ class KernelExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features,
                                                                           explain_subset=self.explain_subset)
         original_evaluation = evaluation_examples.original_dataset
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
-
-        if len(evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
-        elif sp.sparse.issparse(evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         self._logger.debug('Running KernelExplainer')
 

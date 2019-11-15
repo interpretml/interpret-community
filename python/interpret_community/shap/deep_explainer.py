@@ -5,7 +5,6 @@
 """Defines an explainer for DNN models."""
 
 import numpy as np
-import scipy as sp
 import sys
 import logging
 
@@ -296,16 +295,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
-        import pandas as pd
-        original_evaluation_examples = evaluation_examples.typed_dataset
-        if isinstance(original_evaluation_examples, pd.DataFrame):
-            original_evaluation_examples = original_evaluation_examples.values
-        if len(original_evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples)
-        elif sp.sparse.issparse(original_evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = original_evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(original_evaluation_examples[0])
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -330,14 +320,8 @@ class DeepExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
-
-        if len(evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
-        elif sp.sparse.issparse(evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         # for now convert evaluation examples to dense format if they are sparse
         # until DeepExplainer sparse support is added

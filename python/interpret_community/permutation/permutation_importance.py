@@ -408,15 +408,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         dataset = evaluation_examples.dataset
         typed_wrapper_func = evaluation_examples.typed_wrapper_func
 
-        import pandas as pd
-        if isinstance(dataset, pd.DataFrame):
-            dataset = dataset.values
-        if len(dataset.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(dataset)
-        elif sp.sparse.issparse(dataset):
-            kwargs[ExplainParams.NUM_FEATURES] = dataset.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(dataset[0])
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
 
         def generate_predict_function():
             if self.model is not None:

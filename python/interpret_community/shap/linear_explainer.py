@@ -5,7 +5,6 @@
 """Defines the LinearExplainer for returning explanations for linear models."""
 
 import numpy as np
-import scipy as sp
 
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
@@ -182,21 +181,13 @@ class LinearExplainer(StructuredInitModelExplainer):
                 allow_all_transformations=self._allow_all_transformations
             )
         if isinstance(evaluation_examples, DatasetWrapper):
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
         if hasattr(self.model, 'predict_proba'):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
-        import pandas as pd
-        if isinstance(evaluation_examples, pd.DataFrame):
-            evaluation_examples = evaluation_examples.values
-        if len(evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
-        elif sp.sparse.issparse(evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
         return self._explain_global(wrapped_evals, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples, original_evals):
@@ -215,14 +206,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
-
-        if len(evaluation_examples.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples)
-        elif sp.sparse.issparse(evaluation_examples):
-            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples[0])
 
         shap_values = self.explainer.shap_values(evaluation_examples)
         # Temporary fix for a bug in shap for regression models

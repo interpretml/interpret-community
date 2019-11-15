@@ -11,7 +11,6 @@ be used to explain the teacher model.
 """
 
 import numpy as np
-import scipy as sp
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -317,16 +316,6 @@ class MimicExplainer(BlackBoxExplainer):
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
-            import pandas as pd
-            evaluation_examples_temp = evaluation_examples
-            if isinstance(evaluation_examples_temp, pd.DataFrame):
-                evaluation_examples_temp = evaluation_examples_temp.values
-            if len(evaluation_examples_temp.shape) == 1:
-                kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples_temp)
-            elif sp.sparse.issparse(evaluation_examples_temp):
-                kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples_temp.shape[1]
-            else:
-                kwargs[ExplainParams.NUM_FEATURES] = len(evaluation_examples_temp[0])
 
             # Aggregate local explanation to global, either through computing the local
             # explanation and then aggregating or streaming the local explanation to global
@@ -343,7 +332,8 @@ class MimicExplainer(BlackBoxExplainer):
                     self._logger.debug('Eval examples not wrapped, wrapping')
                     evaluation_examples = DatasetWrapper(evaluation_examples)
 
-                kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task,
+                kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task, self._features,
+                                                                batch_size, **kwargs)
             return kwargs
         global_importance_values = self.surrogate_model.explain_global()
         order = _order_imp(global_importance_values)
@@ -437,15 +427,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         dataset = evaluation_examples.dataset
 
-        import pandas as pd
-        if isinstance(dataset, pd.DataFrame):
-            dataset = dataset.values
-        if len(dataset.shape) == 1:
-            kwargs[ExplainParams.NUM_FEATURES] = len(dataset)
-        elif sp.sparse.issparse(dataset):
-            kwargs[ExplainParams.NUM_FEATURES] = dataset.shape[1]
-        else:
-            kwargs[ExplainParams.NUM_FEATURES] = len(dataset[0])
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
