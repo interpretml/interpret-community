@@ -336,8 +336,7 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(iris[DatasetConstants.X_TEST])
         assert len(explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
 
-    @pytest.mark.skip('skipping test until shap TreeExplainer for lightgbm binary classifier fixed')
-    def test_explain_model_lightgbm_binary(self, tabular_explainer, iris):
+    def test_explain_model_lightgbm_binary(self, tabular_explainer):
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=7)
         # Fit a tree model
