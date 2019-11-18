@@ -8,7 +8,7 @@ import scipy as sp
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args
 from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
-from ...common.constants import ExplainableModelType, Extension
+from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
 
 import warnings
 
@@ -46,13 +46,15 @@ def _create_linear_explainer(model, multiclass, mean, covariance, seed):
         else:
             coef_intercept_list = [(coef, intercepts) for coef in coefs]
         for class_coef, intercept in coef_intercept_list:
-            linear_explainer = shap.LinearExplainer((class_coef, intercept), (mean, covariance))
+            linear_explainer = shap.LinearExplainer((class_coef, intercept), (mean, covariance),
+                                                    feature_dependence=SHAPDefaults.INDEPENDENT)
             explainers.append(linear_explainer)
         return explainers
     else:
         model_coef = model.coef_
         model_intercept = model.intercept_
-        return shap.LinearExplainer((model_coef, model_intercept), (mean, covariance))
+        return shap.LinearExplainer((model_coef, model_intercept), (mean, covariance),
+                                    feature_dependence=SHAPDefaults.INDEPENDENT)
 
 
 def _compute_local_shap_values(linear_explainer, evaluation_examples, classification):

@@ -10,7 +10,7 @@ from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
 from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
 from ..common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults, Extension
+    Defaults, Extension, SHAPDefaults
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
@@ -141,7 +141,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         super(LinearExplainer, self).__init__(model, initialization_examples, **kwargs)
         self._logger.debug('Initializing LinearExplainer')
         self._method = 'shap.linear'
-        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples)
+        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples,
+                                              feature_dependence=SHAPDefaults.INDEPENDENT)
         self.explain_subset = explain_subset
         self.features = features
         self.classes = classes
