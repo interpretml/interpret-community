@@ -21,6 +21,7 @@ interpretc_logs = os.environ.get('INTERPRETC_LOGS')
 if interpretc_logs is not None:
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
+    os.makedirs(os.path.dirname(interpretc_logs), exist_ok=True)
     handler = logging.FileHandler(interpretc_logs, mode='w')
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
