@@ -6,9 +6,16 @@
 import numpy as np
 import scipy as sp
 
-from .explainable_model import BaseExplainableModel, _get_initializer_args
-from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
-from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
+from .explainable_model import BaseExplainableModel, BaseGlassboxModel, BaseGlassboxRegressor, \
+    BaseGlassboxClassifier, _get_initializer_args
+from sklearn.linear_model import LinearRegression as SKLinearRegression, \
+    LogisticRegression as SKLogisticRegression, SGDClassifier, SGDRegressor
+from ...common.constants import ExplainableModelType, Extension, SHAPDefaults, \
+    ExplainParams, ExplainType, GlassboxModels, Defaults
+from ...explanation.explanation import _create_global_explanation
+from ...shap.linear_explainer import LinearExplainer
+from ...common.explanation_utils import _order_imp
+from ...common.aggregate import _get_explain_global_agg_kwargs
 
 import warnings
 
@@ -80,46 +87,14 @@ def _compute_local_shap_values(linear_explainer, evaluation_examples, classifica
     return shap_values
 
 
-class LinearExplainableModel(BaseExplainableModel):
-    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
-    explainer_type = Extension.GLASSBOX
-
-    """Linear explainable model.
-
-    :param multiclass: Set to true to generate a multiclass model.
-    :type multiclass: bool
-    :param random_state: Int to seed the model.
-    :type random_state: int
-    """
-
-    def __init__(self, multiclass=False, random_state=DEFAULT_RANDOM_STATE, classification=True, **kwargs):
-        """Initialize the LinearExplainableModel.
-
-        :param multiclass: Set to true to generate a multiclass model.
-        :type multiclass: bool
-        :param random_state: Int to seed the model.
-        :type random_state: int
-        """
-        self.multiclass = multiclass
-        self.random_state = random_state
-        if self.multiclass:
-            initializer = LogisticRegression
-            kwargs['random_state'] = random_state
-        else:
-            initializer = LinearRegression
+class LinearBase(BaseGlassboxModel):
+    def __init__(self, initializer, **kwargs):
         initializer_args = _get_initializer_args(kwargs)
         self._linear = initializer(**initializer_args)
-        super(LinearExplainableModel, self).__init__(**kwargs)
-        self._logger.debug('Initializing LinearExplainableModel')
-        self._method = 'mimic.linear'
+        super(LinearBase, self).__init__(**kwargs)
+        self._logger.debug('Initializing LinearBase')
+        self._method = None
         self._linear_explainer = None
-        self._classification = classification
-
-    __init__.__doc__ = (__init__.__doc__ +
-                        '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                        LogisticRegression.__doc__.replace('-', '') +
-                        '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                        LinearRegression.__doc__.replace('-', ''))
 
     def fit(self, dataset, labels, **kwargs):
         """Call linear fit to fit the explainable model.
@@ -144,12 +119,6 @@ class LinearExplainableModel(BaseExplainableModel):
             # Not needed for sparse case
             self.covariance = None
 
-    fit.__doc__ = (fit.__doc__ +
-                   '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                   LogisticRegression.fit.__doc__.replace('-', '') +
-                   '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                   LinearRegression.fit.__doc__.replace('-', ''))
-
     def predict(self, dataset, **kwargs):
         """Call linear predict to predict labels using the explainable model.
 
@@ -160,11 +129,40 @@ class LinearExplainableModel(BaseExplainableModel):
         """
         return self._linear.predict(dataset)
 
-    predict.__doc__ = (predict.__doc__ +
-                       '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                       LogisticRegression.predict.__doc__.replace('-', '') +
-                       '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                       LinearRegression.predict.__doc__.replace('-', ''))
+    def explain_global(self, **kwargs):
+        """Explain the model globally by either using the coef or aggregating local explanations to global.
+
+        :return: The global explanation of feature importances.
+        :rtype: list
+        """
+        coef = self._linear.coef_
+        if (len(coef.shape) == 2):
+            return np.mean(coef, axis=0)
+        return coef
+
+    @property
+    def model(self):
+        """Retrieve the underlying model.
+
+        :return: The linear model, either classifier or regressor.
+        :rtype: Union[LogisticRegression, LinearRegression]
+        """
+        return self._linear
+
+    @staticmethod
+    def explainable_model_type(self):
+        """Retrieve the model type.
+
+        :return: Linear explainable model type.
+        :rtype: ExplainableModelType
+        """
+        return ExplainableModelType.LINEAR_EXPLAINABLE_MODEL_TYPE
+
+
+class LinearClassifierMixin(LinearBase):
+    def __init__(self, initializer, **kwargs):
+        super(LinearClassifierMixin, self).__init__(initializer, **kwargs)
+        self._logger.debug('Initializing LinearClassifierMixin')
 
     def predict_proba(self, dataset, **kwargs):
         """Call linear predict_proba to predict probabilities using the explainable model.
@@ -174,26 +172,235 @@ class LinearExplainableModel(BaseExplainableModel):
         :return: The predictions of the model.
         :rtype: list
         """
-        if self.multiclass:
-            return self._linear.predict_proba(dataset)
-        else:
-            raise Exception('predict_proba not supported for regression or binary classification dataset')
+        return self._linear.predict_proba(dataset, **kwargs)
 
-    predict_proba.__doc__ = (predict_proba.__doc__ +
-                             '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                             LogisticRegression.predict_proba.__doc__.replace('-', '') +
-                             '\nOtherwise predict_proba is not supported for regression or binary classification.\n')
 
-    def explain_global(self, **kwargs):
-        """Call coef to get the global feature importances from the linear surrogate model.
+class LinearRegression(LinearBase, BaseGlassboxRegressor):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
 
-        :return: The global explanation of feature importances.
+    def __init__(self, **kwargs):
+        """Initialize the LinearRegression glassbox model."""
+        initializor = SKLinearRegression
+        super(LinearRegression, self).__init__(initializor, **kwargs)
+        self._logger.debug('Initializing LinearRegression')
+
+    def fit(self, dataset, labels, **kwargs):
+        """Call linear fit to fit the glassbox model.
+
+        :param dataset: The dataset to train the model on.
+        :type dataset: numpy or scipy array or pandas dataframe
+        :param labels: The labels to train the model on.
+        :type labels: numpy or scipy array
+        """
+        super(LinearRegression, self).fit(dataset, labels, **kwargs)
+
+    def explain_global(self, evaluation_examples=None, include_local=True,
+                       batch_size=Defaults.DEFAULT_BATCH_SIZE, **kwargs):
+        """Explain the model globally by either using the coef or aggregating local explanations to global.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importances through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param include_local: Include the local explanations in the returned global explanation.
+            If evaluation examples are specified and include_local is False, will stream the local
+            explanations to aggregate to global.
+        :type include_local: bool
+        :param batch_size: If include_local is False, specifies the batch size for aggregating
+            local explanations to global.
+        :type batch_size: int
+        :return: A model explanation object. It is guaranteed to be a GlobalExplanation. If evaluation_examples are
+            passed in, it will also have the properties of a LocalExplanation. If the model is a classifier (has
+            predict_proba), it will have the properties of ClassesMixin, and if evaluation_examples were passed in it
+            will also have the properties of PerClassMixin.
+        :rtype: DynamicGlobalExplanation
+        """
+        coef = super(LinearRegression, self).explain_global()
+        kwargs = {ExplainParams.METHOD: GlassboxModels.LINEAR_REGRESSION}
+        kwargs = _get_explain_global_agg_kwargs(self, coef, False, model=self,
+                                                evaluation_examples=evaluation_examples, include_local=include_local,
+                                                batch_size=batch_size, **kwargs)
+        return _create_global_explanation(**kwargs)
+
+    def explain_local(self, evaluation_examples, **kwargs):
+        """Use LinearExplainer to get the local feature importances from the trained glassbox model.
+
+        :param evaluation_examples: The evaluation examples to compute local feature importances for.
+        :type evaluation_examples: numpy or scipy array or pandas dataframe
+        :return: The local explanation of feature importances.
+        :rtype: Union[list, numpy.ndarray]
+        """
+        if self._linear_explainer is None:
+            self._linear_explainer = LinearExplainer(self._linear, (self.mean, self.covariance))
+        return self._linear_explainer.explain_local(evaluation_examples)
+
+    def predict(self, dataset, **kwargs):
+        """Call linear predict to predict labels using the glassbox model.
+
+        :param dataset: The dataset to predict on.
+        :type dataset: numpy or scipy array or pandas dataframe
+        :return: The predictions of the model.
         :rtype: list
         """
-        coef = self._linear.coef_
-        if (len(coef.shape) == 2):
-            return np.mean(coef, axis=0)
-        return coef
+        return super(LinearRegression, self).predict(dataset, **kwargs)
+
+    __init__.__doc__ = (__init__.__doc__ +
+                        '\nUses the parameters for LinearRegression:\n' +
+                        SKLinearRegression.__doc__.replace('-', ''))
+
+    fit.__doc__ = (fit.__doc__ +
+                   '\nUses the parameters for LinearRegression:\n' +
+                   SKLinearRegression.fit.__doc__.replace('-', ''))
+
+    predict.__doc__ = (predict.__doc__ +
+                       '\nUses the parameters for LinearRegression:\n' +
+                       SKLinearRegression.predict.__doc__.replace('-', ''))
+
+
+class LogisticRegression(LinearClassifierMixin, BaseGlassboxClassifier):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
+    def __init__(self, classes=None, **kwargs):
+        """Initialize the LogisticRegression glassbox model.
+
+        :param classes: Class names as a list of strings. The order of the class names should match
+            that of the model output.  Only required if explaining classifier.
+        :type classes: list[str]
+        """
+        initializor = SKLogisticRegression
+        super(LogisticRegression, self).__init__(initializor, **kwargs)
+        self._logger.debug('Initializing LogisticRegression')
+        self._classes = classes
+
+    def fit(self, dataset, labels, **kwargs):
+        """Call linear fit to fit the glassbox model.
+
+        :param dataset: The dataset to train the model on.
+        :type dataset: numpy or scipy array or pandas dataframe
+        :param labels: The labels to train the model on.
+        :type labels: numpy or scipy array
+        """
+        super(LogisticRegression, self).fit(dataset, labels, **kwargs)
+
+    def explain_global(self, evaluation_examples=None, include_local=True,
+                       batch_size=Defaults.DEFAULT_BATCH_SIZE, **kwargs):
+        """Explain the model globally by either using the coef or aggregating local explanations to global.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importances through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param include_local: Include the local explanations in the returned global explanation.
+            If evaluation examples are specified and include_local is False, will stream the local
+            explanations to aggregate to global.
+        :type include_local: bool
+        :param batch_size: If include_local is False, specifies the batch size for aggregating
+            local explanations to global.
+        :type batch_size: int
+        :return: A model explanation object. It is guaranteed to be a GlobalExplanation. If evaluation_examples are
+            passed in, it will also have the properties of a LocalExplanation. If the model is a classifier (has
+            predict_proba), it will have the properties of ClassesMixin, and if evaluation_examples were passed in it
+            will also have the properties of PerClassMixin.
+        :rtype: DynamicGlobalExplanation
+        """
+        coef = super(LogisticRegression, self).explain_global()
+        kwargs = {ExplainParams.METHOD: GlassboxModels.LOGISTIC_REGRESSION}
+        kwargs = _get_explain_global_agg_kwargs(self, coef, True, model=self,
+                                                evaluation_examples=evaluation_examples, include_local=include_local,
+                                                batch_size=batch_size, classes=self._classes, **kwargs)
+        return _create_global_explanation(**kwargs)
+
+    def explain_local(self, evaluation_examples, **kwargs):
+        """Use LinearExplainer to get the local feature importances from the trained explainable model.
+
+        :param evaluation_examples: The evaluation examples to compute local feature importances for.
+        :type evaluation_examples: numpy or scipy array or pandas dataframe
+        :return: The local explanation of feature importances.
+        :rtype: Union[list, numpy.ndarray]
+        """
+        if self._linear_explainer is None:
+            self._linear_explainer = LinearExplainer(self._linear, (self.mean, self.covariance))
+        return self._linear_explainer.explain_local(evaluation_examples)
+
+    def predict(self, dataset, **kwargs):
+        """Call linear predict to predict labels using the glassbox model.
+
+        :param dataset: The dataset to predict on.
+        :type dataset: numpy or scipy array or pandas dataframe
+        :return: The predictions of the model.
+        :rtype: list
+        """
+        return super(LogisticRegression, self).predict(dataset, **kwargs)
+
+    def predict_proba(self, dataset, **kwargs):
+        """Call linear predict_proba to predict probabilities using the glassbox model.
+
+        :param dataset: The dataset to predict probabilities on.
+        :type dataset: numpy or scipy array or pandas dataframe
+        :return: The predictions of the model.
+        :rtype: list
+        """
+        return super(LogisticRegression, self).predict_proba(dataset, **kwargs)
+
+    __init__.__doc__ = (__init__.__doc__ +
+                        '\nUses the parameters for LogisticRegression:\n' +
+                        SKLogisticRegression.__doc__.replace('-', ''))
+
+    fit.__doc__ = (fit.__doc__ +
+                   '\nUses the parameters for LogisticRegression:\n' +
+                   SKLogisticRegression.fit.__doc__.replace('-', ''))
+
+    predict.__doc__ = (predict.__doc__ +
+                       '\nUses the parameters for LogisticRegression:\n' +
+                       SKLogisticRegression.predict.__doc__.replace('-', ''))
+
+    predict_proba.__doc__ = (predict_proba.__doc__ +
+                             '\nUses the parameters for LogisticRegression:\n' +
+                             SKLogisticRegression.predict_proba.__doc__.replace('-', ''))
+
+
+class LinearExplainableModel(LinearClassifierMixin, LinearBase, BaseExplainableModel):
+    available_explanations = [Extension.GLOBAL, Extension.LOCAL]
+    explainer_type = Extension.GLASSBOX
+
+    """Linear explainable model.
+
+    :param multiclass: Set to true to generate a multiclass model.
+    :type multiclass: bool
+    :param random_state: Int to seed the model.
+    :type random_state: int
+    """
+
+    def __init__(self, multiclass=False, random_state=DEFAULT_RANDOM_STATE, classification=True, **kwargs):
+        """Initialize the LinearExplainableModel.
+
+        :param multiclass: Set to true to generate a multiclass model.
+        :type multiclass: bool
+        :param random_state: Int to seed the model.
+        :type random_state: int
+        """
+        self.multiclass = multiclass
+        self.random_state = random_state
+        if self.multiclass:
+            initializer = SKLogisticRegression
+            kwargs['random_state'] = random_state
+        else:
+            initializer = SKLinearRegression
+        super(LinearExplainableModel, self).__init__(initializer, **kwargs)
+        self._logger.debug('Initializing LinearExplainableModel')
+        self._method = 'mimic.linear'
+        self._linear_explainer = None
+        self._classification = classification
+
+    def fit(self, dataset, labels, **kwargs):
+        """Call linear fit to fit the explainable model.
+
+        :param dataset: The dataset to train the model on.
+        :type dataset: numpy or scipy array
+        :param labels: The labels to train the model on.
+        :type labels: numpy or scipy array
+        """
+        super(LinearExplainableModel, self).fit(dataset, labels, **kwargs)
 
     def explain_local(self, evaluation_examples, **kwargs):
         """Use LinearExplainer to get the local feature importances from the trained explainable model.
@@ -229,23 +436,51 @@ class LinearExplainableModel(BaseExplainableModel):
                 expected_values = [-expected_values, expected_values]
             return expected_values
 
-    @property
-    def model(self):
-        """Retrieve the underlying model.
+    def predict(self, dataset, **kwargs):
+        """Call linear predict to predict labels using the explainable model.
 
-        :return: The linear model, either classifier or regressor.
-        :rtype: Union[LogisticRegression, LinearRegression]
+        :param dataset: The dataset to predict on.
+        :type dataset: numpy or scipy array
+        :return: The predictions of the model.
+        :rtype: list
         """
-        return self._linear
+        return super(LinearExplainableModel, self).predict(dataset, **kwargs)
 
-    @staticmethod
-    def explainable_model_type(self):
-        """Retrieve the model type.
+    def predict_proba(self, dataset, **kwargs):
+        """Call linear predict_proba to predict probabilities using the explainable model.
 
-        :return: Linear explainable model type.
-        :rtype: ExplainableModelType
+        :param dataset: The dataset to predict probabilities on.
+        :type dataset: numpy or scipy array
+        :return: The predictions of the model.
+        :rtype: list
         """
-        return ExplainableModelType.LINEAR_EXPLAINABLE_MODEL_TYPE
+        if self.multiclass:
+            return self._linear.predict_proba(dataset, **kwargs)
+        else:
+            raise Exception('predict_proba not supported for regression or binary classification dataset')
+
+    __init__.__doc__ = (__init__.__doc__ +
+                        '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
+                        SKLogisticRegression.__doc__.replace('-', '') +
+                        '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
+                        SKLinearRegression.__doc__.replace('-', ''))
+
+    fit.__doc__ = (fit.__doc__ +
+                   '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
+                   SKLogisticRegression.fit.__doc__.replace('-', '') +
+                   '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
+                   SKLinearRegression.fit.__doc__.replace('-', ''))
+
+    predict.__doc__ = (predict.__doc__ +
+                       '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
+                       SKLogisticRegression.predict.__doc__.replace('-', '') +
+                       '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
+                       SKLinearRegression.predict.__doc__.replace('-', ''))
+
+    predict_proba.__doc__ = (predict_proba.__doc__ +
+                             '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
+                             SKLogisticRegression.predict_proba.__doc__.replace('-', '') +
+                             '\nOtherwise predict_proba is not supported for regression or binary classification.\n')
 
 
 class SGDExplainableModel(BaseExplainableModel):

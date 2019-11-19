@@ -251,3 +251,8 @@ class SHAPDefaults(object):
     """Provide constants for default values to shap."""
 
     INDEPENDENT = 'independent'
+
+
+class GlassboxModels(object):
+    LINEAR_REGRESSION = 'linear_regression'
+    LOGISTIC_REGRESSION = 'logistic_regression'

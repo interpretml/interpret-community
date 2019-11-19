@@ -18,6 +18,7 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
     transform_with_datamapper
 
 from ..common.blackbox_explainer import BlackBoxExplainer
+from ..common.aggregate import _get_explain_global_agg_kwargs
 
 from .model_distill import _model_distill
 from .models import LGBMExplainableModel
@@ -313,45 +314,11 @@ class MimicExplainer(BlackBoxExplainer):
         :rtype: dict
         """
         classification = self.predict_proba_flag
-        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
-        if classification:
-            kwargs[ExplainParams.CLASSES] = self.classes
-        if evaluation_examples is not None:
-
-            # Aggregate local explanation to global, either through computing the local
-            # explanation and then aggregating or streaming the local explanation to global
-            if include_local:
-                # Get local explanation
-                local_explanation = self.explain_local(evaluation_examples)
-                kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
-            else:
-                if classification:
-                    model_task = ModelTask.Classification
-                else:
-                    model_task = ModelTask.Regression
-                if not isinstance(evaluation_examples, DatasetWrapper):
-                    self._logger.debug('Eval examples not wrapped, wrapping')
-                    evaluation_examples = DatasetWrapper(evaluation_examples)
-
-                kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task, self.features,
-                                                                batch_size, **kwargs)
-            return kwargs
         global_importance_values = self.surrogate_model.explain_global()
-        order = _order_imp(global_importance_values)
-        if classification:
-            kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
-        else:
-            kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-        if self.model is not None:
-            kwargs[ExplainParams.MODEL_TYPE] = str(type(self.model))
-        else:
-            kwargs[ExplainParams.MODEL_TYPE] = ExplainType.FUNCTION
-        kwargs[ExplainParams.EXPECTED_VALUES] = None
-        kwargs[ExplainParams.CLASSIFICATION] = classification
-        kwargs[ExplainParams.GLOBAL_IMPORTANCE_VALUES] = global_importance_values
-        kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
-        kwargs[ExplainParams.FEATURES] = self.features
-        return kwargs
+        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
+        return _get_explain_global_agg_kwargs(self, global_importance_values, classification,
+                                              evaluation_examples=evaluation_examples, include_local=include_local,
+                                              batch_size=batch_size, model=self.model, **kwargs)
 
     def explain_global(self, evaluation_examples=None, include_local=True,
                        batch_size=Defaults.DEFAULT_BATCH_SIZE):

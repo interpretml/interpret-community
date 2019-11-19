@@ -13,7 +13,8 @@ from interpret_community.tabular_explainer import TabularExplainer
 from common_tabular_tests import VerifyTabularTests
 from interpret_community.mimic.mimic_explainer import MimicExplainer
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
+from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel, \
+    LinearRegression, LogisticRegression
 from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
@@ -118,6 +119,16 @@ def verify_mimic():
         generated_create_explainer = generate_create_method(explainer)
         verify_mimic.append(VerifyTabularTests(test_logger, generated_create_explainer, specify_policy=False))
     return verify_mimic
+
+
+@pytest.fixture(scope='session')
+def classification_glassbox_models():
+    return [LogisticRegression]
+
+
+@pytest.fixture(scope='session')
+def regression_glassbox_models():
+    return [LinearRegression]
 
 
 @pytest.fixture(scope='session')
