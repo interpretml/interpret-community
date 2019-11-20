@@ -295,6 +295,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -319,7 +320,9 @@ class DeepExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
+
         # for now convert evaluation examples to dense format if they are sparse
         # until DeepExplainer sparse support is added
         dense_examples = _get_dense_examples(evaluation_examples)
@@ -327,8 +330,12 @@ class DeepExplainer(StructuredInitModelExplainer):
             dense_examples = torch.Tensor(dense_examples)
         shap_values = self.explainer.shap_values(dense_examples)
         # use model task to update structure of shap values
-        if self.model_task == ModelTask.Regression and isinstance(shap_values, list) and len(shap_values) == 1:
-            shap_values = shap_values[0]
+        single_output = isinstance(shap_values, list) and len(shap_values) == 1
+        if single_output:
+            if self.model_task == ModelTask.Regression:
+                shap_values = shap_values[0]
+            elif self.model_task == ModelTask.Classification:
+                shap_values = [-shap_values[0], shap_values[0]]
         classification = isinstance(shap_values, list)
         if self.explain_subset:
             if classification:

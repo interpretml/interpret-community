@@ -144,9 +144,12 @@ class VerifyTabularTests(object):
             verify_serialization(local_explanation)
             feat_imps_local = np.array(local_explanation.local_importance_values)
             assert feat_imps_local.shape[-1] == len(feature_names)
+            assert local_explanation.num_features == len(feature_names)
             per_class_values = global_explanation.get_ranked_per_class_values()
             assert len(per_class_values) == len(classes)
+            assert global_explanation.num_classes == len(classes)
             assert len(per_class_values[0]) == len(feature_names)
+            assert global_explanation.num_features == len(feature_names)
             assert len(global_explanation.get_ranked_per_class_names()[0]) == len(feature_names)
             feat_imps_global_local = np.array(global_explanation.local_importance_values)
             assert feat_imps_global_local.shape[-1] == len(feature_names)
@@ -154,6 +157,7 @@ class VerifyTabularTests(object):
 
         assert global_explanation.is_raw
         assert len(global_explanation.get_ranked_global_values()) == len(feature_names)
+        assert global_explanation.num_features == len(feature_names)
         assert len(global_explanation.get_ranked_global_names()) == len(feature_names)
         assert (global_explanation.classes == classes).all()
 
@@ -194,9 +198,12 @@ class VerifyTabularTests(object):
             assert local_explanation.is_raw
             assert np.array(local_explanation.local_importance_values).shape[-1] == len(feature_names)
             assert np.array(global_explanation.local_importance_values).shape[-1] == len(feature_names)
+            assert local_explanation.num_features == len(feature_names)
+            assert global_explanation.num_features == local_explanation.num_features
 
         assert global_explanation.is_raw
         assert np.array(global_explanation.global_importance_values).shape[-1] == len(feature_names)
+        assert global_explanation.num_features == len(feature_names)
 
     def verify_explanation_top_k_bottom_k(self, explanation, is_per_class, is_local):
         K = 3
@@ -264,7 +271,8 @@ class VerifyTabularTests(object):
         if has_explain_local:
             explanation_local = explainer.explain_local(x_test)
             # Validate there is a local explanation per class in multiclass case
-            assert(np.array(explanation_local.local_importance_values).shape[0] == len(target_names))
+            assert np.array(explanation_local.local_importance_values).shape[0] == len(target_names)
+            assert explanation_local.num_classes == len(target_names)
             # Validate data has local info
             local_data = explanation_local.data(key=-1)
             assert(InterpretData.SPECIFIC in local_data)
@@ -342,7 +350,8 @@ class VerifyTabularTests(object):
         if has_explain_local:
             explanation_local = explainer.explain_local(x_test)
             # Validate there is an explanation per row (without class) in regression case
-            assert(np.array(explanation_local.local_importance_values).shape[0] == len(x_test))
+            assert np.array(explanation_local.local_importance_values).shape[0] == len(x_test)
+            assert explanation_local.num_examples == len(x_test)
 
     def verify_explain_model_local_regression(self, include_evaluation_examples=True, include_local=True,
                                               has_explain_local=True, true_labels_required=False):
@@ -411,12 +420,14 @@ class VerifyTabularTests(object):
                     explanation = explainer.explain_global(x_test, y_test)
                 else:
                     explanation = explainer.explain_global(x_test)
+                assert explanation.num_features == len(feature_names)
         else:
             explanation = explainer.explain_global()
-        assert(len(explanation.global_importance_values) == len(feature_names))
+        assert len(explanation.global_importance_values) == len(feature_names)
         if has_explain_local:
             explanation_local = explainer.explain_local(x_test)
-            assert(np.array(explanation_local.local_importance_values).shape[1] == len(x_test))
+            assert np.array(explanation_local.local_importance_values).shape[1] == len(x_test)
+            assert explanation_local.num_examples == len(x_test)
 
     def verify_explain_model_int_features(self, is_per_class=True, include_evaluation_examples=True):
         x_train, x_test, y_train, _, feature_names, target_names = create_cancer_data()

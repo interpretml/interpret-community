@@ -7,8 +7,8 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.1'
-_minor = '0.2'
+_major = '0.2'
+_minor = '1'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -53,8 +53,8 @@ DEPENDENCIES = [
     'scipy',
     'scikit-learn',
     'packaging',
-    'interpret>=0.1.17',
-    'shap>=0.20.0, <=0.29.3'
+    'interpret-core[required]==0.1.19',
+    'shap>=0.20.0, <=0.32.1'
 ]
 
 EXTRAS = {
@@ -62,7 +62,9 @@ EXTRAS = {
         'hdbscan'
     ],
     'deep': [
-        'tensorflow'
+        'tensorflow',
+        'pyyaml',
+        'keras'
     ],
     'mimic': [
         'lightgbm'

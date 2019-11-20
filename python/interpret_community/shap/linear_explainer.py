@@ -10,7 +10,7 @@ from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
 from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
 from ..common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults, Extension
+    Defaults, Extension, SHAPDefaults
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
@@ -141,7 +141,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         super(LinearExplainer, self).__init__(model, initialization_examples, **kwargs)
         self._logger.debug('Initializing LinearExplainer')
         self._method = 'shap.linear'
-        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples)
+        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples,
+                                              feature_dependence=SHAPDefaults.INDEPENDENT)
         self.explain_subset = explain_subset
         self.features = features
         self.classes = classes
@@ -181,6 +182,7 @@ class LinearExplainer(StructuredInitModelExplainer):
                 allow_all_transformations=self._allow_all_transformations
             )
         if isinstance(evaluation_examples, DatasetWrapper):
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
             evaluation_examples = evaluation_examples.original_dataset_with_type
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
@@ -205,7 +207,9 @@ class LinearExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
+
         shap_values = self.explainer.shap_values(evaluation_examples)
         # Temporary fix for a bug in shap for regression models
         shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)

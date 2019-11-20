@@ -256,6 +256,8 @@ class KernelExplainer(BlackBoxExplainer):
                                     transformations=self.transformations,
                                     allow_all_transformations=self._allow_all_transformations)
         kwargs.update(ys_dict)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
+
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -288,6 +290,7 @@ class KernelExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features,
                                                                           explain_subset=self.explain_subset)
         original_evaluation = evaluation_examples.original_dataset
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
 
         self._logger.debug('Running KernelExplainer')
