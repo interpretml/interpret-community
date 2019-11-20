@@ -724,13 +724,17 @@ class GlobalExplanation(FeatureImportanceExplanation):
                 for local_mli_data in mli_data:
                     if local_mli_data[InterpretData.EXPLANATION_TYPE] == InterpretData.LOCAL_FEATURE_IMPORTANCE:
                         local_mli_data[InterpretData.VALUE][InterpretData.INTERCEPT] = self.expected_values
-                mli_data.append({
+                mli_global_entry = {
                     InterpretData.EXPLANATION_TYPE: InterpretData.GLOBAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
                         InterpretData.SCORES: self.global_importance_values,
                         InterpretData.FEATURE_LIST: self.features
                     },
-                })
+                }
+                if not PerClassMixin._does_quack(self):
+                    class_dimension = InterpretData.SINGLE
+                    mli_global_entry[InterpretData.EXPLANATION_CLASS_DIMENSION] = class_dimension
+                mli_data.append(mli_global_entry)
             return {InterpretData.OVERALL: global_data, InterpretData.SPECIFIC: specific,
                     InterpretData.MLI: mli_data}
         else:

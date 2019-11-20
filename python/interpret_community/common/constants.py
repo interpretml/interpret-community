@@ -232,6 +232,9 @@ class InterpretData(object):
     UNIVARIATE = 'univariate'
     VALUE = 'value'
     VALUES = 'values'
+    EXPLANATION_CLASS_DIMENSION = 'explanation_class_dimension'
+    MULTICLASS = 'multiclass'
+    SINGLE = 'single'
 
 
 class Extension(object):
