@@ -245,3 +245,9 @@ class Extension(object):
     GLOBAL = 'global'
     GREYBOX = 'specific'
     LOCAL = 'local'
+
+
+class SHAPDefaults(object):
+    """Provide constants for default values to shap."""
+
+    INDEPENDENT = 'independent'
