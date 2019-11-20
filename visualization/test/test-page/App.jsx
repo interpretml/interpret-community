@@ -3,7 +3,9 @@ import { ExplanationDashboard } from 'mlchartlib';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
+import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
+import {bostonGlobal} from '../__mock_data/bostonGlobal';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
@@ -24,7 +26,9 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
 
       static choices = [
         {label: 'bostonData', data: bostonData},
+        {label: 'bostonGlobal', data: bostonGlobal},
         {label: 'irisData', data: irisData},
+        {label: 'irisDataGlobal', data: irisDataGlobal},
         {label: 'ibmData', data: ibmData},
         {label: 'breastCancer', data: breastCancerData},
         {label: 'ibmNoClass', data: ibmNoClass},
