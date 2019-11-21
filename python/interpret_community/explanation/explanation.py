@@ -1297,7 +1297,7 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     # but currently in other cases when we aggregate local explanations we get per class
     if classification:
         if local_explanation is not None or ExplainParams.PER_CLASS_VALUES in kwargs:
-            kwargs[ExplainParams.NUM_CLASSES] = len(kwargs[ExplainParams.PER_CLASS_VALUES])
+            kwargs[ExplainParams.NUM_CLASSES] = len(kwargs[ExplainParams.PER_CLASS_RANK])
             mixins.append(PerClassMixin)
         else:
             mixins.append(ClassesMixin)
