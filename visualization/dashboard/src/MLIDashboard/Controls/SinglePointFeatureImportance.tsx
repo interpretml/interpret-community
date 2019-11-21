@@ -19,6 +19,7 @@ export interface ISinglePointFeatureImportanceProps {
     explanationContext: IExplanationContext;
     selectedRow: number;
     config: IBarChartConfig;
+    theme?: string;
     messages?: HelpMessageDict;
     onChange: (config: IBarChartConfig, id: string) => void;
 }
@@ -90,6 +91,7 @@ export class SinglePointFeatureImportance extends React.PureComponent<ISinglePoi
                                 this.props.explanationContext.testDataset.dataset[this.props.selectedRow] : undefined}
                             barmode='group'
                             defaultVisibleClasses={defaultVisibleClasses}
+                            theme={this.props.theme}
                         />
                     </div>
                 </div>
