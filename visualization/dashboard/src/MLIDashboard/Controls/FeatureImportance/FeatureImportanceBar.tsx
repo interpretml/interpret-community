@@ -79,7 +79,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 value={this.props.config.topK}
                                 onChange={this.setTopK}
                                 showValue={true}
-                                aria-label="top k features slider"
+                                ariaLabel="top k features slider"
                             />
                         </div>
                         {(this.sortOptions.length > 0) && <ComboBox
