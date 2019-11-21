@@ -2131,10 +2131,10 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.30:
-  version "0.1.30"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.30.tgz#98291906bce2fca81a42e46a62b475ea7fed4049"
-  integrity sha512-VNXcW/byyRfdyRFp1d2GGuBAzgF5XBdJcfk9dcmgcGwDvFd6sjZ3ypArZhB2j4Z9mPYyqwK/i2NVwpwHm+STtg==
+mlchartlib@0.1.31:
+  version "0.1.31"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.31.tgz#e23f73bbb14edf8206d5def712c9adb28c2db5fa"
+  integrity sha512-lTQPU6bcgSrvXJOiDG4AFe/QRhVDEsfXGQzl/1eHd3D9T0XZrjT5T2DDMWTuwr6pN5n2qbDwRsnuW0UFe4Ov8A==
   dependencies:
     jmespath "^0.15.0"
     localized-strings "^0.2.2"
