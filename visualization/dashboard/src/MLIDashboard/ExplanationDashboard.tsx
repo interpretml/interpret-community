@@ -144,7 +144,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             } else if(localExplanation === undefined) { // Take the global if we can't build better from local
                 globalExplanation = {};
                 globalExplanation.flattenedFeatureImportances = props.precomputedExplanations.globalFeatureImportance.scores as number[];
-                globalExplanation.intercepts = [intercepts] as number[];
+                globalExplanation.intercepts = intercepts as number[];
             }
         }
         if (globalExplanation === undefined && localExplanation !== undefined) {

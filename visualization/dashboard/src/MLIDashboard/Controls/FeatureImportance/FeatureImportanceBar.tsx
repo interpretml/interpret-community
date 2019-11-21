@@ -79,6 +79,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 value={this.props.config.topK}
                                 onChange={this.setTopK}
                                 showValue={true}
+                                ariaLabel={localization.AggregateImportance.topKFeatures}
                             />
                         </div>
                         {(this.sortOptions.length > 0) && <ComboBox
@@ -147,8 +148,8 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
 
     private buildSortOptions(): IDropdownOption[] {
         if (this.props.dashboardContext.explanationContext.modelMetadata.modelType !== ModelTypes.multiclass ||
-            (this.props.dashboardContext.explanationContext.globalExplanation === undefined || 
-             this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances === undefined)) {
+            this.props.dashboardContext.explanationContext.globalExplanation === undefined ||
+            this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances === undefined) {
             return [];
         }
         const result: IDropdownOption[] = [{key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal}];
