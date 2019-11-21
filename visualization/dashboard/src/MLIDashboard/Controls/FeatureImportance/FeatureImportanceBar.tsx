@@ -60,7 +60,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                             styles={FabricStyles.smallDropdownStyle}
                         />}
                         <div className="slider-control">
-                            <div id="top-k-features-slider" className="slider-label" aria-label="top k features slider">
+                            <div className="slider-label">
                                 <span className="label-text">{localization.AggregateImportance.topKFeatures}</span>
                                 <IconButton
                                     id={this._iconId}
@@ -79,6 +79,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 value={this.props.config.topK}
                                 onChange={this.setTopK}
                                 showValue={true}
+                                aria-label="top k features slider"
                             />
                         </div>
                         {(this.sortOptions.length > 0) && <ComboBox
