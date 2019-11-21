@@ -23,6 +23,7 @@ class ExplainType(object):
     EXPLAINER = 'explainer'
     FUNCTION = 'function'
     HAN = 'han'
+    IS_ENG = 'is_engineered'
     IS_RAW = 'is_raw'
     LIME = 'lime'
     METHOD = 'method'
@@ -59,6 +60,7 @@ class ExplainParams(object):
     ID = 'id'
     INCLUDE_LOCAL = 'include_local'
     INIT_DATA = 'init_data'
+    IS_ENG = 'is_engineered'
     IS_RAW = 'is_raw'
     LOCAL_EXPLANATION = 'local_explanation'
     LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
@@ -66,6 +68,8 @@ class ExplainParams(object):
     MODEL_ID = 'model_id'
     MODEL_TASK = 'model_task'
     MODEL_TYPE = 'model_type'
+    NUM_CLASSES = 'num_classes'
+    NUM_FEATURES = 'num_features'
     PER_CLASS_NAMES = 'per_class_names'
     PER_CLASS_RANK = 'per_class_rank'
     PER_CLASS_VALUES = 'per_class_values'
@@ -178,9 +182,11 @@ class MimicSerializationConstants(object):
     MODEL = 'model'
     ORIGINAL_EVAL_EXAMPLES = '_original_eval_examples'
     PREDICT_PROBA_FLAG = 'predict_proba_flag'
+    TIMESTAMP_FEATURIZER = '_timestamp_featurizer'
 
     enum_properties = ['_shap_values_output']
-    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples', '_original_eval_examples']
+    nonify_properties = ['_logger', 'model', 'function', 'initialization_examples',
+                         '_original_eval_examples', '_timestamp_featurizer']
     save_properties = ['surrogate_model']
 
 
@@ -226,6 +232,9 @@ class InterpretData(object):
     UNIVARIATE = 'univariate'
     VALUE = 'value'
     VALUES = 'values'
+    EXPLANATION_CLASS_DIMENSION = 'explanation_class_dimension'
+    MULTICLASS = 'multiclass'
+    SINGLE = 'single'
 
 
 class Extension(object):
@@ -236,3 +245,9 @@ class Extension(object):
     GLOBAL = 'global'
     GREYBOX = 'specific'
     LOCAL = 'local'
+
+
+class SHAPDefaults(object):
+    """Provide constants for default values to shap."""
+
+    INDEPENDENT = 'independent'

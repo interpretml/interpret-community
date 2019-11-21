@@ -140,7 +140,7 @@ class WrappedClassificationModel(object):
         """
         is_sequential = str(type(self._model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
-            return self._model.predict_classes(dataset)
+            return self._model.predict_classes(dataset).flatten()
         return self._model.predict(dataset)
 
     def predict_proba(self, dataset):
@@ -167,6 +167,24 @@ class WrappedRegressionModel(object):
         :type dataset: DatasetWrapper
         """
         return self._eval_function(dataset)
+
+
+def wrap_model(model, examples, model_task):
+    """If needed, wraps the model in a common API based on model task and prediction function contract.
+
+    :param model: The model to evaluate on the examples.
+    :type model: model with a predict or predict_proba function.
+    :param examples: The model evaluation examples.
+    :type examples: DatasetWrapper
+    :param model_task: Optional parameter to specify whether the model is a classification or regression model.
+        In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
+        has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
+        outputs a 1 dimensional array.
+    :type model_task: str
+    :return: The wrapper model.
+    :rtype model
+    """
+    return _wrap_model(model, examples, model_task, False)
 
 
 def _wrap_model(model, examples, model_task, is_function):

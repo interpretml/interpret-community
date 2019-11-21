@@ -105,7 +105,8 @@ class ExplanationDashboard(object):
         if local_explanation is None and global_explanation is not None:
             try:
                 global_explanation["scores"] = self._convertToList(global_explanation["scores"])
-                global_explanation["intercept"] = self._convertToList(global_explanation["intercept"])
+                if 'intercept' in global_explanation:
+                    global_explanation["intercept"] = self._convertToList(global_explanation["intercept"])
                 dataArg[ExplanationDashboardInterface.GLOBAL_EXPLANATION] = global_explanation
             except Exception:
                 raise ValueError("Unsupported global explanation type")

@@ -8,11 +8,12 @@ import pytest
 import json
 import logging
 import numpy as np
-from interpret_community.common.constants import ShapValuesOutput
+from sklearn.pipeline import Pipeline
+from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
-    create_iris_data, create_cancer_data, create_energy_data
-from models import retrieve_model
+    create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data
+from models import retrieve_model, DataFrameTestModel
 from datasets import retrieve_dataset
 
 from constants import owner_email_tools_and_ux
@@ -235,6 +236,20 @@ class TestMimicExplainer(object):
     def test_explain_model_categorical(self, verify_mimic):
         for verifier in verify_mimic:
             verifier.verify_explain_model_categorical(pass_categoricals=True)
+
+    @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
+        (240, {}),
+        (20, {'fruit': ['apple', 'grape'], 'store': [100, 200, 50]})])
+    def test_dataframe_model(self, mimic_explainer, sample_cnt_per_grain, grains_dict):
+        X, _ = create_timeseries_data(sample_cnt_per_grain, 'time', 'y', grains_dict)
+        model = DataFrameTestModel(X.copy())
+        model = Pipeline([('test', model)])
+        features = list(X.columns.values) + list(X.index.names)
+        model_task = ModelTask.Unknown
+        kwargs = {'explainable_model_args': {'n_jobs': 1}, 'augment_data': False, 'reset_index': True}
+        if grains_dict:
+            kwargs['categorical_features'] = ['fruit']
+        mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
 
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
         model = retrieve_model('unbalanced_model.pkl')

@@ -205,10 +205,13 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             outputs a 1 dimensional array.
         :type model_task: str
         """
-        if isinstance(model, nn.Module):
-            # Wrap the model in an extra layer that converts the numpy array
-            # to pytorch Variable and adds predict and predict_proba functions
-            model = WrappedPytorchModel(model)
+        try:
+            if isinstance(model, nn.Module):
+                # Wrap the model in an extra layer that converts the numpy array
+                # to pytorch Variable and adds predict and predict_proba functions
+                model = WrappedPytorchModel(model)
+        except NameError:
+            self._logger.debug('Could not import torch, required if using a pytorch model')
         super(PFIExplainer, self).__init__(model, is_function=is_function, **kwargs)
         self._logger.debug('Initializing PFIExplainer')
 
@@ -404,6 +407,8 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             kwargs[ExplainParams.MODEL_TYPE] = ExplainType.FUNCTION
         dataset = evaluation_examples.dataset
         typed_wrapper_func = evaluation_examples.typed_wrapper_func
+
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
 
         def generate_predict_function():
             if self.model is not None:
