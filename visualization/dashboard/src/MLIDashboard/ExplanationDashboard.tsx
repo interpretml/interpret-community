@@ -497,7 +497,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 4 && (
                                 <EbmExplanation
                                     explanationContext={this.state.dashboardContext.explanationContext}
-                                    theme={''}
+                                    theme={this.props.theme}
                                 />
                             )}
                             {this.state.activeGlobalTab === 5 && (
