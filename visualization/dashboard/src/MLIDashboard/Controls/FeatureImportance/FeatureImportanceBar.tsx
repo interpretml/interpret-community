@@ -79,6 +79,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 value={this.props.config.topK}
                                 onChange={this.setTopK}
                                 showValue={true}
+                                ariaLabel={localization.AggregateImportance.topKFeatures}
                             />
                         </div>
                         {(this.sortOptions.length > 0) && <ComboBox
