@@ -1,49 +1,85 @@
 {
+    // Prompts the user to select a point
     "selectPoint": "Select a point to see its local explanation",
+    // models that output classes have this as the default class names
     "defaultClassNames": "Class {0}",
+    // the default column names 
     "defaultFeatureNames": "Feature {0}",
+    // https://en.wikipedia.org/wiki/Norm_(mathematics) Absolute value norm
     "absoluteAverage": "Average of absolute value",
+    // Norm based on the predicted class rather than absolute value as above
     "predictedClass": "Predicted class",
+    // Label for tab showing scatterplot of dataset and predictions
     "dataExploration": "Data Exploration",
+    // Label for tab showing bar chart of importance of features at a global level
     "globalImportance": "Global Importance",
+    // Label for tab showing scatter plot of dataset and importance of features data
     "explanationExploration": "Explanation Exploration",
+    // Label showing all importance of feature datapoints in scatter plot
     "summaryImportance": "Summary Importance",
+    // Label for feature importance 
     "featureImportance": "Feature Importance",
+    // Label for local tab allowing the user to change parameters on a selected point
     "perturbationExploration": "Perturbation Exploration",
+    // Lable for local tab showing feature importance of selected point
     "localFeatureImportance": "Local Feature Importance",
+    // Label for tab showing https://christophm.github.io/interpretable-ml-book/ice.html
     "ice": "ICE",
     "clearSelection": "Clear selection",
     "feature": "Feature:",
+    // The label for the linear intercept, the bias value
     "intercept": "Intercept",
     "ExplanationScatter": {
+        // prepend in frot of column nmaes
         "dataLabel": "Data : {0}",
+        // prepend in front of feature importance of column nmae
         "importanceLabel": "Importance : {0}",
+        // predicted output
         "predictedY": "PredictedY",
+        // the index value (an integer of the row number)
         "index": "Index",
         "dataGroupLabel": "Data",
         "output": "Output",
+        // Probability prefix for all classes in a multiclass problem
         "probabilityLabel": "Probability : {0}",
+        // The true value to be predicted
         "trueY": "True Y",
-        "class": "class",
+        // label for predicted class
+        "class": "class: ",
+        // label for x value dropdown
         "xValue": "X value:",
+        // label for y value dropdown
         "yValue": "Y value:",
+        // label for selecting color value
         "colorValue": "Color:"
     },
     "CrossClass": {
+        // label for dropdown allowing user to select how importance across multiple output classes is aggregated
         "label": "Cross-class weighting:",
+        // tooltip on hover
         "info": "Info",
+        // explains cross-class weighting
         "overviewInfo": "Multiclass models generate an independent feature importance vector for each class. Each class's feature importance vector demonstrates which features made a class more likely or less likely. You can select how the weights of the per-class feature importance vectors are summarized into a single value:",
+        // explains absolute value weights
         "absoluteValInfo": "Average of absolute value: Shows the sum of the feature's importance across all possible classes, divided by number of classes",
+        // explains predicted class weight
         "predictedClassInfo": "Predicted class: Shows the feature importance value for a given point's predicted class",
+        // explains the weights for selecting a single class
         "enumeratedClassInfo": "Enumerated class names: Shows only the specified class's feature importance values across all data points.",
         "close": "Close"
     },
     "AggregateImportance": {
+        // The chart shows all data in a color scale (normalized to 0 - 1). This is the label for the color bar
         "scaledFeatureValue": "Scaled Feature Value",
+        // The low end of the color bar
         "low": "Low",
+        /// label for the high end of the color bar
         "high": "High",
+        // Prefix to the feature name 
         "featureLabel": "Feature: {0}",
+        // prefix to the feature value
         "valueLabel": "Feature value: {0}",
+        // prefix to the feature importance
         "importanceLabel": "Importance: {0}",
         "predictedClassTooltip": "Predicted Class: {0}",
         "trueClassTooltip": "True Class: {0}",
@@ -105,30 +141,5 @@
         "beehiveText": "Swarm",
         "globalImportanceExplanation": "Global feature importance is calculated by averaging the absolute value of the feature importance of all points (L1 normalization). ",
         "multiclassImportanceAddendum": "All points are included in calculating a feature's importance for all classes, no differential weighting is used. So a feature that has large negative importance for many points predicted to not be of 'Class A' will greatly increase that feature's 'Class A'  importance."
-    },
-    "Fairness": {
-        "accuracyTab": "Fairness in Accuracy",
-        "opportunityTab": "Fairness in Opportunity",
-        "modelComparisonTab": "Model Comparison",
-        "tableTab": "Detail View",
-        "dataSpecifications": "Data Specifications",
-        "attributes": "Attributes",
-        "attributesCount": "{0} attributes",
-        "instanceCount": "{0} instances",
-        "Accuracy": {
-            "header": "How do you want to measure accuracy",
-            "body": "We have determined that your model generates {0} predictions. Based on the information, we recommend the following accuracy metrics:"
-        },
-        "Parity": {
-            "header": "Fairness measured in terms of disparity",
-            "body": "Disparity metrics quantify variation of your model's behavior across selected features. There are two kinds of disparity metrics: more to come...."
-        },
-        "Footer": {
-            "back": "Back",
-            "next": "Next"
-        },
-        "Report": {
-            "title": "Accuracy and fairness assessment"
-        }
     }
 }
