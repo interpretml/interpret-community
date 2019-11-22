@@ -113,6 +113,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                         </Callout>
                         )}
                     <BarChart 
+                        theme={this.props.theme}
                         intercept={this.props.dashboardContext.explanationContext.globalExplanation.intercepts}
                         featureByClassMatrix={featuresByClassMatrix}
                         sortedIndexVector={sortVector}
