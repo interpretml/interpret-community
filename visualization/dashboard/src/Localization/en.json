@@ -81,65 +81,111 @@
         "valueLabel": "Feature value: {0}",
         // prefix to the feature importance
         "importanceLabel": "Importance: {0}",
+        // prefixed in front of the output class names predicted by the model
         "predictedClassTooltip": "Predicted Class: {0}",
+        // prefixed in front of the true class labels
         "trueClassTooltip": "True Class: {0}",
+        // prefixed in front of the output in a regression model (numeric, no classes)
         "predictedOutputTooltip": "Predicted Output: {0}",
+        // prefixed in front of the true value in a regression model (numeric, no classes)
         "trueOutputTooltip": "True Output: {0}",
+        // Label for slider to show only the top (k) most important features, where the slider is used to set the value of k
         "topKFeatures": "Top K Features:",
-        "scaledFeatureValues": "Scaled Feature Values",
+        // Label for dropdown option, group data by the predicted value from the model (numeric values)
         "predictedValue": "Predicted Value",
+        // Label for dropdown option, group data by predicted class from model
         "predictedClass": "Predicted Class",
+        // label for dropdown option, group data by true value (numeric)
         "trueValue": "True Value",
+        // label for dropdown, group data by true class
         "trueClass": "True Class",
+        // label for dropdown, do not apply any grouping
         "noColor": "None",
+        // error message if the dataset is too large to visualize
         "tooManyRows": "The provided dataset is larger than this chart can support"
     },
     "BarChart": {
+        // Prefix for class 
         "classLabel": "Class: {0}",
+        // prompt for setting how values are sorted
         "sortBy": "Sort by",
+        // Error message for no applicable data
         "noData": "No Data",
+        // sorting option, sort by the absolute value of the importance of all datapoints
         "absoluteGlobal": "Absolute global",
+        // sorting option, sort by the absolute value of the importance for the single selected point
         "absoluteLocal": "Absolute local",
+        // loading message
         "calculatingExplanation": "Calculating explanation"
     },
     "IcePlot": {
+        // error message if non-numeric characters typed
         "numericError": "Must be numeric",
+        // error message if non-integer values typed by user
         "integerError": "Must be an integer",
+        // Prediction label for y-axis
         "prediction": "Prediction",
+        // predicted probability label for y-axis
         "predictedProbability": "Predicted probability",
+        // prediction hover prefix
         "predictionLabel": "Prediction: {0}",
+        // probability hover prefix
         "probabilityLabel": "Probability: {0}",
+        // error message for no model present
         "noModelError": "Please provide an operationalized model to explore predictions in ICE plots.",
+        // feature dropdown label
         "featurePickerLabel": "Feature:",
+        // Set minimum bounds label
         "minimumInputLabel": "Minimum:",
+        // set maximum bounds label
         "maximumInputLabel": "Maximum:",
+        // number of samples to include between minimum and maximum (integer)
         "stepInputLabel": "Steps:",
+        // loading message
         "loadingMessage": "Loading data...",
+        // prompt to user giving instructions to enter a numeric range
         "submitPrompt": "Submit a range to view an ICE plot",
+        // error message for any parameter issue
         "topLevelErrorMessage": "Error in parameter",
+        // prefix in front of external error
         "errorPrefix": "Error encountered: {0}"
     },
     "PerturbationExploration": {
+        // loading message
         "loadingMessage": "Loading...",
+        // Perturbation (ie. the user has made a set of small changes to the original data -- a perturbation. This is the label for the resulting prediction)
         "perturbationLabel": "Perturbation:"
     },
     "PredictionLabel": {
+        // label for prediction of numeric values
         "predictedValueLabel": "Predicted value : {0}",
+        // label for prediction of class value
         "predictedClassLabel": "Predicted class : {0}"
     },
     "Violin": {
+        // Do not group data option
         "groupNone": "No grouping",
+        // option to group data by predicted class
         "groupPredicted": "Predicted Y",
+        // option to group data by true class
         "groupTrue": "True Y",
+        // Group by prompt for dropdown to select how data should be grouped
         "groupBy": "Group by"
     },
     "FeatureImportanceWrapper": {
+        // label for dropdown to select chart format
         "chartType": "Chart type:",
+        //  a violin plot https://en.wikipedia.org/wiki/Violin_plot
         "violinText": "Violin",
+        // a bar plot 
         "barText": "Bar",
+        // a box plot https://en.wikipedia.org/wiki/Box_plot
         "boxText": "Box",
+        // A swarm plot (its like a scatter plot with categorical x axis with dithering, see examples https://seaborn.pydata.org/generated/seaborn.swarmplot.html)
         "beehiveText": "Swarm",
+        // explains how global feature importance is calculated 
         "globalImportanceExplanation": "Global feature importance is calculated by averaging the absolute value of the feature importance of all points (L1 normalization). ",
+        // explains how global importance is calculated for each class in a multiclass case.
         "multiclassImportanceAddendum": "All points are included in calculating a feature's importance for all classes, no differential weighting is used. So a feature that has large negative importance for many points predicted to not be of 'Class A' will greatly increase that feature's 'Class A'  importance."
     }
 }
