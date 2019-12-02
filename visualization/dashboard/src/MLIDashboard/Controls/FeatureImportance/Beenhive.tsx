@@ -95,7 +95,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         _.set(plotlyProps, 'layout.xaxis.tickvals', sortVector.map((val, index) => index));
         if (explanationContext.modelMetadata.modelType === ModelTypes.binary) {
             _.set(plotlyProps, 'layout.yaxis.title',
-                `${localization.featureImportance}<br> ${localization.ExplanationScatter.class} : ${explanationContext.modelMetadata.classNames[0]}`);
+                `${localization.featureImportance}<br> ${localization.ExplanationScatter.class} ${explanationContext.modelMetadata.classNames[0]}`);
         }
         if (selectedOption === undefined || selectedOption.key === "none") {
             PlotlyUtils.clearColorProperties(plotlyProps);
