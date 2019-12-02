@@ -1,14 +1,13 @@
-import { IDashboardContext } from "../../ExplanationDashboard";
-import { IComboBoxOption, IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
 import _ from "lodash";
-import { IDropdownOption, DropdownMenuItemType } from "office-ui-fabric-react/lib/Dropdown";
-import { localization } from "../../../Localization/localization";
 import * as memoize from "memoize-one";
-import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
-import { PlotlyMode, IPlotlyProperty, SelectionContext } from "../../../Shared";
-import { ChartBuilder, AccessorMappingFunctionNames } from "../../../ChartTools";
+import { AccessorMappingFunctionNames, ChartBuilder, IPlotlyProperty, PlotlyMode, SelectionContext } from "mlchartlib";
+import { IComboBoxOption, IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
+import { DropdownMenuItemType, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { localization } from "../../../Localization/localization";
+import { IDashboardContext } from "../../ExplanationDashboard";
 import { FabricStyles } from "../../FabricStyles";
-import { IHelpMessage, HelpMessageDict } from "../../Interfaces";
+import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
+import { HelpMessageDict } from "../../Interfaces";
 import { PlotlyUtils } from "../../SharedComponents";
 
 export interface IScatterProps {

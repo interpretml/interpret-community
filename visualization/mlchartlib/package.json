@@ -12,9 +12,9 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools",
+    "build-css": "node-sass-chokidar src/ -o rel/",
     "build-dev": "npm run build && npm run copy",
-    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\mlchartlib\\rel\" /e /y"
+    "copy": "xcopy \"rel\" \"..\\dashboard\\node_modules\\mlchartlib\\rel\" /e /y"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",

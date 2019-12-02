@@ -6,9 +6,8 @@ import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
 import React from "react";
-import { ChartBuilder, AccessibleChart } from "../../../ChartTools";
+import { ChartBuilder, AccessibleChart, IPlotlyProperty } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
-import { IPlotlyProperty } from "../../../Shared";
 import { FabricStyles } from "../../FabricStyles";
 import { IExplanationContext, ModelTypes } from "../../IExplanationContext";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";

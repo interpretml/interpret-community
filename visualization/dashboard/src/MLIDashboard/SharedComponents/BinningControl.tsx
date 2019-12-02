@@ -1,13 +1,11 @@
-import React from "react";
-import { ComboBox, IComboBoxOption, IComboBox } from "office-ui-fabric-react/lib/ComboBox";
-import { TextField } from "office-ui-fabric-react/lib/TextField";
-import { RangeTypes } from "../../Shared/RangeTypes";
-import { localization } from "../../Localization/localization";
 import _ from "lodash";
-import { ICategoricalRange } from "../../Shared/ICategoricalRange";
-import { INumericRange, IModelMetadata } from "../../Shared";
-import { FabricStyles } from "../FabricStyles";
+import { ICategoricalRange, IModelMetadata, INumericRange, RangeTypes } from "mlchartlib";
+import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { TextField } from "office-ui-fabric-react/lib/TextField";
+import React from "react";
+import { localization } from "../../Localization/localization";
+import { FabricStyles } from "../FabricStyles";
 require("./BinningControl.css");
 
 export interface IBinningProps {

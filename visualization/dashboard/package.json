@@ -1,6 +1,6 @@
 {
-  "name": "mlchartlib",
-  "version": "0.1.32",
+  "name": "interpret-dashboard",
+  "version": "0.1.1",
   "license": "See license file 'LICENSE'",
   "description": "ML Chart Lib",
   "main": "rel/index.js",
@@ -12,9 +12,9 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools",
+    "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/",
     "build-dev": "npm run build && npm run copy",
-    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\mlchartlib\\rel\" /e /y"
+    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\interpret-dashboard\\rel\" /e /y"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",
@@ -39,6 +39,7 @@
     "localized-strings": "^0.2.2",
     "lodash": "^4.17.11",
     "memoize-one": "^5.0.2",
+    "mlchartlib": "../mlchartlib",
     "moment": "^2.24.0",
     "office-ui-fabric-react": "^7.11.0",
     "plotly.js-dist": "^1.45.3",

@@ -2731,6 +2731,15 @@ mkdirp@0.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
+mlchartlib@../mlchartlib:
+  version "0.1.32"
+  dependencies:
+    jmespath "^0.15.0"
+    lodash "^4.17.11"
+    moment "^2.24.0"
+    plotly.js-dist "^1.45.3"
+    uuid "^3.3.2"
+
 moment@^2.24.0:
   version "2.24.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"

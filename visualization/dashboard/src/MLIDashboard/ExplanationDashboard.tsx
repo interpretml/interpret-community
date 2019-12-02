@@ -7,7 +7,7 @@ import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps } from "office-ui-fabric-react/lib/Pivot";
 import * as React from "react";
 import { localization } from "../Localization/localization";
-import { IPlotlyProperty, SelectionContext } from "../Shared";
+import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata } from "mlchartlib";
 import { FabricStyles } from "./FabricStyles";
 import {
     FeatureImportanceWrapper,
@@ -26,16 +26,11 @@ import {
     FeatureImportanceBar
 } from "./Controls";
 
-import { ICategoricalRange } from "../Shared/ICategoricalRange";
 import { IExplanationContext, IExplanationGenerators, IGlobalExplanation, ILocalExplanation, IExplanationModelMetadata, ITestDataset, ModelTypes, IFeatureValueExplanation, IMultiClassBoundedCoordinates } from "./IExplanationContext";
 import { IExplanationDashboardProps } from "./Interfaces/IExplanationDashboardProps";
-import { INumericRange } from "../Shared/INumericRange";
 import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from "./IWeightedDropdownContext";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
-import { RangeTypes } from "../Shared/RangeTypes";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
-import { HelpMessageDict } from "./Interfaces/IStringsParam";
-import { ModelMetadata } from "../Shared/ModelMetadata";
 import { EbmExplanation } from "./Controls/EbmExplanation";
 
 initializeIcons();
@@ -281,10 +276,10 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             } else if (props.precomputedExplanations && props.precomputedExplanations.ebmGlobalExplanation) {
                 featureLength = props.precomputedExplanations.ebmGlobalExplanation.feature_list.length;
             }
-            featureNames = ModelMetadata.buildIndexedNames(featureLength, localization.defaultFeatureNames);
+            featureNames = ExplanationDashboard.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
         }
-        const classNames = props.dataSummary.classNames || ModelMetadata.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
+        const classNames = props.dataSummary.classNames || ExplanationDashboard.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
@@ -295,6 +290,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             featureRanges,
             modelType,
         };
+    }
+
+    private static buildIndexedNames(length: number, baseString: string): string[] {
+        return Array.from(Array(length).keys())
+        .map(i => localization.formatString(baseString, i.toString()) as string);
     }
 
     private static buildWeightDropdownOptions: (explanationContext: IExplanationContext) => IDropdownOption[]

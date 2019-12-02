@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExplanationDashboard } from 'mlchartlib';
+import { ExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
@@ -108,7 +108,6 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         requestLocalFeatureExplanations={this.generateExplanatins.bind(this, App.choices[this.state.value].data.localExplanations)}
-                        theme={"dark"}
                         key={new Date()}
                       />
                   </div>
