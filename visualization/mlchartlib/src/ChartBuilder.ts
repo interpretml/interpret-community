@@ -1,5 +1,5 @@
 import { Data, Datum } from "plotly.js-dist";
-import { IData } from "../Shared";
+import { IData } from "./IData";
 import * as jmespath from 'jmespath';
 import * as _ from 'lodash';
 import { AccessorMappingFunctions } from './AccessorMappingFunctions';

@@ -6,7 +6,8 @@ import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
 import { PlotlyThemes } from './PlotlyThemes';
 
-import { IPlotlyProperty, SelectionContext } from '../Shared';
+import { IPlotlyProperty } from './IPlotlyProperty';
+import {SelectionContext} from './SelectionContext';
 
 type SelectableChartType = 'scatter' | 'multi-line' | 'non-selectable';
 
@@ -20,8 +21,8 @@ export interface AccessibleChartProps {
     onSelection?: (chartID: string, selectionIds: string[], plotlyProps: IPlotlyProperty) => void;
 }
 
-export class AccessibleChart extends React.Component<AccessibleChartProps, { loading: boolean }> {
-    private guid: string = uuidv4();
+export class AccessibleChart extends React.Component<AccessibleChartProps> {
+    public guid: string = uuidv4();
     private timer: number;
     private subscriptionId: string;
     private plotlyRef: PlotlyHTMLElement;
@@ -29,7 +30,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
 
     constructor(props: AccessibleChartProps) {
         super(props);
-        this.state = { loading: true };
         this.onChartClick = this.onChartClick.bind(this);
     }
 
@@ -53,9 +53,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
                 }
                 this.subscribeToSelections();
             }
-            if (!this.state.loading) {
-                this.setState({ loading: true });
-            }
         } else if (!_.isEqual(this.props.relayoutArg, prevProps.relayoutArg) && this.guid) {
             Plotly.relayout(this.guid, this.props.relayoutArg);
         }
@@ -74,11 +71,9 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
         if (this.hasData()) {
             return (
                 <>
-                    {this.state.loading && <div className="LoadingScreen">{'Loading...'}</div>}
                     <div
                         className="GridChart"
                         id={this.guid}
-                        style={{ visibility: this.state.loading ? 'hidden' : 'visible' }}
                     />
                     {this.createTableWithPlotlyData(this.props.plotlyProps.data)}
                 </>
@@ -96,10 +91,10 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
     }
 
     private subscribeToSelections(): void {
-        if (this.plotSelectionType(this.props.plotlyProps) !== 'non-selectable' && this.props.sharedSelectionContext) {
+        if (this.props.sharedSelectionContext && this.props.onSelection) {
             this.subscriptionId = this.props.sharedSelectionContext.subscribe({
                 selectionCallback: selections => {
-                    this.applySelections(selections);
+                    this.props.onSelection(this.guid, selections, this.props.plotlyProps);
                 }
             });
         }
@@ -114,8 +109,8 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
             : _.cloneDeep(this.props.plotlyProps);
         this.timer = window.setTimeout(async () => {
             this.plotlyRef = await Plotly.react(this.guid, themedProps.data, themedProps.layout, themedProps.config);
-            if (this.props.sharedSelectionContext) {
-                this.applySelections(this.props.sharedSelectionContext.selectedIds);
+            if (this.props.sharedSelectionContext && this.props.onSelection) {
+                this.props.onSelection(this.guid, this.props.sharedSelectionContext.selectedIds, this.props.plotlyProps);
             }
 
             if (!this.isClickHandled) {
@@ -148,7 +143,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
     }
 
     private plotSelectionType(plotlyProps: IPlotlyProperty): SelectableChartType {
-
         if (plotlyProps.data.length > 0 && plotlyProps.data[0] && (((plotlyProps.data[0].type as any) === 'scatter') || (plotlyProps.data[0].type as any) === 'scattergl')) {
             if (
                 plotlyProps.data.length > 1 &&

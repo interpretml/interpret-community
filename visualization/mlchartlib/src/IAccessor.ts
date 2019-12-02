@@ -1,4 +1,4 @@
-import { AccessorMappingFunctionNames } from '../ChartTools/AccessorMappingFunctionNames';
+import { AccessorMappingFunctionNames } from './AccessorMappingFunctionNames';
 
 export interface IAccessor {
     mapArgs?: any[];
