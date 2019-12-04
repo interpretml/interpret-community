@@ -48,6 +48,7 @@ class ExplainParams(object):
     CLASSES = 'classes'
     CLASSIFICATION = 'classification'
     EVAL_DATA = 'eval_data'
+    EVAL_DATA_VIZ = 'eval_data_viz'
     EVAL_Y_PRED = 'eval_y_predicted'
     EVAL_Y_PRED_PROBA = 'eval_y_predicted_proba'
     EXPECTED_VALUES = 'expected_values'
@@ -97,6 +98,7 @@ class Defaults(object):
     # See this github repo for more details: https://github.com/scikit-learn-contrib/hdbscan
     HDBSCAN = 'hdbscan'
     MAX_DIM = 50
+    EVAL_DATA_VIZ_LIMIT = 5000
 
 
 class Attributes(object):
