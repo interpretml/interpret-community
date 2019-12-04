@@ -1248,7 +1248,6 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplainParams.MODEL_ID] = model_id
     DynamicLocalExplanation = type(Dynamic.LOCAL_EXPLANATION, tuple(mixins), {})
     local_explanation = DynamicLocalExplanation(explanation_id=exp_id, **kwargs)
-
     if hasattr(local_explanation, ExplainParams.EVAL_DATA):
         if (len(local_explanation.eval_data) > Defaults.EVAL_DATA_VIZ_LIMIT):
             random_indices = sorted(np.random.choice(local_explanation.eval_data.shape[0], Defaults.EVAL_DATA_VIZ_LIMIT, replace=False))
@@ -1256,7 +1255,6 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         else:
             eval_data_for_viz = local_explanation.eval_data
         setattr(local_explanation, ExplainParams.EVAL_DATA_VIZ, eval_data_for_viz)
-
     return local_explanation
 
 
