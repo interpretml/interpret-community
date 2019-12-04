@@ -31,11 +31,11 @@ class TestMimicExplainer(object):
     def test_working(self):
         assert True
 
-    def test_explain_model_local(self, verify_mimic):
+    def test_explain_model_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
         num_overall_features_equal = -1
-        for idx, verifier in enumerate(verify_mimic):
+        for idx, verifier in enumerate(verify_mimic_classifier):
             # SGD test results differ from one machine to another, not sure where the difference comes from
             if idx == SGD_MODEL_IDX:
                 num_overall_features_equal = 2
@@ -43,51 +43,51 @@ class TestMimicExplainer(object):
                                                 iris_per_class_expected_features[idx],
                                                 num_overall_features_equal=num_overall_features_equal)
 
-    def test_explain_model_local_dnn(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_local_dnn(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_local_dnn()
 
-    def test_explain_model_local_without_evaluation_examples(self, verify_mimic):
+    def test_explain_model_local_without_evaluation_examples(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features_without_evaluation
-        for idx, verifier in enumerate(verify_mimic):
+        for idx, verifier in enumerate(verify_mimic_classifier):
             verifier.verify_explain_model_local(iris_overall_expected_features[idx],
                                                 is_per_class=False,
                                                 include_evaluation_examples=False)
 
-    def test_explain_model_local_without_include_local(self, verify_mimic):
+    def test_explain_model_local_without_include_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
-        for idx, verifier in enumerate(verify_mimic):
+        for idx, verifier in enumerate(verify_mimic_classifier):
             verifier.verify_explain_model_local(iris_overall_expected_features[idx],
                                                 iris_per_class_expected_features[idx],
                                                 include_local=False)
 
-    def test_explain_model_local_regression_without_include_local(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_local_regression_without_include_local(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_local_regression(include_local=False)
 
-    def test_explain_model_local_regression_dnn(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_local_regression_dnn(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_local_regression_dnn()
 
-    def test_explain_model_pandas_input(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_pandas_input(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_pandas_input()
 
-    def test_explain_model_pandas_input_without_include_local(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_pandas_input_without_include_local(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_pandas_input(include_local=False)
 
-    def test_explain_model_pandas_input_without_evaluation_examples(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_pandas_input_without_evaluation_examples(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_pandas_input(include_local=False, include_evaluation_examples=False)
 
-    def test_explain_model_int_features(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_int_features(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_int_features(is_per_class=False)
 
-    def test_explain_model_int_features_without_evaluation_examples(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_int_features_without_evaluation_examples(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_int_features(is_per_class=False, include_evaluation_examples=False)
 
     def test_explain_model_npz_linear(self, verify_sparse_mimic):
@@ -121,8 +121,8 @@ class TestMimicExplainer(object):
             verifier.verify_explain_model_hashing(summarize_background=False,
                                                   include_evaluation_examples=False)
 
-    def test_explain_model_subset_classification_dense(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_subset_classification_dense(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_subset_classification_dense(is_local=False)
 
     def test_explain_model_subset_regression_sparse(self, verify_sparse_mimic):
@@ -154,49 +154,53 @@ class TestMimicExplainer(object):
                 except json.decoder.JSONDecodeError:
                     pass
 
-    def test_explain_with_transformations_list_classification(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_with_transformations_list_classification(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_transformations_list_classification()
 
-    def test_explain_with_transformations_column_transformer_classification(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_with_transformations_column_transformer_classification(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_transformations_column_transformer_classification()
 
-    def test_explain_with_transformations_list_regression(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_with_transformations_list_regression(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_transformations_list_regression()
 
-    def test_explain_with_transformations_column_transformer_regression(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_with_transformations_column_transformer_regression(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_transformations_column_transformer_regression()
 
-    def test_explain_model_shap_values_binary(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_shap_values_binary(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_shap_values_binary()
 
-    def test_explain_model_shap_values_multiclass(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_shap_values_multiclass(self, verify_mimic_classifier):
+        for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_shap_values_multiclass()
 
-    def test_explain_model_shap_values_binary_proba(self, verify_mimic):
+    def test_explain_model_shap_values_binary_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
-        verify_mimic[LGBM_MODEL_IDX].verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY)
+        verify_mimic_classifier[LGBM_MODEL_IDX].verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY)
 
-    def test_explain_model_shap_values_multiclass_proba(self, verify_mimic):
+    def test_explain_model_shap_values_multiclass_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
-        verify_mimic[LGBM_MODEL_IDX].verify_explain_model_shap_values_multiclass(ShapValuesOutput.PROBABILITY)
+        verify_mimic = verify_mimic_classifier[LGBM_MODEL_IDX]
+        verify_mimic.verify_explain_model_shap_values_multiclass(ShapValuesOutput.PROBABILITY)
 
-    def test_explain_model_shap_values_binary_teacher_proba(self, verify_mimic):
+    def test_explain_model_shap_values_binary_teacher_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
-        verify_mimic[LGBM_MODEL_IDX].verify_explain_model_shap_values_binary(ShapValuesOutput.TEACHER_PROBABILITY)
+        verify_mimic = verify_mimic_classifier[LGBM_MODEL_IDX]
+        verify_mimic.verify_explain_model_shap_values_binary(ShapValuesOutput.TEACHER_PROBABILITY)
 
-    def test_explain_model_shap_values_multiclass_teacher_proba(self, verify_mimic):
+    def test_explain_model_shap_values_multiclass_teacher_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
-        verify_mimic[LGBM_MODEL_IDX].verify_explain_model_shap_values_multiclass(ShapValuesOutput.TEACHER_PROBABILITY)
+        verify_mimic = verify_mimic_classifier[LGBM_MODEL_IDX]
+        verify_mimic.verify_explain_model_shap_values_multiclass(ShapValuesOutput.TEACHER_PROBABILITY)
 
-    def test_explain_model_shap_values_regression_teacher(self, verify_mimic):
+    def test_explain_model_shap_values_regression_teacher(self, verify_mimic_regressor):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
-        verify_mimic[LGBM_MODEL_IDX].verify_explain_model_shap_values_regression(ShapValuesOutput.TEACHER_PROBABILITY)
+        verify_mimic = verify_mimic_regressor[LGBM_MODEL_IDX]
+        verify_mimic.verify_explain_model_shap_values_regression(ShapValuesOutput.TEACHER_PROBABILITY)
 
     def _validate_model_serialization(self, model, x_train, x_test, mimic_explainer):
         explainable_model = LGBMExplainableModel
@@ -233,8 +237,8 @@ class TestMimicExplainer(object):
         model = create_sklearn_linear_regressor(x_train, y_train)
         self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
 
-    def test_explain_model_categorical(self, verify_mimic):
-        for verifier in verify_mimic:
+    def test_explain_model_categorical(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_categorical(pass_categoricals=True)
 
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [

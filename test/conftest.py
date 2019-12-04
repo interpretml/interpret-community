@@ -110,14 +110,27 @@ def generate_create_method(explainable_model, is_sparse=False, explainable_model
     return create_explainer
 
 
-@pytest.fixture(scope='session')
-def verify_mimic():
+def get_mimic_explainers(classifier=True):
     verify_mimic = []
     explainers = [LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel, DecisionTreeExplainableModel]
-    for explainer in explainers:
-        generated_create_explainer = generate_create_method(explainer)
+    if classifier:
+        explainable_models_args = [{}, {'solver': 'liblinear'}, {}, {}]
+    else:
+        explainable_models_args = [{}, {}, {}, {}]
+    for explainer, explainable_model_args in zip(explainers, explainable_models_args):
+        generated_create_explainer = generate_create_method(explainer, explainable_model_args=explainable_model_args)
         verify_mimic.append(VerifyTabularTests(test_logger, generated_create_explainer, specify_policy=False))
     return verify_mimic
+
+
+@pytest.fixture(scope='session')
+def verify_mimic_classifier():
+    return get_mimic_explainers(classifier=True)
+
+
+@pytest.fixture(scope='session')
+def verify_mimic_regressor():
+    return get_mimic_explainers(classifier=False)
 
 
 @pytest.fixture(scope='session')
@@ -140,7 +153,7 @@ def verify_mimic_special_args():
                                                    explainable_model_args=lgbm_explainable_model_args)
 
     # Validation of special args passed to underlying linear and sgd model
-    linear_explainable_model_args = {'fit_intercept': False}
+    linear_explainable_model_args = {'fit_intercept': False, 'solver': 'liblinear'}
     linear_create_explainer = generate_create_method(LinearExplainableModel, is_sparse=False,
                                                      explainable_model_args=linear_explainable_model_args)
     sgd_explainable_model_args = {'fit_intercept': False, 'alpha': 0.001, 'early_stopping': True}

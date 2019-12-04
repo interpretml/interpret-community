@@ -63,7 +63,7 @@ def create_linear_vectorizer():
 
 
 def create_sklearn_random_forest_classifier(X, y):
-    rfc = ensemble.RandomForestClassifier(max_depth=4, random_state=777)
+    rfc = ensemble.RandomForestClassifier(n_estimators=10, max_depth=4, random_state=777)
     model = rfc.fit(X, y)
     return model
 
@@ -107,7 +107,7 @@ def create_pandas_only_svm_classifier(X, y, probability=True):
 
 
 def create_sklearn_random_forest_regressor(X, y):
-    rfr = ensemble.RandomForestRegressor(max_depth=4, random_state=777)
+    rfr = ensemble.RandomForestRegressor(n_estimators=10, max_depth=4, random_state=777)
     model = rfr.fit(X, y)
     return model
 
@@ -121,7 +121,7 @@ def create_sklearn_linear_regressor(X, y, pipeline=False):
 
 
 def create_sklearn_logistic_regressor(X, y, pipeline=False):
-    lin = linear_model.LogisticRegression()
+    lin = linear_model.LogisticRegression(solver='liblinear')
     if pipeline:
         lin = Pipeline([('lin', lin)])
     model = lin.fit(X, y)
