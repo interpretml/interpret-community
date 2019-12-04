@@ -1250,11 +1250,13 @@ def _create_local_explanation(expected_values=None, classification=True, explana
     local_explanation = DynamicLocalExplanation(explanation_id=exp_id, **kwargs)
     if hasattr(local_explanation, ExplainParams.EVAL_DATA):
         if (len(local_explanation.eval_data) > Defaults.EVAL_DATA_VIZ_LIMIT):
-            random_indices = sorted(np.random.choice(local_explanation.eval_data.shape[0], Defaults.EVAL_DATA_VIZ_LIMIT, replace=False))
+            random_indices = sorted(np.random.choice(local_explanation.eval_data.shape[0],
+                                    Defaults.EVAL_DATA_VIZ_LIMIT, replace=False))
             eval_data_for_viz = local_explanation.eval_data[random_indices]
         else:
             eval_data_for_viz = local_explanation.eval_data
-        setattr(local_explanation, ExplainParams.EVAL_DATA_VIZ, eval_data_for_viz)
+        setattr(local_explanation, ExplainParams.EVAL_DATA_VIZ,
+                eval_data_for_viz)
     return local_explanation
 
 
@@ -1356,7 +1358,8 @@ def _create_global_explanation(local_explanation=None, expected_values=None,
     DynamicGlobalExplanation = type(Dynamic.GLOBAL_EXPLANATION, tuple(mixins), {})
     global_explanation = DynamicGlobalExplanation(**kwargs)
     if hasattr(local_explanation, ExplainParams.EVAL_DATA_VIZ):
-        setattr(global_explanation, ExplainParams.EVAL_DATA_VIZ, getattr(local_explanation, ExplainParams.EVAL_DATA_VIZ))
+        setattr(global_explanation, ExplainParams.EVAL_DATA_VIZ,
+                getattr(local_explanation, ExplainParams.EVAL_DATA_VIZ))
     return global_explanation
 
 
