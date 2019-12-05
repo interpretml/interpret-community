@@ -295,6 +295,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         kwargs = _get_explain_global_kwargs(sampling_policy, ExplainType.SHAP_DEEP, include_local, batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         return self._explain_global(evaluation_examples, **kwargs)
 
     def _get_explain_local_kwargs(self, evaluation_examples):
@@ -319,7 +320,9 @@ class DeepExplainer(StructuredInitModelExplainer):
         if self.classes is not None:
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
+
         # for now convert evaluation examples to dense format if they are sparse
         # until DeepExplainer sparse support is added
         dense_examples = _get_dense_examples(evaluation_examples)

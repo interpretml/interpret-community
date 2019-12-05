@@ -1,6 +1,6 @@
 {
   "name": "mlchartlib",
-  "version": "0.1.30",
+  "version": "0.1.32",
   "license": "See license file 'LICENSE'",
   "description": "ML Chart Lib",
   "main": "rel/index.js",
@@ -14,7 +14,7 @@
     "build": "tsc",
     "build-css": "node-sass-chokidar src/MLIDashboard -o rel/ && node-sass-chokidar src/ChartTools -o rel/ && node-sass-chokidar src/MLIDashboard -o rel/MLIDashboard/ && node-sass-chokidar src/ChartTools -o rel/ChartTools",
     "build-dev": "npm run build && npm run copy",
-    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\fairlearn-dashboard\\rel\" /e /y"
+    "copy": "xcopy \"rel\" \"..\\test\\test-page\\node_modules\\mlchartlib\\rel\" /e /y"
   },
   "devDependencies": {
     "@types/jest": "^24.0.15",

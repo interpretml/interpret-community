@@ -50,6 +50,7 @@ class ExplanationDashboard(object):
         dataset_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EXPLANATION_DATASET_KEY)
 
         predicted_y = None
+        feature_length = None
         if dataset_explanation is not None:
             if datasetX is None:
                 datasetX = dataset_explanation[ExplanationDashboardInterface.MLI_DATASET_X_KEY]
@@ -120,7 +121,7 @@ class ExplanationDashboard(object):
             features = explanationObject.features
         if features is not None:
             features = self._convertToList(features)
-            if len(features) != feature_length:
+            if feature_length is not None and len(features) != feature_length:
                 raise ValueError("Feature vector length mismatch: \
                     feature names length differs from local explanations dimension")
             dataArg[ExplanationDashboardInterface.FEATURE_NAMES] = features
@@ -132,7 +133,8 @@ class ExplanationDashboard(object):
                 raise ValueError("Class vector length mismatch: \
                     class names length differs from local explanations dimension")
             dataArg[ExplanationDashboardInterface.CLASS_NAMES] = classes
-        if model is not None and hasattr(model, 'predict_proba') and model.predict_proba is not None:
+        if model is not None and hasattr(model, 'predict_proba') \
+           and model.predict_proba is not None and datasetX is not None:
             try:
                 probability_y = model.predict_proba(datasetX)
             except Exception:

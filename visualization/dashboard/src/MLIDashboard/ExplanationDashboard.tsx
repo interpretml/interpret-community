@@ -144,7 +144,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             } else if(localExplanation === undefined) { // Take the global if we can't build better from local
                 globalExplanation = {};
                 globalExplanation.flattenedFeatureImportances = props.precomputedExplanations.globalFeatureImportance.scores as number[];
-                globalExplanation.intercepts = [intercepts] as number[];
+                globalExplanation.intercepts = intercepts as number[];
             }
         }
         if (globalExplanation === undefined && localExplanation !== undefined) {
@@ -356,6 +356,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        if (this.props.locale) {
+            localization.setLanguage(this.props.locale)
+        }
         const explanationContext: IExplanationContext = ExplanationDashboard.buildInitialExplanationContext(props);
         const defaultTopK = Math.min(8, explanationContext.modelMetadata.featureNames.length);
         this.onClassSelect = this.onClassSelect.bind(this);
@@ -457,6 +460,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 0 && (
                                 <DataExploration
                                     dashboardContext={this.state.dashboardContext}
+                                    theme={this.props.theme}
                                     selectionContext={this.selectionContext}
                                     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
@@ -466,6 +470,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 1 && (
                                 <FeatureImportanceBar
                                     dashboardContext={this.state.dashboardContext}
+                                    theme={this.props.theme}
                                     selectionContext={this.selectionContext}
                                     config={this.state.configs[BarId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
@@ -475,6 +480,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 2 && (
                                 <ExplanationExploration
                                     dashboardContext={this.state.dashboardContext}
+                                    theme={this.props.theme}
                                     selectionContext={this.selectionContext}
                                     plotlyProps={this.state.configs[ExplanationScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
@@ -484,6 +490,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 3 && (
                                 <FeatureImportanceWrapper
                                     dashboardContext={this.state.dashboardContext}
+                                    theme={this.props.theme}
                                     selectionContext={this.selectionContext}
                                     config={this.state.configs[GlobalFeatureImportanceId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
@@ -493,7 +500,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                             {this.state.activeGlobalTab === 4 && (
                                 <EbmExplanation
                                     explanationContext={this.state.dashboardContext.explanationContext}
-                                    theme={''}
+                                    theme={this.props.theme}
                                 />
                             )}
                             {this.state.activeGlobalTab === 5 && (
@@ -541,6 +548,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                                 config={this.state.configs[LocalBarId] as IBarChartConfig}
                                                 onChange={this.onConfigChanged}
                                                 messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
+                                                theme={this.props.theme}
                                             />
                                         )}
                                         {this.state.activeLocalTab === 1 && (

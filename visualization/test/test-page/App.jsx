@@ -3,6 +3,8 @@ import { ExplanationDashboard } from 'mlchartlib';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
+import {irisGlobal} from '../__mock_data/irisGlobal';
+import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
@@ -25,6 +27,8 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
       static choices = [
         {label: 'bostonData', data: bostonData},
         {label: 'irisData', data: irisData},
+        {label: 'irisGlobal', data: irisGlobal},
+        {label: 'irisDataGlobal', data: irisDataGlobal},
         {label: 'ibmData', data: ibmData},
         {label: 'breastCancer', data: breastCancerData},
         {label: 'ibmNoClass', data: ibmNoClass},
@@ -104,6 +108,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         requestLocalFeatureExplanations={this.generateExplanatins.bind(this, App.choices[this.state.value].data.localExplanations)}
+                        theme={"dark"}
                         key={new Date()}
                       />
                   </div>

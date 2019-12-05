@@ -408,6 +408,8 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         dataset = evaluation_examples.dataset
         typed_wrapper_func = evaluation_examples.typed_wrapper_func
 
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
+
         def generate_predict_function():
             if self.model is not None:
                 wrapped_model, _ = _wrap_model(self.model, evaluation_examples, self.model_task, False)

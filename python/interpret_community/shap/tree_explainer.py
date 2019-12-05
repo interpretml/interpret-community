@@ -186,8 +186,10 @@ class TreeExplainer(PureStructuredModelExplainer):
             )
         typed_wrapper_func = None
         if isinstance(evaluation_examples, DatasetWrapper):
+            kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
             typed_wrapper_func = evaluation_examples.typed_wrapper_func
             evaluation_examples = evaluation_examples.original_dataset_with_type
+
         if len(evaluation_examples.shape) == 1:
             # TODO: is this needed?
             evaluation_examples = evaluation_examples.reshape(1, -1)
@@ -217,6 +219,7 @@ class TreeExplainer(PureStructuredModelExplainer):
             kwargs[ExplainParams.CLASSES] = self.classes
         kwargs[ExplainParams.FEATURES] = evaluation_examples.get_features(features=self.features)
         typed_wrapper_func = evaluation_examples.typed_wrapper_func
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
         evaluation_examples = evaluation_examples.dataset
 
         # for now convert evaluation examples to dense format if they are sparse

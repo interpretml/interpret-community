@@ -242,7 +242,8 @@ class MimicExplainer(BlackBoxExplainer):
         self._logger.debug('Initializing MimicExplainer')
 
         # Get the feature names from the initialization examples
-        self.features = initialization_examples.get_features(features=features)
+        self._init_features = initialization_examples.get_features(features=features)
+        self.features = features
         # augment the data if necessary
         if augment_data:
             initialization_examples.augment_data(max_num_of_augmentations=max_num_of_augmentations)
@@ -250,7 +251,8 @@ class MimicExplainer(BlackBoxExplainer):
 
         # If categorical_features is a list of string column names instead of indexes, make sure to convert to indexes
         if not all(isinstance(categorical_feature, int) for categorical_feature in categorical_features):
-            categorical_features = initialization_examples.get_column_indexes(self.features, categorical_features)
+            categorical_features = initialization_examples.get_column_indexes(self._init_features,
+                                                                              categorical_features)
 
         # Featurize any timestamp columns
         # TODO: more sophisticated featurization
@@ -315,6 +317,7 @@ class MimicExplainer(BlackBoxExplainer):
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
+
             # Aggregate local explanation to global, either through computing the local
             # explanation and then aggregating or streaming the local explanation to global
             if include_local:
@@ -329,8 +332,9 @@ class MimicExplainer(BlackBoxExplainer):
                 if not isinstance(evaluation_examples, DatasetWrapper):
                     self._logger.debug('Eval examples not wrapped, wrapping')
                     evaluation_examples = DatasetWrapper(evaluation_examples)
-                kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task,
-                                                                self.features, batch_size, **kwargs)
+
+                kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task, self.features,
+                                                                batch_size, **kwargs)
             return kwargs
         global_importance_values = self.surrogate_model.explain_global()
         order = _order_imp(global_importance_values)
@@ -411,20 +415,26 @@ class MimicExplainer(BlackBoxExplainer):
             evaluation_examples.reset_index()
         kwargs = {}
         original_evaluation_examples = evaluation_examples.typed_dataset
+        probabilities = None
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
-            kwargs[ExplainParams.PROBABILITIES] = self.function(original_evaluation_examples)
+            probabilities = self.function(original_evaluation_examples)
         if self._timestamp_featurizer:
             evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
             evaluation_examples.apply_indexer(self._column_indexer, bucket_unknown=True)
         if self._one_hot_encoder:
             evaluation_examples.apply_one_hot_encoder(self._one_hot_encoder)
+
         dataset = evaluation_examples.dataset
-        local_importance_values = self.surrogate_model.explain_local(dataset, **kwargs)
+
+        kwargs[ExplainParams.NUM_FEATURES] = evaluation_examples.num_features
+
+        local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
         expected_values = self.surrogate_model.expected_values
-        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
+        kwargs[ExplainParams.METHOD] = ExplainType.MIMIC
+        self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 
         if self.predict_proba_flag:
@@ -560,4 +570,8 @@ class MimicExplainer(BlackBoxExplainer):
                 mimic.__dict__[key] = ShapValuesOutput(json.loads(value))
             else:
                 mimic.__dict__[key] = json.loads(value)
+        if MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES] = None
+        if MimicSerializationConstants.TIMESTAMP_FEATURIZER not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.TIMESTAMP_FEATURIZER] = None
         return mimic
