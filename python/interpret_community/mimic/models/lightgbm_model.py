@@ -271,13 +271,19 @@ class LGBMExplainableModel(BaseExplainableModel):
                 # https://github.com/Microsoft/LightGBM/issues/1942
                 # https://github.com/Microsoft/LightGBM/issues/1217
                 booster_args = {LightGBMSerializationConstants.MODEL_STR: value}
+                is_multiclass = json.loads(properties[LightGBMSerializationConstants.MULTICLASS])
+                if is_multiclass:
+                    objective = LightGBMSerializationConstants.MULTICLASS
+                else:
+                    objective = LightGBMSerializationConstants.REGRESSION
                 if LightGBMSerializationConstants.MODEL_STR in inspect.getargspec(Booster).args:
-                    extras = {LightGBMSerializationConstants.OBJECTIVE: LightGBMSerializationConstants.MULTICLASS}
+                    extras = {LightGBMSerializationConstants.OBJECTIVE: objective}
                     lgbm_booster = Booster(**booster_args, params=extras)
                 else:
                     # For backwards compatibility with older versions of lightgbm
+                    booster_args[LightGBMSerializationConstants.OBJECTIVE] = objective
                     lgbm_booster = Booster(params=booster_args)
-                if json.loads(properties[LightGBMSerializationConstants.MULTICLASS]):
+                if is_multiclass:
                     new_lgbm = LGBMClassifier()
                     new_lgbm._Booster = lgbm_booster
                     new_lgbm._n_classes = _n_classes

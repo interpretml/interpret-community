@@ -197,6 +197,7 @@ class LightGBMSerializationConstants(object):
     LOGGER = '_logger'
     MODEL_STR = 'model_str'
     MULTICLASS = 'multiclass'
+    REGRESSION = 'regression'
     TREE_EXPLAINER = '_tree_explainer'
     OBJECTIVE = 'objective'
 
