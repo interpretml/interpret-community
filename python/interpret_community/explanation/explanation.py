@@ -309,13 +309,11 @@ class LocalExplanation(FeatureImportanceExplanation):
     :type local_importance_values: numpy.array
     """
 
-    def __init__(self, local_importance_values=None, num_examples=None, **kwargs):
+    def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
         :type local_importance_values: numpy.array
-        :param num_examples: The number of examples on the explanation.
-        :type num_examples: int
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
