@@ -573,9 +573,15 @@ class TestTabularExplainer(object):
         X = data[categorical_features + numeric_features]
         # Split data into train and test
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        many_to_one_transformer = FunctionTransformer(lambda x: x.sum(axis=1).reshape(-1, 1))
+
+        def conv(X):
+            if isinstance(X, pd.Series):
+                return X.values
+            return X
+
+        many_to_one_transformer = FunctionTransformer(lambda x: conv(x.sum(axis=1)).reshape(-1, 1))
         many_to_many_transformer = FunctionTransformer(lambda x: np.hstack(
-            (np.prod(x, axis=1).reshape(-1, 1), (np.prod(x, axis=1)**2).reshape(-1, 1))
+            (conv(np.prod(x, axis=1)).reshape(-1, 1), conv(np.prod(x, axis=1)**2).reshape(-1, 1))
         ))
         transformations = ColumnTransformer([
             ("age_fare_1", Pipeline(steps=[

@@ -51,7 +51,7 @@ DEPENDENCIES = [
     'numpy',
     'pandas',
     'scipy',
-    'scikit-learn<=0.21.3',
+    'scikit-learn',
     'packaging',
     'interpret-core[required]==0.1.19',
     'shap>=0.20.0, <=0.32.1'
