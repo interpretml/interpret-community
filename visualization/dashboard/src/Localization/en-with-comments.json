@@ -1,136 +1,135 @@
 {
-    // Prompts the user to select a point
     "selectPoint": "Select a point to see its local explanation",
-    // models that output classes have this as the default class names
+    "_selectPoint.comment": "Prompts the user to select a point",
     "defaultClassNames": "Class {0}",
-    // the default column names 
+    "_defaultClassNames.comment": " models that output classes have this as the default class names",
     "defaultFeatureNames": "Feature {0}",
-    // https://en.wikipedia.org/wiki/Norm_(mathematics) Absolute value norm
+    "_defaultFeatureNames.comment": "the default column names", 
     "absoluteAverage": "Average of absolute value",
-    // Norm based on the predicted class rather than absolute value as above
+    "_absoluteAverage.comment": "https://en.wikipedia.org/wiki/Norm_(mathematics) Absolute value norm",
     "predictedClass": "Predicted class",
-    // Label for tab showing scatterplot of dataset and predictions
+    "_predictedClass.comment": "Norm based on the predicted class rather than absolute value as above",
     "dataExploration": "Data Exploration",
-    // Label for tab showing bar chart of importance of features at a global level
+    "_dataExploration.comment": "Label for tab showing scatterplot of dataset and predictions",
     "globalImportance": "Global Importance",
-    // Label for tab showing scatter plot of dataset and importance of features data
+    "_globalImportance.comment": "Label for tab showing bar chart of importance of features at a global level",
     "explanationExploration": "Explanation Exploration",
-    // Label showing all importance of feature datapoints in scatter plot
+    "_explanationExploration.comment": "Label for tab showing scatter plot of dataset and importance of features data",
     "summaryImportance": "Summary Importance",
-    // Label for feature importance 
+    "_summmaryImportance.comment": "Label showing all importance of feature datapoints in scatter plot",
     "featureImportance": "Feature Importance",
-    // Label for local tab allowing the user to change parameters on a selected point
+    "_featureImportance.comment": "Label for feature importance ",
     "perturbationExploration": "Perturbation Exploration",
-    // Lable for local tab showing feature importance of selected point
+    "_perturbationExploration.comment": "Label for local tab allowing the user to change parameters on a selected point",
     "localFeatureImportance": "Local Feature Importance",
-    // Label for tab showing https://christophm.github.io/interpretable-ml-book/ice.html
+    "_localFeatureImportance.comment": "Label for local tab showing feature importance of selected point",
     "ice": "ICE",
+    "_ice.comment": "Label for tab showing https://christophm.github.io/interpretable-ml-book/ice.html",
     "clearSelection": "Clear selection",
     "feature": "Feature:",
-    // The label for the linear intercept, the bias value
     "intercept": "Intercept",
+    "_intercept.comment": "The label for the linear intercept, the bias value",
     "ExplanationScatter": {
-        // prepend in frot of column nmaes
         "dataLabel": "Data : {0}",
-        // prepend in front of feature importance of column nmae
+        "_dataLabel.comment": "prepend in front of column names",
         "importanceLabel": "Importance : {0}",
-        // predicted output
+        "_importanceLabel.comment": "prepend in front of feature importance of column name",
         "predictedY": "PredictedY",
-        // the index value (an integer of the row number)
+        "_predictedY.comment": "predicted output",
         "index": "Index",
+        "_index.comment": "the index value (an integer of the row number)",
         "dataGroupLabel": "Data",
         "output": "Output",
-        // Probability prefix for all classes in a multiclass problem
         "probabilityLabel": "Probability : {0}",
-        // The true value to be predicted
+        "_probabilityLabel.comment": "Probability prefix for all classes in a multiclass problem",
         "trueY": "True Y",
-        // label for predicted class
+        "_trueY.comment": "The true value to be predicted",
         "class": "class: ",
-        // label for x value dropdown
+        "_class.comment": "label for predicted class",
         "xValue": "X value:",
-        // label for y value dropdown
+        "_xValue.comment": "label for x value dropdown",
         "yValue": "Y value:",
-        // label for selecting color value
-        "colorValue": "Color:"
+        "_yValue.comment": "label for y value dropdown",
+        "colorValue": "Color:",
+        "_colorValue.comment": "label for selecting color value"
     },
     "CrossClass": {
-        // label for dropdown allowing user to select how importance across multiple output classes is aggregated
         "label": "Cross-class weighting:",
-        // tooltip on hover
+        "_label.comment": "label for dropdown allowing user to select how importance across multiple output classes is aggregated",
         "info": "Info",
-        // explains cross-class weighting
+        "_info.comment": "tooltip on hover",
         "overviewInfo": "Multiclass models generate an independent feature importance vector for each class. Each class's feature importance vector demonstrates which features made a class more likely or less likely. You can select how the weights of the per-class feature importance vectors are summarized into a single value:",
-        // explains absolute value weights
+        "_overview.comment": "explains absolute value weights",
         "absoluteValInfo": "Average of absolute value: Shows the sum of the feature's importance across all possible classes, divided by number of classes",
-        // explains predicted class weight
         "predictedClassInfo": "Predicted class: Shows the feature importance value for a given point's predicted class",
-        // explains the weights for selecting a single class
+        "_predictedClassInfo.comment": "explains predicted class weight",
         "enumeratedClassInfo": "Enumerated class names: Shows only the specified class's feature importance values across all data points.",
+        "_enumeratedClassInfo.comment": "explains the weights for selecting a single class",
         "close": "Close"
     },
     "AggregateImportance": {
-        // The chart shows all data in a color scale (normalized to 0 - 1). This is the label for the color bar
         "scaledFeatureValue": "Scaled Feature Value",
-        // The low end of the color bar
+        "_scaledFeatureValue.comment": "The chart shows all data in a color scale (normalized to 0 - 1). This is the label for the color bar",
         "low": "Low",
-        /// label for the high end of the color bar
+        "_low.comment": "The low end of the color bar",
         "high": "High",
-        // Prefix to the feature name 
+        "_high.comment": "label for the high end of the color bar", 
         "featureLabel": "Feature: {0}",
-        // prefix to the feature value
+        "_featureLabel.comment": "Prefix to the feature name",
         "valueLabel": "Feature value: {0}",
-        // prefix to the feature importance
+        "_valueLabel.comment": "prefix to the feature value",
         "importanceLabel": "Importance: {0}",
-        // prefixed in front of the output class names predicted by the model
+        "_importanceLabel.comment": "prefix to the feature importance",
         "predictedClassTooltip": "Predicted Class: {0}",
-        // prefixed in front of the true class labels
+        "_predictedClassTooltip.comment": "prefixed in front of the output class names predicted by the model",
         "trueClassTooltip": "True Class: {0}",
-        // prefixed in front of the output in a regression model (numeric, no classes)
+        "_trueClassTooltip.comment": "prefixed in front of the true class labels",
         "predictedOutputTooltip": "Predicted Output: {0}",
-        // prefixed in front of the true value in a regression model (numeric, no classes)
+        "_predictedOutputTooltip.comment": "prefixed in front of the output in a regression model (numeric, no classes)",
         "trueOutputTooltip": "True Output: {0}",
-        // Label for slider to show only the top (k) most important features, where the slider is used to set the value of k
+        "_trueOutputTooltip.comment": "prefixed in front of the true value in a regression model (numeric, no classes)",
         "topKFeatures": "Top K Features:",
-        // Label for dropdown option, group data by the predicted value from the model (numeric values)
+        "_topKFeatures.comment": "Label for slider to show only the top (k) most important features, where the slider is used to set the value of k",
         "predictedValue": "Predicted Value",
-        // Label for dropdown option, group data by predicted class from model
+        "_predictedValue.comment": "Label for dropdown option, group data by the predicted value from the model (numeric values)",
         "predictedClass": "Predicted Class",
-        // label for dropdown option, group data by true value (numeric)
+        "_predictedClass.comment": "Label for dropdown option, group data by predicted class from model",
         "trueValue": "True Value",
-        // label for dropdown, group data by true class
+        "_trueValue": "label for dropdown option, group data by true value (numeric)",
         "trueClass": "True Class",
-        // label for dropdown, do not apply any grouping
+        "_trueClass.comment": "label for dropdown, group data by true class",
         "noColor": "None",
-        // error message if the dataset is too large to visualize
-        "tooManyRows": "The provided dataset is larger than this chart can support"
+        "_noColor.comment": "label for dropdown, do not apply any grouping",
+        "tooManyRows": "The provided dataset is larger than this chart can support",
+        "_tooManyRows": "error message if the dataset is too large to visualize"
     },
     "BarChart": {
-        // Prefix for class 
         "classLabel": "Class: {0}",
-        // prompt for setting how values are sorted
+        "_classLabel.comment": "Prefix for class",
         "sortBy": "Sort by",
-        // Error message for no applicable data
+        "_sortBy.comment": "prompt for setting how values are sorted",
         "noData": "No Data",
-        // sorting option, sort by the absolute value of the importance of all datapoints
+        "_noData.comment": "Error message for no applicable data",
         "absoluteGlobal": "Absolute global",
-        // sorting option, sort by the absolute value of the importance for the single selected point
+        "_absoluteGlobal.comment": "sorting option, sort by the absolute value of the importance of all datapoints",
         "absoluteLocal": "Absolute local",
-        // loading message
-        "calculatingExplanation": "Calculating explanation"
+        "_absoluteLocal.comment": "sorting option, sort by the absolute value of the importance for the single selected point",
+        "calculatingExplanation": "Calculating explanation",
+        "_calculatingExplanation.comment": "loading message"
     },
     "IcePlot": {
-        // error message if non-numeric characters typed
         "numericError": "Must be numeric",
-        // error message if non-integer values typed by user
+        "_numericError.comment": "error message if non-numeric characters typed",
         "integerError": "Must be an integer",
-        // Prediction label for y-axis
+        "_integerError.comment": "error message if non-integer values typed by user",
         "prediction": "Prediction",
-        // predicted probability label for y-axis
+        "_prediction.comment": "Prediction label for y-axis",
         "predictedProbability": "Predicted probability",
-        // prediction hover prefix
+        "_predictedProbability.comment": "predicted probability label for y-axis",
         "predictionLabel": "Prediction: {0}",
-        // probability hover prefix
+        "_predictionLabel.comment": "prediction hover prefix",
         "probabilityLabel": "Probability: {0}",
+        "_probabilityLabel.comment": "probability hover prefix",
         // error message for no model present
         "noModelError": "Please provide an operationalized model to explore predictions in ICE plots.",
         // feature dropdown label
