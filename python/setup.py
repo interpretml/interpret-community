@@ -7,8 +7,8 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.2'
-_minor = '3'
+_major = '0.3'
+_minor = '1'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -51,7 +51,7 @@ DEPENDENCIES = [
     'numpy',
     'pandas',
     'scipy',
-    'scikit-learn',
+    'scikit-learn<=0.21.3',
     'packaging',
     'interpret-core[required]==0.1.19',
     'shap>=0.20.0, <=0.32.1'

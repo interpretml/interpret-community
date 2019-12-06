@@ -24,6 +24,7 @@ export interface IExplanationDashboardProps {
     trueY?: number[];
     precomputedExplanations?: IPrecomputedExplanations;
     theme?: any;
+    locale?: string;
     stringParams?: IStringsParam;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
     requestLocalFeatureExplanations?: (request: any[], abortSignal: AbortSignal, explanationAlgorithm?: string) => Promise<any[]>;

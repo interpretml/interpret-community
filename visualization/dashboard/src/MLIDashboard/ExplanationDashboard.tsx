@@ -356,6 +356,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        if (this.props.locale) {
+            localization.setLanguage(this.props.locale)
+        }
         const explanationContext: IExplanationContext = ExplanationDashboard.buildInitialExplanationContext(props);
         const defaultTopK = Math.min(8, explanationContext.modelMetadata.featureNames.length);
         this.onClassSelect = this.onClassSelect.bind(this);
