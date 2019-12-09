@@ -1678,7 +1678,7 @@ def load_explanation(expljson):
         id_value = None
 
     # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION']:
+    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES']:
         if getattr(ExplainParams, remove_key) in expldict:
             paramkeys.remove(remove_key)
 
