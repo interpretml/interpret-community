@@ -299,6 +299,8 @@ class FeatureImportanceExplanation(BaseExplanation):
             return False
         if not hasattr(explanation, ExplainType.IS_ENG) or not isinstance(explanation.is_engineered, bool):
             return False
+        if not hasattr(explanation, ExplainParams.NUM_FEATURES):
+            return False
         return True
 
 
@@ -540,6 +542,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
         if not isinstance(explanation.local_importance_values, list):
+            return False
+        if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
             return False
         return True
 
@@ -930,6 +934,8 @@ class ClassesMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
+        if not hasattr(explanation, ExplainParams.NUM_CLASSES):
+            return False
         return hasattr(explanation, ExplainParams.CLASSES)
 
 
