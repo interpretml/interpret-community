@@ -11,6 +11,13 @@ import shap
 import logging
 import pandas as pd
 
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from interpret.blackbox import ShapKernel
+
 from interpret_community.common.policy import SamplingPolicy
 
 from common_utils import create_sklearn_random_forest_classifier, create_sklearn_svm_classifier, \
@@ -19,6 +26,7 @@ from common_utils import create_sklearn_random_forest_classifier, create_sklearn
     create_xgboost_classifier
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
+from interpret_community.explanation.explanation import create_kernel_explanation_from_interpret_data
 from constants import DatasetConstants
 
 from sklearn.model_selection import train_test_split
@@ -649,6 +657,32 @@ class TestTabularExplainer(object):
         assert local_shape == (2, num_rows_expected, num_cols)
         assert len(global_explanation.global_importance_values) == num_cols
         assert global_explanation.num_features == num_cols
+
+    def test_create_kernel_explanation_from_interpret_data(self, verify_tabular):
+        interpret_explanation = self.create_kernel_explanation()
+        interpret_explanation_data = interpret_explanation.data()
+        explanation = create_kernel_explanation_from_interpret_data(interpret_explanation_data)
+
+    def create_kernel_explanation(self):
+        boston = load_boston()
+        feature_names = list(boston.feature_names)
+        df = pd.DataFrame(boston.data, columns=feature_names)
+        df["target"] = boston.target
+        # df = df.sample(frac=0.1, random_state=1)
+        train_cols = df.columns[0:-1]
+        label = df.columns[-1]
+        X = df[train_cols]
+        y = df[label]
+        seed = 1
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=seed)
+        pca = PCA()
+        rf = RandomForestRegressor(n_estimators=100, n_jobs=-1)
+        blackbox_model = Pipeline([('pca', pca), ('rf', rf)])
+        blackbox_model.fit(X_train, y_train)
+        background_val = np.median(X_train, axis=0).reshape(1, -1)
+        shap = ShapKernel(predict_fn=blackbox_model.predict, data=background_val, feature_names=feature_names)
+        shap_local = shap.explain_local(X_test[:5], y_test[:5], name='SHAP')
+        return shap_local
 
     def create_msx_data(self, test_size):
         sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')

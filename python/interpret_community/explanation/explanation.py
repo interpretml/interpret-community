@@ -1723,3 +1723,14 @@ def load_explanation(expljson):
             classification=_transform_value_for_load('CLASSIFICATION', expldict, _metadata),
             expected_values=_transform_value_for_load('EXPECTED_VALUES', expldict, _metadata),
             **global_kwargs)
+
+
+def create_kernel_explanation_from_interpret_data(data):
+    """create a Kernel Explanation from an interpret kernel explanation data
+
+    :param data: the get_data() form of an interpret Explanation
+    :type explanation: dict
+    :return: an Explanation object
+    :rtype: KernelExplantion
+    """
+    pass
