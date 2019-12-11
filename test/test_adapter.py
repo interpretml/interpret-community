@@ -27,7 +27,7 @@ class TestAdapter(object):
         assert True
     def test_data_to_explanation(self, verify_tabular):
         interpret_explanation = self.create_kernel_explanation()
-        interpret_explanation_data = interpret_explanation.data()
+        interpret_explanation_data = interpret_explanation.data(-1)
         explanation = data_to_explanation(interpret_explanation_data)
 
     def create_kernel_explanation(self):
