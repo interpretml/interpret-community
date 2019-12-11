@@ -94,7 +94,7 @@ class PerClassValid(object):
 
     @property
     def per_class_values(self):
-        return [.2, .4, .01]
+        return [.2, .4, .03]
 
 
 class _DatasetsValid(object):
