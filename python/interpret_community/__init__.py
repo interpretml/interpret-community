@@ -17,12 +17,12 @@ import logging
 import os
 import atexit
 # Only log to disk if environment variable specified
-interpretc_logs = os.environ.get('INTERPRETC_LOGS')
-if interpretc_logs is not None:
+interpret_c_logs = os.environ.get('INTERPRET_C_LOGS')
+if interpret_c_logs is not None:
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    os.makedirs(os.path.dirname(interpretc_logs), exist_ok=True)
-    handler = logging.FileHandler(interpretc_logs, mode='w')
+    os.makedirs(os.path.dirname(interpret_c_logs), exist_ok=True)
+    handler = logging.FileHandler(interpret_c_logs, mode='w')
     handler.setLevel(logging.INFO)
     logger.addHandler(handler)
     logger.info('Initializing logging file for interpret-community')
