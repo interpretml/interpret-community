@@ -381,8 +381,8 @@ class TestDoesQuack(object):
             def local_importance_values(self):
                 return [[.2, .4, .01], [.3, .2, 0]]
         LocalNoNumExamplesExp = type('InvalidLocalExplanation',
-                                      (LocalNoNumExamples, FeatureImportanceValid, BaseValid),
-                                      {})
+                                     (LocalNoNumExamples, FeatureImportanceValid, BaseValid),
+                                     {})
         assert not LocalExplanation._does_quack(LocalNoNumExamplesExp())
 
     def test_does_quack_global_explanation(self):
