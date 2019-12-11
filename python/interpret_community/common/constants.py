@@ -69,6 +69,7 @@ class ExplainParams(object):
     MODEL_TASK = 'model_task'
     MODEL_TYPE = 'model_type'
     NUM_CLASSES = 'num_classes'
+    NUM_EXAMPLES = 'num_examples'
     NUM_FEATURES = 'num_features'
     PER_CLASS_NAMES = 'per_class_names'
     PER_CLASS_RANK = 'per_class_rank'
