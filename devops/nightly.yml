@@ -21,7 +21,7 @@ steps:
 
   - bash: |
       pip install -e ./python
-    displayName: Install interpret-extensions
+    displayName: Install interpret-community
 
   - bash: |
       pip install --upgrade setuptools wheel twine

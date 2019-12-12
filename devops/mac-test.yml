@@ -41,7 +41,7 @@ steps:
     source activate interp
     pip install --upgrade certifi --ignore-installed
     pip install -e ./python
-  displayName: Install interpret-extensions
+  displayName: Install interpret-community
 
 - bash: |
     source activate interp
