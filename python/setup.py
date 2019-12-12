@@ -113,6 +113,12 @@ setup(
         ]
     },
     include_package_data=True,
+    package_data={
+        '': [
+            'interpret_community/widget/templates/dashboard.html',
+            'interpret_community/widget/new_js/index.js'
+        ]
+    },
     data_files=[
         ('share/jupyter/nbextensions/interpret-ml-widget', [
             'interpret_community/widget/static/extension.js',
