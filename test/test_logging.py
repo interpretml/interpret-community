@@ -13,7 +13,7 @@ def test_import_tabular():
     if os.path.exists(not_existing_path):
         os.remove(not_existing_path)
         os.rmdir(not_existing_dir)
-    os.environ['INTERPRETC_LOGS'] = not_existing_path
+    os.environ['INTERPRET_C_LOGS'] = not_existing_path
     import interpret_community
     import importlib
     importlib.reload(interpret_community)
