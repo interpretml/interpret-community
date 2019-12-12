@@ -7,7 +7,8 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.3'
+_major = '0'
+_minor = '3'
 _patch = '1'
 
 README_FILE = 'README.md'
@@ -17,7 +18,7 @@ LICENSE_FILE = 'LICENSE.txt'
 if os.path.exists('../LICENSE'):
     shutil.copyfile('../LICENSE', LICENSE_FILE)
 
-VERSION = '{}.{}'.format(_major, _patch)
+VERSION = '{}.{}.{}'.format(_major, _minor, _patch)
 
 
 CLASSIFIERS = [
