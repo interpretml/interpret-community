@@ -12,24 +12,9 @@ steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
 
-  - bash: conda create --yes --quiet --name interp python=3.6
-    displayName: Create Anaconda environment
-
-  - bash: |
-      source activate interp
-      conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-
-    displayName: Install Anaconda packages
-
-  - bash: |
-      source activate interp
-      pip install --upgrade pip
-    displayName: Upgrade pip to latest
-
-  - bash: |
-      source activate interp
-      pip install -r requirements.txt
-    displayName: Install required pip packages
+  - script: echo This script runs before the template's steps.
+  - template: templates/create-env-template.yml
+  - script: echo This step runs after the template's steps.
 
   - bash: |
       source activate interp

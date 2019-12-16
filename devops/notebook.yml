@@ -11,31 +11,9 @@ steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
 
-  - bash: conda create --yes --quiet --name interp python=3.6
-    displayName: Create Anaconda environment
-
-  - bash: |
-      source activate interp
-      conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-      conda install --yes -c anaconda -n interp jupyter pip
-    displayName: Install Anaconda packages
-
-  - bash: |
-      source activate interp
-      pip install --upgrade pip
-    displayName: Upgrade pip to latest
-
-  - bash: |
-      source activate interp
-      pip install -r requirements.txt
-    displayName: Install required pip packages
-
-  - bash: |
-      source activate interp
-      jupyter kernelspec list
-      conda install --yes -c conda-forge -n interp papermill 
-      pip install nteract-scrapbook
-    displayName: List Jupyter Kernel and fix
+  - script: echo 'This script runs before the templates steps.'
+  - template: templates/create-env-template.yml
+  - script: echo 'This step runs after the templates steps.'
 
   - bash: |
       source activate interp
@@ -49,9 +27,16 @@ steps:
 
   - bash: |
       source activate interp
-      python -m pytest test/test_notebooks.py --junitxml=./TEST-TEST.xml
+      pytest --markers
+    displayName: "show test markers"
+
+  - bash: |
+      source activate interp
+      #python -m pytest test/test_notebooks.py --junitxml=./TEST-TEST.xml
+      pytest -m "notebooks" test/ --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
     displayName: "Publish Test Results **/TEST-*.xml"
     condition: succeededOrFailed()
+
