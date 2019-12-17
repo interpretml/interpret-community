@@ -23,4 +23,4 @@ ReactDOM.render(<ExplanationDashboard
     requestPredictions={data.predictionUrl !== undefined ? generatePrediction : undefined}
     theme={"dark"}
     key={new Date()}
-  />, document.getElementById('app'));
+  />, document.getElementById(data.divId));

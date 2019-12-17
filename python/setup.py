@@ -54,7 +54,8 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.32.1'
+    'shap>=0.20.0, <=0.32.1',
+    'flask'
 ]
 
 EXTRAS = {
