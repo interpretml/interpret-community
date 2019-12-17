@@ -1,5 +1,5 @@
 trigger: none
-pr: 
+pr:
   - master
 
 pool:
@@ -63,7 +63,7 @@ steps:
 
   - bash: |
       source activate interp
-      pip freeze
+      pip freeze \ &&
       python -m pytest test/ --nbval --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
