@@ -12,9 +12,9 @@ steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
 
-  - script: echo This script runs before the template's steps.
+  - script: echo This script runs before the templates steps.
   - template: templates/create-env-template.yml
-  - script: echo This step runs after the template's steps.
+  - script: echo This step runs after the templates steps.
 
   - bash: |
       source activate interp
