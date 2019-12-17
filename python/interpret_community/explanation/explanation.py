@@ -299,6 +299,8 @@ class FeatureImportanceExplanation(BaseExplanation):
             return False
         if not hasattr(explanation, ExplainType.IS_ENG) or not isinstance(explanation.is_engineered, bool):
             return False
+        if not hasattr(explanation, ExplainParams.NUM_FEATURES):
+            return False
         return True
 
 
@@ -309,13 +311,11 @@ class LocalExplanation(FeatureImportanceExplanation):
     :type local_importance_values: numpy.array
     """
 
-    def __init__(self, local_importance_values=None, num_examples=None, **kwargs):
+    def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
         :type local_importance_values: numpy.array
-        :param num_examples: The number of examples on the explanation.
-        :type num_examples: int
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -542,6 +542,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
         if not isinstance(explanation.local_importance_values, list):
+            return False
+        if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
             return False
         return True
 
@@ -932,6 +934,8 @@ class ClassesMixin(object):
         :return: True if valid, else False
         :rtype: bool
         """
+        if not hasattr(explanation, ExplainParams.NUM_CLASSES):
+            return False
         return hasattr(explanation, ExplainParams.CLASSES)
 
 
@@ -1674,7 +1678,7 @@ def load_explanation(expljson):
         id_value = None
 
     # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION']:
+    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES']:
         if getattr(ExplainParams, remove_key) in expldict:
             paramkeys.remove(remove_key)
 

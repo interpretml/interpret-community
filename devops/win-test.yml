@@ -43,7 +43,7 @@ steps:
 - bash: |
     source activate interp
     pip install -e ./python
-  displayName: Install interpret-extensions
+  displayName: Install interpret-community
 
 - bash: |
     source activate interp

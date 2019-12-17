@@ -1,5 +1,6 @@
 xmlrunner
 tensorflow<2.0.0
+scikit-learn
 numpy
 pandas
 sklearn_pandas

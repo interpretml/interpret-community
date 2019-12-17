@@ -103,4 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# typescript
+node_modules/
+rel/
+
 python/LICENSE.txt

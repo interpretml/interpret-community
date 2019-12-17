@@ -316,8 +316,8 @@ class DatasetWrapper(object):
     def one_hot_encode(self, columns):
         """Indexes categorical string features on the dataset.
 
-        :param columns: Parameter specifying the subset of columns that may need to be one-hot-encoded.
-        :type columns: list
+        :param columns: Parameter specifying the subset of column indexes that may need to be one-hot-encoded.
+        :type columns: list[int]
         :return: The transformation steps to one-hot-encode the given dataset.
         :rtype: OneHotEncoder
         """
@@ -332,11 +332,15 @@ class DatasetWrapper(object):
             return None
         # If the user doesn't have a newer version of scikit-learn with OneHotEncoder, don't do encoding
         try:
+            from sklearn.compose import ColumnTransformer
             from sklearn.preprocessing import OneHotEncoder
         except ImportError:
             return None
-        self._one_hot_encoder = OneHotEncoder(categorical_features=columns, handle_unknown='ignore', sparse=False)
-        self._dataset = self._one_hot_encoder.fit_transform(self._dataset)
+        one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        self._one_hot_encoder = ColumnTransformer([('ord', one_hot_encoder, columns)], remainder='passthrough')
+        # Note this will change column order, the one hot encoded columns will be at the start and the
+        # rest of the columns at the end
+        self._dataset = self._one_hot_encoder.fit_transform(self._dataset).astype(float)
         return self._one_hot_encoder
 
     def timestamp_featurizer(self):
@@ -402,7 +406,7 @@ class DatasetWrapper(object):
         """
         if self._one_hot_encoded or sp.sparse.issparse(self._dataset):
             return
-        self._dataset = one_hot_encoder.transform(self._dataset)
+        self._dataset = one_hot_encoder.transform(self._dataset).astype(float)
         self._one_hot_encoded = True
 
     def apply_timestamp_featurizer(self, timestamp_featurizer):
