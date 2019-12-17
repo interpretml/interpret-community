@@ -79,7 +79,7 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
                 </>
             );
         }
-        return <div className="centered">{'No Data'}</div>;
+        return <div className="centered">{this.props.localizedStrings ? this.props.localizedStrings['noData'] : 'No Data'}</div>;
     }
 
     private hasData(): boolean {
