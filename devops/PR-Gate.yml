@@ -63,7 +63,8 @@ steps:
 
   - bash: |
       source activate interp
-      python -m pytest test/ --junitxml=./TEST-TEST.xml
+      pip freeze
+      python -m pytest test/ --nbval --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
