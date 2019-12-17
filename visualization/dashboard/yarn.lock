@@ -2731,8 +2731,10 @@ mkdirp@0.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@../mlchartlib:
-  version "0.1.32"
+mlchartlib@0.1.33:
+  version "0.1.33"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.33.tgz#766132ce7cdd84251d08b759d505916fe27c5ada"
+  integrity sha512-b4TlMTMLh1CCJLgQQxPigO6l03mGWYxmKdaSM61Nw1m6UEInG2eXRO5hVyuDhH77rmlAuwtneZxhXWcyTXcmJA==
   dependencies:
     jmespath "^0.15.0"
     lodash "^4.17.11"
