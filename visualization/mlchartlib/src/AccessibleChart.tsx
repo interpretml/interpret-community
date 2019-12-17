@@ -163,66 +163,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
         return 'non-selectable';
     }
 
-    private applySelections(selections: string[]): void {
-        const type = this.plotSelectionType(this.props.plotlyProps);
-        if (type === 'multi-line') {
-            this.applySelectionsToMultiLinePlot(selections);
-        } else if (type === 'scatter') {
-            this.applySelectionsToScatterPlot(selections);
-        }
-    }
-
-    private applySelectionsToMultiLinePlot(selections: string[]): void {
-        const opacities = this.props.plotlyProps.data.map(trace => {
-            if (selections.length === 0) {
-                return 1;
-            }
-            const customdata = (trace as any).customdata;
-            return customdata && customdata.length > 0 && selections.indexOf((trace as any).customdata[0]) !== -1
-                ? 1
-                : 0.3;
-        });
-        Plotly.restyle(this.guid, 'opacity' as any, opacities);
-    }
-
-    private async applySelectionsToScatterPlot(selections: string[]): Promise<void> {
-        const selectedPoints =
-            selections.length === 0
-                ? null
-                : this.props.plotlyProps.data.map(trace => {
-                      const selectedIndexes: number[] = [];
-                      if ((trace as any).customdata) {
-                          ((trace as any).customdata as string[]).forEach((id, index) => {
-                              if (selections.indexOf(id) !== -1) {
-                                  selectedIndexes.push(index);
-                              }
-                          });
-                      }
-                      return selectedIndexes;
-                  });
-        Plotly.restyle(this.guid, 'selectedpoints' as any, selectedPoints as any);
-        const newLineWidths =
-            selections.length === 0
-                ? [0]
-                : this.props.plotlyProps.data.map(trace => {
-                    if ((trace as any).customdata) {
-                        const customData = ((trace as any).customdata as string[]);
-                        const newWidths: number[] = new Array(customData.length).fill(0);
-                        customData.forEach((id, index) => {
-                            if (selections.indexOf(id) !== -1) {
-                                newWidths[index] = 2;
-                            }
-                        });
-                        return newWidths
-                    }
-                    return [0];
-                  });
-        // Plotly.restyle(this.guid, 'marker.line.width' as any, newLineWidths as any);
-        if (this.props.onSelection) {
-            this.props.onSelection(this.guid, selections, this.props.plotlyProps);
-        }
-    }
-
     private createTableWithPlotlyData(data: Plotly.Data[]): React.ReactNode {
         return (
             <table className="plotly-table hidden">
