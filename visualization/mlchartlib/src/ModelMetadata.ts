@@ -2,7 +2,6 @@ import { INumericRange } from "./INumericRange";
 import { ICategoricalRange } from "./ICategoricalRange";
 import { RangeTypes } from "./RangeTypes";
 import _ from "lodash";
-import { localization } from "../Localization/localization";
 
 export class ModelMetadata {
     public static buildFeatureRanges(testData: any[][], isCategoricalArray: boolean[] | undefined, categoricalMap?: {[key: number]: string[]}):
@@ -41,10 +40,5 @@ export class ModelMetadata {
             });
         }
         return undefined;
-    }
-
-    public static buildIndexedNames(numberOfClasses: number, baseString: string): string[] {
-        return Array.from(Array(numberOfClasses).keys())
-        .map(i => localization.formatString(baseString, i.toString()) as string);
     }
 }

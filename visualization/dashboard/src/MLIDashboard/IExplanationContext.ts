@@ -1,4 +1,4 @@
-import { IModelMetadata } from "../Shared/IModelMetadata";
+import { IModelMetadata } from "mlchartlib";
 
 export enum ModelTypes {
     regression = 'regression',

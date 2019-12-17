@@ -1,4 +1,4 @@
-import { IPlotlyProperty } from '../Shared';
+import { IPlotlyProperty } from './IPlotlyProperty';
 
 interface IPlotlyTheme {
     axisColor: string;

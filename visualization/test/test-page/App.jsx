@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExplanationDashboard } from 'mlchartlib';
+import { ExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
@@ -82,7 +82,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
         const data = _.cloneDeep(App.choices[this.state.value].data);
         // data.localExplanations = undefined;
         const classDimension = data.localExplanations && Array.isArray(data.localExplanations.scores[0][0]) ?
-          data.localExplanations.length : 1;
+          data.localExplanations.scores.length : 1;
         return (
           <div style={{backgroundColor: 'grey', height:'100%'}}>
             <label>
@@ -107,8 +107,6 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         }}
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
-                        requestLocalFeatureExplanations={this.generateExplanatins.bind(this, App.choices[this.state.value].data.localExplanations)}
-                        theme={"dark"}
                         key={new Date()}
                       />
                   </div>

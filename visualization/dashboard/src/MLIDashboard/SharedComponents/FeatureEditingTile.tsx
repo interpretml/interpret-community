@@ -3,7 +3,7 @@ import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { FabricStyles } from '../FabricStyles';
 import { ComboBox, IComboBox } from 'office-ui-fabric-react/lib/ComboBox';
 import { IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
-import { RangeTypes } from '../../Shared/RangeTypes';
+import { RangeTypes } from 'mlchartlib';
 import { localization } from '../../Localization/localization';
 
 require('./FeatureEditingTile.css');
