@@ -18,6 +18,7 @@ class ExplanationDashboardInterface(object):
     TRUE_Y = "trueY"
     CUSTOM_VISUALS = "customVis"
     EBM_EXPLANATION = "ebmGlobalExplanation"
+    PREDICTION_URL = "predictionUrl"
     MLI_LOCAL_EXPLANATION_KEY = "local_feature_importance"
     MLI_GLOBAL_EXPLANATION_KEY = "global_feature_importance"
     MLI_EBM_GLOBAL_EXPLANATION_KEY = "ebm_global"
@@ -26,6 +27,7 @@ class ExplanationDashboardInterface(object):
     MLI_DATASET_X_KEY = "dataset_x"
     MLI_DATASET_Y_KEY = "dataset_y"
     HAS_MODEL = "has_model"
+
 
 
 class WidgetRequestResponseConstants(object):

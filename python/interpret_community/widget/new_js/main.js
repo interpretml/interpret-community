@@ -5,7 +5,9 @@ import { ExplanationDashboard } from 'mlchartlib';
 
 
 let generatePrediction = (postData) => {
-  return fetch(data.predictionUrl, {method: "post", body: postData})
+  return fetch(data.predictionUrl, {method: "post", body: JSON.stringify(postData), headers: {
+    'Content-Type': 'application/json'
+  }})
 }
 
 ReactDOM.render(<ExplanationDashboard
