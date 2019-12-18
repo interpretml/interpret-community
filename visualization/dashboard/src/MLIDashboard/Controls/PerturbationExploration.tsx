@@ -2,7 +2,7 @@ import _ from "lodash";
 import React from "react";
 import { localization } from "../../Localization/localization";
 import { FeatureEditingTile, PredictionLabel, NoDataMessage } from "../SharedComponents";
-import { ICategoricalRange } from "../../Shared/ICategoricalRange";
+import { ICategoricalRange } from "mlchartlib";
 import { IExplanationContext } from "../IExplanationContext";
 import { HelpMessageDict } from "../Interfaces";
 

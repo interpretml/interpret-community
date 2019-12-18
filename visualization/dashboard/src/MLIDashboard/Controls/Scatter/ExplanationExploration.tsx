@@ -3,11 +3,10 @@ import { ScatterUtils, IScatterProps } from "./ScatterUtils";
 import { Callout } from "office-ui-fabric-react/lib/Callout";
 import { localization } from "../../../Localization/localization";
 import { DefaultButton, IconButton } from "office-ui-fabric-react/lib/Button";
-import { AccessibleChart } from "../../../ChartTools";
+import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
 import { FabricStyles } from "../../FabricStyles";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import _ from "lodash";
-import { IPlotlyProperty } from "../../../Shared";
 import { ModelTypes } from "../../IExplanationContext";
 import { LoadingSpinner, NoDataMessage } from "../../SharedComponents";
 require('./Scatter.css');
@@ -128,6 +127,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                         plotlyProps={ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps))}
                         sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
+                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );
