@@ -8,7 +8,8 @@ hdbscan
 lightgbm
 xgboost
 prompt-toolkit>=2.0.0
-pytest
+pytest==5.3.1
 flake8
 pyyaml
 keras
+scipy==1.3.3
