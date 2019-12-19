@@ -6,7 +6,7 @@
 import numpy as np
 import scipy as sp
 
-from .explainable_model import BaseExplainableModel, _get_initializer_args
+from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
 from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
 
@@ -117,9 +117,9 @@ class LinearExplainableModel(BaseExplainableModel):
 
     __init__.__doc__ = (__init__.__doc__ +
                         '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                        LogisticRegression.__doc__.replace('-', '') +
+                        _clean_doc(LogisticRegression.__doc__) +
                         '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                        LinearRegression.__doc__.replace('-', ''))
+                        _clean_doc(LinearRegression.__doc__))
 
     def fit(self, dataset, labels, **kwargs):
         """Call linear fit to fit the explainable model.
@@ -146,9 +146,9 @@ class LinearExplainableModel(BaseExplainableModel):
 
     fit.__doc__ = (fit.__doc__ +
                    '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                   LogisticRegression.fit.__doc__.replace('-', '') +
+                   _clean_doc(LogisticRegression.fit.__doc__) +
                    '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                   LinearRegression.fit.__doc__.replace('-', ''))
+                   _clean_doc(LinearRegression.fit.__doc__))
 
     def predict(self, dataset, **kwargs):
         """Call linear predict to predict labels using the explainable model.
@@ -162,9 +162,9 @@ class LinearExplainableModel(BaseExplainableModel):
 
     predict.__doc__ = (predict.__doc__ +
                        '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                       LogisticRegression.predict.__doc__.replace('-', '') +
+                       _clean_doc(LogisticRegression.predict.__doc__) +
                        '\nOtherwise, if multiclass=False, uses the parameters for LinearRegression:\n' +
-                       LinearRegression.predict.__doc__.replace('-', ''))
+                       _clean_doc(LinearRegression.predict.__doc__))
 
     def predict_proba(self, dataset, **kwargs):
         """Call linear predict_proba to predict probabilities using the explainable model.
@@ -181,7 +181,7 @@ class LinearExplainableModel(BaseExplainableModel):
 
     predict_proba.__doc__ = (predict_proba.__doc__ +
                              '\nIf multiclass=True, uses the parameters for LogisticRegression:\n' +
-                             LogisticRegression.predict_proba.__doc__.replace('-', '') +
+                             _clean_doc(LogisticRegression.predict_proba.__doc__) +
                              '\nOtherwise predict_proba is not supported for regression or binary classification.\n')
 
     def explain_global(self, **kwargs):
@@ -284,9 +284,9 @@ class SGDExplainableModel(BaseExplainableModel):
 
     __init__.__doc__ = (__init__.__doc__ +
                         '\nIf multiclass=True, uses the parameters for SGDClassifier:\n' +
-                        SGDClassifier.__doc__.replace('-', '') +
+                        _clean_doc(SGDClassifier.__doc__) +
                         '\nOtherwise, if multiclass=False, uses the parameters for SGDRegressor:\n' +
-                        SGDRegressor.__doc__.replace('-', ''))
+                        _clean_doc(SGDRegressor.__doc__))
 
     def fit(self, dataset, labels, **kwargs):
         """Call linear fit to fit the explainable model.
@@ -313,9 +313,9 @@ class SGDExplainableModel(BaseExplainableModel):
 
     fit.__doc__ = (fit.__doc__ +
                    '\nIf multiclass=True, uses the parameters for SGDClassifier:\n' +
-                   SGDClassifier.fit.__doc__.replace('-', '') +
+                   _clean_doc(SGDClassifier.fit.__doc__) +
                    '\nOtherwise, if multiclass=False, uses the parameters for SGDRegressor:\n' +
-                   SGDRegressor.fit.__doc__.replace('-', ''))
+                   _clean_doc(SGDRegressor.fit.__doc__))
 
     def predict(self, dataset, **kwargs):
         """Call SGD predict to predict labels using the explainable model.
@@ -329,9 +329,9 @@ class SGDExplainableModel(BaseExplainableModel):
 
     predict.__doc__ = (predict.__doc__ +
                        '\nIf multiclass=True, uses the parameters for SGDClassifier:\n' +
-                       SGDClassifier.predict.__doc__.replace('-', '') +
+                       _clean_doc(SGDClassifier.predict.__doc__) +
                        '\nOtherwise, if multiclass=False, uses the parameters for SGDRegressor:\n' +
-                       SGDRegressor.predict.__doc__.replace('-', ''))
+                       _clean_doc(SGDRegressor.predict.__doc__))
 
     def predict_proba(self, dataset, **kwargs):
         """Call SGD predict_proba to predict probabilities using the explainable model.
@@ -348,7 +348,7 @@ class SGDExplainableModel(BaseExplainableModel):
 
     predict_proba.__doc__ = (predict_proba.__doc__ +
                              '\nIf multiclass=True, uses the parameters for SGDClassifier:\n' +
-                             SGDClassifier.predict_proba.__doc__.replace('-', '')
+                             _clean_doc(SGDClassifier.predict_proba.__doc__)
                              .replace(':class:`sklearn.calibration.CalibratedClassifierCV`',
                                       'CalibratedClassifierCV') +
                              '\nOtherwise predict_proba is not supported for regression or binary classification.\n')
