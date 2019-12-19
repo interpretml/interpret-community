@@ -5,7 +5,7 @@
 """Defines an explainable tree model."""
 
 from ...common.constants import ShapValuesOutput, ExplainableModelType, Extension
-from .explainable_model import BaseExplainableModel, _get_initializer_args
+from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
 from .tree_model_utils import _explain_local_tree_surrogate, \
     _expected_values_tree_surrogate
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
@@ -73,9 +73,9 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
 
     __init__.__doc__ = (__init__.__doc__ +
                         '\nIf multiclass=True, uses the parameters for DecisionTreeClassifier:\n' +
-                        DecisionTreeClassifier.__doc__.replace('-', '') +
+                        _clean_doc(DecisionTreeClassifier.__doc__) +
                         '\nOtherwise, if multiclass=False, uses the parameters for DecisionTreeRegressor:\n' +
-                        DecisionTreeRegressor.__doc__.replace('-', ''))
+                        _clean_doc(DecisionTreeRegressor.__doc__))
 
     def fit(self, dataset, labels, **kwargs):
         """Call tree fit to fit the explainable model.
@@ -89,9 +89,9 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
 
     fit.__doc__ = (fit.__doc__ +
                    '\nIf multiclass=True, uses the parameters for DecisionTreeClassifier:\n' +
-                   DecisionTreeClassifier.fit.__doc__.replace('-', '') +
+                   _clean_doc(DecisionTreeClassifier.fit.__doc__) +
                    '\nOtherwise, if multiclass=False, uses the parameters for DecisionTreeRegressor:\n' +
-                   DecisionTreeRegressor.fit.__doc__.replace('-', ''))
+                   _clean_doc(DecisionTreeRegressor.fit.__doc__))
 
     def predict(self, dataset, **kwargs):
         """Call tree predict to predict labels using the explainable model.
@@ -105,9 +105,9 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
 
     predict.__doc__ = (predict.__doc__ +
                        '\nIf multiclass=True, uses the parameters for DecisionTreeClassifier:\n' +
-                       DecisionTreeClassifier.predict.__doc__.replace('-', '') +
+                       _clean_doc(DecisionTreeClassifier.predict.__doc__) +
                        '\nOtherwise, if multiclass=False, uses the parameters for DecisionTreeRegressor:\n' +
-                       DecisionTreeRegressor.predict.__doc__.replace('-', ''))
+                       _clean_doc(DecisionTreeRegressor.predict.__doc__))
 
     def predict_proba(self, dataset, **kwargs):
         """Call tree predict_proba to predict probabilities using the explainable model.
@@ -124,7 +124,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
 
     predict_proba.__doc__ = (predict_proba.__doc__ +
                              '\nIf multiclass=True, uses the parameters for DecisionTreeClassifier:\n' +
-                             DecisionTreeClassifier.predict_proba.__doc__.replace('-', '') +
+                             _clean_doc(DecisionTreeClassifier.predict_proba.__doc__) +
                              '\nOtherwise predict_proba is not supported for regression or binary classification.\n')
 
     def explain_global(self, **kwargs):
