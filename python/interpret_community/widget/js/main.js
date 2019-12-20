@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { ExplanationDashboard } from 'mlchartlib';
+import { ExplanationDashboard } from 'interpret-dashboard';
 
 
 let generatePrediction = (postData) => {
@@ -33,6 +33,5 @@ ReactDOM.render(<ExplanationDashboard
       ebmGlobalExplanation: data.ebmData
     }}
     requestPredictions={data.predictionUrl !== undefined ? generatePrediction : undefined}
-    theme={"dark"}
     key={new Date()}
   />, document.getElementById(data.divId));
