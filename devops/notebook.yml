@@ -26,7 +26,7 @@ steps:
   - bash: |
       source activate interp
       pip freeze && \
-      pytest -m "notebooks" test/ --junitxml=./TEST-TEST.xml
+      python -m pytest -m "notebooks" test/ --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
