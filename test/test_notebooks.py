@@ -44,7 +44,6 @@ def test_read_sb():
     bn = sb.read_notebook(output_notebook)
 
     if "AGE" in bn.scraps.data_dict["local_imp"]:
-        print("found age")
         assert True
     else:
         assert False
