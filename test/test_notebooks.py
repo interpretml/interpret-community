@@ -42,9 +42,7 @@ def test_read_sb():
 
     pm.execute_notebook(input_notebook, output_notebook)
     bn = sb.read_notebook(output_notebook)
-    print(input_notebook, bn.scraps, bn.scraps.data_dict)
-    print(bn.scrap_dataframe)
-    print("local imp is ", bn.scraps.data_dict["local_imp"])
+
     if "AGE" in bn.scraps.data_dict["local_imp"]:
         print("found age")
         assert True
