@@ -1,7 +1,0 @@
-{
-  "load_extensions": {
-    "jupyter-js-widgets/extension": true,
-    "interpret-ml-widget/extension": true,
-    "interpret-ml-widget/index": true
-  }
-}

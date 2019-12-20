@@ -1,7 +1,4 @@
 include interpret_community/widget/static/extension.js
 include interpret_community/widget/static/index.js
-include interpret_community/widget/new_js/index.js
-include interpret_community/widget/dashboard.html
 include interpret_community/widget/templates/dashboard.html
-recursive-include jupyter-config *.json
 recursive-include interpret_community/widget/static *.js.map
