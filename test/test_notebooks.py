@@ -12,7 +12,7 @@ def test_explain_binary_classification_local():
 
     pm.execute_notebook(input_notebook, output_notebook)
 
-    nb = sb.read_notebook(input_notebook)
+    nb = sb.read_notebook(output_notebook)
     nb.scraps  # print a dict of all scraps by name
 
     return
@@ -26,20 +26,13 @@ def test_explain_regression_local():
     output_notebook = "./test/" + notebookname + ".output.ipynb"
 
     pm.execute_notebook(input_notebook, output_notebook)
-
-    nb = sb.read_notebook(input_notebook)
-    bn = sb.read_notebook(output_notebook)
+    nb = sb.read_notebook(output_notebook)
     print(nb.scraps)  # print a dict of all scraps by name
     print(nb.scrap_dataframe)
-    print(bn.scraps)
-    print(bn.scrap_dataframe)
-    jj=bn.scrap_dataframe
-    print('scrap', bn.scraps[1])
-    print("local imp is ", jj[[1]])
-    
-    assert False
+    assert True
 
     return
+
 
 @pytest.mark.notebooks
 def test_read_sb():
@@ -47,12 +40,11 @@ def test_read_sb():
     input_notebook = "notebooks/" + notebookname + ".ipynb"
     output_notebook = "./test/" + notebookname + ".output.ipynb"
     bn = sb.read_notebook(output_notebook)
-    print('hey')
     print(bn.scraps)
     print(bn.scrap_dataframe)
-    print("local imp is ", bn.scraps.data_dict['local_imp'])
-    if 'AGE' in bn.scraps.data_dict['local_imp']:
-        print('found age')
+    print("local imp is ", bn.scraps.data_dict["local_imp"])
+    if "AGE" in bn.scraps.data_dict["local_imp"]:
+        print("found age")
         assert True
     else:
         assert False
@@ -69,7 +61,7 @@ def test_advanced_feature_transformations_explain_local():
 
     pm.execute_notebook(input_notebook, output_notebook)
 
-    nb = sb.read_notebook(input_notebook)
+    nb = sb.read_notebook(output_notebook)
     nb.scraps  # print a dict of all scraps by name
 
     return
@@ -84,7 +76,7 @@ def test_explain_multiclass_classification_local():
 
     pm.execute_notebook(input_notebook, output_notebook)
 
-    nb = sb.read_notebook(input_notebook)
+    nb = sb.read_notebook(output_notebook)
     nb.scraps  # print a dict of all scraps by name
 
     return
@@ -99,7 +91,7 @@ def test_simple_feature_transformations_explain_local():
 
     pm.execute_notebook(input_notebook, output_notebook)
 
-    nb = sb.read_notebook(input_notebook)
+    nb = sb.read_notebook(output_notebook)
     nb.scraps  # print a dict of all scraps by name
 
     return
