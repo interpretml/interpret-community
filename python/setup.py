@@ -7,8 +7,9 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-_major = '0.3'
-_minor = '1'
+_major = '0'
+_minor = '4'
+_patch = '0'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -17,20 +18,7 @@ LICENSE_FILE = 'LICENSE.txt'
 if os.path.exists('../LICENSE'):
     shutil.copyfile('../LICENSE', LICENSE_FILE)
 
-if os.path.exists('../major.version'):
-    with open('../major.version', 'rt') as bf:
-        _major = str(bf.read()).strip()
-
-if os.path.exists('../minor.version'):
-    with open('../minor.version', 'rt') as bf:
-        _minor = str(bf.read()).strip()
-
-VERSION = '{}.{}'.format(_major, _minor)
-SELFVERSION = VERSION
-if os.path.exists('patch.version'):
-    with open('patch.version', 'rt') as bf:
-        _patch = str(bf.read()).strip()
-        SELFVERSION = '{}.{}'.format(VERSION, _patch)
+VERSION = '{}.{}.{}'.format(_major, _minor, _patch)
 
 
 CLASSIFIERS = [
@@ -41,6 +29,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
@@ -54,7 +43,7 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.32.1',
+    'shap>=0.20.0, <=0.33.0',
     'flask'
 ]
 
@@ -78,7 +67,7 @@ with open(README_FILE, 'r', encoding='utf-8') as f:
 setup(
     name='interpret-community',
 
-    version=SELFVERSION,
+    version=VERSION,
 
     description='Microsoft Interpret Extensions SDK for Python',
     long_description=README,
@@ -86,7 +75,7 @@ setup(
     author='Microsoft Corp',
     author_email='ilmat@microsoft.com',
     license='MIT License',
-    url='https://docs.microsoft.com/en-us/azure/machine-learning/service/',
+    url='https://github.com/interpretml/interpret-community',
 
     classifiers=CLASSIFIERS,
 

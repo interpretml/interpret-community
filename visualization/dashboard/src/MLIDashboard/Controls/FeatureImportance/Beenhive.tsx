@@ -6,9 +6,8 @@ import { ComboBox, IComboBox, IComboBoxOption } from 'office-ui-fabric-react/lib
 import { IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { Slider } from 'office-ui-fabric-react/lib/Slider';
 import * as React from 'react';
-import { ChartBuilder, AccessibleChart } from '../../../ChartTools';
+import { ChartBuilder, AccessibleChart , PlotlyMode, IPlotlyProperty, DefaultSelectionFunctions} from 'mlchartlib';
 import { localization } from '../../../Localization/localization';
-import { PlotlyMode, IPlotlyProperty } from '../../../Shared';
 import { FabricStyles } from '../../FabricStyles';
 import { IExplanationContext, ModelTypes } from '../../IExplanationContext';
 import { ModelExplanationUtils } from '../../ModelExplanationUtils';
@@ -332,6 +331,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                         sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
                         relayoutArg={relayoutArg as any}
+                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );  

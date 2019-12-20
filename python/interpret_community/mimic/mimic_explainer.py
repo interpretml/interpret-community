@@ -574,4 +574,8 @@ class MimicExplainer(BlackBoxExplainer):
             mimic.__dict__[MimicSerializationConstants.ORIGINAL_EVAL_EXAMPLES] = None
         if MimicSerializationConstants.TIMESTAMP_FEATURIZER not in mimic.__dict__:
             mimic.__dict__[MimicSerializationConstants.TIMESTAMP_FEATURIZER] = None
+        if MimicSerializationConstants.RESET_INDEX not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.RESET_INDEX] = False
+        if MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS not in mimic.__dict__:
+            mimic.__dict__[MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS] = False
         return mimic

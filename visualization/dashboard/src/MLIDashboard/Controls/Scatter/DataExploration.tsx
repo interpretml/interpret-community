@@ -1,8 +1,7 @@
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import React from "react";
-import { AccessibleChart } from "../../../ChartTools";
+import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
-import { IPlotlyProperty } from "../../../Shared";
 import { FabricStyles } from "../../FabricStyles";
 import {  ScatterUtils, IScatterProps } from "./ScatterUtils";
 import _ from "lodash";
@@ -73,6 +72,7 @@ export class DataExploration extends React.PureComponent<IScatterProps> {
                         plotlyProps={ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps))}
                         sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
+                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );

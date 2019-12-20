@@ -6,7 +6,8 @@ import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
 import { PlotlyThemes } from './PlotlyThemes';
 
-import { IPlotlyProperty, SelectionContext } from '../Shared';
+import { IPlotlyProperty } from './IPlotlyProperty';
+import {SelectionContext} from './SelectionContext';
 
 type SelectableChartType = 'scatter' | 'multi-line' | 'non-selectable';
 
@@ -20,8 +21,8 @@ export interface AccessibleChartProps {
     onSelection?: (chartID: string, selectionIds: string[], plotlyProps: IPlotlyProperty) => void;
 }
 
-export class AccessibleChart extends React.Component<AccessibleChartProps, { loading: boolean }> {
-    private guid: string = uuidv4();
+export class AccessibleChart extends React.Component<AccessibleChartProps> {
+    public guid: string = uuidv4();
     private timer: number;
     private subscriptionId: string;
     private plotlyRef: PlotlyHTMLElement;
@@ -29,7 +30,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
 
     constructor(props: AccessibleChartProps) {
         super(props);
-        this.state = { loading: true };
         this.onChartClick = this.onChartClick.bind(this);
     }
 
@@ -53,9 +53,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
                 }
                 this.subscribeToSelections();
             }
-            if (!this.state.loading) {
-                this.setState({ loading: true });
-            }
         } else if (!_.isEqual(this.props.relayoutArg, prevProps.relayoutArg) && this.guid) {
             Plotly.relayout(this.guid, this.props.relayoutArg);
         }
@@ -74,17 +71,15 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
         if (this.hasData()) {
             return (
                 <>
-                    {this.state.loading && <div className="LoadingScreen">{'Loading...'}</div>}
                     <div
                         className="GridChart"
                         id={this.guid}
-                        style={{ visibility: this.state.loading ? 'hidden' : 'visible' }}
                     />
                     {this.createTableWithPlotlyData(this.props.plotlyProps.data)}
                 </>
             );
         }
-        return <div className="centered">{'No Data'}</div>;
+        return <div className="centered">{this.props.localizedStrings ? this.props.localizedStrings['noData'] : 'No Data'}</div>;
     }
 
     private hasData(): boolean {
@@ -96,10 +91,10 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
     }
 
     private subscribeToSelections(): void {
-        if (this.plotSelectionType(this.props.plotlyProps) !== 'non-selectable' && this.props.sharedSelectionContext) {
+        if (this.props.sharedSelectionContext && this.props.onSelection) {
             this.subscriptionId = this.props.sharedSelectionContext.subscribe({
                 selectionCallback: selections => {
-                    this.applySelections(selections);
+                    this.props.onSelection(this.guid, selections, this.props.plotlyProps);
                 }
             });
         }
@@ -114,8 +109,8 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
             : _.cloneDeep(this.props.plotlyProps);
         this.timer = window.setTimeout(async () => {
             this.plotlyRef = await Plotly.react(this.guid, themedProps.data, themedProps.layout, themedProps.config);
-            if (this.props.sharedSelectionContext) {
-                this.applySelections(this.props.sharedSelectionContext.selectedIds);
+            if (this.props.sharedSelectionContext && this.props.onSelection) {
+                this.props.onSelection(this.guid, this.props.sharedSelectionContext.selectedIds, this.props.plotlyProps);
             }
 
             if (!this.isClickHandled) {
@@ -148,7 +143,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
     }
 
     private plotSelectionType(plotlyProps: IPlotlyProperty): SelectableChartType {
-
         if (plotlyProps.data.length > 0 && plotlyProps.data[0] && (((plotlyProps.data[0].type as any) === 'scatter') || (plotlyProps.data[0].type as any) === 'scattergl')) {
             if (
                 plotlyProps.data.length > 1 &&
@@ -167,66 +161,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps, { loa
             }
         }
         return 'non-selectable';
-    }
-
-    private applySelections(selections: string[]): void {
-        const type = this.plotSelectionType(this.props.plotlyProps);
-        if (type === 'multi-line') {
-            this.applySelectionsToMultiLinePlot(selections);
-        } else if (type === 'scatter') {
-            this.applySelectionsToScatterPlot(selections);
-        }
-    }
-
-    private applySelectionsToMultiLinePlot(selections: string[]): void {
-        const opacities = this.props.plotlyProps.data.map(trace => {
-            if (selections.length === 0) {
-                return 1;
-            }
-            const customdata = (trace as any).customdata;
-            return customdata && customdata.length > 0 && selections.indexOf((trace as any).customdata[0]) !== -1
-                ? 1
-                : 0.3;
-        });
-        Plotly.restyle(this.guid, 'opacity' as any, opacities);
-    }
-
-    private async applySelectionsToScatterPlot(selections: string[]): Promise<void> {
-        const selectedPoints =
-            selections.length === 0
-                ? null
-                : this.props.plotlyProps.data.map(trace => {
-                      const selectedIndexes: number[] = [];
-                      if ((trace as any).customdata) {
-                          ((trace as any).customdata as string[]).forEach((id, index) => {
-                              if (selections.indexOf(id) !== -1) {
-                                  selectedIndexes.push(index);
-                              }
-                          });
-                      }
-                      return selectedIndexes;
-                  });
-        Plotly.restyle(this.guid, 'selectedpoints' as any, selectedPoints as any);
-        const newLineWidths =
-            selections.length === 0
-                ? [0]
-                : this.props.plotlyProps.data.map(trace => {
-                    if ((trace as any).customdata) {
-                        const customData = ((trace as any).customdata as string[]);
-                        const newWidths: number[] = new Array(customData.length).fill(0);
-                        customData.forEach((id, index) => {
-                            if (selections.indexOf(id) !== -1) {
-                                newWidths[index] = 2;
-                            }
-                        });
-                        return newWidths
-                    }
-                    return [0];
-                  });
-        // Plotly.restyle(this.guid, 'marker.line.width' as any, newLineWidths as any);
-        if (this.props.onSelection) {
-            this.props.onSelection(this.guid, selections, this.props.plotlyProps);
-        }
     }
 
     private createTableWithPlotlyData(data: Plotly.Data[]): React.ReactNode {

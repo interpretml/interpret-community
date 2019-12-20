@@ -1,4 +1,4 @@
-import { IPlotlyProperty } from "../../Shared/IPlotlyProperty";
+import { IPlotlyProperty } from "mlchartlib";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import _ from "lodash";

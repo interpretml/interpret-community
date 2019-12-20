@@ -3,10 +3,9 @@ import * as memoize from 'memoize-one';
 import _ from "lodash";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { IExplanationContext, IMultiClassBoundedCoordinates } from "../IExplanationContext";
-import { IPlotlyProperty, IData, PlotlyMode } from "../../Shared";
+import { AccessibleChart, IPlotlyProperty, IData, PlotlyMode } from "mlchartlib";
 import { localization } from "../../Localization/localization";
 import { FabricStyles } from "../FabricStyles";
-import { AccessibleChart } from "../../ChartTools";
 
 export interface IEbmProps {
     explanationContext: IExplanationContext;

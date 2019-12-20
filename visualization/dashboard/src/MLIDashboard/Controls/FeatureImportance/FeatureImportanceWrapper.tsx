@@ -1,5 +1,5 @@
 import React from "react";
-import { SelectionContext } from "../../../Shared";
+import { SelectionContext } from "mlchartlib";
 import { IDashboardContext } from "../../ExplanationDashboard";
 import { IBarChartConfig } from "../../SharedComponents";
 import { FeatureImportanceBar } from "./FeatureImportanceBar";

@@ -1,4 +1,4 @@
-import { IData } from "../Shared";
+import { IData } from "./IData";
 import { AccessorMappingFunctionNames } from "./AccessorMappingFunctionNames";
 
 // No one hates 'any' more than me, but it is the strongest type we can say given it is the result of

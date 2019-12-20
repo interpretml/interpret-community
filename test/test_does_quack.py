@@ -39,6 +39,10 @@ class FeatureImportanceValid(object):
         return None
 
     @property
+    def num_features(self):
+        return None
+
+    @property
     def is_raw(self):
         return False
 
@@ -51,6 +55,10 @@ class LocalValuesValid(object):
     @property
     def local_importance_values(self):
         return [[.2, .4, .01], [.3, .2, 0]]
+
+    @property
+    def num_examples(self):
+        return None
 
 
 class GlobalValid(object):
@@ -74,6 +82,10 @@ class ClassesValid(object):
     def classes(self):
         return None
 
+    @property
+    def num_classes(self):
+        return None
+
 
 class PerClassValid(object):
     @property
@@ -82,7 +94,7 @@ class PerClassValid(object):
 
     @property
     def per_class_values(self):
-        return [.2, .4, .01]
+        return [.2, .4, .03]
 
 
 class _DatasetsValid(object):
@@ -248,6 +260,10 @@ class TestDoesQuack(object):
 
         class FeatImpNoFeatures(object):
             @property
+            def num_features(self):
+                return None
+
+            @property
             def is_raw(self):
                 return True
 
@@ -260,6 +276,10 @@ class TestDoesQuack(object):
 
         class FeatImpNoRawTag(object):
             @property
+            def num_features(self):
+                return None
+
+            @property
             def features(self):
                 return None
 
@@ -271,6 +291,10 @@ class TestDoesQuack(object):
         assert not FeatureImportanceExplanation._does_quack(FeatImpNoRawTagExp())
 
         class FeatImpIsRawNonBool(object):
+            @property
+            def num_features(self):
+                return None
+
             @property
             def features(self):
                 return None
@@ -285,6 +309,22 @@ class TestDoesQuack(object):
 
         FeatImpIsRawNonBoolExp = type('InvalidFeatureImportanceExplanation', (FeatImpIsRawNonBool, BaseValid), {})
         assert not FeatureImportanceExplanation._does_quack(FeatImpIsRawNonBoolExp())
+
+        class FeatImpNoNumFeatures(object):
+            @property
+            def features(self):
+                return None
+
+            @property
+            def is_raw(self):
+                return True
+
+            @property
+            def is_engineered(self):
+                return False
+
+        FeatImpNoNumFeatsExp = type('InvalidFeatureImportanceExplanation', (FeatImpNoNumFeatures, BaseValid), {})
+        assert not FeatureImportanceExplanation._does_quack(FeatImpNoNumFeatsExp())
 
     def test_does_quack_local_explanation(self):
         ValidLocalExp = type('ValidLocalExplanation', (BaseValid, FeatureImportanceValid, LocalValuesValid), {})
@@ -301,6 +341,10 @@ class TestDoesQuack(object):
             @property
             def local_importance_values(self):
                 return None
+
+            @property
+            def num_examples(self):
+                return None
         LocalNoneLocalExp = type('InvalidLocalExplanation',
                                  (LocalExplanationNone, FeatureImportanceValid, BaseValid),
                                  {})
@@ -310,6 +354,10 @@ class TestDoesQuack(object):
             @property
             def local_importance_values(self):
                 return 5
+
+            @property
+            def num_examples(self):
+                return None
         LocalNonListLocalExp = type('InvalidLocalExplanation',
                                     (LocalExplanationNonList, FeatureImportanceValid, BaseValid),
                                     {})
@@ -319,10 +367,23 @@ class TestDoesQuack(object):
             @property
             def local_importance_values(self):
                 return np.ones((5, 3))
+
+            @property
+            def num_examples(self):
+                return None
         LocalNumpyLocalExp = type('InvalidLocalExplanation',
                                   (LocalExplanationNumpy, FeatureImportanceValid, BaseValid),
                                   {})
         assert not LocalExplanation._does_quack(LocalNumpyLocalExp())
+
+        class LocalNoNumExamples(object):
+            @property
+            def local_importance_values(self):
+                return [[.2, .4, .01], [.3, .2, 0]]
+        LocalNoNumExamplesExp = type('InvalidLocalExplanation',
+                                     (LocalNoNumExamples, FeatureImportanceValid, BaseValid),
+                                     {})
+        assert not LocalExplanation._does_quack(LocalNoNumExamplesExp())
 
     def test_does_quack_global_explanation(self):
         ValidGlobalLocalExp = type('ValidGlobalExplanation',
@@ -395,8 +456,18 @@ class TestDoesQuack(object):
         assert ClassesMixin._does_quack(ValidClasses())
 
     def test_does_quack_classes_mixin_negative(self):
-        NoClasses = type('InvalidClasses', (PerClassValid,), {})
+        class NoClasses(object):
+            @property
+            def num_classes(self):
+                return None
         assert not ClassesMixin._does_quack(NoClasses())
+
+        class NoNumClasses(object):
+            @property
+            def classes(self):
+                return None
+        NoNumClasses = type('InvalidClasses', (PerClassValid, NoNumClasses), {})
+        assert not ClassesMixin._does_quack(NoNumClasses())
 
     def test_does_quack_per_class(self):
         ValidPerClass = type('ValidPerClass', (ClassesValid, PerClassValid), {})
