@@ -4,10 +4,9 @@
 
 """Module for Explanation Dashboard widget."""
 
-# from .ExplanationDashboard import ExplanationDashboard
-from .explanation_service import LocalExplanationDash
+from .explanation_service import ExplanationDashboard
 
-__all__ = ['LocalExplanationDash']
+__all__ = ['ExplanationDashboard']
 
 
 def _jupyter_nbextension_paths():

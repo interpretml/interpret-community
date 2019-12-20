@@ -7,7 +7,7 @@ import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
 
-class LocalExplanationDash:
+class ExplanationDashboard:
     __service = None
     explanations = {}
     model_count = 0
