@@ -119,7 +119,7 @@ setup(
             'interpret_community/widget/templates/dashboard.html',
             'interpret_community/widget/static/index.js'
         ]
-    }
+    },
     zip_safe=False,
     extras_require=EXTRAS
 )
