@@ -39,8 +39,10 @@ def test_read_sb():
     notebookname = "explain-regression-local"
     input_notebook = "notebooks/" + notebookname + ".ipynb"
     output_notebook = "./test/" + notebookname + ".output.ipynb"
+
+    pm.execute_notebook(input_notebook, output_notebook)
     bn = sb.read_notebook(output_notebook)
-    print(bn.scraps)
+    print(input_notebook, bn.scraps, bn.scraps.data_dict)
     print(bn.scrap_dataframe)
     print("local imp is ", bn.scraps.data_dict["local_imp"])
     if "AGE" in bn.scraps.data_dict["local_imp"]:
