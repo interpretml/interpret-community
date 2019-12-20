@@ -108,7 +108,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         requestLocalFeatureExplanations={this.generateExplanatins.bind(this, App.choices[this.state.value].data.localExplanations)}
-                        theme={"dark"}
+                        // theme={"dark"}
                         key={new Date()}
                       />
                   </div>

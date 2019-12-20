@@ -8,10 +8,15 @@ let generatePrediction = (postData) => {
   return fetch(data.predictionUrl, {method: "post", body: JSON.stringify(postData), headers: {
     'Content-Type': 'application/json'
   }}).then(resp => {
-    if (resp.error !== undefined) {
-      throw new Error(resp.error)
+    if (resp.status >= 200 && resp.status < 300) {
+      return resp.json()
     }
-    return resp.data
+    return Promise.reject(new Error(resp.statusText))
+  }).then(json => {
+    if (json.error !== undefined) {
+      throw new Error(json.error)
+    }
+    return Promise.resolve(json.data)
   })
 }
 
