@@ -184,6 +184,8 @@ class MimicSerializationConstants(object):
     ORIGINAL_EVAL_EXAMPLES = '_original_eval_examples'
     PREDICT_PROBA_FLAG = 'predict_proba_flag'
     TIMESTAMP_FEATURIZER = '_timestamp_featurizer'
+    RESET_INDEX = 'reset_index'
+    ALLOW_ALL_TRANSFORMATIONS = '_allow_all_transformations'
 
     enum_properties = ['_shap_values_output']
     nonify_properties = ['_logger', 'model', 'function', 'initialization_examples',
