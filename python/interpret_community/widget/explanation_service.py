@@ -4,12 +4,15 @@ from IPython.display import display, HTML, IFrame
 from gevent.pywsgi import WSGIServer
 import threading
 import jinja2
+import socket
+import requests
+import warnings
 import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
 
 class ExplanationDashboard:
-    __service = None
+    service = None
     explanations = {}
     model_count = 0
     
@@ -19,24 +22,64 @@ class ExplanationDashboard:
         def __init__(self, port):
             self.port = port
             self.ip = '127.0.0.1'
+            self.use_cdn = True
+            ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
 
         def run(self):
             server =  WSGIServer((self.ip, self.port), self.app)
             self.app.config["server"] = server
             server.serve_forever()
 
+        def _local_port_available(ip, port, rais=True):
+            """
+            Borrowed from:
+            https://stackoverflow.com/questions/19196105/how-to-check-if-a-network-port-is-open-on-linux
+            """
+            try:
+                backlog = 5
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.bind((ip, port))
+                sock.listen(backlog)
+                sock.close()
+                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                sock.bind(("::1", port))
+                sock.listen(backlog)
+                sock.close()
+            except socket.error:  # pragma: no cover
+                if rais:
+                    raise RuntimeError(
+                        "Port {0} is not available. Please specify another port for use via the 'port' parameter".format(port)
+                    )
+                else:
+                    return False
+            return True
+
         @app.route('/')
         def hello():
-            return "HelloWorld"
+            return "No global list view supported at this time."
 
         @app.route('/<id>')
         def explanation_visual(id):
             # if there is no internet or the static file exists, use that
             # main_js='http://127.0.0.1:5000/static/index.js'
             if id in ExplanationDashboard.explanations:
-                return render_template( 'dashboard.html', explanation=json.dumps(ExplanationDashboard.explanations[id].dashboard_input), main_js='https://responsible-ai.azureedge.net/index.js', app_id='app_123')
+                using_fallback = False
+                if ExplanationDashboard.service.use_cdn:
+                    try:
+                        url = 'https://interpret-cdn.azureedge.net/index.js'
+                        requests.get(url)
+                    except:
+                        using_fallback = True
+                        url = "http://{0}:{1}/static/index.js".format(
+                            ExplanationDashboard.service.ip,
+                            ExplanationDashboard.service.port)
+                else:
+                    url = "http://{0}:{1}/static/index.js".format(
+                        ExplanationDashboard.service.ip,
+                        ExplanationDashboard.service.port)
+                return render_template( 'dashboard.html', explanation=json.dumps(ExplanationDashboard.explanations[id].dashboard_input), main_js=url, app_id='app_123', using_fallback=using_fallback)
             else:
-                return "unknown..."
+                return "Unknown model id."
         
         @app.route('/<id>/predict', methods=['POST'])
         def predict(id):
@@ -44,29 +87,33 @@ class ExplanationDashboard:
             if id in ExplanationDashboard.explanations:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
-    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None, port=5000):
-        if not ExplanationDashboard.__service:
-            ExplanationDashboard.__service = ExplanationDashboard.DashboardService(port)
-
-            self._thread = threading.Thread(target=ExplanationDashboard.__service.run, daemon=True)
-            self._thread.start()
+    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None, port=5000, use_cdn=True):
+        if not ExplanationDashboard.service:
+            try:
+                ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
+                self._thread = threading.Thread(target=ExplanationDashboard.service.run, daemon=True)
+                self._thread.start()
+            except Exception as e:
+                ExplanationDashboard.service = None
+                raise e
+        ExplanationDashboard.service.use_cdn = use_cdn
         ExplanationDashboard.model_count += 1
         predict_url = "http://{0}:{1}/{2}/predict".format(
-            ExplanationDashboard.__service.ip,
-            ExplanationDashboard.__service.port,
+            ExplanationDashboard.service.ip,
+            ExplanationDashboard.service.port,
             str(ExplanationDashboard.model_count))
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = ExplanationDashboardInput(explanationObject, model, datasetX, trueY, classes, features, predict_url)
 
-        html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='800px' frameBorder='0'></iframe>".format(
-            ExplanationDashboard.__service.ip,
-            ExplanationDashboard.__service.port,
-            ExplanationDashboard.model_count)
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+            html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
+                ExplanationDashboard.service.ip,
+                ExplanationDashboard.service.port,
+                ExplanationDashboard.model_count)
             _render_databricks(html)
         else: 
-            url = 'http://{0}:{1}/{0}'.format(
-                ExplanationDashboard.__service.ip,
-                ExplanationDashboard.__service.port,
+            url = 'http://{0}:{1}/{2}'.format(
+                ExplanationDashboard.service.ip,
+                ExplanationDashboard.service.port,
                 ExplanationDashboard.model_count)
             display(IFrame(url, "100%", 1200))
     
