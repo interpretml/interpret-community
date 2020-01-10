@@ -8,7 +8,29 @@ import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
 
+"""Initialize the Explanation Dashboard Input.
 
+:param explanation: An object that represents an explanation.
+:type explanation: ExplanationMixin
+:param model: An object that represents a model. It is assumed that for the classification case
+    it has a method of predict_proba() returning the prediction probabilities for each
+    class and for the regression case a method of predict() returning the prediction value.
+:type model: object
+:param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
+    used to build the explanation. Will overwrite any set on explanation object already
+:type dataset: numpy.array or list[][]
+:param true_y: The true labels for the provided dataset. Will overwrite any set on
+    explanation object already
+:type true_y: numpy.array or list[]
+:param classes: The class names
+:type classes: numpy.array or list[]
+:param features: Feature names
+:type features: numpy.array or list[]
+:param port: the port to use on localhosted service
+:type port: number
+:param use_cdn: should load latest dashboard script from cdn, fall back to local script if false
+:type use_cdn: boolean
+"""
 class ExplanationDashboard:
     service = None
     explanations = {}
@@ -94,7 +116,7 @@ class ExplanationDashboard:
             if id in ExplanationDashboard.explanations:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
-    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None, port=5000, use_cdn=True):
+    def __init__(self, explanation, model=None, *, dataset=None, true_y=None, classes=None, features=None, port=5000, use_cdn=True):
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
@@ -109,7 +131,7 @@ class ExplanationDashboard:
             ExplanationDashboard.service.ip,
             ExplanationDashboard.service.port,
             str(ExplanationDashboard.model_count))
-        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = ExplanationDashboardInput(explanationObject, model, datasetX, trueY, classes, features, predict_url)
+        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url)
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
