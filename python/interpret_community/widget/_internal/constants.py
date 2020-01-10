@@ -29,7 +29,6 @@ class ExplanationDashboardInterface(object):
     HAS_MODEL = "has_model"
 
 
-
 class WidgetRequestResponseConstants(object):
     """Strings used to pass messages between python and javascript."""
     ID = "id"

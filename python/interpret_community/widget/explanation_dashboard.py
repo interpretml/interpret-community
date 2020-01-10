@@ -1,24 +1,20 @@
 from gevent.pywsgi import WSGIServer
-from flask import Flask, render_template, url_for, request
-from IPython.display import display, HTML, IFrame
-from gevent.pywsgi import WSGIServer
+from flask import Flask, render_template, request
+from IPython.display import display, IFrame
 import threading
-import jinja2
 import socket
 import requests
-import warnings
 import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
+
 
 class ExplanationDashboard:
     service = None
     explanations = {}
     model_count = 0
-    _cdn_path="v0.1.js"
+    _cdn_path = "v0.1.js"
 
-    
-    
     class DashboardService:
         app = Flask(__name__)
 
@@ -30,8 +26,9 @@ class ExplanationDashboard:
 
         def run(self):
             class devnull:
-                write = lambda _: None
-            server =  WSGIServer((self.ip, self.port), self.app, log=devnull)
+                write = lambda _: None  # noqa: E731
+
+            server = WSGIServer((self.ip, self.port), self.app, log=devnull)
             self.app.config["server"] = server
             server.serve_forever()
 
@@ -78,7 +75,7 @@ class ExplanationDashboard:
                             url = "http://{0}:{1}/static/index.js".format(
                                 ExplanationDashboard.service.ip,
                                 ExplanationDashboard.service.port)
-                    except:
+                    except Exception:
                         using_fallback = True
                         url = "http://{0}:{1}/static/index.js".format(
                             ExplanationDashboard.service.ip,
@@ -87,10 +84,10 @@ class ExplanationDashboard:
                     url = "http://{0}:{1}/static/index.js".format(
                         ExplanationDashboard.service.ip,
                         ExplanationDashboard.service.port)
-                return render_template( 'dashboard.html', explanation=json.dumps(ExplanationDashboard.explanations[id].dashboard_input), main_js=url, app_id='app_123', using_fallback=using_fallback)
+                return render_template('dashboard.html', explanation=json.dumps(ExplanationDashboard.explanations[id].dashboard_input), main_js=url, app_id='app_123', using_fallback=using_fallback)
             else:
                 return "Unknown model id."
-        
+
         @app.route('/<id>/predict', methods=['POST'])
         def predict(id):
             data = request.get_json(force=True)
@@ -120,13 +117,14 @@ class ExplanationDashboard:
                 ExplanationDashboard.service.port,
                 ExplanationDashboard.model_count)
             _render_databricks(html)
-        else: 
+        else:
             url = 'http://{0}:{1}/{2}'.format(
                 ExplanationDashboard.service.ip,
                 ExplanationDashboard.service.port,
                 ExplanationDashboard.model_count)
             display(IFrame(url, "100%", 1200))
-    
+
+
 # NOTE: Code mostly derived from Plotly's databricks render as linked below:
 # https://github.com/plotly/plotly.py/blob/01a78d3fdac14848affcd33ddc4f9ec72d475232/packages/python/plotly/plotly/io/_base_renderers.py
 def _render_databricks(html):  # pragma: no cover
@@ -144,14 +142,9 @@ def _render_databricks(html):  # pragma: no cover
 
         if not found:
             msg = "Could not find DataBrick's displayHTML function"
-            log.error(msg)
             raise RuntimeError(msg)
 
     _render_databricks.displayHTML(html)
 
 
 _render_databricks.displayHTML = None
-    
-
-        
-        

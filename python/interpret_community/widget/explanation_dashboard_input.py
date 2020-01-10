@@ -5,15 +5,23 @@
 """Defines the Explanation dashboard class."""
 
 from ._internal.constants import ExplanationDashboardInterface, WidgetRequestResponseConstants
-from IPython.display import display
 from scipy.sparse import issparse
 import numpy as np
 import pandas as pd
 
+
 class ExplanationDashboardInput:
     """Represents an explanation as all the pieces that can be serialized and passed to javascript"""
 
-    def __init__(self, explanationObject, model=None, datasetX=None, trueY=None, classes=None, features=None, predict_url=None):
+    def __init__(
+            self,
+            explanationObject,
+            model=None,
+            datasetX=None,
+            trueY=None,
+            classes=None,
+            features=None,
+            predict_url=None):
         """Initialize the Explanation Dashboard Input.
 
         :param explanationObject: An object that represents an explanation.
@@ -130,7 +138,7 @@ class ExplanationDashboardInput:
                     class names length differs from local explanations dimension")
             self.dashboard_input[ExplanationDashboardInterface.CLASS_NAMES] = classes
         if model is not None and hasattr(model, 'predict_proba') \
-        and model.predict_proba is not None and datasetX is not None:
+                and model.predict_proba is not None and datasetX is not None:
             try:
                 probability_y = model.predict_proba(datasetX)
             except Exception:
@@ -159,7 +167,7 @@ class ExplanationDashboardInput:
                 WidgetRequestResponseConstants.ERROR: "Model threw exeption while predicting...",
                 WidgetRequestResponseConstants.DATA: []
             }
-    
+
     def _convertToList(self, array):
         if issparse(array):
             if array.shape[1] > 1000:
@@ -173,8 +181,8 @@ class ExplanationDashboardInput:
 
     def _find_first_explanation(self, key):
         new_array = [explanation for explanation
-                    in self._mli_explanations
-                    if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
+                     in self._mli_explanations
+                     if explanation[ExplanationDashboardInterface.MLI_EXPLANATION_TYPE_KEY] == key]
         if len(new_array) > 0:
             return new_array[0]["value"]
         return None

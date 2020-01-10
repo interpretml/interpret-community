@@ -4,7 +4,7 @@
 
 """Module for Explanation Dashboard widget."""
 
-from .explanation_service import ExplanationDashboard
+from .explanation_dashboard import ExplanationDashboard
 
 __all__ = ['ExplanationDashboard']
 
