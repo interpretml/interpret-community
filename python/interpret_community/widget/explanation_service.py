@@ -15,6 +15,7 @@ class ExplanationDashboard:
     service = None
     explanations = {}
     model_count = 0
+    cdn_path="v0.1.js"
     
     class DashboardService:
         app = Flask(__name__)
@@ -66,7 +67,7 @@ class ExplanationDashboard:
                 using_fallback = False
                 if ExplanationDashboard.service.use_cdn:
                     try:
-                        url = 'https://interpret-cdn.azureedge.net/index.js'
+                        url = 'https://interpret-cdn.azureedge.net/{0}'.format(ExplanationDashboard.cdn_path)
                         requests.get(url)
                     except:
                         using_fallback = True
@@ -87,7 +88,9 @@ class ExplanationDashboard:
             if id in ExplanationDashboard.explanations:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
-    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None, port=5000, use_cdn=True):
+    def __init__(self, explanationObject, model=None, *, datasetX=None, trueY=None, classes=None, features=None, port=5000, use_cdn=True, cdn_path=None):
+        if cdn_path is not None:
+            ExplanationDashboard.cdn_path = cdn_path
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)

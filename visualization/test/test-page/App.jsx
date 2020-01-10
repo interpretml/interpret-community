@@ -91,8 +91,8 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
             <select value={this.state.value} onChange={this.handleChange}>
               {App.choices.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}
             </select>
-              <div style={{ width: '80vw', backgroundColor: 'white', margin:'50px auto'}}>
-                  <div style={{ width: '100%'}}>
+              <div style={{ width: '80vw', height: '90vh', backgroundColor: 'white', margin:'50px auto'}}>
+                  <div style={{ width: '100%', height: '100%'}}>
                       <ExplanationDashboard
                         modelInformation={{modelClass: 'blackbox'}}
                         dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}

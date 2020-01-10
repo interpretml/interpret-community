@@ -3135,6 +3135,7 @@ interpret-dashboard@../../dashboard:
     localized-strings "^0.2.2"
     lodash "^4.17.11"
     memoize-one "^5.0.2"
+    mlchartlib "0.1.33"
     moment "^2.24.0"
     office-ui-fabric-react "^7.11.0"
     plotly.js-dist "^1.45.3"
@@ -3735,6 +3736,17 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
   integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
   dependencies:
     minimist "0.0.8"
+
+mlchartlib@0.1.33:
+  version "0.1.33"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.33.tgz#766132ce7cdd84251d08b759d505916fe27c5ada"
+  integrity sha512-b4TlMTMLh1CCJLgQQxPigO6l03mGWYxmKdaSM61Nw1m6UEInG2eXRO5hVyuDhH77rmlAuwtneZxhXWcyTXcmJA==
+  dependencies:
+    jmespath "^0.15.0"
+    lodash "^4.17.11"
+    moment "^2.24.0"
+    plotly.js-dist "^1.45.3"
+    uuid "^3.3.2"
 
 moment@^2.24.0:
   version "2.24.0"
