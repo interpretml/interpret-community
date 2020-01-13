@@ -4,7 +4,7 @@ import { PlotlyHTMLElement, Layout } from 'plotly.js-dist';
 import * as React from 'react';
 import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
-import { PlotlyThemes } from './PlotlyThemes';
+import { PlotlyThemes, IPlotlyTheme } from './PlotlyThemes';
 
 import { IPlotlyProperty } from './IPlotlyProperty';
 import {SelectionContext} from './SelectionContext';
@@ -15,6 +15,7 @@ const s = require('./AccessibleChart.css');
 export interface AccessibleChartProps {
     plotlyProps: IPlotlyProperty;
     theme: string;
+    themeOverride?: Partial<IPlotlyTheme>;
     sharedSelectionContext: SelectionContext;
     relayoutArg?: Partial<Layout>;
     localizedStrings?: any;
@@ -105,7 +106,7 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
             window.clearTimeout(this.timer);
         }
         const themedProps = this.props.theme
-            ? PlotlyThemes.applyTheme(this.props.plotlyProps, this.props.theme)
+            ? PlotlyThemes.applyTheme(this.props.plotlyProps, this.props.theme, this.props.themeOverride)
             : _.cloneDeep(this.props.plotlyProps);
         this.timer = window.setTimeout(async () => {
             this.plotlyRef = await Plotly.react(this.guid, themedProps.data, themedProps.layout, themedProps.config);

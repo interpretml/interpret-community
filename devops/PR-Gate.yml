@@ -12,24 +12,7 @@ steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
 
-  - bash: conda create --yes --quiet --name interp python=3.6
-    displayName: Create Anaconda environment
-
-  - bash: |
-      source activate interp
-      conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-
-    displayName: Install Anaconda packages
-
-  - bash: |
-      source activate interp
-      pip install --upgrade pip
-    displayName: Upgrade pip to latest
-
-  - bash: |
-      source activate interp
-      pip install -r requirements.txt
-    displayName: Install required pip packages
+  - template: templates/create-env-template.yml
 
   - bash: |
       source activate interp
@@ -64,7 +47,7 @@ steps:
   - bash: |
       source activate interp
       pip freeze \ &&
-      python -m pytest test --junitxml=./TEST-TEST.xml
+      python -m pytest -m "not notebooks" test --junitxml=./TEST-TEST.xml
     displayName: "Run tests"
 
   - task: PublishTestResults@2
