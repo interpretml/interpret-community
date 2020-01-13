@@ -94,7 +94,7 @@ class BlackBoxMixin(ChainedIdentity):
                     self.function = self.model.predict
             else:
                 errMsg = 'predict_proba not supported by given model, assuming regression model and trying predict'
-                self._logger.info(errMsg)
+                self._logger.debug(errMsg)
                 # try predict instead since this is likely a regression scenario
                 self.function = self.model.predict
                 # If classifier, but there is no predict_proba method, throw an exception
