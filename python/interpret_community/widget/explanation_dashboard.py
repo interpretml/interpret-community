@@ -8,7 +8,7 @@ import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
 
-"""Initialize the Explanation Dashboard Input.
+"""Explanation Dashboard Class.
 
 :param explanation: An object that represents an explanation.
 :type explanation: ExplanationMixin
@@ -31,6 +31,8 @@ from .explanation_dashboard_input import ExplanationDashboardInput
 :param use_cdn: should load latest dashboard script from cdn, fall back to local script if false
 :type use_cdn: boolean
 """
+
+
 class ExplanationDashboard:
     service = None
     explanations = {}
@@ -71,8 +73,10 @@ class ExplanationDashboard:
                 sock.close()
             except socket.error:  # pragma: no cover
                 if rais:
+                    error_message = """Port {0} is not available.
+                    Please specify another port for use via the 'port' parameter"""
                     raise RuntimeError(
-                        "Port {0} is not available. Please specify another port for use via the 'port' parameter".format(port)
+                        error_message.format(port)
                     )
                 else:
                     return False
@@ -106,7 +110,12 @@ class ExplanationDashboard:
                     url = "http://{0}:{1}/static/index.js".format(
                         ExplanationDashboard.service.ip,
                         ExplanationDashboard.service.port)
-                return render_template('dashboard.html', explanation=json.dumps(ExplanationDashboard.explanations[id].dashboard_input), main_js=url, app_id='app_123', using_fallback=using_fallback)
+                serialized_explanation = json.dumps(ExplanationDashboard.explanations[id].dashboard_input)
+                return render_template('dashboard.html',
+                                       explanation=serialized_explanation,
+                                       main_js=url,
+                                       app_id='app_123',
+                                       using_fallback=using_fallback)
             else:
                 return "Unknown model id."
 
@@ -116,7 +125,8 @@ class ExplanationDashboard:
             if id in ExplanationDashboard.explanations:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
-    def __init__(self, explanation, model=None, *, dataset=None, true_y=None, classes=None, features=None, port=5000, use_cdn=True):
+    def __init__(self, explanation, model=None, *, dataset=None,
+                 true_y=None, classes=None, features=None, port=5000, use_cdn=True):
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
@@ -131,7 +141,8 @@ class ExplanationDashboard:
             ExplanationDashboard.service.ip,
             ExplanationDashboard.service.port,
             str(ExplanationDashboard.model_count))
-        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url)
+        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] =\
+            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url)
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
