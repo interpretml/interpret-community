@@ -75,6 +75,8 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
                     <div
                         className="GridChart"
                         id={this.guid}
+                        aria-hidden={true}
+                        tabIndex={0}
                     />
                     {this.createTableWithPlotlyData(this.props.plotlyProps.data)}
                 </>
@@ -166,7 +168,7 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
 
     private createTableWithPlotlyData(data: Plotly.Data[]): React.ReactNode {
         return (
-            <table className="plotly-table hidden">
+            <table className="plotly-table visible-to-only-screen-reader">
                 <tbody>
                     {data.map((datum, index) => {
                         const xDataLength = datum.x ? datum.x.length : 0;
