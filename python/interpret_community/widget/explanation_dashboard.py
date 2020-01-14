@@ -7,6 +7,7 @@ import requests
 import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
+from ._internal import DatabricksInterfaceConstants
 
 """Explanation Dashboard Class.
 
@@ -173,9 +174,12 @@ def _render_databricks(html):  # pragma: no cover
         found = False
         for frame in inspect.getouterframes(inspect.currentframe()):
             global_names = set(frame.frame.f_globals)
-            target_names = {"displayHTML", "display", "spark"}
+            target_names = {DatabricksInterfaceConstants.DISPLAY_HTML,
+                             DatabricksInterfaceConstants.DIPLAY,
+                             DatabricksInterfaceConstants.SPARK}
             if target_names.issubset(global_names):
-                _render_databricks.displayHTML = frame.frame.f_globals["displayHTML"]
+                _render_databricks.displayHTML = frame.frame.f_globals[
+                    DatabricksInterfaceConstants.DISPLAY_HTML]
                 found = True
                 break
 

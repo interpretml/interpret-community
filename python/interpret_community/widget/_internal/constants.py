@@ -29,6 +29,12 @@ class ExplanationDashboardInterface(object):
     HAS_MODEL = "has_model"
 
 
+class DatabricksInterfaceConstants(object):
+    DISPLAY_HTML = "displayHTML"
+    DISPLAY = "display"
+    SPARK = "spark"
+
+
 class WidgetRequestResponseConstants(object):
     """Strings used to pass messages between python and javascript."""
     ID = "id"
