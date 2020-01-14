@@ -175,8 +175,8 @@ def _render_databricks(html):  # pragma: no cover
         for frame in inspect.getouterframes(inspect.currentframe()):
             global_names = set(frame.frame.f_globals)
             target_names = {DatabricksInterfaceConstants.DISPLAY_HTML,
-                             DatabricksInterfaceConstants.DIPLAY,
-                             DatabricksInterfaceConstants.SPARK}
+                            DatabricksInterfaceConstants.DIPLAY,
+                            DatabricksInterfaceConstants.SPARK}
             if target_names.issubset(global_names):
                 _render_databricks.displayHTML = frame.frame.f_globals[
                     DatabricksInterfaceConstants.DISPLAY_HTML]
