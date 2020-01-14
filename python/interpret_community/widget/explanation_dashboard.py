@@ -17,10 +17,10 @@ from .explanation_dashboard_input import ExplanationDashboardInput
     class and for the regression case a method of predict() returning the prediction value.
 :type model: object
 :param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
-    used to build the explanation. Will overwrite any set on explanation object already
+    used to build the explanation. Overwrites any existing dataset on the explanation object.
 :type dataset: numpy.array or list[][]
-:param true_y: The true labels for the provided dataset. Will overwrite any set on
-    explanation object already
+:param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
+    explanation object.
 :type true_y: numpy.array or list[]
 :param classes: The class names
 :type classes: numpy.array or list[]
@@ -126,7 +126,13 @@ class ExplanationDashboard:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
     def __init__(self, explanation, model=None, *, dataset=None,
-                 true_y=None, classes=None, features=None, port=5000, use_cdn=True):
+                 true_y=None, classes=None, features=None, port=5000, use_cdn=True,
+                 datasetX=None, trueY=None):
+        # support legacy kwarg names
+        if dataset is None and datasetX is not None:
+            dataset = datasetX
+        if true_y is None and trueY is not None:
+            true_y = trueY
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
@@ -174,7 +180,7 @@ def _render_databricks(html):  # pragma: no cover
                 break
 
         if not found:
-            msg = "Could not find DataBrick's displayHTML function"
+            msg = "Could not find databrick's displayHTML function"
             raise RuntimeError(msg)
 
     _render_databricks.displayHTML(html)

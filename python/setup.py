@@ -43,8 +43,7 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.33.0',
-    'flask'
+    'shap>=0.20.0, <=0.33.0'
 ]
 
 EXTRAS = {
@@ -58,6 +57,10 @@ EXTRAS = {
     ],
     'mimic': [
         'lightgbm'
+    ],
+    'visualization': [
+        'flask',
+        "gevent>=1.3.6"
     ]
 }
 
