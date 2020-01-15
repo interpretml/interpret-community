@@ -36,6 +36,8 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
     private generatePlotlyProps(): IPlotlyProperty {
         const plotlyProps: IPlotlyProperty = _.cloneDeep(ScatterUtils.baseScatterProperties);
+        plotlyProps.data[0].datapointLevelAccessors = undefined;
+        plotlyProps.data[0].hoverinfo = undefined;
         let hovertemplate = "";
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
         const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
@@ -58,6 +60,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                 }
             } else {
                 plotlyProps.data[0].x = rawX;
+                hovertemplate += "x: %{x}";
             }
         }
         if (this.props.chartProps.yAxis) {
@@ -75,8 +78,10 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                 }
             } else {
                 plotlyProps.data[0].y = rawY;
+                hovertemplate += "y: %{y}";
             }
         }
+        plotlyProps.data[0].hovertemplate = hovertemplate;
         return plotlyProps;
     }
 
