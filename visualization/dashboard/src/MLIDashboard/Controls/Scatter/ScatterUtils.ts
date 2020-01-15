@@ -19,6 +19,31 @@ export interface IScatterProps {
     onChange: (props: IPlotlyProperty, id: string) => void;
 }
 
+export interface INewScatterProps {
+    chartProps: IGenericChartProps;
+    selectionContext: SelectionContext;
+    theme?: string;
+    messages?: HelpMessageDict
+    dashboardContext: IDashboardContext;
+    onChange: (props: IGenericChartProps, id: string) => void;
+}
+
+export interface IGenericChartProps {
+    chartType: string;
+    xAxis?: ISelectorConfig;
+    yAxis?: ISelectorConfig;
+    colorAxis?: ISelectorConfig;
+}
+
+export interface ISelectorConfig {
+    property: string;
+    index?: number;
+    options?: {
+        dither: boolean;
+        binOptions: any;
+    }
+}
+
 
 export interface IProjectedData {
     TrainingData: any[];
@@ -33,7 +58,7 @@ export interface IProjectedData {
 
 export class ScatterUtils {
 
-    private static baseScatterProperties: IPlotlyProperty = {
+    public static baseScatterProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ["toggleSpikelines", "hoverClosestCartesian", "hoverCompareCartesian", "lasso2d", "select2d"] },
         data: [
             {

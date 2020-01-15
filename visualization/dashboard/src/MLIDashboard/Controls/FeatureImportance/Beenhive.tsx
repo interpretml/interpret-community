@@ -239,8 +239,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                 this.loadProps();
                 return <LoadingSpinner/>;
             }
-            const sortVector = Beehive.generateSortVector(this.props.dashboardContext.explanationContext).slice(-1 * Beehive.maxFeatures).reverse();
-            const plotlyProps = Beehive.buildPlotlyProps(this.props.dashboardContext.explanationContext, sortVector, this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption)));
+            const plotlyProps = this.state.plotlyProps;
             const weightContext = this.props.dashboardContext.weightContext;
             const relayoutArg = {'xaxis.range': [-0.5, this.props.config.topK - 0.5]};
             _.set(plotlyProps, 'layout.xaxis.range', [-0.5, this.props.config.topK - 0.5]);
