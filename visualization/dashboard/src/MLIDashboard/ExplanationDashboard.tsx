@@ -23,7 +23,8 @@ import {
     PerturbationExploration,
     SinglePointFeatureImportance,
     LocalBarId,
-    FeatureImportanceBar
+    FeatureImportanceBar,
+    IGenericChartProps
 } from "./Controls";
 
 import { IExplanationContext, IExplanationGenerators, IGlobalExplanation, ILocalExplanation, IExplanationModelMetadata, ITestDataset, ModelTypes, IFeatureValueExplanation, IMultiClassBoundedCoordinates } from "./IExplanationContext";
@@ -32,6 +33,8 @@ import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from "./I
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
+import { JointDataset } from "./JointDataset";
+import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 
 initializeIcons();
 
@@ -47,7 +50,7 @@ export interface IDashboardState {
     dashboardContext: IDashboardContext;
     activeGlobalTab: number;
     activeLocalTab: number;
-    configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig};
+    configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig | IGenericChartProps};
     selectedRow: number | undefined;
 }
 
@@ -177,8 +180,15 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             };
         }
 
+        const jointDataset = new JointDataset({
+            dataset: props.testData,
+            predictedY: props.predictedY, 
+            trueY: props.trueY,
+            metadata: modelMetadata});
+
         return {
             modelMetadata,
+            jointDataset,
             explanationGenerators,
             localExplanation,
             testDataset,
@@ -458,14 +468,22 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
                             {this.state.activeGlobalTab === 0 && (
-                                <DataExploration
+                                <NewDataExploration
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
-                                    plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
+                                    chartProps={this.state.configs[DataScatterId] as IGenericChartProps}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
                                 />
+                                // <DataExploration
+                                //     dashboardContext={this.state.dashboardContext}
+                                //     theme={this.props.theme}
+                                //     selectionContext={this.selectionContext}
+                                //     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
+                                //     onChange={this.onConfigChanged}
+                                //     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
+                                // />
                             )}
                             {this.state.activeGlobalTab === 1 && (
                                 <FeatureImportanceBar
@@ -646,7 +664,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                         },
                         globalExplanation: prevState.dashboardContext.explanationContext.globalExplanation,
                         explanationGenerators: prevState.dashboardContext.explanationContext.explanationGenerators,
-                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived
+                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived,
+                        jointDataset: prevState.dashboardContext.explanationContext.jointDataset
                     },
                     weightContext: newWeightContext
                 }
@@ -654,7 +673,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         });
     }
 
-    private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig, configId: string): void {
+    private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig | IGenericChartProps, configId: string): void {
         this.setState(prevState => {
             const newConfigs = _.cloneDeep(prevState.configs);
             newConfigs[configId] = newConfig;

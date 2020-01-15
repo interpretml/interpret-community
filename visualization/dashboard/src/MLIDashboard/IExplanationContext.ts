@@ -1,4 +1,5 @@
 import { IModelMetadata } from "mlchartlib";
+import { JointDataset } from "./JointDataset";
 
 export enum ModelTypes {
     regression = 'regression',
@@ -8,6 +9,7 @@ export enum ModelTypes {
 
 export interface IExplanationContext {
     modelMetadata: IExplanationModelMetadata;
+    jointDataset: JointDataset;
     explanationGenerators: IExplanationGenerators;
     localExplanation?: ILocalExplanation;
     testDataset?: ITestDataset;

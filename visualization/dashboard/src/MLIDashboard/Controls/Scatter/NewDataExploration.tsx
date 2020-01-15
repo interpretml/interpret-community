@@ -7,24 +7,77 @@ import {  ScatterUtils, INewScatterProps, IGenericChartProps } from "./ScatterUt
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
+import { JointDataset } from "../../JointDataset";
 
 export const DataScatterId = 'data_scatter_id';
 
-export class DataExploration extends React.PureComponent<INewScatterProps> {
+export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
     constructor(props: INewScatterProps) {
         super(props);
-        this.onXSelected = this.onXSelected.bind(this);
-        this.onYSelected = this.onYSelected.bind(this);
-        this.onColorSelected = this.onColorSelected.bind(this);
-        this.onDismiss = this.onDismiss.bind(this);
-        if (props.chartProps === undefined) {
-            this.generateDefaultChartAxes();
-        }
+        // if (props.chartProps === undefined) {
+        //     this.generateDefaultChartAxes();
+        // }
     }
 
     public render(): React.ReactNode {
+        if (this.props.chartProps === undefined) {
+            this.generateDefaultChartAxes();
+            return (<div/>);
+        }
         const plotlyProps = this.generatePlotlyProps();
+        return (<AccessibleChart
+                        plotlyProps={plotlyProps}
+                        sharedSelectionContext={this.props.selectionContext}
+                        theme={this.props.theme}
+                        onSelection={DefaultSelectionFunctions.scatterSelection}
+                    />);
+    }
+
+    private generatePlotlyProps(): IPlotlyProperty {
+        const plotlyProps: IPlotlyProperty = _.cloneDeep(ScatterUtils.baseScatterProperties);
+        let hovertemplate = "";
+        const jointData = this.props.dashboardContext.explanationContext.jointDataset;
+        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+            const dict = {};
+            dict[JointDataset.IndexLabel] = val;
+            return dict;
+        });
+        if (this.props.chartProps.xAxis) {
+            const rawX = jointData.unwrap(this.props.chartProps.xAxis.property);
+            if (this.props.chartProps.xAxis.options && this.props.chartProps.xAxis.options.dither) {
+                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
+                if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
+                    rawX.forEach((val, index) => {
+                        customdata[index]["X"] = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues[val];
+                    });
+                    hovertemplate += "x: %{customdata.X}";
+                } else {
+                    hovertemplate += "x: %{x}";
+                }
+            } else {
+                plotlyProps.data[0].x = rawX;
+            }
+        }
+        if (this.props.chartProps.yAxis) {
+            const rawY = jointData.unwrap(this.props.chartProps.yAxis.property);
+            if (this.props.chartProps.yAxis.options && this.props.chartProps.yAxis.options.dither) {
+                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
+                if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
+                    rawY.forEach((val, index) => {
+                        customdata[index]["Y"] = jointData.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues[val];
+                    });
+                    hovertemplate += "y: %{customdata.Y}";
+                } else {
+                    hovertemplate += "y: %{y}";
+                }
+            } else {
+                plotlyProps.data[0].y = rawY;
+            }
+        }
+        return plotlyProps;
     }
 
     private generateDefaultChartAxes(): void {
@@ -54,22 +107,17 @@ export class DataExploration extends React.PureComponent<INewScatterProps> {
         const chartProps: IGenericChartProps = {
             chartType: 'scatter',
             xAxis: {
-                property: 'Index',
+                property: JointDataset.IndexLabel,
             },
             yAxis: {
-                property: 'Data',
+                property: JointDataset.DataLabelTemplate.replace("{0}", maxIndex.toString()),
                 index: maxIndex
             },
             colorAxis: {
-                property: exp.testDataset.predictedY !== undefined ?
-                    'PredictedY' : 'Index'
+                property: exp.jointDataset.hasPredictedY ?
+                    JointDataset.PredictedYLabel : JointDataset.IndexLabel
             }
         }
         this.props.onChange(chartProps, DataScatterId);
-    }
-
-    private generatePlotlyProps(): IPlotlyProperty {
-        const plotlyProps: IPlotlyProperty = _.cloneDeep(ScatterUtils.baseScatterProperties);
-        
     }
 }
