@@ -57,6 +57,10 @@ EXTRAS = {
     ],
     'mimic': [
         'lightgbm'
+    ],
+    'visualization': [
+        'flask',
+        "gevent>=1.3.6"
     ]
 }
 
@@ -102,20 +106,12 @@ setup(
         ]
     },
     include_package_data=True,
-    data_files=[
-        ('share/jupyter/nbextensions/interpret-ml-widget', [
-            'interpret_community/widget/static/extension.js',
-            'interpret_community/widget/static/extension.js.map',
-            'interpret_community/widget/static/index.js',
-            'interpret_community/widget/static/index.js.map'
-        ]),
-        ("etc/jupyter/nbconfig/notebook.d", [
-            "jupyter-config/nbconfig/notebook.d/interpret-ml-widget.json"
-        ]),
-        ('share/jupyter/lab/extensions', [
-            'interpret_community/widget/js/'
-            'interpret_ml_widget/labextension/interpret-ml-widget-0.1.7.tgz'
-        ])],
+    package_data={
+        '': [
+            'interpret_community/widget/templates/dashboard.html',
+            'interpret_community/widget/static/index.js'
+        ]
+    },
     zip_safe=False,
     extras_require=EXTRAS
 )

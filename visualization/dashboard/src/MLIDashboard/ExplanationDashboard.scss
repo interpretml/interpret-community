@@ -8,10 +8,11 @@
         display: flex;
         overflow: hidden;
         width: 100%;
+        height: 100%;
         flex-direction: column;
         .global-charts-wrapper {
             width: 100%;
-            height: 55vh;
+            height: 55%;
             display: flex;
             flex-direction: row;
             .ms-FocusZone{
@@ -26,6 +27,7 @@
             width: 100%;
             border-top: 2px solid;
             box-sizing: border-box;
+            height: 45%;
             .local-placeholder {
                 height: 100px;
                 display: flex;
@@ -41,7 +43,7 @@
             .tabbed-viewer {
                 display: flex;
                 flex-direction: row;
-                height: 55vh;
+                height: 100%;
                 .ms-FocusZone{
                     height: 100%;
                 }
