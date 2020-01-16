@@ -19,7 +19,7 @@ export interface IIcePlotProps {
     datapointIndex: number;
     explanationContext: IExplanationContext;
     messages?: HelpMessageDict;
-    theme: string;
+    theme?: string;
 } 
 
 export interface IIcePlotState {

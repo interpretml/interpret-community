@@ -1,0 +1,15 @@
+<!doctype html>
+<title>Interpret Dashboard</title>
+{% if using_fallback %}
+    <div style="background-color: #fee12b; width: 100%;">Could not use CDN for dashboard javascript. Falling back to local index.js</div>
+{% endif %}
+<div style="height: 100%;" id="{{app_id}}"></div>
+<script type="text/javascript">
+    let data = {{explanation|safe}};
+    data.divId = "{{app_id}}";
+</script>
+<script type='text/javascript' src="{{ main_js }}"></script>
+<style>
+    html {height: 100%;}
+    body {height: 100%; margin: 0}
+</style>
