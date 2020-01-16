@@ -1,4 +1,4 @@
-import { IExplanationModelMetadata } from "./IExplanationContext";
+import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import { INumericRange, ICategoricalRange } from "mlchartlib";
 import { localization } from "../Localization/localization";
 
@@ -72,6 +72,12 @@ export class JointDataset {
                 args.predictedY.forEach((val, index) => {
                     this._dataDict[index][JointDataset.PredictedYLabel] = val;
                 });
+                this.metaDict[JointDataset.PredictedYLabel] = {
+                    label: localization.ExplanationScatter.predictedY,
+                    abbridgedLabel: localization.ExplanationScatter.predictedY,
+                    isCategorical: args.metadata.modelType !== ModelTypes.regression,
+                    sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined
+                }
                 this.hasPredictedY = true;
             }
             if (args.trueY) {
