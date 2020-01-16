@@ -1,6 +1,6 @@
 {
   "name": "mlchartlib",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "license": "MIT",
   "description": "Add accesibility, theming, and generating methods for plotly charts",
   "main": "rel/index.js",
