@@ -76,7 +76,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
                         className="GridChart"
                         id={this.guid}
                         aria-hidden={true}
-                        tabIndex={0}
                     />
                     {this.createTableWithPlotlyData(this.props.plotlyProps.data)}
                 </>
