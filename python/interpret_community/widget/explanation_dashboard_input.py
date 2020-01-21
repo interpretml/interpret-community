@@ -96,6 +96,9 @@ class ExplanationDashboardInput:
             try:
                 local_explanation["scores"] = self._convert_to_list(local_explanation["scores"])
                 local_explanation["intercept"] = self._convert_to_list(local_explanation["intercept"])
+                # We can ignore perf explanation data.  Note if it is added back at any point,
+                # the numpy values will need to be converted to python, otherwise serialization fails.
+                local_explanation["perf"] = None
                 self.dashboard_input[ExplanationDashboardInterface.LOCAL_EXPLANATIONS] = local_explanation
             except Exception:
                 raise ValueError("Unsupported local explanation type")
