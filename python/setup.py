@@ -9,7 +9,7 @@ import shutil
 
 _major = '0'
 _minor = '5'
-_patch = '0'
+_patch = '1'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
