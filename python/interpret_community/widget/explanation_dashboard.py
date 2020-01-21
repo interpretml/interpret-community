@@ -7,7 +7,7 @@ import requests
 import os
 import json
 from .explanation_dashboard_input import ExplanationDashboardInput
-from ._internal import DatabricksInterfaceConstants
+from ._internal.constants import DatabricksInterfaceConstants
 
 """Explanation Dashboard Class.
 
