@@ -1,4 +1,5 @@
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
+import * as Plotly from 'plotly.js-dist';
 import React from "react";
 import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
@@ -25,6 +26,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         this.onColorSelected = this.onColorSelected.bind(this);
         this.onDitherXToggle = this.onDitherXToggle.bind(this);
         this.onDitherYToggle = this.onDitherYToggle.bind(this);
+        this.scatterSelection = this.scatterSelection.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -100,7 +102,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     plotlyProps={plotlyProps}
                     sharedSelectionContext={this.props.selectionContext}
                     theme={this.props.theme}
-                    onSelection={DefaultSelectionFunctions.scatterSelection}
+                    onSelection={this.scatterSelection}
                 />
         </div>);
     }
@@ -281,5 +283,40 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
             }
         }
         this.props.onChange(chartProps, DataScatterId);
+    }
+
+    private scatterSelection(guid: string, selections: string[], plotlyProps: IPlotlyProperty): void {
+        const selectedPoints =
+            selections.length === 0
+                ? null
+                : plotlyProps.data.map(trace => {
+                      const selectedIndexes: number[] = [];
+                      if ((trace as any).customdata) {
+                          ((trace as any).customdata as any[]).forEach((dict, index) => {
+                              if (selections.indexOf(dict[JointDataset.IndexLabel]) !== -1) {
+                                  selectedIndexes.push(index);
+                              }
+                          });
+                      }
+                      return selectedIndexes;
+                  });
+        Plotly.restyle(guid, 'selectedpoints' as any, selectedPoints as any);
+        const newLineWidths =
+            selections.length === 0
+                ? [0]
+                : plotlyProps.data.map(trace => {
+                    if ((trace as any).customdata) {
+                        const customData = ((trace as any).customdata as string[]);
+                        const newWidths: number[] = new Array(customData.length).fill(0);
+                        customData.forEach((id, index) => {
+                            if (selections.indexOf(id) !== -1) {
+                                newWidths[index] = 2;
+                            }
+                        });
+                        return newWidths;
+                    }
+                    return [0];
+                  });
+        Plotly.restyle(guid, 'marker.line.width' as any, newLineWidths as any);
     }
 }
