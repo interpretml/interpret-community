@@ -1,5 +1,5 @@
 import React from "react";
-import { IJointMeta, IFilter, FilterMethods } from "./JointDataset";
+import { IJointMeta, IFilter, FilterMethods } from "../JointDataset";
 import { Button } from "office-ui-fabric-react/lib/Button";
 
 export interface INascentFilterProps {

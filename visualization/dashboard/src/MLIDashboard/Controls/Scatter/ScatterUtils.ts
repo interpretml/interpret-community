@@ -9,12 +9,13 @@ import { FabricStyles } from "../../FabricStyles";
 import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { HelpMessageDict } from "../../Interfaces";
 import { PlotlyUtils } from "../../SharedComponents";
+import { IFilterContext } from "../../Interfaces/IFilter";
 
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;
     selectionContext: SelectionContext;
     theme?: string;
-    messages?: HelpMessageDict
+    messages?: HelpMessageDict;
     dashboardContext: IDashboardContext;
     onChange: (props: IPlotlyProperty, id: string) => void;
 }
@@ -23,8 +24,9 @@ export interface INewScatterProps {
     chartProps: IGenericChartProps;
     selectionContext: SelectionContext;
     theme?: string;
-    messages?: HelpMessageDict
+    messages?: HelpMessageDict;
     dashboardContext: IDashboardContext;
+    filterContext: IFilterContext;
     onChange: (props: IGenericChartProps, id: string) => void;
 }
 

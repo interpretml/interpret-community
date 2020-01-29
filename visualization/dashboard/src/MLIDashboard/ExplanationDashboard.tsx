@@ -35,6 +35,7 @@ import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
 import { JointDataset } from "./JointDataset";
 import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
+import { IFilterContext, IFilter } from "./Interfaces/IFilter";
 
 initializeIcons();
 
@@ -48,6 +49,7 @@ export interface IDashboardContext {
 
 export interface IDashboardState {
     dashboardContext: IDashboardContext;
+    filters: IFilter[];
     activeGlobalTab: number;
     activeLocalTab: number;
     configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig | IGenericChartProps};
@@ -376,6 +378,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         this.onClearSelection = this.onClearSelection.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.handleLocalTabClick = this.handleLocalTabClick.bind(this);
+        this.addFilter = this.addFilter.bind(this);
+        this.deleteFilter = this.deleteFilter.bind(this);
         this.pivotItems = [];
         if (explanationContext.testDataset.dataset !== undefined) {
             this.pivotItems.push({headerText: localization.dataExploration, itemKey: ExplanationDashboard.globalTabKeys[0]})
@@ -412,7 +416,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 [GlobalFeatureImportanceId]: {displayMode: FeatureImportanceModes.beehive, topK: defaultTopK, id: GlobalFeatureImportanceId},
                 [LocalBarId]: {topK: defaultTopK}
             },
-            selectedRow: undefined
+            selectedRow: undefined,
+            filters: []
         };
     }
 
@@ -452,6 +457,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
+        const filterContext: IFilterContext = {
+            filters: this.state.filters,
+            onAdd: this.addFilter,
+            onDelete:this.deleteFilter
+        }
         return (
             <>
                 <div className="explainerDashboard">
@@ -475,6 +485,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     chartProps={this.state.configs[DataScatterId] as IGenericChartProps}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
+                                    filterContext={filterContext}
                                 />
                                 // <DataExploration
                                 //     dashboardContext={this.state.dashboardContext}
@@ -702,5 +713,24 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     private onClearSelection(): void {
         this.selectionContext.onSelect([]);
         this.setState({activeLocalTab: 0});
+    }
+
+    private addFilter(newFilter: IFilter): void {
+        this.setState(prevState => {
+            prevState.filters.push(newFilter);
+            prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
+            return prevState;
+        });
+    }
+
+    private deleteFilter(index: number): void{
+        this.setState(prevState => {
+            if (prevState.filters.length < index || index < 0) {
+                return;
+            }
+            prevState.filters.splice(index, 1);
+            prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
+            return prevState;
+        });
     }
 }

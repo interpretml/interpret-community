@@ -39,6 +39,10 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
         return (
             <div className="explanation-chart">
+                <FilterControl
+                    filterContext={this.props.filterContext}
+                    dashboardContext={this.props.dashboardContext}
+                />
                 <div className="top-controls">
                     <div className="path-selector x-value">
                         <ComboBox

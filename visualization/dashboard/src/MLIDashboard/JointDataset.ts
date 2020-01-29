@@ -1,25 +1,13 @@
 import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import { INumericRange, ICategoricalRange } from "mlchartlib";
 import { localization } from "../Localization/localization";
+import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 
 export interface IJointDatasetArgs {
     dataset?: any[][];
     predictedY?: number[];
     trueY?: number[];
     metadata: IExplanationModelMetadata;
-}
-
-export const enum FilterMethods {
-    greaterThan = 'greater',
-    lessThan = 'less',
-    equal = 'equal',
-    includes = 'includes'
-}
-
-export interface IFilter {
-    method: FilterMethods;
-    arg: number | number[];
-    column: string;
 }
 
 export interface IJointMeta {
@@ -46,7 +34,6 @@ export class JointDataset {
     public hasDataset: boolean = false;
     public hasPredictedY: boolean = false;
     public hasTrueY: boolean = false;
-    public filters: IFilter[] = [];
 
     private _dataDict: Array<{[key: string]: any}>;
     private _filteredData: Array<{[key: string]: any}>;
@@ -104,9 +91,9 @@ export class JointDataset {
         this.applyFilters();
     }
 
-    public applyFilters(): void {
+    public applyFilters(filters: IFilter[] = []): void {
         this._filteredData = this._dataDict.filter(row => 
-            this.filters.every(filter => {
+            filters.every(filter => {
                 const rowVal = row[filter.column];
                 switch(filter.method){
                     case FilterMethods.equal:
