@@ -119,7 +119,7 @@ export class JointDataset {
     }
 
     public unwrap(key: string): any[] {
-        return this._dataDict.map(row => row[key]);
+        return this._filteredData.map(row => row[key]);
     }
 
     private initializeDataDictIfNeeded(arr: any[]): void {

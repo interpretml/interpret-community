@@ -462,6 +462,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             onAdd: this.addFilter,
             onDelete:this.deleteFilter
         }
+        this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
         return (
             <>
                 <div className="explainerDashboard">
@@ -717,9 +718,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private addFilter(newFilter: IFilter): void {
         this.setState(prevState => {
-            prevState.filters.push(newFilter);
-            prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
-            return prevState;
+            const filters = [...prevState.filters];
+            filters.push(newFilter);
+            return {filters}
         });
     }
 

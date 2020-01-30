@@ -10,23 +10,29 @@ import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
 import { JointDataset } from "../../JointDataset";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { IconButton } from "office-ui-fabric-react/lib/Button";
+import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
+import NascentFilter from "../NascentFilter";
+import { IFilter } from "../../Interfaces/IFilter";
 
 export const DataScatterId = 'data_scatter_id';
 
-export class NewDataExploration extends React.PureComponent<INewScatterProps> {
+export class NewDataExploration extends React.PureComponent<INewScatterProps, {open: boolean}> {
 
     constructor(props: INewScatterProps) {
         super(props);
         // if (props.chartProps === undefined) {
         //     this.generateDefaultChartAxes();
         // }
+        this.state = {open: false};
         this.onXSelected = this.onXSelected.bind(this);
         this.onYSelected = this.onYSelected.bind(this);
         this.onColorSelected = this.onColorSelected.bind(this);
         this.onDitherXToggle = this.onDitherXToggle.bind(this);
         this.onDitherYToggle = this.onDitherYToggle.bind(this);
         this.scatterSelection = this.scatterSelection.bind(this);
+        this.openFilter = this.openFilter.bind(this);
+        this.addFilter = this.addFilter.bind(this);
+        this.cancelFilter = this.cancelFilter.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -39,10 +45,15 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
         return (
             <div className="explanation-chart">
-                <FilterControl
-                    filterContext={this.props.filterContext}
-                    dashboardContext={this.props.dashboardContext}
+                <Button
+                    onClick={this.openFilter}
+                    text="Add Filter"
                 />
+                {this.state.open && (<NascentFilter
+                    metaDict={this.props.dashboardContext.explanationContext.jointDataset.metaDict}
+                    addFilter={this.addFilter}
+                    cancel={this.cancelFilter}
+                />)}
                 <div className="top-controls">
                     <div className="path-selector x-value">
                         <ComboBox
@@ -109,6 +120,19 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     onSelection={this.scatterSelection}
                 />
         </div>);
+    }
+
+    private addFilter(filter: IFilter): void {
+        this.setState({open: false});
+        this.props.filterContext.onAdd(filter);
+    }
+
+    private cancelFilter(): void {
+        this.setState({open: false});
+    }
+
+    private openFilter(): void {
+        this.setState({open: true});
     }
 
     private onDitherXToggle(): void {
