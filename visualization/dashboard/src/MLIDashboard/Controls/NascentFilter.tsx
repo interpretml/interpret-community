@@ -6,6 +6,7 @@ import { FilterMethods, IFilter } from "../Interfaces/IFilter";
 import { IComboBoxOption, IComboBox, ComboBox } from "office-ui-fabric-react/lib/ComboBox";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { FabricStyles } from "../FabricStyles";
+import { Slider } from "office-ui-fabric-react/lib/Slider";
 
 export interface INascentFilterProps {
     metaDict: {[key: string]: IJointMeta};
@@ -66,6 +67,20 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
                         styles={FabricStyles.smallDropdownStyle}
                     />
                 )}
+                {this.state.column &&
+                this.props.metaDict[this.state.column] &&
+                !this.props.metaDict[this.state.column].isCategorical && (
+                    <Slider
+                        label="Include values"
+                        className="path-selector"
+                        max={this.props.metaDict[this.state.column].featureRange.max}
+                        min={this.props.metaDict[this.state.column].featureRange.min}
+                        value={this.state.arg as number}
+                        showValue={true}
+                        onChange={this.setNumericValue}
+                        ariaLabel={"chart type picker"}
+                    />
+                )}
                 <DialogFooter>
                     <PrimaryButton onClick={this.onClick} text="Save" />
                     <DefaultButton onClick={this.props.cancel} text="Cancel" />
@@ -98,6 +113,10 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
         this.setState({arg: selectedVals});
     }
 
+    private readonly setNumericValue = (value: number): void => {
+        this.setState({arg: value});
+    }
+
     private buildDefaultFilter(key: string): IFilter {
         const filter: IFilter = {column: key} as IFilter;
         const meta = this.props.metaDict[key];
@@ -111,8 +130,8 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
                 };
             });
         } else {
-            filter.method = FilterMethods.greaterThan;
-            filter.arg = meta.featureRange.min;
+            filter.method = FilterMethods.lessThan;
+            filter.arg = meta.featureRange.max;
         }
         return filter;
     }
