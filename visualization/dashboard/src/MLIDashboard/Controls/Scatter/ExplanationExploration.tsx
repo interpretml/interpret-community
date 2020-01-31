@@ -54,7 +54,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                                 ariaLabel="x picker"
                                 selectedKey={this.plotlyProps.data[0].xAccessor}
                                 useComboBoxAsMenuWidth={true}
-                                styles={ScatterUtils.xStyle}
+                                styles={FabricStyles.defaultDropdownStyle}
                             />
                         </div>
                         <div className="path-selector">
@@ -78,7 +78,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                                 ariaLabel="y picker"
                                 selectedKey={this.plotlyProps.data[0].yAccessor}
                                 useComboBoxAsMenuWidth={true}
-                                styles={ScatterUtils.yStyle}
+                                styles={FabricStyles.defaultDropdownStyle}
                             />
                         </div>
                         {(includeWeightDropdown) && 
@@ -89,7 +89,6 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                                     id={this.iconId}
                                     iconProps={{ iconName: 'Info' }}
                                     title={localization.CrossClass.info}
-                                    ariaLabel="Info"
                                     onClick={this.onIconClick}
                                     styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
                                 />

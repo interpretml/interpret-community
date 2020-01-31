@@ -39,9 +39,9 @@
     "localized-strings": "^0.2.2",
     "lodash": "^4.17.11",
     "memoize-one": "^5.0.2",
-    "mlchartlib": "0.1.33",
+    "mlchartlib": "0.1.36",
     "moment": "^2.24.0",
-    "office-ui-fabric-react": "^7.11.0",
+    "office-ui-fabric-react": "^7.74.1",
     "plotly.js-dist": "^1.45.3",
     "uuid": "^3.3.2"
   }

@@ -72,10 +72,11 @@ export class BarChart extends React.PureComponent<IBarChartProps> {
         const classByFeatureMatrix =  ModelExplanationUtils.transpose2DArray(this.props.featureByClassMatrix);
         let sortedIndexVector = this.props.sortedIndexVector.slice(-1 * this.props.topK).reverse();
         const baseSeries = {
-            config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d'] } as Plotly.Config,
+            config: { displaylogo: false, responsive: true, displayModeBar: false } as Plotly.Config,
             data: [],
             layout: {
                 autosize: true,
+                dragmode: false,
                 barmode: this.props.barmode,
                 font: {
                     size: 10
