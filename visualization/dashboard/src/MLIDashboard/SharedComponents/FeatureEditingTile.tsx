@@ -61,6 +61,7 @@ export class FeatureEditingTile extends  React.Component<IFeatureEditingTileProp
                 </div>
                 {(this.props.enumeratedValues === undefined) && <TextField
                     styles={FabricStyles.textFieldStyle}
+                    ariaLabel={this.props.featureName}
                     value={this.state.value}
                     onChange={this.onValueChanged}
                     errorMessage={this.state.errorMessage}
@@ -68,6 +69,7 @@ export class FeatureEditingTile extends  React.Component<IFeatureEditingTileProp
                 {(this.props.enumeratedValues !== undefined) && <ComboBox
                     text={this.state.value}
                     allowFreeform={true}
+                    ariaLabel={this.props.featureName}
                     autoComplete="on"
                     options={this.options}
                     onChange={this.onComboSelected}
