@@ -99,9 +99,10 @@ export class EbmExplanation extends React.PureComponent<IEbmProps, IEbmState> {
         const data: IData[] = !isCategorical ? EbmExplanation.buildContinuousSeries(ebmObject.featureList[featureIndex], explanationContext.modelMetadata.classNames) :
         EbmExplanation.buildCategoricalSeries(ebmObject.featureList[featureIndex], explanationContext.modelMetadata.classNames);
         return {
-            config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d']  },
+            config: { displaylogo: false, responsive: true, displayModeBar: false },
             data,
             layout: {
+                dragmode: false,
                 autosize: true,
                 font: {
                     size: 10
@@ -119,7 +120,7 @@ export class EbmExplanation extends React.PureComponent<IEbmProps, IEbmState> {
                     title: featureName,
                     automargin: true
                 }
-            }
+            } as any
         };
     }, _.isEqual);
     private featureOptions: IComboBoxOption[];

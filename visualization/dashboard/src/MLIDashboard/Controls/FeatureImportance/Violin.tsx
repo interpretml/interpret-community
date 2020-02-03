@@ -127,7 +127,7 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
     }, _.isEqual);
 
     private static violinPlotlyProps: IPlotlyProperty = {
-        config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d']  } as any,
+        config: { displaylogo: false, responsive: true, displayModeBar: false } as any,
         data: ([{
             type: 'violin' as any,
             yAccessor: 'y',
@@ -146,6 +146,7 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
             ],
         }] as any[]),
         layout: {
+            dragmode: false,
             autosize: true,
             font: {
                 size: 10
@@ -172,7 +173,7 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
     };
 
     private static boxPlotlyProps: IPlotlyProperty = {
-        config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d']  } as any,
+        config: { displaylogo: false, responsive: true, displayModeBar: false  } as any,
         data: ([{
             type: 'box' as any,
             xAccessor: 'x',
@@ -183,6 +184,7 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
             boxmean: 'sd'
         }] as any[]),
         layout: {
+            dragmode: false,
             autosize: true,
             font: {
                 size: 10

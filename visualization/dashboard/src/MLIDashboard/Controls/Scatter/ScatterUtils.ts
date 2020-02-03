@@ -34,7 +34,7 @@ export interface IProjectedData {
 export class ScatterUtils {
 
     private static baseScatterProperties: IPlotlyProperty = {
-        config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ["toggleSpikelines", "hoverClosestCartesian", "hoverCompareCartesian", "lasso2d", "select2d"] },
+        config: { displaylogo: false, responsive: true, displayModeBar: false },
         data: [
             {
                 datapointLevelAccessors: {
@@ -54,6 +54,7 @@ export class ScatterUtils {
             }
         ],
         layout: {
+            dragmode:false,
             autosize: true,
             font: {
                 size: 10
@@ -63,28 +64,8 @@ export class ScatterUtils {
             },
             hovermode: "closest",
             showlegend: false,
-            xaxis: {
-                tickcolor: "#118844",
-                tickfont: {
-                    color: "#118844"
-                },
-                title:{
-                    font: {
-                        color: "#118844"
-                    }
-                }
-            },
             yaxis: {
-                automargin: true,
-                tickcolor: "#2255aa",
-                tickfont: {
-                    color: "#2255aa"
-                },
-                title:{
-                    font: {
-                        color: "#2255aa"
-                    }
-                }
+                automargin: true
             },
         } as any
     };
@@ -323,39 +304,6 @@ export class ScatterUtils {
         },
         _.isEqual
     );
-
-    public static xStyle: Partial<IComboBoxStyles> = _.extend({
-        input: {
-            color: "#118844",
-            selectors: {
-                ":hover": {
-                    color: "#118844"
-                },
-                ":active": {
-                    color: "#118844"
-                },
-                ":focus": {
-                    color: "#118844"
-                }
-            }
-        }}, FabricStyles.defaultDropdownStyle);
-
-
-    public static yStyle: Partial<IComboBoxStyles> = _.extend({
-        input: {
-            color: "#2255aa",
-            selectors: {
-                ":hover": {
-                    color: "#2255aa"
-                },
-                ":active": {
-                    color: "#2255aa"
-                },
-                ":focus": {
-                    color: "#2255aa"
-                }
-            }
-        }}, FabricStyles.defaultDropdownStyle);
 
     public static updateNewXAccessor(props: IScatterProps, plotlyProps: IPlotlyProperty, item: IComboBoxOption, id: string): void {
         if (item.key !== plotlyProps.data[0].xAccessor) {

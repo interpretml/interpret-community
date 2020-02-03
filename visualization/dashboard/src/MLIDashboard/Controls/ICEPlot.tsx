@@ -66,9 +66,10 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
             }
         }) as any;
         return {
-            config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d']  },
+            config: { displaylogo: false, responsive: true, displayModeBar: false },
             data,
             layout: {
+                dragmode: false,
                 autosize: true,
                 font: {
                     size: 10
@@ -86,8 +87,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                     title: featureName,
                     automargin: true
                 }
-            },
-
+            } as any
         }
     }, _.isEqual)
 
