@@ -51,7 +51,7 @@ class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
         if isinstance(X, DenseData) or sp.sparse.issparse(X):
             return self
         tmp_dataset = X
-        # Temporarily convert to pandas for easier and uniform timestamp handling
+        # If numpy array, temporarily convert to pandas for easier and uniform timestamp handling
         if isinstance(X, np.ndarray):
             tmp_dataset = pd.DataFrame(X, columns=self._features)
         self._time_col_names = [column for column in tmp_dataset.columns if is_datetime(tmp_dataset[column])]
@@ -114,8 +114,8 @@ class DatasetWrapper(object):
         self._original_dataset_with_type = dataset
         self._dataset_is_df = isinstance(dataset, pd.DataFrame)
         self._dataset_is_series = isinstance(dataset, pd.Series)
-        self._default_index = True
         self._default_index_cols = 'index'
+        self._default_index = True
         if self._dataset_is_df:
             self._features = dataset.columns.values.tolist()
         if self._dataset_is_df or self._dataset_is_series:
@@ -151,11 +151,24 @@ class DatasetWrapper(object):
         wrapper_func = self.typed_wrapper_func
         return wrapper_func(self._dataset)
 
-    def typed_wrapper_func(self, dataset):
+    @property
+    def typed_dataset_without_index(self):
+        """Get the dataset in the original type, pandas DataFrame or Series, with index as feature.
+
+        :return: The underlying dataset.
+        :rtype: numpy.array or pandas.DataFrame or pandas.Series or iml.datatypes.DenseData or scipy.sparse matrix
+        """
+        wrapper_func = self.typed_wrapper_func
+        return wrapper_func(self._dataset, keep_index_as_feature=True)
+
+    def typed_wrapper_func(self, dataset, keep_index_as_feature=False):
         """Get a wrapper function to convert the dataset to the original type, pandas DataFrame or Series.
 
         :param dataset: The dataset to convert to original type.
         :type dataset: numpy.array or scipy.sparse.csr_matrix
+        :param keep_index_as_feature: Whether to keep the index as a feature when converting back.
+            Off by default to convert it back to index.
+        :type keep_index_as_feature: bool
         :return: A wrapper function for a given dataset to convert to original type.
         :rtype: function that outputs the original type
         """
@@ -163,10 +176,17 @@ class DatasetWrapper(object):
             if len(dataset.shape) == 1:
                 dataset = dataset.reshape(1, dataset.shape[0])
             original_dtypes = self._original_dataset_with_type.dtypes
+            output_types = dict(original_dtypes)
             dataframe = pd.DataFrame(dataset, columns=self._features)
             if not self._default_index:
-                dataframe = dataframe.set_index(self._default_index_cols)
-            return dataframe.astype(dict(original_dtypes))
+                if keep_index_as_feature:
+                    # Add the index name to type as feature dtype
+                    for idx, name in enumerate(self._original_dataset_with_type.index.names):
+                        level_values_dtype = self._original_dataset_with_type.index.get_level_values(idx).dtype
+                        output_types.update({name: level_values_dtype})
+                else:
+                    dataframe = dataframe.set_index(self._default_index_cols)
+            return dataframe.astype(output_types)
         elif self._dataset_is_series:
             return pd.Series(dataset)
         else:
@@ -218,6 +238,21 @@ class DatasetWrapper(object):
         """
         return self._summary_dataset
 
+    def _set_default_index_cols(self, dataset):
+        if dataset.index.name is not None:
+            self._default_index_cols = dataset.index.name
+        if dataset.index.names is not None:
+            self._default_index_cols = dataset.index.names
+
+    def set_index(self):
+        """Undo reset_index.  Set index as feature on internal dataset to be an index again.
+        """
+        if self._dataset_is_df:
+            dataset = self.typed_dataset
+            self._features = dataset.columns.values.tolist()
+            self._dataset = dataset.values
+        self._default_index = True
+
     def reset_index(self):
         """Reset index to be part of the features on the dataset.
         """
@@ -226,10 +261,7 @@ class DatasetWrapper(object):
             self._default_index = pd.Index(np.arange(0, len(dataset))).equals(dataset.index)
             reset_dataset = dataset
             if not self._default_index:
-                if dataset.index.name is not None:
-                    self._default_index_cols = dataset.index.name
-                if dataset.index.names is not None:
-                    self._default_index_cols = dataset.index.names
+                self._set_default_index_cols(dataset)
                 reset_dataset = dataset.reset_index()
                 # Move index columns to the end of the dataframe to ensure
                 # index arguments are still valid to original dataset
@@ -358,7 +390,7 @@ class DatasetWrapper(object):
         # Also, if the dataset is sparse, we can assume there are no categorical strings
         if isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
             return None
-        self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(self._dataset)
+        self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(self.typed_dataset_without_index)
         self._dataset = self._timestamp_featurizer.transform(self._dataset)
         return self._timestamp_featurizer
 
