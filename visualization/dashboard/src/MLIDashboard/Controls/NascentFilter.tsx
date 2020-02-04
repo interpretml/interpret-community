@@ -1,12 +1,14 @@
 import React from "react";
 import { IJointMeta } from "../JointDataset";
 import { Button, PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
-import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
+import { SpinButton } from 'office-ui-fabric-react/lib/SpinButton';
 import { FilterMethods, IFilter } from "../Interfaces/IFilter";
 import { IComboBoxOption, IComboBox, ComboBox } from "office-ui-fabric-react/lib/ComboBox";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { FabricStyles } from "../FabricStyles";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
+import { localization } from "../../Localization/localization";
+import { RangeTypes } from "mlchartlib";
 
 export interface INascentFilterProps {
     metaDict: {[key: string]: IJointMeta};
@@ -16,6 +18,7 @@ export interface INascentFilterProps {
 
 export default class NascentFilter extends React.PureComponent<INascentFilterProps, IFilter> {
     private columnOptions: IComboBoxOption[];
+    private comparisonOptions: IComboBoxOption[];
     private categoricalOptions: IComboBoxOption[];
     constructor(props: INascentFilterProps) {
         super(props);
@@ -25,9 +28,28 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
                 text: props.metaDict[key].label
             };
         });
+        this.comparisonOptions = [
+            {
+                key: FilterMethods.equal,
+                text: localization.Filters.equalComparison
+            },
+            {
+                key: FilterMethods.greaterThan,
+                text: localization.Filters.greaterThanComparison
+            },
+            {
+                key: FilterMethods.lessThan,
+                text: localization.Filters.lessThanComparison
+            }
+        ];
         this.state = {} as any;
     }
     public render(): React.ReactNode {
+        const selectedColumn = this.state.column !== undefined ?
+            this.props.metaDict[this.state.column] :
+            undefined;
+        const numericDelta = selectedColumn === undefined || selectedColumn.isCategorical || selectedColumn.featureRange.rangeType === RangeTypes.integer ?
+            1 : (selectedColumn.featureRange.max - selectedColumn.featureRange.min)/10;
         return (
             <Dialog
                 hidden={false}
@@ -52,34 +74,56 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
                     useComboBoxAsMenuWidth={true}
                     styles={FabricStyles.smallDropdownStyle}
                 />
-                {this.state.column &&
-                this.props.metaDict[this.state.column] &&
-                this.props.metaDict[this.state.column].isCategorical && (
-                    <ComboBox
-                        multiSelect
-                        label="Include values"
-                        className="path-selector"
-                        selectedKey={this.state.arg}
-                        onChange={this.setCategoricalValues}
-                        options={this.categoricalOptions}
-                        ariaLabel={"chart type picker"}
-                        useComboBoxAsMenuWidth={true}
-                        styles={FabricStyles.smallDropdownStyle}
-                    />
+                {selectedColumn &&
+                selectedColumn.isCategorical && (
+                    <div>
+                        <ComboBox
+                            multiSelect
+                            label={localization.Filters.categoricalIncludeValues}
+                            className="path-selector"
+                            selectedKey={this.state.arg}
+                            onChange={this.setCategoricalValues}
+                            options={this.categoricalOptions}
+                            useComboBoxAsMenuWidth={true}
+                            styles={FabricStyles.smallDropdownStyle}
+                        />
+                    </div>
                 )}
-                {this.state.column &&
-                this.props.metaDict[this.state.column] &&
-                !this.props.metaDict[this.state.column].isCategorical && (
-                    <Slider
-                        label="Include values"
-                        className="path-selector"
-                        max={this.props.metaDict[this.state.column].featureRange.max}
-                        min={this.props.metaDict[this.state.column].featureRange.min}
-                        value={this.state.arg as number}
-                        showValue={true}
-                        onChange={this.setNumericValue}
-                        ariaLabel={"chart type picker"}
-                    />
+                {selectedColumn &&
+                !selectedColumn.isCategorical && (
+                    <div>
+                        <ComboBox
+                            label={localization.Filters.numericalComparison}
+                            className="path-selector"
+                            selectedKey={this.state.method}
+                            onChange={this.setComparison}
+                            options={this.comparisonOptions}
+                            useComboBoxAsMenuWidth={true}
+                            styles={FabricStyles.smallDropdownStyle}
+                        />
+                        <SpinButton
+                            styles={{
+                                spinButtonWrapper: {maxWidth: "98px"},
+                                labelWrapper: { alignSelf: "center"},
+                                root: {
+                                    display: "inline-flex",
+                                    float: "right",
+                                    selectors: {
+                                        "> div": {
+                                            maxWidth: "108px"
+                                        }
+                                    }
+                                }
+                            }}
+                            label={localization.Filters.numericValue}
+                            min={selectedColumn.featureRange.min}
+                            max={selectedColumn.featureRange.max}
+                            value={this.state.arg.toString()}
+                            onIncrement={this.setNumericValue.bind(this, numericDelta, selectedColumn)}
+                            onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedColumn)}
+                            onValidate={this.setNumericValue.bind(this, 0, selectedColumn)}
+                        />
+                    </div>
                 )}
                 <DialogFooter>
                     <PrimaryButton onClick={this.onClick} text="Save" />
@@ -113,8 +157,25 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
         this.setState({arg: selectedVals});
     }
 
-    private readonly setNumericValue = (value: number): void => {
-        this.setState({arg: value});
+    private readonly setComparison = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
+        this.setState({method: item.key as FilterMethods});
+    }
+
+    private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
+        if (delta === 0) {
+            const number = +stringVal;
+            if (!Number.isInteger(number) || number > column.featureRange.max || number < column.featureRange.min) {
+                return this.state.arg.toString();
+            }
+            this.setState({arg: number});
+        } else {
+            const prevVal = this.state.arg as number;
+            const newVal = prevVal + delta;
+            if (newVal > column.featureRange.max || newVal < column.featureRange.min) {
+                return prevVal.toString();
+            }
+            this.setState({arg: newVal});
+        }
     }
 
     private buildDefaultFilter(key: string): IFilter {

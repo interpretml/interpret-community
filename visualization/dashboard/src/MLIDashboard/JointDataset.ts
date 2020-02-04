@@ -1,5 +1,5 @@
 import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
-import { INumericRange, ICategoricalRange } from "mlchartlib";
+import { INumericRange, ICategoricalRange, RangeTypes } from "mlchartlib";
 import { localization } from "../Localization/localization";
 import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 
@@ -141,7 +141,12 @@ export class JointDataset {
         this.metaDict[JointDataset.IndexLabel] = {
             label: localization.ExplanationScatter.index,
             abbridgedLabel: localization.ExplanationScatter.index,
-            isCategorical: false
+            isCategorical: false,
+            featureRange: {
+                rangeType: RangeTypes.integer,
+                min: 0,
+                max: arr.length - 1
+            }
         };
     }
 }
