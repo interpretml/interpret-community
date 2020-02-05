@@ -29,7 +29,7 @@ from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.constants import ExplainParams, ExplainType, ModelTask, \
     ShapValuesOutput, MimicSerializationConstants, ExplainableModelType, \
-    LightGBMParams, Defaults, Extension
+    LightGBMParams, Defaults, Extension, ResetIndex
 import logging
 import json
 
@@ -130,7 +130,7 @@ class MimicExplainer(BlackBoxExplainer):
     :type model_task: str
     :param reset_index: Uses the pandas DataFrame index column as part of the features when training
         the surrogate model.
-    :type reset_index: bool
+    :type reset_index: str
     """
 
     @init_tabular_decorator
@@ -138,7 +138,7 @@ class MimicExplainer(BlackBoxExplainer):
                  is_function=False, augment_data=True, max_num_of_augmentations=10, explain_subset=None,
                  features=None, classes=None, transformations=None, allow_all_transformations=False,
                  shap_values_output=ShapValuesOutput.DEFAULT, categorical_features=None,
-                 model_task=ModelTask.Unknown, reset_index=False, **kwargs):
+                 model_task=ModelTask.Unknown, reset_index=ResetIndex.Ignore, **kwargs):
         """Initialize the MimicExplainer.
 
         :param model: The black box model or function (if is_function is True) to be explained.  Also known
@@ -218,20 +218,23 @@ class MimicExplainer(BlackBoxExplainer):
             has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
             outputs a 1 dimensional array.
         :type model_task: str
-        :param reset_index: Uses the pandas DataFrame index column as part of the features when training
-            the surrogate model.
-        :type reset_index: bool
+        :param reset_index: Can be ignore, reset or reset_teacher.  By default we ignore the index column, but the
+            user can override to reset it and make it a feature column that is then featurized to numeric. Or,
+            when using reset_teacher, the user can reset it and ignore it during featurization but set it as
+            the index when calling predict on the original model.  Only use reset_teacher if the index is already
+            featurized as part of the data.
+        :type reset_index: str
         """
         if transformations is not None and explain_subset is not None:
             raise ValueError("explain_subset not supported with transformations")
         self.reset_index = reset_index
-        if reset_index:
-            initialization_examples.reset_index()
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
                 examples=initialization_examples, transformations=transformations,
                 allow_all_transformations=allow_all_transformations)
+        if reset_index != ResetIndex.Ignore:
+            initialization_examples.reset_index()
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(MimicExplainer, self).__init__(wrapped_model, is_function=is_function,
                                              model_task=eval_ml_domain, **kwargs)
@@ -247,7 +250,12 @@ class MimicExplainer(BlackBoxExplainer):
         # augment the data if necessary
         if augment_data:
             initialization_examples.augment_data(max_num_of_augmentations=max_num_of_augmentations)
+        # get the original data with types and index column if reset_index != ResetIndex.Ignore
         original_training_data = initialization_examples.typed_dataset
+
+        # if index column should not be set on surrogate model, remove it
+        if reset_index == ResetIndex.ResetTeacher:
+            initialization_examples.set_index()
 
         # If categorical_features is a list of string column names instead of indexes, make sure to convert to indexes
         if not all(isinstance(categorical_feature, int) for categorical_feature in categorical_features):
@@ -411,7 +419,7 @@ class MimicExplainer(BlackBoxExplainer):
         :return: Args for explain_local.
         :rtype: dict
         """
-        if self.reset_index:
+        if self.reset_index != ResetIndex.Ignore:
             evaluation_examples.reset_index()
         kwargs = {}
         original_evaluation_examples = evaluation_examples.typed_dataset

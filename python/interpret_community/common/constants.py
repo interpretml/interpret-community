@@ -255,3 +255,16 @@ class SHAPDefaults(object):
     """Provide constants for default values to shap."""
 
     INDEPENDENT = 'independent'
+
+
+class ResetIndex(str, Enum):
+    """Provide index column handling constants.  Can be ignore, reset or reset_teacher.
+
+    By default we ignore the index column, but the user can override to reset it and make it a
+    feature column that is then featurized to numeric or reset it and ignore it during
+    featurization but set it as the index when calling predict on the original model.
+    """
+
+    Ignore = 'ignore'
+    Reset = 'reset'
+    ResetTeacher = 'reset_teacher'
