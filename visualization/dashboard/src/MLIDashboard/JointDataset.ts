@@ -2,6 +2,7 @@ import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import { INumericRange, ICategoricalRange, RangeTypes } from "mlchartlib";
 import { localization } from "../Localization/localization";
 import { IFilter, FilterMethods } from "./Interfaces/IFilter";
+import _ from "lodash";
 
 export interface IJointDatasetArgs {
     dataset?: any[][];
@@ -10,6 +11,8 @@ export interface IJointDatasetArgs {
     metadata: IExplanationModelMetadata;
 }
 
+// The object that will store user-facing strings and associated metadata
+// It stores the categorical labels for any numeric bins
 export interface IJointMeta {
     label: string;
     abbridgedLabel: string;
@@ -37,6 +40,7 @@ export class JointDataset {
 
     private _dataDict: Array<{[key: string]: any}>;
     private _filteredData: Array<{[key: string]: any}>;
+    private _binDict: {[key: string]: number[]} = {};
     public metaDict: {[key: string]: IJointMeta} = {};
 
     constructor(args: IJointDatasetArgs) {
@@ -118,7 +122,80 @@ export class JointDataset {
         }
     }
 
-    public unwrap(key: string): any[] {
+    public addBin(key: string, binCount?: number): void {
+        const meta = this.metaDict[key];
+        // use data-dict for undefined binCount (building default bin)
+        // use filtered data for user provided binCount
+        if (binCount === undefined) {
+            if (meta.featureRange.rangeType === RangeTypes.integer) {
+                const uniqueValues = _.uniq(this._dataDict.map(row => row[key]));
+                binCount = Math.min(5, uniqueValues.length);
+            }
+            if (binCount === undefined) {
+                binCount = 5;
+            }
+        }
+        let delta = meta.featureRange.max - meta.featureRange.min;
+        if (delta === 0 || binCount === 0) {
+            this._binDict[key] = [meta.featureRange.max];
+            meta.sortedCategoricalValues = [`${meta.featureRange.min} - ${meta.featureRange.max}`];
+            return;
+        }
+        // make uniform bins in these cases
+        if (meta.featureRange.rangeType === RangeTypes.numeric || delta < (binCount - 1)) {
+            const binDelta = delta / binCount;
+            const array = new Array(binCount).fill(0).map((unused, index) => {
+                return index !== binCount - 1 ?
+                    meta.featureRange.min + (binDelta * (1+ index)) :
+                    meta.featureRange.max;
+            });
+            let prevMax = meta.featureRange.min;
+            const labelArray = array.map((num) => {
+                const label = `${prevMax.toLocaleString(undefined, {maximumSignificantDigits: 3})} - ${num.toLocaleString(undefined, {maximumSignificantDigits: 3})}`;
+                prevMax = num;
+                return label;
+            });
+            this._binDict[key] = array;
+            meta.sortedCategoricalValues = labelArray;
+            return;
+        }
+        // handle integer case, increment delta since we include the ends as discrete values
+        const intDelta = delta / binCount;
+        const array = new Array(binCount).fill(0).map((unused, index) => {
+            if (index === binCount - 1) {
+                return meta.featureRange.max;
+            }
+            return Math.ceil( meta.featureRange.min - 1 + intDelta * (index + 1));
+        });
+        let previousVal = meta.featureRange.min;
+        const labelArray = array.map((num) => {
+            const label = previousVal === num ?
+            previousVal.toLocaleString(undefined, {maximumSignificantDigits: 3}) :
+                `${previousVal.toLocaleString(undefined, {maximumSignificantDigits: 3})} - ${num.toLocaleString(undefined, {maximumSignificantDigits: 3})}`
+            previousVal = num + 1;
+            return label;
+        });
+        this._binDict[key] = array;
+        meta.sortedCategoricalValues = labelArray;
+    } 
+
+    // whether to apply bins is a decision made at the ui control level,
+    // should not mutate the true dataset. Instead, bin props are preserved
+    // and applied when requested.
+    // Bin object stores array of upper bounds for each bin, return the index
+    // if the bin of the value;
+    public unwrap(key: string, applyBin: boolean): any[] {
+        if (applyBin) {
+            let binVector = this._binDict[key];
+            if (binVector === undefined) {
+                this.addBin(key);
+                binVector = this._binDict[key];
+            }
+            return this._filteredData.map(row => {
+                const rowValue = row[key];
+                return binVector.findIndex(upperLimit => upperLimit >= rowValue );
+            });
+        }
         return this._filteredData.map(row => row[key]);
     }
 
