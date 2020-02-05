@@ -218,8 +218,11 @@ class MimicExplainer(BlackBoxExplainer):
             has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
             outputs a 1 dimensional array.
         :type model_task: str
-        :param reset_index: Uses the pandas DataFrame index column as part of the features when training
-            the surrogate model.
+        :param reset_index: Can be ignore, reset or reset_teacher.  By default we ignore the index column, but the
+            user can override to reset it and make it a feature column that is then featurized to numeric. Or,
+            when using reset_teacher, the user can reset it and ignore it during featurization but set it as
+            the index when calling predict on the original model.  Only use reset_teacher if the index is already
+            featurized as part of the data.
         :type reset_index: str
         """
         if transformations is not None and explain_subset is not None:

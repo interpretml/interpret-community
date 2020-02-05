@@ -114,7 +114,7 @@ class DatasetWrapper(object):
         self._original_dataset_with_type = dataset
         self._dataset_is_df = isinstance(dataset, pd.DataFrame)
         self._dataset_is_series = isinstance(dataset, pd.Series)
-        self._default_index_cols = 'index'
+        self._default_index_cols = ['index']
         self._default_index = True
         if self._dataset_is_df:
             self._features = dataset.columns.values.tolist()
@@ -150,16 +150,6 @@ class DatasetWrapper(object):
         """
         wrapper_func = self.typed_wrapper_func
         return wrapper_func(self._dataset)
-
-    @property
-    def typed_dataset_without_index(self):
-        """Get the dataset in the original type, pandas DataFrame or Series, with index as feature.
-
-        :return: The underlying dataset.
-        :rtype: numpy.array or pandas.DataFrame or pandas.Series or iml.datatypes.DenseData or scipy.sparse matrix
-        """
-        wrapper_func = self.typed_wrapper_func
-        return wrapper_func(self._dataset, keep_index_as_feature=True)
 
     def typed_wrapper_func(self, dataset, keep_index_as_feature=False):
         """Get a wrapper function to convert the dataset to the original type, pandas DataFrame or Series.
@@ -239,8 +229,6 @@ class DatasetWrapper(object):
         return self._summary_dataset
 
     def _set_default_index_cols(self, dataset):
-        if dataset.index.name is not None:
-            self._default_index_cols = dataset.index.name
         if dataset.index.names is not None:
             self._default_index_cols = dataset.index.names
 
@@ -390,7 +378,8 @@ class DatasetWrapper(object):
         # Also, if the dataset is sparse, we can assume there are no categorical strings
         if isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
             return None
-        self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(self.typed_dataset_without_index)
+        typed_dataset_without_index = self.typed_wrapper_func(self._dataset, keep_index_as_feature=True)
+        self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(typed_dataset_without_index)
         self._dataset = self._timestamp_featurizer.transform(self._dataset)
         return self._timestamp_featurizer
 
