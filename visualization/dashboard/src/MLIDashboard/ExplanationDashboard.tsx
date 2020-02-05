@@ -4,7 +4,7 @@ import * as memoize from "memoize-one";
 import { PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/components/ComboBox";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps } from "office-ui-fabric-react/lib/Pivot";
+import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps, IPivot } from "office-ui-fabric-react/lib/Pivot";
 import * as React from "react";
 import { localization } from "../Localization/localization";
 import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata } from "mlchartlib";
@@ -23,8 +23,7 @@ import {
     PerturbationExploration,
     SinglePointFeatureImportance,
     LocalBarId,
-    FeatureImportanceBar,
-    IGenericChartProps
+    FeatureImportanceBar
 } from "./Controls";
 
 import { IExplanationContext, IExplanationGenerators, IGlobalExplanation, ILocalExplanation, IExplanationModelMetadata, ITestDataset, ModelTypes, IFeatureValueExplanation, IMultiClassBoundedCoordinates } from "./IExplanationContext";
@@ -36,6 +35,7 @@ import { EbmExplanation } from "./Controls/EbmExplanation";
 import { JointDataset } from "./JointDataset";
 import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { IFilterContext, IFilter } from "./Interfaces/IFilter";
+import { IGenericChartProps } from "./Controls/ChartWithControls";
 
 initializeIcons();
 
@@ -365,6 +365,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     private pivotItems: IPivotItemProps[];
+    private pivotRef: IPivot;
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
@@ -469,6 +470,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                     <div className="charts-wrapper">
                         <div className="global-charts-wrapper">
                             <Pivot
+                                componentRef={ref => {this.pivotRef = ref;}}
                                 selectedKey={ExplanationDashboard.globalTabKeys[this.state.activeGlobalTab]}
                                 onLinkClick={this.handleGlobalTabClick}
                                 linkFormat={PivotLinkFormat.tabs}
@@ -713,6 +715,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClearSelection(): void {
         this.selectionContext.onSelect([]);
+        this.pivotRef.focus();
         this.setState({activeLocalTab: 0});
     }
 

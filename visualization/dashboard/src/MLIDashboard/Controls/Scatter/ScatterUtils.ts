@@ -10,6 +10,7 @@ import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../.
 import { HelpMessageDict } from "../../Interfaces";
 import { PlotlyUtils } from "../../SharedComponents";
 import { IFilterContext } from "../../Interfaces/IFilter";
+import { IGenericChartProps } from "../ChartWithControls";
 
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;
@@ -30,21 +31,7 @@ export interface INewScatterProps {
     onChange: (props: IGenericChartProps, id: string) => void;
 }
 
-export interface IGenericChartProps {
-    chartType: string;
-    xAxis?: ISelectorConfig;
-    yAxis?: ISelectorConfig;
-    colorAxis?: ISelectorConfig;
-}
 
-export interface ISelectorConfig {
-    property: string;
-    index?: number;
-    options?: {
-        dither: boolean;
-        binOptions: any;
-    }
-}
 
 
 export interface IProjectedData {

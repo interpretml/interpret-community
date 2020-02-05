@@ -82,6 +82,13 @@ export class JointDataset {
                 abbridgedLabel: localization.ExplanationScatter.predictedY,
                 isCategorical: args.metadata.modelType !== ModelTypes.regression,
                 sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined
+            };
+            if (args.metadata.modelType === ModelTypes.regression) {
+                this.metaDict[JointDataset.PredictedYLabel].featureRange = {
+                    min: Math.min(...args.predictedY),
+                    max: Math.max(...args.predictedY),
+                    rangeType: RangeTypes.numeric
+                }
             }
             this.hasPredictedY = true;
         }
@@ -184,8 +191,8 @@ export class JointDataset {
     // and applied when requested.
     // Bin object stores array of upper bounds for each bin, return the index
     // if the bin of the value;
-    public unwrap(key: string, applyBin: boolean): any[] {
-        if (applyBin) {
+    public unwrap(key: string, applyBin?: boolean): any[] {
+        if (applyBin && this.metaDict[key].isCategorical === false) {
             let binVector = this._binDict[key];
             if (binVector === undefined) {
                 this.addBin(key);

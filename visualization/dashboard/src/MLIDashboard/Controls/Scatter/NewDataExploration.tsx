@@ -1,10 +1,10 @@
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
-import * as Plotly from 'plotly.js-dist';
+import * as Plotly from "plotly.js-dist";
 import React from "react";
 import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
-import {  ScatterUtils, INewScatterProps, IGenericChartProps } from "./ScatterUtils";
+import {  ScatterUtils, INewScatterProps} from "./ScatterUtils";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
@@ -14,32 +14,40 @@ import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
 import NascentFilter from "../NascentFilter";
 import { IFilter } from "../../Interfaces/IFilter";
 import FilterControl from "../FilterControl";
+import ChartWithControls, { IGenericChartProps, ChartTypes } from "../ChartWithControls";
 
-export const DataScatterId = 'data_scatter_id';
+export const DataScatterId = "data_scatter_id";
 
 export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
+    private axisOptions: IDropdownOption[];
+    private chartOptions: IComboBoxOption[] = [
+        {
+            key: ChartTypes.Scatter,
+            text: "Scatter"
+        },
+        {
+            key: ChartTypes.Bar,
+            text: "Histogram"
+        }
+    ];
     constructor(props: INewScatterProps) {
         super(props);
-        // if (props.chartProps === undefined) {
-        //     this.generateDefaultChartAxes();
-        // }
+        if (props.chartProps === undefined) {
+            this.generateDefaultChartAxes();
+        }
+        this.axisOptions = this.generateDropdownOptions();
         this.state = {open: false};
-        this.onXSelected = this.onXSelected.bind(this);
-        this.onYSelected = this.onYSelected.bind(this);
-        this.onColorSelected = this.onColorSelected.bind(this);
-        this.onDitherXToggle = this.onDitherXToggle.bind(this);
-        this.onDitherYToggle = this.onDitherYToggle.bind(this);
         this.scatterSelection = this.scatterSelection.bind(this);
+        this.onChartTypeChange = this.onChartTypeChange.bind(this);
     }
 
     public render(): React.ReactNode {
         if (this.props.chartProps === undefined) {
-            this.generateDefaultChartAxes();
+            // this.generateDefaultChartAxes();
             return (<div/>);
         }
         const plotlyProps = this.generatePlotlyProps();
-        const dropdownOptions = this.generateDropdownOptions();
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
         return (
             <div className="explanation-chart">
@@ -47,109 +55,31 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     metaDict={this.props.dashboardContext.explanationContext.jointDataset.metaDict}
                     filterContext={this.props.filterContext}
                 />
-                <div className="top-controls">
-                    <div className="path-selector x-value">
-                        <ComboBox
-                            options={dropdownOptions}
-                            onChange={this.onXSelected}
-                            label={localization.ExplanationScatter.xValue}
-                            ariaLabel="x picker"
-                            selectedKey={this.props.chartProps.xAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={ScatterUtils.xStyle}
-                        />
-                        {(jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical ||
-                            (jointData.metaDict[this.props.chartProps.xAxis.property].featureRange &&
-                            jointData.metaDict[this.props.chartProps.xAxis.property].featureRange.rangeType)) && (
-                            <IconButton
-                                iconProps={{ iconName: 'Info' }}
-                                title={localization.CrossClass.info}
-                                ariaLabel="Info"
-                                onClick={this.onDitherXToggle}
-                                styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
-                            />
-                        )}
-                    </div>
-                    <div className="path-selector">
-                        <ComboBox
-                            options={dropdownOptions}
-                            onChange={this.onColorSelected}
-                            label={localization.ExplanationScatter.colorValue}
-                            ariaLabel="color picker"
-                            selectedKey={this.props.chartProps.colorAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={FabricStyles.defaultDropdownStyle}
-                        />
-                    </div>
+                <div className="path-selector">
+                    <ComboBox
+                        options={this.chartOptions}
+                        onChange={this.onChartTypeChange}
+                        selectedKey={this.props.chartProps.chartType}
+                        useComboBoxAsMenuWidth={true}
+                        styles={FabricStyles.defaultDropdownStyle}
+                    />
                 </div>
-                <div className="top-controls">
-                    <div className="path-selector y-value">
-                        <ComboBox
-                            options={dropdownOptions}
-                            onChange={this.onYSelected}
-                            label={localization.ExplanationScatter.yValue}
-                            ariaLabel="y picker"
-                            selectedKey={this.props.chartProps.yAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={ScatterUtils.yStyle}
-                        />
-                        {(jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical ||
-                            (jointData.metaDict[this.props.chartProps.yAxis.property].featureRange &&
-                            jointData.metaDict[this.props.chartProps.yAxis.property].featureRange.rangeType)) && (
-                            <IconButton
-                                iconProps={{ iconName: 'Info' }}
-                                title={localization.CrossClass.info}
-                                ariaLabel="Info"
-                                onClick={this.onDitherYToggle}
-                                styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
-                            />
-                        )}
-                    </div>
-                </div>
-                <AccessibleChart
-                    plotlyProps={plotlyProps}
-                    sharedSelectionContext={this.props.selectionContext}
-                    theme={this.props.theme}
-                    onSelection={this.scatterSelection}
+                <ChartWithControls
+                    axisOptions={this.axisOptions}
+                    jointDataset={jointData}
+                    chartProps={this.props.chartProps}
+                    onChange={this.onChange}
                 />
         </div>);
     }
 
-    private onDitherXToggle(): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        const initialValue = _.get(newProps.xAxis, 'options.dither', false);
-        _.set(newProps.xAxis, 'options.dither', !initialValue);
+    private readonly onChange = (newProps: IGenericChartProps): void => {
         this.props.onChange(newProps, DataScatterId);
     }
 
-    private onDitherYToggle(): void {
+    private onChartTypeChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         const newProps = _.cloneDeep(this.props.chartProps);
-        const initialValue = _.get(newProps.yAxis, 'options.dither', false);
-        _.set(newProps.yAxis, 'options.dither', !initialValue);
-        this.props.onChange(newProps, DataScatterId);
-    }
-
-    private onXSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.xAxis.property = item.key as string;
-        if (this.props.dashboardContext.explanationContext.jointDataset.metaDict[item.key].isCategorical) {
-            newProps.xAxis.options = {dither: true, binOptions: undefined};
-        }
-        this.props.onChange(newProps, DataScatterId);
-    }
-
-    private onYSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.yAxis.property = item.key as string;
-        if (this.props.dashboardContext.explanationContext.jointDataset.metaDict[item.key].isCategorical) {
-            newProps.yAxis.options = {dither: true, binOptions: undefined};
-        }
-        this.props.onChange(newProps, DataScatterId);
-    }
-
-    private onColorSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.colorAxis.property = item.key as string;
+        newProps.chartType = item.key as ChartTypes;
         this.props.onChange(newProps, DataScatterId);
     }
 
@@ -165,17 +95,22 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
     private generatePlotlyProps(): IPlotlyProperty {
         const plotlyProps: IPlotlyProperty = _.cloneDeep(ScatterUtils.baseScatterProperties);
+        plotlyProps.data[0].type = this.props.chartProps.chartType;
         plotlyProps.data[0].datapointLevelAccessors = undefined;
-        plotlyProps.data[0].hoverinfo = 'all';
+        plotlyProps.data[0].hoverinfo = "all";
         let hovertemplate = "";
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
+        if (this.props.chartProps.colorAxis) {
+            jointData.sort(this.props.chartProps.colorAxis.property);
+        }
         const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
             const dict = {};
             dict[JointDataset.IndexLabel] = val;
             return dict;
         });
         if (this.props.chartProps.xAxis) {
-            const rawX = jointData.unwrap(this.props.chartProps.xAxis.property);
+            const shouldBin = this.props.chartProps.chartType !== ChartTypes.Scatter;
+            const rawX = jointData.unwrap(this.props.chartProps.xAxis.property, shouldBin);
             if (this.props.chartProps.xAxis.options && this.props.chartProps.xAxis.options.dither) {
                 const dithered = jointData.unwrap(JointDataset.DitherLabel);
                 plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
@@ -193,7 +128,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                 hovertemplate += "x: %{x}<br>";
             }
         }
-        if (this.props.chartProps.yAxis) {
+        if (this.props.chartProps.yAxis &&  this.props.chartProps.chartType !== ChartTypes.Bar) {
             const rawY = jointData.unwrap(this.props.chartProps.yAxis.property);
             if (this.props.chartProps.yAxis.options && this.props.chartProps.yAxis.options.dither) {
                 const dithered = jointData.unwrap(JointDataset.DitherLabel);
@@ -213,9 +148,10 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
             }
         }
         if (this.props.chartProps.colorAxis) {
-            const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property);
+            const isBinned = this.props.chartProps.colorAxis.options && this.props.chartProps.colorAxis.options.bin;
+            const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, isBinned);
             // handle binning to categories later
-            if (jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical) {
+            if (jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical || isBinned) {
                 const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                     return {
                         target: index,
@@ -223,7 +159,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     };
                 });
                 plotlyProps.data[0].transforms = [{
-                    type: 'groupby',
+                    type: "groupby",
                     groups: rawColor,
                     styles
                 }];
@@ -233,11 +169,11 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     color: rawColor,
                     colorbar: {
                         title: {
-                            side: 'right',
-                            text: 'placeholder'
+                            side: "right",
+                            text: "placeholder"
                         } as any
                     },
-                    colorscale: 'Bluered'
+                    colorscale: "Bluered"
                 };
             }
         }
@@ -274,20 +210,22 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         const yKey = JointDataset.DataLabelTemplate.replace("{0}", maxIndex.toString());
         const yIsDithered = exp.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
-            chartType: 'scatter',
+            chartType: ChartTypes.Scatter,
             xAxis: {
                 property: JointDataset.IndexLabel,
+                options: {}
             },
             yAxis: {
                 property: yKey,
                 options: {
                     dither: yIsDithered,
-                    binOptions: undefined
+                    bin: false
                 }
             },
             colorAxis: {
                 property: exp.jointDataset.hasPredictedY ?
-                    JointDataset.PredictedYLabel : JointDataset.IndexLabel
+                    JointDataset.PredictedYLabel : JointDataset.IndexLabel,
+                options: {}
             }
         }
         this.props.onChange(chartProps, DataScatterId);
@@ -308,7 +246,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                       }
                       return selectedIndexes;
                   });
-        Plotly.restyle(guid, 'selectedpoints' as any, selectedPoints as any);
+        Plotly.restyle(guid, "selectedpoints" as any, selectedPoints as any);
         const newLineWidths =
             selections.length === 0
                 ? [0]
@@ -325,6 +263,6 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     }
                     return [0];
                   });
-        Plotly.restyle(guid, 'marker.line.width' as any, newLineWidths as any);
+        Plotly.restyle(guid, "marker.line.width" as any, newLineWidths as any);
     }
 }

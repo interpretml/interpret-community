@@ -56,7 +56,7 @@
     "CrossClass": {
         "label": "Cross-class weighting:",
         "_label.comment": "label for dropdown allowing user to select how importance across multiple output classes is aggregated",
-        "info": "Info",
+        "info": "Information on cross-class calculation",
         "_info.comment": "tooltip on hover",
         "overviewInfo": "Multiclass models generate an independent feature importance vector for each class. Each class's feature importance vector demonstrates which features made a class more likely or less likely. You can select how the weights of the per-class feature importance vectors are summarized into a single value:",
         "_overview.comment": "explains absolute value weights",
@@ -90,6 +90,7 @@
         "_trueOutputTooltip.comment": "prefixed in front of the true value in a regression model (numeric, no classes)",
         "topKFeatures": "Top K Features:",
         "_topKFeatures.comment": "Label for slider to show only the top (k) most important features, where the slider is used to set the value of k",
+        "topKInfo": "How top k is calculated",
         "predictedValue": "Predicted Value",
         "_predictedValue.comment": "Label for dropdown option, group data by the predicted value from the model (numeric values)",
         "predictedClass": "Predicted Class",
