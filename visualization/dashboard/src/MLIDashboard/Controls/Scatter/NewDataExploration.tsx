@@ -13,10 +13,11 @@ import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
 import NascentFilter from "../NascentFilter";
 import { IFilter } from "../../Interfaces/IFilter";
+import FilterControl from "../FilterControl";
 
 export const DataScatterId = 'data_scatter_id';
 
-export class NewDataExploration extends React.PureComponent<INewScatterProps, {open: boolean}> {
+export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
     constructor(props: INewScatterProps) {
         super(props);
@@ -30,9 +31,6 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps, {o
         this.onDitherXToggle = this.onDitherXToggle.bind(this);
         this.onDitherYToggle = this.onDitherYToggle.bind(this);
         this.scatterSelection = this.scatterSelection.bind(this);
-        this.openFilter = this.openFilter.bind(this);
-        this.addFilter = this.addFilter.bind(this);
-        this.cancelFilter = this.cancelFilter.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -45,15 +43,10 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps, {o
         const jointData = this.props.dashboardContext.explanationContext.jointDataset;
         return (
             <div className="explanation-chart">
-                <Button
-                    onClick={this.openFilter}
-                    text="Add Filter"
-                />
-                {this.state.open && (<NascentFilter
+                <FilterControl 
                     metaDict={this.props.dashboardContext.explanationContext.jointDataset.metaDict}
-                    addFilter={this.addFilter}
-                    cancel={this.cancelFilter}
-                />)}
+                    filterContext={this.props.filterContext}
+                />
                 <div className="top-controls">
                     <div className="path-selector x-value">
                         <ComboBox
@@ -120,19 +113,6 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps, {o
                     onSelection={this.scatterSelection}
                 />
         </div>);
-    }
-
-    private addFilter(filter: IFilter): void {
-        this.setState({open: false});
-        this.props.filterContext.onAdd(filter);
-    }
-
-    private cancelFilter(): void {
-        this.setState({open: false});
-    }
-
-    private openFilter(): void {
-        this.setState({open: true});
     }
 
     private onDitherXToggle(): void {

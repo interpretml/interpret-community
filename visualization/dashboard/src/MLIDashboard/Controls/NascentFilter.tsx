@@ -6,7 +6,6 @@ import { FilterMethods, IFilter } from "../Interfaces/IFilter";
 import { IComboBoxOption, IComboBox, ComboBox } from "office-ui-fabric-react/lib/ComboBox";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { FabricStyles } from "../FabricStyles";
-import { Slider } from "office-ui-fabric-react/lib/Slider";
 import { localization } from "../../Localization/localization";
 import { RangeTypes } from "mlchartlib";
 
