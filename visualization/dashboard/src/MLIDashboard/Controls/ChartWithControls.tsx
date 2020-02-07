@@ -7,6 +7,7 @@ import { IconButton } from "office-ui-fabric-react/lib/Button";
 import { localization } from "../../Localization/localization";
 import { FabricStyles } from "../FabricStyles";
 import _ from "lodash";
+import { Transform } from "plotly.js-dist";
 
 export enum ChartTypes {
     Scatter = 'scattergl',
@@ -267,12 +268,36 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                 break;
             }
             case ChartTypes.Bar: {
-                plotlyProps.data[0].type = this.props.chartProps.chartType;
-                if (this.props.chartProps.xAxis) {
-                    const rawX = jointData.unwrap(this.props.chartProps.xAxis.property, true);
-                    plotlyProps.data[0].x = rawX;
-                    hovertemplate += "x: %{x}<br>";
-                }
+                // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
+                // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
+                plotlyProps.data[0].type = "bar";
+                const rawX = jointData.unwrap(this.props.chartProps.xAxis.property, true);
+                
+                const xLabels = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues;
+                const y = new Array(rawX.length).fill(1);
+                const xLabelIndexes = xLabels.map((unused, index) => index);
+                plotlyProps.data[0].text = rawX.map(index => xLabels[index]);
+                plotlyProps.data[0].x = rawX;
+                plotlyProps.data[0].y = y;
+                _.set(plotlyProps, 'layout.xaxis.ticktext', xLabels);
+                _.set(plotlyProps, 'layout.xaxis.tickvals', xLabelIndexes);
+                hovertemplate += "x: %{text}<br>";
+                hovertemplate += "count: %{y}<br>";
+                const transforms: Partial<Transform>[] = [
+                    {
+                        type: 'aggregate',
+                        groups: rawX,
+                        aggregations: [
+                          {target: 'y', func: 'sum'},
+                        ]
+                      },{
+                        type: 'aggregate',
+                        groups: rawX,
+                        aggregations: [
+                          {target: 'text', func: 'first'},
+                        ]
+                      }
+                ];
                 if (this.props.chartProps.colorAxis) {
                     const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, true);
                     const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
@@ -281,13 +306,14 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                             value: { name: label}
                         };
                     });
-                    plotlyProps.data[0].transforms = [{
+                    transforms.push({
                         type: "groupby",
                         groups: rawColor,
                         styles
-                    }];
+                    });
                     plotlyProps.layout.showlegend = true;
                 }
+                plotlyProps.data[0].transforms = transforms;
                 break;
             }
         }
