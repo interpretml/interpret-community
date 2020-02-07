@@ -290,13 +290,7 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                         aggregations: [
                           {target: 'y', func: 'sum'},
                         ]
-                      },{
-                        type: 'aggregate',
-                        groups: rawX,
-                        aggregations: [
-                          {target: 'text', func: 'first'},
-                        ]
-                      }
+                    }
                 ];
                 if (this.props.chartProps.colorAxis) {
                     const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, true);
