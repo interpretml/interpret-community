@@ -42,8 +42,8 @@ DEPENDENCIES = [
     'scipy',
     'scikit-learn',
     'packaging',
-    'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.33.0'
+    'interpret-core[required]==0.1.20',
+    'shap>=0.20.0, <=0.34.0'
 ]
 
 EXTRAS = {
