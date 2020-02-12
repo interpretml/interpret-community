@@ -67,16 +67,15 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         } as any
     };
 
-    private readonly _xButtonId = "x-button-id"
+    private readonly _xButtonId = "x-button-id";
+    private readonly _colorButtonId = "color-button-id";
+    private readonly _yButtonId = "y-button-id";
 
     constructor(props: IConfigurableChartProps) {
         super(props);
-        this.onColorSelected = this.onColorSelected.bind(this);
-        this.onDitherXToggle = this.onDitherXToggle.bind(this);
-        this.onDitherYToggle = this.onDitherYToggle.bind(this);
-        this.onXSelected = this.onXSelected.bind(this);
-        this.onYSelected = this.onYSelected.bind(this);
         this.onXSet = this.onXSet.bind(this);
+        this.onYSet = this.onYSet.bind(this);
+        this.onColorSet = this.onColorSet.bind(this);
 
         this.state = {
             xDialogOpen: false,
@@ -90,11 +89,13 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         return (
         <div className="explanation-chart">
                 <div className="top-controls">
-                    <div className="path-selector x-value">
+                    {this.props.chartProps.xAxis && (
+                    <div className="path-selector">
                         <DefaultButton 
                             onClick={this.setXOpen.bind(this, true)}
                             id={this._xButtonId}
-                            text={localization.ExplanationScatter.xValue}
+                            text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                            title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
                         />
                         {(this.state.xDialogOpen) && (
                             <AxisConfigDialog 
@@ -102,48 +103,60 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                                 orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
                                 selectedColumn={this.props.chartProps.xAxis}
                                 canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
                                 canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                 onAccept={this.onXSet}
                                 onCancel={this.setXOpen.bind(this, false)}
                                 target={this._xButtonId}
                             />
                         )}
-                    </div>
+                    </div>)}
+                    {this.props.chartProps.colorAxis && (
                     <div className="path-selector">
-                        <ComboBox
-                            options={this.props.axisOptions}
-                            onChange={this.onColorSelected}
-                            label={localization.ExplanationScatter.colorValue}
-                            ariaLabel="color picker"
-                            selectedKey={this.props.chartProps.colorAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={FabricStyles.defaultDropdownStyle}
+                        <DefaultButton 
+                            onClick={this.setColorOpen.bind(this, true)}
+                            id={this._colorButtonId}
+                            text={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
+                            title={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
                         />
-                    </div>
-                </div>
-                <div className="top-controls">
-                    <div className="path-selector y-value">
-                        <ComboBox
-                            options={this.props.axisOptions}
-                            onChange={this.onYSelected}
-                            label={localization.ExplanationScatter.yValue}
-                            ariaLabel="y picker"
-                            selectedKey={this.props.chartProps.yAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={FabricStyles.defaultDropdownStyle}
-                        />
-                        {(this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical ||
-                            (this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].featureRange &&
-                            this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].featureRange.rangeType)) && (
-                            <IconButton
-                                iconProps={{ iconName: "Info" }}
-                                title={localization.CrossClass.info}
-                                ariaLabel="Info"
-                                onClick={this.onDitherYToggle}
-                                styles={{ root: { marginBottom: -3, color: "rgb(0, 120, 212)" } }}
+                        {(this.state.colorDialogOpen) && (
+                            <AxisConfigDialog 
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                selectedColumn={this.props.chartProps.colorAxis}
+                                canBin={true}
+                                mustBin={false}
+                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                onAccept={this.onColorSet}
+                                onCancel={this.setColorOpen.bind(this, false)}
+                                target={this._colorButtonId}
                             />
                         )}
-                    </div>
+                    </div>)}
+                </div>
+                <div className="top-controls">
+                    {this.props.chartProps.yAxis && (
+                    <div className="path-selector">
+                        <DefaultButton 
+                            onClick={this.setYOpen.bind(this, true)}
+                            id={this._yButtonId}
+                            text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                            title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                        />
+                        {(this.state.yDialogOpen) && (
+                            <AxisConfigDialog 
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                selectedColumn={this.props.chartProps.yAxis}
+                                canBin={false}
+                                mustBin={false}
+                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                onAccept={this.onYSet}
+                                onCancel={this.setYOpen.bind(this, false)}
+                                target={this._yButtonId}
+                            />
+                        )}
+                    </div>)}
                 </div>
                 <AccessibleChart
                     plotlyProps={plotlyProps}
@@ -162,49 +175,41 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         this.setState({xDialogOpen: false});
     }
 
-    private onDitherXToggle(): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        const initialValue = _.get(newProps.xAxis, "options.dither", false);
-        _.set(newProps.xAxis, "options.dither", !initialValue);
-        this.props.onChange(newProps);
-    }
-
-    private onDitherYToggle(): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        const initialValue = _.get(newProps.yAxis, "options.dither", false);
-        _.set(newProps.yAxis, "options.dither", !initialValue);
-        this.props.onChange(newProps);
-    }
-
-    private onXSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.xAxis.property = item.key as string;
-        if (this.props.jointDataset.metaDict[item.key].isCategorical) {
-            newProps.xAxis.options = {dither: true, bin: false};
+    private readonly setColorOpen = (val: boolean): void => {
+        if (val && this.state.colorDialogOpen === false) {
+            this.setState({colorDialogOpen: true});
+            return;
         }
-        this.props.onChange(newProps);
+        this.setState({colorDialogOpen: false});
+    }
+
+    private readonly setYOpen = (val: boolean): void => {
+        if (val && this.state.yDialogOpen === false) {
+            this.setState({yDialogOpen: true});
+            return;
+        }
+        this.setState({yDialogOpen: false});
     }
 
     private onXSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.xAxis = value
+        newProps.xAxis = value;
         this.props.onChange(newProps);
         this.setState({xDialogOpen: false})
     }
 
-    private onYSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
+    private onYSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.yAxis.property = item.key as string;
-        if (this.props.jointDataset.metaDict[item.key].isCategorical) {
-            newProps.yAxis.options = {dither: true, bin: false};
-        }
+        newProps.yAxis = value;
         this.props.onChange(newProps);
+        this.setState({yDialogOpen: false})
     }
 
-    private onColorSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
+    private onColorSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
-        newProps.colorAxis.property = item.key as string;
+        newProps.colorAxis = value;
         this.props.onChange(newProps);
+        this.setState({colorDialogOpen: false})
     }
 
     private buildPlotlyProps(): IPlotlyProperty {

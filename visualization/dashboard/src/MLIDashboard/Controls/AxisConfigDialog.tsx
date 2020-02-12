@@ -32,6 +32,7 @@ export interface IAxisConfigProps {
     orderedGroupTitles: ColumnCategories[];
     selectedColumn: ISelectorConfig;
     canBin: boolean;
+    mustBin: boolean;
     canDither: boolean;
     onAccept: (newConfig: ISelectorConfig) => void;
     onCancel: () => void;
