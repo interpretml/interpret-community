@@ -11,6 +11,12 @@ export interface IJointDatasetArgs {
     metadata: IExplanationModelMetadata;
 }
 
+export enum ColumnCategories {
+    outcome = 'outcome',
+    dataset = 'dataset',
+    explanation = 'explanation'
+}
+
 // The object that will store user-facing strings and associated metadata
 // It stores the categorical labels for any numeric bins
 export interface IJointMeta {
@@ -19,6 +25,7 @@ export interface IJointMeta {
     isCategorical: boolean;
     sortedCategoricalValues?: string[];
     featureRange?: INumericRange;
+    category: ColumnCategories
 }
 
 // this is the single source for data, it should hold all raw data and be how data for presentation is
@@ -57,7 +64,8 @@ export class JointDataset {
                             label: args.metadata.featureNames[colIndex],
                             abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
                             isCategorical: true,
-                            sortedCategoricalValues: sortedUnique
+                            sortedCategoricalValues: sortedUnique,
+                            category: ColumnCategories.dataset
                         }
                     } else {
                         this._dataDict[index][key] = val;
@@ -65,7 +73,8 @@ export class JointDataset {
                             label: args.metadata.featureNames[colIndex],
                             abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
                             isCategorical: false,
-                            featureRange: args.metadata.featureRanges[colIndex] as INumericRange
+                            featureRange: args.metadata.featureRanges[colIndex] as INumericRange,
+                            category: ColumnCategories.dataset
                         }
                     }
                 });
@@ -81,7 +90,9 @@ export class JointDataset {
                 label: localization.ExplanationScatter.predictedY,
                 abbridgedLabel: localization.ExplanationScatter.predictedY,
                 isCategorical: args.metadata.modelType !== ModelTypes.regression,
-                sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined
+                sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined,
+                category: ColumnCategories.outcome
+                
             };
             if (args.metadata.modelType === ModelTypes.regression) {
                 this.metaDict[JointDataset.PredictedYLabel].featureRange = {
@@ -230,7 +241,8 @@ export class JointDataset {
                 rangeType: RangeTypes.integer,
                 min: 0,
                 max: arr.length - 1
-            }
+            },
+            category: ColumnCategories.outcome
         };
     }
 }

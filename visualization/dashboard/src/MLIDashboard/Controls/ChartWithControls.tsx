@@ -1,13 +1,15 @@
 import React from "react";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { JointDataset } from "../JointDataset";
+import { JointDataset, ColumnCategories } from "../JointDataset";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode } from "mlchartlib";
 import { ComboBox, IComboBoxOption, IComboBox } from "office-ui-fabric-react/lib/ComboBox";
-import { IconButton } from "office-ui-fabric-react/lib/Button";
+import { IconButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { localization } from "../../Localization/localization";
 import { FabricStyles } from "../FabricStyles";
 import _ from "lodash";
 import { Transform } from "plotly.js-dist";
+import { AxisConfigDialog } from "./AxisConfigDialog";
+import { Callout } from "office-ui-fabric-react/lib/Callout";
 
 export enum ChartTypes {
     Scatter = 'scattergl',
@@ -38,7 +40,13 @@ export interface IConfigurableChartProps {
     onChange: (chartProps: IGenericChartProps) => void;
 }
 
-export default class ChartWithControls extends React.PureComponent<IConfigurableChartProps> {
+export interface IChartWithControlsState {
+    xDialogOpen: boolean;
+    yDialogOpen: boolean;
+    colorDialogOpen: boolean;
+}
+
+export default class ChartWithControls extends React.PureComponent<IConfigurableChartProps, IChartWithControlsState> {
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],
@@ -59,6 +67,8 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         } as any
     };
 
+    private readonly _xButtonId = "x-button-id"
+
     constructor(props: IConfigurableChartProps) {
         super(props);
         this.onColorSelected = this.onColorSelected.bind(this);
@@ -66,6 +76,13 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         this.onDitherYToggle = this.onDitherYToggle.bind(this);
         this.onXSelected = this.onXSelected.bind(this);
         this.onYSelected = this.onYSelected.bind(this);
+        this.onXSet = this.onXSet.bind(this);
+
+        this.state = {
+            xDialogOpen: false,
+            yDialogOpen: false,
+            colorDialogOpen: false
+        };
     }
 
     public render(): React.ReactNode {
@@ -74,24 +91,21 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         <div className="explanation-chart">
                 <div className="top-controls">
                     <div className="path-selector x-value">
-                        <ComboBox
-                            options={this.props.axisOptions}
-                            onChange={this.onXSelected}
-                            label={localization.ExplanationScatter.xValue}
-                            ariaLabel="x picker"
-                            selectedKey={this.props.chartProps.xAxis.property}
-                            useComboBoxAsMenuWidth={true}
-                            styles={FabricStyles.defaultDropdownStyle}
+                        <DefaultButton 
+                            onClick={this.setXOpen.bind(this, true)}
+                            id={this._xButtonId}
+                            text={localization.ExplanationScatter.xValue}
                         />
-                        {(this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].isCategorical ||
-                            (this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].featureRange &&
-                            this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].featureRange.rangeType)) && (
-                            <IconButton
-                                iconProps={{ iconName: "Info" }}
-                                title={localization.CrossClass.info}
-                                ariaLabel="Info"
-                                onClick={this.onDitherXToggle}
-                                styles={{ root: { marginBottom: -3, color: "rgb(0, 120, 212)" } }}
+                        {(this.state.xDialogOpen) && (
+                            <AxisConfigDialog 
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                selectedColumn={this.props.chartProps.xAxis}
+                                canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                onAccept={this.onXSet}
+                                onCancel={this.setXOpen.bind(this, false)}
+                                target={this._xButtonId}
                             />
                         )}
                     </div>
@@ -140,6 +154,14 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
         </div>);
     }
 
+    private readonly setXOpen = (val: boolean): void => {
+        if (val && this.state.xDialogOpen === false) {
+            this.setState({xDialogOpen: true});
+            return;
+        }
+        this.setState({xDialogOpen: false});
+    }
+
     private onDitherXToggle(): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         const initialValue = _.get(newProps.xAxis, "options.dither", false);
@@ -161,6 +183,13 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
             newProps.xAxis.options = {dither: true, bin: false};
         }
         this.props.onChange(newProps);
+    }
+
+    private onXSet(value: ISelectorConfig): void {
+        const newProps = _.cloneDeep(this.props.chartProps);
+        newProps.xAxis = value
+        this.props.onChange(newProps);
+        this.setState({xDialogOpen: false})
     }
 
     private onYSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {

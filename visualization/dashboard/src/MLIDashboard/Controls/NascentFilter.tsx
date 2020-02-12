@@ -163,7 +163,8 @@ export default class NascentFilter extends React.PureComponent<INascentFilterPro
     private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
         if (delta === 0) {
             const number = +stringVal;
-            if (!Number.isInteger(number) || number > column.featureRange.max || number < column.featureRange.min) {
+            if ((!Number.isInteger(number) && column.featureRange.rangeType === RangeTypes.integer)
+                || number > column.featureRange.max || number < column.featureRange.min) {
                 return this.state.arg.toString();
             }
             this.setState({arg: number});
