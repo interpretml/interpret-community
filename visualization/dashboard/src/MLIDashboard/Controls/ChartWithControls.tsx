@@ -226,6 +226,12 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                 plotlyProps.data[0].type = this.props.chartProps.chartType;
                 plotlyProps.data[0].mode = PlotlyMode.markers;
                 if (this.props.chartProps.xAxis) {
+                    if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
+                        const xLabels = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues;
+                        const xLabelIndexes = xLabels.map((unused, index) => index);
+                        _.set(plotlyProps, 'layout.xaxis.ticktext', xLabels);
+                        _.set(plotlyProps, 'layout.xaxis.tickvals', xLabelIndexes);
+                    }
                     const rawX = jointData.unwrap(this.props.chartProps.xAxis.property);
                     if (this.props.chartProps.xAxis.options.dither) {
                         const dithered = jointData.unwrap(JointDataset.DitherLabel);
@@ -246,6 +252,12 @@ export default class ChartWithControls extends React.PureComponent<IConfigurable
                     }
                 }
                 if (this.props.chartProps.yAxis) {
+                    if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
+                        const yLabels = jointData.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
+                        const yLabelIndexes = yLabels.map((unused, index) => index);
+                        _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
+                        _.set(plotlyProps, 'layout.yaxis.tickvals', yLabelIndexes);
+                    }
                     const rawY = jointData.unwrap(this.props.chartProps.yAxis.property);
                     if (this.props.chartProps.yAxis.options.dither) {
                         const dithered = jointData.unwrap(JointDataset.DitherLabel);
