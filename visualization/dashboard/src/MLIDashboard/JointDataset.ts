@@ -40,6 +40,8 @@ export class JointDataset {
     public static readonly PredictedYLabel = "PredictedY";
     public static readonly TrueYLabel = "TrueY";
     public static readonly DitherLabel = "Dither";
+    public static readonly ClassificationError = "ClassificationError";
+    public static readonly RegressionError = "RegressionError";
 
     public hasDataset: boolean = false;
     public hasPredictedY: boolean = false;
@@ -92,7 +94,6 @@ export class JointDataset {
                 isCategorical: args.metadata.modelType !== ModelTypes.regression,
                 sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined,
                 category: ColumnCategories.outcome
-                
             };
             if (args.metadata.modelType === ModelTypes.regression) {
                 this.metaDict[JointDataset.PredictedYLabel].featureRange = {
@@ -109,6 +110,50 @@ export class JointDataset {
                 this._dataDict[index][JointDataset.TrueYLabel] = val;
             });
             this.hasTrueY = true;
+        }
+        // include error columns if applicable
+        if (this.hasPredictedY && this.hasTrueY) {
+            if (args.metadata.modelType === ModelTypes.regression) {
+                this._dataDict.forEach(row => {
+                    row[JointDataset.RegressionError] = row[JointDataset.TrueYLabel] - row[JointDataset.PredictedYLabel];
+                });
+                const regressionErrorArray = this._dataDict.map(row => row[JointDataset.RegressionError]);
+                this.metaDict[JointDataset.RegressionError] = {
+                    label: localization.Columns.regressionError,
+                    abbridgedLabel: localization.Columns.error,
+                    isCategorical: false,
+                    sortedCategoricalValues: undefined,
+                    category: ColumnCategories.outcome,
+                    featureRange: {
+                        rangeType: RangeTypes.numeric,
+                        min: Math.min(...regressionErrorArray),
+                        max: Math.max(...regressionErrorArray)
+                    }
+                };
+            }
+            if (args.metadata.modelType === ModelTypes.binary) {
+                this._dataDict.forEach(row => {
+                    // sum pred and 2*true to map to ints 0 - 3,
+                    // 0: FP
+                    // 1: FN
+                    // 2: TN
+                    // 3: TP
+                    const predictionCategory = 2 * row[JointDataset.TrueYLabel] + row[JointDataset.PredictedYLabel];
+                    row[JointDataset.ClassificationError] = predictionCategory;
+                });
+                this.metaDict[JointDataset.ClassificationError] = {
+                    label: localization.Columns.classificationOutcome,
+                    abbridgedLabel: localization.Columns.classificationOutcome,
+                    isCategorical: true,
+                    sortedCategoricalValues: [
+                        localization.Columns.falsePositive,
+                        localization.Columns.falseNegative,
+                        localization.Columns.trueNegative,
+                        localization.Columns.truePositive
+                    ],
+                    category: ColumnCategories.outcome
+                };
+            }
         }
         this.applyFilters();
     }

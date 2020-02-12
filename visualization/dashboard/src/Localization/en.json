@@ -194,5 +194,16 @@
         "categoricalIncludeValues": "Included values:",
         "numericValue": "Value:",
         "numericalComparison": "Operation"
+    },
+    "Columns": {
+        "regressionError": "Regression error",
+        "_regressionError.comment": "true value minus predicted value is regression error",
+        "error": "Error",
+        "classificationOutcome": "Classification outcome",
+        "_classificationOutcome.comment": "Whether the prediction matched the truth for classification, true positive, true negative, false positive, false negative are the values",
+        "truePositive": "True positive",
+        "trueNegative": "True negative",
+        "falsePositive": "False positive",
+        "falseNegative": "False negative"
     }
 }
