@@ -346,20 +346,31 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
         assert explanation.num_classes == len(iris[DatasetConstants.CLASSES])
 
-    def test_explain_model_lightgbm_binary(self, tabular_explainer):
+    def _validate_binary_explain_model(self, tabular_explainer, create_model, test_name):
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=7)
-        # Fit a tree model
-        model = create_lightgbm_classifier(x_train, y_train)
-
+        model = create_model(x_train, y_train)
         classes = ["<50k", ">50k"]
         # Create tabular explainer
         exp = tabular_explainer(model, x_train, features=X.columns.values,
                                 classes=classes)
-        test_logger.info('Running explain global for test_explain_model_lightgbm_binary')
+        test_logger.info('Running explain global for {}'.format(test_name))
         explanation = exp.explain_global(x_test)
         assert len(explanation.local_importance_values[0]) == len(x_test)
         assert len(explanation.local_importance_values) == len(classes)
+
+    @pytest.mark.skip
+    def test_explain_model_xgboost_binary(self, tabular_explainer):
+        # Fit an xgboost tree model
+        def create_model(x_train, y_train):
+            return create_xgboost_classifier(x_train, y_train)
+        self._validate_binary_explain_model(tabular_explainer, create_model, 'test_explain_model_xgboost_binary')
+
+    def test_explain_model_lightgbm_binary(self, tabular_explainer):
+        # Fit a lightgbm tree model
+        def create_model(x_train, y_train):
+            return create_lightgbm_classifier(x_train, y_train)
+        self._validate_binary_explain_model(tabular_explainer, create_model, 'test_explain_model_lightgbm_binary')
 
     def _explain_model_dnn_common(self, tabular_explainer, model, x_train, x_test, y_train, features):
         # Create tabular explainer
