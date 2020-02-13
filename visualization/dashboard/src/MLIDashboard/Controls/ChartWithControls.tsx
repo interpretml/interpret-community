@@ -29,6 +29,7 @@ export interface ISelectorConfig {
     index?: number;
     options: {
         dither?: boolean;
+        // this is only used in the ambiguous case of numeric values on color axis for scatter chart, when binned or unbinned are valid
         bin?: boolean;
     };
 }

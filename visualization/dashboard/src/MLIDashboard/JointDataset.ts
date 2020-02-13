@@ -23,9 +23,12 @@ export interface IJointMeta {
     label: string;
     abbridgedLabel: string;
     isCategorical: boolean;
+    // used to allow user to treat integers as categorical (but switch back as convenient...)
+    treatAsCategorical?: boolean;
     sortedCategoricalValues?: string[];
     featureRange?: INumericRange;
-    category: ColumnCategories
+    category: ColumnCategories;
+    index?: number;
 }
 
 // this is the single source for data, it should hold all raw data and be how data for presentation is
@@ -36,7 +39,7 @@ export interface IJointMeta {
 // 
 export class JointDataset {
     public static readonly IndexLabel = "Index";
-    public static readonly DataLabelTemplate = "Data[{0}]";
+    public static readonly DataLabelRoot = "Data";
     public static readonly PredictedYLabel = "PredictedY";
     public static readonly TrueYLabel = "TrueY";
     public static readonly DitherLabel = "Dither";
@@ -46,6 +49,7 @@ export class JointDataset {
     public hasDataset: boolean = false;
     public hasPredictedY: boolean = false;
     public hasTrueY: boolean = false;
+    public datasetFeatureCount: number = 0;
 
     private _dataDict: Array<{[key: string]: any}>;
     private _filteredData: Array<{[key: string]: any}>;
@@ -53,11 +57,12 @@ export class JointDataset {
     public metaDict: {[key: string]: IJointMeta} = {};
 
     constructor(args: IJointDatasetArgs) {
-        if (args.dataset) {
+        if (args.dataset && args.dataset.length > 0) {
             this.initializeDataDictIfNeeded(args.dataset);
+            this.datasetFeatureCount = args.dataset[0].length;
             args.dataset.forEach((row, index) => {
                 row.forEach((val, colIndex) => {
-                    const key = JointDataset.DataLabelTemplate.replace("{0}", colIndex.toString());
+                    const key = JointDataset.DataLabelRoot + colIndex.toString();
                     // store the index for categorical values rather than the actual value. Makes dataset uniform numeric and enables dithering
                     if (args.metadata.featureIsCategorical[colIndex]) {
                         const sortedUnique = (args.metadata.featureRanges[colIndex] as ICategoricalRange).uniqueValues.concat().sort();
@@ -66,8 +71,10 @@ export class JointDataset {
                             label: args.metadata.featureNames[colIndex],
                             abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
                             isCategorical: true,
+                            treatAsCategorical: true,
                             sortedCategoricalValues: sortedUnique,
-                            category: ColumnCategories.dataset
+                            category: ColumnCategories.dataset,
+                            index: colIndex
                         }
                     } else {
                         this._dataDict[index][key] = val;
@@ -76,7 +83,8 @@ export class JointDataset {
                             abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
                             isCategorical: false,
                             featureRange: args.metadata.featureRanges[colIndex] as INumericRange,
-                            category: ColumnCategories.dataset
+                            category: ColumnCategories.dataset,
+                            index: colIndex
                         }
                     }
                 });
@@ -92,6 +100,7 @@ export class JointDataset {
                 label: localization.ExplanationScatter.predictedY,
                 abbridgedLabel: localization.ExplanationScatter.predictedY,
                 isCategorical: args.metadata.modelType !== ModelTypes.regression,
+                treatAsCategorical: args.metadata.modelType !== ModelTypes.regression,
                 sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined,
                 category: ColumnCategories.outcome
             };
@@ -145,6 +154,7 @@ export class JointDataset {
                     label: localization.Columns.classificationOutcome,
                     abbridgedLabel: localization.Columns.classificationOutcome,
                     isCategorical: true,
+                    treatAsCategorical: true,
                     sortedCategoricalValues: [
                         localization.Columns.falsePositive,
                         localization.Columns.falseNegative,

@@ -207,7 +207,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     }
                 });
         }
-        const yKey = JointDataset.DataLabelTemplate.replace("{0}", maxIndex.toString());
+        const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
         const yIsDithered = exp.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
