@@ -253,7 +253,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private readonly ditherChecked = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
         this.setState({
             selectedColumn: {
-                property: this._leftSelection.getSelection()[0].key as string,
+                property: this.state.selectedColumn.property,
                 options: {
                     dither: checked
                 }
@@ -278,6 +278,17 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         }
     }
 
+    private setDefaultStateForKey(property: string): void {
+        const dither = this.props.canDither && this.props.jointDataset.metaDict[property].treatAsCategorical;
+        const binCount = this._getBinCountForProperty(property);
+        this.setState({selectedColumn: {
+            property,
+            options: {
+                dither
+            }
+        }, binCount});
+    }
+
     private readonly _setSelection = (): void => {
         if (!this._isInitialized) {
             return;
@@ -286,24 +297,12 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         if (property === JointDataset.DataLabelRoot) {
             property += "0";
         }
-        const binCount = this._getBinCountForProperty(property);
-        this.setState({selectedColumn: {
-            property,
-            options: {
-                dither: this.props.canDither
-            }
-        }, binCount});
+        this.setDefaultStateForKey(property);
     }
 
     private readonly setSelectedProperty = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
         const property = item.key as string;
-        const binCount = this._getBinCountForProperty(property);
-        this.setState({selectedColumn: {
-            property,
-            options: {
-                dither: this.props.canDither
-            }
-        }, binCount});
+        this.setDefaultStateForKey(property);
     }
 
     private _getBinCountForProperty(key: string): number | undefined {
