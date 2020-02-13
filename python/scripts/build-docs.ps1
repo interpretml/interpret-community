@@ -21,6 +21,12 @@ try
     $docbuildpath = [System.IO.Path]::Combine($rootpath, "docbuild")
     $docconfigpath = [System.IO.Path]::Combine($rootpath, "docs")
 
+    Write-Host "scriptpath::", $scriptpath
+    Write-Host "rootpath::", $rootpath
+    Write-Host "codepath::", $codepath
+    Write-Host "docbuildpath::", $docbuildpath
+    Write-Host "docconfigpath::", $docconfigpath
+
     # Make sure we have a clean slate
     Remove-Item -Path $docbuildpath -Recurse -Force -ErrorAction SilentlyContinue
 

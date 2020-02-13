@@ -29,10 +29,10 @@ class BaseExplanation(ChainedIdentity):
 
     :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
     :type method: str
-    :param model_task: The task of the original model i.e. classification or regression.
+    :param model_task: The task of the original model i.e., classification or regression.
     :type model_task: str
     :param model_type: The type of the original model that was explained,
-        e.g. sklearn.linear_model.LinearRegression.
+        e.g., sklearn.linear_model.LinearRegression.
     :type model_type: str
     :param explanation_id: The unique identifier for the explanation.
     :type explanation_id: str
@@ -45,10 +45,10 @@ class BaseExplanation(ChainedIdentity):
 
         :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
         :type method: str
-        :param model_task: The task of the original model i.e. classification or regression.
+        :param model_task: The task of the original model i.e., classification or regression.
         :type model_task: str
         :param model_type: The type of the original model that was explained,
-            e.g. sklearn.linear_model.LinearRegression.
+            e.g., sklearn.linear_model.LinearRegression.
         :type model_type: str
         :param explanation_id: The unique identifier for the explanation.
         :type explanation_id: str
@@ -80,7 +80,7 @@ class BaseExplanation(ChainedIdentity):
 
     @property
     def model_task(self):
-        """Get the task of the original model, i.e. classification or regression (others possibly in the future).
+        """Get the task of the original model, i.e., classification or regression (others possibly in the future).
 
         :return: The task of the original model.
         :rtype: str
@@ -89,9 +89,9 @@ class BaseExplanation(ChainedIdentity):
 
     @property
     def id(self):
-        """Get the explanation id.
+        """Get the explanation ID.
 
-        :return: The explanation id.
+        :return: The explanation ID.
         :rtype: str
         """
         return self._id
@@ -199,7 +199,7 @@ class BaseExplanation(ChainedIdentity):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid, else False
+        :return: True if valid, else False.
         :rtype: bool
         """
         if not hasattr(explanation, ExplainParams.METHOD) or not isinstance(explanation.method, str):
@@ -268,7 +268,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     def is_raw(self):
         """Get the raw explanation flag.
 
-        :return: A boolean, True if it's a raw explanation. False if engineered or unknown.
+        :return: True if it's a raw explanation. False if engineered or unknown.
         :rtype: bool
         """
         return self._is_raw
@@ -277,7 +277,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     def is_engineered(self):
         """Get the engineered explanation flag.
 
-        :return: A boolean, True if it's an engineered explanation (specifically not raw). False if raw or unknown.
+        :return: True if it's an engineered explanation (specifically not raw). False if raw or unknown.
         :rtype: bool
         """
         return self._is_eng
@@ -880,9 +880,9 @@ class ExpectedValuesMixin(object):
 class ClassesMixin(object):
     """The explanation mixin for classes.
 
-    This mixin is added when the user specifies classes in the classification
-    scenario when creating a global or local explanation.
-    This is activated when the user specifies the classes parameter for global
+    This mixin is added when you specify classes in the classification
+    scenario for creating a global or local explanation.
+    This is activated when you specify the classes parameter for global
     or local explanations.
 
     :param classes: Class names as a list of strings. The order of

@@ -36,7 +36,7 @@ class KernelExplainer(BlackBoxExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.BLACKBOX
 
-    """Tthe Kernel Explainer for explaining black box models or functions.
+    """The Kernel Explainer for explaining black box models or functions.
 
     :param model: The model to explain or function if is_function is True.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
@@ -44,7 +44,7 @@ class KernelExplainer(BlackBoxExplainer):
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
         scipy.sparse.csr_matrix
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default set to False. Set to True if passing function instead of model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
@@ -59,14 +59,14 @@ class KernelExplainer(BlackBoxExplainer):
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
+        that of the model output. Only required if explaining classifier.
     :type classes: list[str]
     :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
         samples weighted by the number of data points they each represent. When the number of initialization
         examples is larger than (10 x nclusters), those examples will be summarized with k-means where
         k = nclusters.
     :type nclusters: int
-    :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+    :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
         when using shap_values from the KernelExplainer.
     :type show_progress: bool
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
@@ -76,7 +76,7 @@ class KernelExplainer(BlackBoxExplainer):
 
         If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
         we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        A user can use the following sklearn.preprocessing transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
         StandardScaler.
@@ -125,7 +125,7 @@ class KernelExplainer(BlackBoxExplainer):
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default set to false. Set to True if passing function instead of model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation, which will speed up the explanation
@@ -147,7 +147,7 @@ class KernelExplainer(BlackBoxExplainer):
             examples is larger than (10 x nclusters), those examples will be summarized with k-means where
             k = nclusters.
         :type nclusters: int
-        :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+        :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
             when using shap_values from the KernelExplainer.
         :type show_progress: bool
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
@@ -156,7 +156,7 @@ class KernelExplainer(BlackBoxExplainer):
         https://github.com/scikit-learn-contrib/sklearn-pandas.
         If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
         we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        A user can use the following sklearn.preprocessing transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
         StandardScaler.
@@ -208,7 +208,7 @@ class KernelExplainer(BlackBoxExplainer):
         self._reset_evaluation_background(self.function, **kwargs)
 
     def _reset_evaluation_background(self, function, **kwargs):
-        """Modify the explainer to use the new evalaution example for background data.
+        """Modify the explainer to use the new evaluation example for background data.
 
         Note when constructing explainer an evaluation example is not available hence the initialization data is used.
 
@@ -351,7 +351,7 @@ class KernelExplainer(BlackBoxExplainer):
             to explain the model's output.
         :type evaluation_examples: DatasetWrapper
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         kwargs = self._get_explain_local_kwargs(evaluation_examples)

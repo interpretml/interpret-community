@@ -52,13 +52,13 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
 
     """Defines the Permutation Feature Importance Explainer for explaining black box models or functions.
 
-    :param model: The black box model or function (if is_function is True) to be explained.  Also known
+    :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default set to False. Set to True if passing function instead of model.
     :type is_function: bool
     :param metric: The metric name or function to evaluate the permutation.
-        Note that if a metric function is provided a higher value must be better.
+        Note that if a metric function is provided, a higher value must be better.
         Otherwise, take the negative of the function or set is_error_metric to True.
         By default, if no metric is provided, F1 Score is used for binary classification,
         F1 Score with micro average is used for multiclass classification and mean
@@ -69,7 +69,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
     :param is_error_metric: If custom metric function is provided, set to True if a higher
         value of the metric is better.
     :type is_error_metric: bool
-    :param explain_subset: List of feature indices. If specified, only selects a subset of the
+    :param explain_subset: List of feature indexes. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. For permutation feature importance,
         we can shuffle, score and evaluate on the specified indexes when this parameter is set.
         This argument is not supported when transformations are set.
@@ -111,7 +111,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
         many mapping when taking a sequence of columns.
     :type transformations: [tuple]
-    :param allow_all_transformations: Allow many to many and many to one transformations
+    :param allow_all_transformations: Allow many to many and many to one transformations.
     :type allow_all_transformations: bool
     :param seed: Random number seed for shuffling.
     :type seed: int
@@ -119,7 +119,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         is a classifier, set to True instead of the default False to use predict_proba instead of
         predict when calculating the metric.
     :type for_classifier_use_predict_proba: bool
-    :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+    :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
         when using PFIExplainer.
     :type show_progress: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
@@ -135,14 +135,14 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                  show_progress=True, model_task=ModelTask.Unknown, **kwargs):
         """Initialize the PFIExplainer.
 
-        :param model: The black box model or function (if is_function is True) to be explained.  Also known
+        :param model: The black box model or function (if is_function is True) to be explained. Also known
             as the teacher model.
         :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
             ndarray
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default set to False. Set to True if passing function instead of model.
         :type is_function: bool
         :param metric: The metric name or function to evaluate the permutation.
-            Note that if a metric function is provided a higher value must be better.
+            Note that if a metric function is provided, a higher value must be better.
             Otherwise, take the negative of the function or set is_error_metric to True.
             By default, if no metric is provided, F1 Score is used for binary classification,
             F1 Score with micro average is used for multiclass classification and mean
@@ -153,7 +153,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         :param is_error_metric: If custom metric function is provided, set to True if a higher
             value of the metric is better.
         :type is_error_metric: bool
-        :param explain_subset: List of feature indices. If specified, only selects a subset of the
+        :param explain_subset: List of feature indexes. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. For permutation feature importance,
             we can shuffle, score and evaluate on the specified indexes when this parameter is set.
             This argument is not supported when transformations are set.

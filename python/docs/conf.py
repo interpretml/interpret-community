@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'interpret-community'
-copyright = '2019, Microsoft'
+copyright = '2020, Microsoft'
 author = 'Microsoft'
 
 # The full version, including alpha/beta/rc tags
@@ -37,7 +37,16 @@ extensions = [
 ]
 
 # eventually we may be able to use intersphinx for these! TODO
-autodoc_mock_imports = ['shap', 'interpret']
+autodoc_mock_imports = ['shap.common', 'interpret.utils']
+
+# enable links to objects in the other standard libraries, e.g., list and str in the Python standard library
+intersphinx_mapping = {
+    'Python': ('https://docs.python.org/3', None),
+    'NumPy': ('http://docs.scipy.org/doc/numpy/', None),
+    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
+    'SciPy': ('http://docs.scipy.org/doc/scipy/reference', None),
+    'sklearn': ('http://scikit-learn.org/stable', None)
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,6 +56,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# The master toctree document.
+master_doc = 'index'
 
 # -- Options for HTML output -------------------------------------------------
 

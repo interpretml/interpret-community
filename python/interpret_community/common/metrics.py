@@ -17,7 +17,7 @@ def dcg(validate_order, ground_truth_order_relevance, top_values=10):
     :type validate_order: list
     :param ground_truth_order_relevance: The ground truth relevancy of the documents to compare to.
     :type ground_truth_order_relevance: list
-    :param top_values: Specifies the top values to compute the DCG for, default to 10.
+    :param top_values: Specifies the top values to compute the DCG for. The default is 10.
     :type top_values: int
     """
     # retrieve relevance score for each value in validation order
@@ -37,11 +37,11 @@ def ndcg(validate_order, ground_truth_order, top_values=10):
     and the least possible NDCG is 0.0.
     See https://en.wikipedia.org/wiki/Discounted_cumulative_gain for reference.
 
-    :param validate_order: The order to validate for the documents.  The values should be unique.
+    :param validate_order: The order to validate for the documents. The values should be unique.
     :type validate_order: list
-    :param ground_truth_order: The true order of the documents.  The values should be unique.
+    :param ground_truth_order: The true order of the documents. The values should be unique.
     :type ground_truth_order: list
-    :param top_values: Specifies the top values to compute the NDCG for, default to 10.
+    :param top_values: Specifies the top values to compute the NDCG for. The default is 10.
     :type top_values: int
     """
     # Create map from true_order to "relevance" or reverse order index

@@ -46,7 +46,7 @@ class MimicExplainer(BlackBoxExplainer):
 
     """The Mimic Explainer for explaining black box models or functions.
 
-    :param model: The black box model or function (if is_function is True) to be explained.  Also known
+    :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
@@ -62,7 +62,7 @@ class MimicExplainer(BlackBoxExplainer):
     :param is_function: Default set to false, set to True if passing function instead of model.
     :type is_function: bool
     :param augment_data: If true, oversamples the initialization examples to improve surrogate
-        model accuracy to fit teacher model.  Useful for high-dimensional data where
+        model accuracy to fit teacher model. Useful for high-dimensional data where
         the number of rows is less than the number of columns.
     :type augment_data: bool
     :param max_num_of_augmentations: max number of times we can increase the input data size.
@@ -75,7 +75,7 @@ class MimicExplainer(BlackBoxExplainer):
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
+        that of the model output. Only required if explaining classifier.
     :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
@@ -308,7 +308,7 @@ class MimicExplainer(BlackBoxExplainer):
         """Get the kwargs for explain_global to create a global explanation.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
-            explain the model's output.  If specified, computes feature importances through aggregation.
+            explain the model's output.  If specified, computes feature importance through aggregation.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local
@@ -365,13 +365,13 @@ class MimicExplainer(BlackBoxExplainer):
                        batch_size=Defaults.DEFAULT_BATCH_SIZE):
         """Globally explains the blackbox model using the surrogate model.
 
-        If evaluation_examples are unspecified, retrieves global feature importances from explainable
-        surrogate model.  Note this will not include per class feature importances.  If evaluation_examples
+        If evaluation_examples are unspecified, retrieves global feature importance from explainable
+        surrogate model.  Note this will not include per class feature importance. If evaluation_examples
         are specified, aggregates local explanations to global from the given evaluation_examples - which
-        computes both global and per class feature importances.
+        computes both global and per class feature importance.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
-            explain the model's output.  If specified, computes feature importances through aggregation.
+            explain the model's output.  If specified, computes feature importance through aggregation.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local

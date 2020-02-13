@@ -87,7 +87,7 @@ def _get_dnn_model_framework(model):
 
     TODO: Refactor out SHAP's code so we can reference this method directly from SHAP.
 
-    :return: The DNN Framework, Pytorch or Tensorflow.
+    :return: The DNN Framework, PyTorch or TensorFlow.
     :rtype: str
     """
     actual_model = model[0] if type(model) is tuple else model
@@ -95,7 +95,7 @@ def _get_dnn_model_framework(model):
 
 
 def _get_summary_data(initialization_examples, nclusters, framework):
-    """Compute the summary data from the intialization examples.
+    """Compute the summary data from the initialization examples.
 
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
@@ -126,10 +126,10 @@ class DeepExplainer(StructuredInitModelExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.GREYBOX
 
-    """An explainer for DNN models, implemented using shap's DeepExplainer, supports tensorflow and pytorch.
+    """An explainer for DNN models, implemented using shap's DeepExplainer, supports TensorFlow and PyTorch.
 
     :param model: The DNN model to explain.
-    :type model: pytorch or tensorflow model
+    :type model: PyTorch or TensorFlow model
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -194,7 +194,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         """Initialize the DeepExplainer.
 
         :param model: The DNN model to explain.
-        :type model: pytorch or tensorflow model
+        :type model: PyTorch or TensorFlow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -369,13 +369,13 @@ class DeepExplainer(StructuredInitModelExplainer):
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
-        """Explain the model by using shap's deep explainer.
+        """Explain the model by using SHAP's deep explainer.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         kwargs = self._get_explain_local_kwargs(evaluation_examples)
