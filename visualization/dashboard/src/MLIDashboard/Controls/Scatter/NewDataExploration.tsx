@@ -11,7 +11,7 @@ import { mergeStyleSets } from "@uifabric/styling";
 import { JointDataset } from "../../JointDataset";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
-import NascentFilter from "../NascentFilter";
+import FilterEditor from "../FilterEditor";
 import { IFilter } from "../../Interfaces/IFilter";
 import FilterControl from "../FilterControl";
 import ChartWithControls, { IGenericChartProps, ChartTypes } from "../ChartWithControls";
@@ -52,7 +52,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         return (
             <div className="explanation-chart">
                 <FilterControl 
-                    metaDict={this.props.dashboardContext.explanationContext.jointDataset.metaDict}
+                    jointDataset={this.props.dashboardContext.explanationContext.jointDataset}
                     filterContext={this.props.filterContext}
                 />
                 <div className="path-selector">
@@ -65,6 +65,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     />
                 </div>
                 <ChartWithControls
+                    filters={this.props.filterContext}
                     axisOptions={this.axisOptions}
                     jointDataset={jointData}
                     chartProps={this.props.chartProps}

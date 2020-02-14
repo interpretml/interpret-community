@@ -1,11 +1,11 @@
 import React from "react";
-import { IJointMeta } from "../JointDataset";
+import { IJointMeta, JointDataset } from "../JointDataset";
 import { Button, IconButton } from "office-ui-fabric-react/lib/Button";
-import { IFilterContext, IFilter } from "../Interfaces/IFilter";
-import NascentFilter from "./NascentFilter";
+import { IFilterContext, IFilter, FilterMethods } from "../Interfaces/IFilter";
+import FilterEditor from "./FilterEditor";
 
 export interface IFilterControlProps {
-    metaDict: {[key: string]: IJointMeta};
+    jointDataset: JointDataset
     filterContext: IFilterContext;
 }
 
@@ -31,16 +31,24 @@ export default class FilterControl extends React.PureComponent<IFilterControlPro
                 />
             </div>)
         });
+        const initialFilter: IFilter = {
+            column: JointDataset.IndexLabel,
+            method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
+                FilterMethods.includes : FilterMethods.greaterThan,
+            arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
+                [0] : 0
+        };
         return(
             <div>
                 <Button
                     onClick={this.openFilter}
                     text="Add Filter"
                 />
-                {this.state.dialogOpen && (<NascentFilter
-                    metaDict={this.props.metaDict}
-                    addFilter={this.addFilter}
-                    cancel={this.cancelFilter}
+                {this.state.dialogOpen && (<FilterEditor
+                    jointDataset={this.props.jointDataset}
+                    onAccept={this.addFilter}
+                    onCancel={this.cancelFilter}
+                    initialFilter={initialFilter}
                 />)}
                 {filterList}
             </div>

@@ -111,19 +111,12 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                     <div className={styles.leftHalf}>
                         <DetailsList
                             items={this.leftItems}
-                            // groups={this._groups}
-                            // groupProps={{
-                            // onRenderHeader: this._onRenderGroupHeader,
-                            // onRenderFooter: this._onRenderGroupFooter
-                            // }}
-                            // getGroupHeight={this._getGroupHeight}
                             ariaLabelForSelectionColumn="Toggle selection"
                             ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                             checkButtonAriaLabel="Row checkbox"
                             onRenderDetailsHeader={this._onRenderDetailsHeader}
                             selection={this._leftSelection}
                             selectionPreservedOnEmptyClick={true}
-                            //getKey={this.getKey}
                             setKey={"set"}
                             columns={[{key: 'col1', name: 'name', minWidth: 200, fieldName: 'title'}]}
                         />

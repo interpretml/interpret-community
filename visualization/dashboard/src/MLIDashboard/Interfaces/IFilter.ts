@@ -15,4 +15,5 @@ export interface IFilterContext {
     filters: IFilter[];
     onAdd: (newFilter: IFilter) => void;
     onDelete: (index: number) => void;
+    onUpdate: (filter: IFilter, index: number) => void;
 }

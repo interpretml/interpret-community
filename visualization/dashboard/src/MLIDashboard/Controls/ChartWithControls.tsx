@@ -10,6 +10,7 @@ import _ from "lodash";
 import { Transform } from "plotly.js-dist";
 import { AxisConfigDialog } from "./AxisConfigDialog";
 import { Callout } from "office-ui-fabric-react/lib/Callout";
+import { IFilterContext } from "../Interfaces/IFilter";
 
 export enum ChartTypes {
     Scatter = 'scattergl',
@@ -35,6 +36,7 @@ export interface ISelectorConfig {
 }
 
 export interface IConfigurableChartProps {
+    filters: IFilterContext;
     axisOptions: IDropdownOption[];
     jointDataset: JointDataset;
     chartProps: IGenericChartProps;

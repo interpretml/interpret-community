@@ -461,7 +461,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         const filterContext: IFilterContext = {
             filters: this.state.filters,
             onAdd: this.addFilter,
-            onDelete:this.deleteFilter
+            onDelete: this.deleteFilter,
+            onUpdate: this.updateFilter
         }
         this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
         return (
@@ -726,7 +727,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         });
     }
 
-    private deleteFilter(index: number): void{
+    private deleteFilter(index: number): void {
         this.setState(prevState => {
             if (prevState.filters.length < index || index < 0) {
                 return;
@@ -734,6 +735,14 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             prevState.filters.splice(index, 1);
             prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
             return prevState;
+        });
+    }
+
+    private updateFilter(filter: IFilter, index: number): void {
+        this.setState(prevState => {
+            const filters = [...prevState.filters];
+            filters[index] = filter;
+            return {filters}
         });
     }
 }
