@@ -44,7 +44,7 @@ class KernelExplainer(BlackBoxExplainer):
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
         scipy.sparse.csr_matrix
-    :param is_function: Default set to False. Set to True if passing function instead of model.
+    :param is_function: Default set to False. Set to True if passing function instead of a model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
@@ -74,8 +74,8 @@ class KernelExplainer(BlackBoxExplainer):
         The format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -101,7 +101,7 @@ class KernelExplainer(BlackBoxExplainer):
         This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
         many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
-    :param allow_all_transformations: Allow many to many and many to one transformations
+    :param allow_all_transformations: Allow many to many and many to one transformations.
     :type allow_all_transformations: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
@@ -125,7 +125,7 @@ class KernelExplainer(BlackBoxExplainer):
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
-        :param is_function: Default set to false. Set to True if passing function instead of model.
+        :param is_function: Default set to false. Set to True if passing function instead of a model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation, which will speed up the explanation
@@ -154,8 +154,8 @@ class KernelExplainer(BlackBoxExplainer):
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you areusing a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -176,7 +176,7 @@ class KernelExplainer(BlackBoxExplainer):
         This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to many
         mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
-        :param allow_all_transformations: Allow many to many and many to one transformations
+        :param allow_all_transformations: Allow many to many and many to one transformations.
         :type allow_all_transformations: bool
         :param model_task: Optional parameter to specify whether the model is a classification or regression model.
             In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
@@ -210,7 +210,8 @@ class KernelExplainer(BlackBoxExplainer):
     def _reset_evaluation_background(self, function, **kwargs):
         """Modify the explainer to use the new evaluation example for background data.
 
-        Note when constructing explainer an evaluation example is not available hence the initialization data is used.
+        Note: when constructing an explainer, an evaluation example is not available and hence the initialization
+        data is used.
 
         :param function: Function.
         :type function: Function that accepts a 2d ndarray

@@ -43,20 +43,19 @@ class TreeExplainer(PureStructuredModelExplainer):
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
+        that of the model output. Only required if explaining classifier.
     :type classes: list[str]
     :param shap_values_output: The type of the output when using TreeExplainer.
         Currently only types 'default' and 'probability' are supported.  If 'probability'
-        is specified, then we approximately scale the raw log-odds values from the TreeExplainer
-        to probabilities.
+        is specified, then the raw log-odds values are approximately scaled to probabilities from the TreeExplainer.
     :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
         The format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -105,15 +104,15 @@ class TreeExplainer(PureStructuredModelExplainer):
         :type classes: list[str]
         :param shap_values_output: The type of the output when using TreeExplainer.
             Currently only types 'default' and 'probability' are supported.  If 'probability'
-            is specified, then we approximately scale the raw log-odds values from the TreeExplainer
-            to probabilities.
+            is specified, then the raw log-odds values are approximately scaled to probabilities from the 
+            TreeExplainer.
         :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -268,7 +267,7 @@ class TreeExplainer(PureStructuredModelExplainer):
             to explain the model's output.
         :type evaluation_examples: DatasetWrapper
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         original_evals = evaluation_examples.original_dataset_with_type

@@ -27,7 +27,7 @@ class BaseExplanation(ChainedIdentity):
 
     """The common explanation returned by explainers.
 
-    :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
+    :param method: The explanation method used to explain the model (e.g., SHAP, LIME).
     :type method: str
     :param model_task: The task of the original model i.e., classification or regression.
     :type model_task: str
@@ -1625,9 +1625,9 @@ def _transform_value_for_load(paramkey, expldict, _metadata):
 def save_explanation(explanation):
     """Serialize the explanation.
 
-    :param explanation: the Explanation to be serialized
+    :param explanation: The Explanation to be serialized.
     :type explanation: Explanation
-    :return: JSON-formatted explanation data
+    :return: JSON-formatted explanation data.
     :rtype: str
     """
     paramkeys = list(ExplainParams.get_serializable())
@@ -1660,9 +1660,9 @@ def save_explanation(explanation):
 def load_explanation(expljson):
     """De-serialize the explanation.
 
-    :param expljson: JSON-formatted explanation data
+    :param expljson: JSON-formatted explanation data.
     :type expljson: str
-    :return: the original Explanation
+    :return: The original Explanation.
     :rtype: Explanation
     """
     expl = json.loads(expljson)

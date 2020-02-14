@@ -53,8 +53,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         The format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -108,8 +108,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -245,13 +245,13 @@ class LinearExplainer(StructuredInitModelExplainer):
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
-        """Explain the model by using shap's linear explainer.
+        """Explain the model by using SHAP's linear explainer.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
         :type evaluation_examples: DatasetWrapper
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         original_evals = evaluation_examples.original_dataset_with_type

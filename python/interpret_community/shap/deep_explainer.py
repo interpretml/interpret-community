@@ -153,8 +153,8 @@ class DeepExplainer(StructuredInitModelExplainer):
         The format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
@@ -217,8 +217,8 @@ class DeepExplainer(StructuredInitModelExplainer):
         transformer. When transformations are provided, explanations are of the features before the transformation. The
         format for list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
         MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
