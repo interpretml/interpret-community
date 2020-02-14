@@ -5,6 +5,7 @@
 """Defines the Explanation dashboard class."""
 
 from ._internal.constants import ExplanationDashboardInterface, WidgetRequestResponseConstants
+from ..common.error_handling import _format_exception
 from scipy.sparse import issparse
 import numpy as np
 import pandas as pd
@@ -65,17 +66,21 @@ class ExplanationDashboardInput:
             self._dataframeColumns = dataset.columns
         try:
             list_dataset = self._convert_to_list(dataset)
-        except Exception:
-            raise ValueError("Unsupported dataset type")
+        except Exception as ex:
+            ex_str = _format_exception(ex)
+            raise ValueError("Unsupported dataset type, inner error: {}".format(ex_str))
         if dataset is not None and model is not None:
             try:
                 predicted_y = model.predict(dataset)
-            except Exception:
-                raise ValueError("Model does not support predict method for given dataset type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                msg = "Model does not support predict method for given dataset type, inner error: {}".format(ex_str)
+                raise ValueError(msg)
             try:
                 predicted_y = self._convert_to_list(predicted_y)
-            except Exception:
-                raise ValueError("Model prediction output of unsupported type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Model prediction output of unsupported type, inner error: {}".format(ex_str))
         if predicted_y is not None:
             self.dashboard_input[ExplanationDashboardInterface.PREDICTED_Y] = predicted_y
         if list_dataset is not None:
@@ -96,9 +101,13 @@ class ExplanationDashboardInput:
             try:
                 local_explanation["scores"] = self._convert_to_list(local_explanation["scores"])
                 local_explanation["intercept"] = self._convert_to_list(local_explanation["intercept"])
+                # We can ignore perf explanation data.  Note if it is added back at any point,
+                # the numpy values will need to be converted to python, otherwise serialization fails.
+                local_explanation["perf"] = None
                 self.dashboard_input[ExplanationDashboardInterface.LOCAL_EXPLANATIONS] = local_explanation
-            except Exception:
-                raise ValueError("Unsupported local explanation type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Unsupported local explanation type, inner error: {}".format(ex_str))
             if list_dataset is not None:
                 local_dim = np.shape(local_explanation["scores"])
                 if len(local_dim) != 2 and len(local_dim) != 3:
@@ -113,13 +122,15 @@ class ExplanationDashboardInput:
                 if 'intercept' in global_explanation:
                     global_explanation["intercept"] = self._convert_to_list(global_explanation["intercept"])
                 self.dashboard_input[ExplanationDashboardInterface.GLOBAL_EXPLANATION] = global_explanation
-            except Exception:
-                raise ValueError("Unsupported global explanation type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Unsupported global explanation type, inner error: {}".format(ex_str))
         if ebm_explanation is not None:
             try:
                 self.dashboard_input[ExplanationDashboardInterface.EBM_EXPLANATION] = ebm_explanation
-            except Exception:
-                raise ValueError("Unsupported ebm explanation type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Unsupported ebm explanation type: {}".format(ex_str))
 
         if features is None and hasattr(explanation, 'features') and explanation.features is not None:
             features = explanation.features
@@ -141,12 +152,15 @@ class ExplanationDashboardInput:
                 and model.predict_proba is not None and dataset is not None:
             try:
                 probability_y = model.predict_proba(dataset)
-            except Exception:
-                raise ValueError("Model does not support predict_proba method for given dataset type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Model does not support predict_proba method for given dataset \
+                    type, inner error: {}".format(ex_str))
             try:
                 probability_y = self._convert_to_list(probability_y)
-            except Exception:
-                raise ValueError("Model predict_proba output of unsupported type")
+            except Exception as ex:
+                ex_str = _format_exception(ex)
+                raise ValueError("Model predict_proba output of unsupported type, inner error: {}".format(ex_str))
             self.dashboard_input[ExplanationDashboardInterface.PROBABILITY_Y] = probability_y
         if model is not None:
             self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = predict_url

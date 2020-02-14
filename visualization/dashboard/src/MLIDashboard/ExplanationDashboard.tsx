@@ -567,7 +567,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     <div className="view-panel">
                                         <div className="local-commands">
                                             <PrimaryButton
-                                                ariaDescription="clear-button"
                                                 className="clear-button"
                                                 onClick={this.onClearSelection}
                                                 text={localization.clearSelection}

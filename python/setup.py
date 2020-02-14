@@ -8,7 +8,7 @@ import os
 import shutil
 
 _major = '0'
-_minor = '4'
+_minor = '5'
 _patch = '1'
 
 README_FILE = 'README.md'

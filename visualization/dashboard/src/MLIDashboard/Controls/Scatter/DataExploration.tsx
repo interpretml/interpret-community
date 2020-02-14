@@ -40,7 +40,7 @@ export class DataExploration extends React.PureComponent<IScatterProps> {
                                 ariaLabel="x picker"
                                 selectedKey={this.plotlyProps.data[0].xAccessor}
                                 useComboBoxAsMenuWidth={true}
-                                styles={ScatterUtils.xStyle}
+                                styles={FabricStyles.defaultDropdownStyle}
                             />
                         </div>
                         <div className="path-selector">
@@ -64,7 +64,7 @@ export class DataExploration extends React.PureComponent<IScatterProps> {
                                 ariaLabel="y picker"
                                 selectedKey={this.plotlyProps.data[0].yAccessor}
                                 useComboBoxAsMenuWidth={true}
-                                styles={ScatterUtils.yStyle}
+                                styles={FabricStyles.defaultDropdownStyle}
                             />
                         </div>
                     </div>

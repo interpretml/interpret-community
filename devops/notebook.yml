@@ -1,17 +1,20 @@
 trigger: none
-pr: none
+pr:
+  - master
 
 pool:
   vmImage: "ubuntu-latest"
-
-variables:
-  artifactFeed: interpret-extensions-feed
 
 steps:
   - bash: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
 
   - template: templates/create-env-template.yml
+
+  - bash: |
+      source activate interp
+      conda install --yes --quiet --name interp gevent
+    displayName: "Install gevent"
 
   - bash: |
       source activate interp

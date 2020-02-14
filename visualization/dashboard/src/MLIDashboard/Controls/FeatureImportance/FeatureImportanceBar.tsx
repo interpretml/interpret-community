@@ -65,8 +65,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 <IconButton
                                     id={this._iconId}
                                     iconProps={{ iconName: 'Info' }}
-                                    title={localization.CrossClass.info}
-                                    ariaLabel="Info"
+                                    title={localization.AggregateImportance.topKInfo}
                                     onClick={this.onIconClick}
                                     styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
                                 />

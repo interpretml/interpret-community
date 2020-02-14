@@ -166,7 +166,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
     );
 
     private static BasePlotlyProps: IPlotlyProperty = {
-        config: { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toggleSpikelines', 'hoverClosestCartesian', 'hoverCompareCartesian', 'lasso2d', 'select2d']  } as any,
+        config: { displaylogo: false, responsive: true, displayModeBar: false  } as any,
         data: [
             {
                 hoverinfo: 'text',
@@ -187,6 +187,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             }
         ] as any,
         layout: {
+            dragmode: false,
             autosize: true,
             font: {
                 size: 10
@@ -203,7 +204,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             xaxis: {
                 automargin: true
             }
-        }
+        } as any
     };
 
     private readonly _crossClassIconId = 'cross-class-icon-id';
@@ -273,14 +274,14 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                                 <IconButton
                                     id={this._globalSortIconId}
                                     iconProps={{ iconName: 'Info' }}
-                                    title={localization.CrossClass.info}
-                                    ariaLabel="Info"
+                                    title={localization.AggregateImportance.topKInfo}
                                     onClick={this.showGlobalSortInfo}
                                     styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
                                 />}
                             </div>
                             <Slider
                                 className="feature-slider"
+                                ariaLabel={localization.AggregateImportance.topKFeatures}
                                 max={Math.min(Beehive.maxFeatures, this.props.dashboardContext.explanationContext.modelMetadata.featureNames.length)}
                                 min={1}
                                 step={1}
@@ -297,7 +298,6 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                                     id={this._crossClassIconId}
                                     iconProps={{ iconName: 'Info' }}
                                     title={localization.CrossClass.info}
-                                    ariaLabel="Info"
                                     onClick={this.showCrossClassInfo}
                                     styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
                                 />
