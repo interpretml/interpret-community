@@ -456,6 +456,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
+        if (this.pivotItems.length === 0) {
+            return <div>No valid views. Incomplete data.</div>
+        }
         return (
             <>
                 <div className="explainerDashboard">
