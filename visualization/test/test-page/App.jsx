@@ -9,9 +9,11 @@ import {bostonData} from '../__mock_data/bostonData';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
+import { initializeIcons } from "@uifabric/icons";
 
   var ibmNoClass = _.cloneDeep(ibmData);
   ibmNoClass.classNames = undefined;
+  // initializeIcons();
 
   var irisNoFeatures = _.cloneDeep(irisData);
   irisNoFeatures.featureNames = undefined;

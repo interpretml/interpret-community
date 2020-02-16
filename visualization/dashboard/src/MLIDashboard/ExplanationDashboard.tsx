@@ -33,8 +33,6 @@ import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
 
-initializeIcons();
-
 const s = require("./ExplanationDashboard.css");
 const RowIndex: string = "rowIndex";
 
@@ -55,6 +53,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     private readonly selectionContext = new SelectionContext(RowIndex, 1);
     private selectionSubscription: string;
 
+    private static iconsInitialized = false;
+
     private static globalTabKeys: string[] = [
         "dataExploration",
         "globalImportance",
@@ -69,6 +69,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         "perturbationExploration",
         "ICE"
     ];
+
+    private static initializeIcons(props: IExplanationDashboardProps): void {
+        if (ExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
+            initializeIcons(props.iconUrl);
+            ExplanationDashboard.iconsInitialized = true;
+        }
+    }
 
     private static transposeLocalImportanceMatrix: (input: number[][][]) =>  number[][][]
         = (memoize as any).default(
@@ -318,7 +325,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         if (props.probabilityY) {
             return props.probabilityY[0].length;
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
+            && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
             if ((localImportances as number[][][]).every(dim1 => {
                 return dim1.every(dim2 => Array.isArray(dim2));
@@ -357,6 +365,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        ExplanationDashboard.initializeIcons(props);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale)
         }
