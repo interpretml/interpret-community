@@ -110,7 +110,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 trueY: props.trueY
             };
         let localExplanation: ILocalExplanation;
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined && testDataset) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined &&
+            props.precomputedExplanations.localFeatureImportance.scores !== undefined && testDataset) {
             let weighting = props.predictedY ? WeightVectors.predicted : WeightVectors.absAvg;
             let localFeatureMatrix = ExplanationDashboard.buildLocalFeatureMatrix(props.precomputedExplanations.localFeatureImportance.scores, modelMetadata.modelType);
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(localFeatureMatrix, modelMetadata.modelType, testDataset, weighting);
@@ -129,7 +130,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
         let globalExplanation: IGlobalExplanation;
         let isGlobalDerived: boolean = false;
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined && props.precomputedExplanations.globalFeatureImportance.scores !== undefined) {
             let intercepts = undefined;
             // if (props.precomputedExplanations.globalFeatureImportance.intercept) {
             //     intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
@@ -161,7 +162,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                     if (featureExplanation.type !== "univariate") {
                         return undefined;
                     }
-                    if (featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
+                    if (featureExplanation.scores && featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
                         return {
                             type: "univariate",
                             scores: featureExplanation.scores,
@@ -184,6 +185,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             };
         }
 
+        let customVis = (props.precomputedExplanations && props.precomputedExplanations.customVis) ?
+            props.precomputedExplanations.customVis : undefined;
+
         return {
             modelMetadata,
             explanationGenerators,
@@ -192,7 +196,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             globalExplanation,
             isGlobalDerived,
             ebmExplanation: ebmExplanation,
-            customVis: props.precomputedExplanations.customVis
+            customVis: customVis
         };
     }
 
@@ -269,9 +273,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             let featureLength = 0;
             if (props.testData && props.testData[0] !== undefined) {
                 featureLength = props.testData[0].length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
                 featureLength = props.precomputedExplanations.globalFeatureImportance.scores.length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance && props.precomputedExplanations.localFeatureImportance.scores) {
                 const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
                 if ((localImportances as number[][][]).every(dim1 => {
                     return dim1.every(dim2 => Array.isArray(dim2));
@@ -334,7 +338,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 return localImportances.length;
             }
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
             // determine if passed in vaules is 1D or 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
                 .every(dim1 => Array.isArray(dim1))) {
