@@ -55,7 +55,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
     :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
-    :param is_function: Default set to False. Set to True if passing function instead of model.
+    :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
     :param metric: The metric name or function to evaluate the permutation.
         Note that if a metric function is provided, a higher value must be better.
@@ -139,7 +139,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             as the teacher model.
         :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
             ndarray
-        :param is_function: Default set to False. Set to True if passing function instead of model.
+        :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
         :param metric: The metric name or function to evaluate the permutation.
             Note that if a metric function is provided, a higher value must be better.

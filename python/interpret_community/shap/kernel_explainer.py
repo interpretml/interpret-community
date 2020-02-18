@@ -44,7 +44,7 @@ class KernelExplainer(BlackBoxExplainer):
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
         scipy.sparse.csr_matrix
-    :param is_function: Default set to False. Set to True if passing function instead of a model.
+    :param is_function: Default is False. Set to True if passing function instead of a model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
@@ -125,7 +125,7 @@ class KernelExplainer(BlackBoxExplainer):
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
-        :param is_function: Default set to false. Set to True if passing function instead of a model.
+        :param is_function: Default is False. Set to True if passing function instead of a model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation, which will speed up the explanation

@@ -59,7 +59,7 @@ class MimicExplainer(BlackBoxExplainer):
     :param explainable_model_args: An optional map of arguments to pass to the explainable model
         for initialization.
     :type explainable_model_args: dict
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
     :param augment_data: If true, oversamples the initialization examples to improve surrogate
         model accuracy to fit teacher model. Useful for high-dimensional data where
@@ -155,7 +155,7 @@ class MimicExplainer(BlackBoxExplainer):
         :param explainable_model_args: An optional map of arguments to pass to the explainable model
             for initialization.
         :type explainable_model_args: dict
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
         :param augment_data: If true, oversamples the initialization examples to improve surrogate
             model accuracy to fit teacher model.  Useful for high-dimensional data where
