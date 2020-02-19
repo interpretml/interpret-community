@@ -482,23 +482,14 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
                             {this.state.activeGlobalTab === 0 && (
-                                <NewDataExploration
+                                <DataExploration
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
-                                    chartProps={this.state.configs[DataScatterId] as IGenericChartProps}
+                                    plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
-                                    filterContext={filterContext}
                                 />
-                                // <DataExploration
-                                //     dashboardContext={this.state.dashboardContext}
-                                //     theme={this.props.theme}
-                                //     selectionContext={this.selectionContext}
-                                //     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
-                                //     onChange={this.onConfigChanged}
-                                //     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
-                                // />
                             )}
                             {this.state.activeGlobalTab === 1 && (
                                 <FeatureImportanceBar

@@ -4,7 +4,7 @@ import React from "react";
 import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
-import {  ScatterUtils, INewScatterProps} from "./ScatterUtils";
+import { ScatterUtils } from "./ScatterUtils";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
@@ -12,11 +12,23 @@ import { JointDataset } from "../../JointDataset";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
 import FilterEditor from "../FilterEditor";
-import { IFilter } from "../../Interfaces/IFilter";
+import { IFilter, IFilterContext } from "../../Interfaces/IFilter";
 import FilterControl from "../FilterControl";
 import ChartWithControls, { IGenericChartProps, ChartTypes } from "../ChartWithControls";
+import { IExplanationModelMetadata } from "../../IExplanationContext";
 
 export const DataScatterId = "data_scatter_id";
+
+export interface INewScatterProps {
+    chartProps: IGenericChartProps;
+    // selectionContext: SelectionContext;
+    theme?: string;
+    // messages?: HelpMessageDict;
+    jointDataset: JointDataset;
+    metadata: IExplanationModelMetadata;
+    filterContext: IFilterContext;
+    onChange: (props: IGenericChartProps, id: string) => void;
+}
 
 export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
@@ -48,11 +60,11 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
             return (<div/>);
         }
         const plotlyProps = this.generatePlotlyProps();
-        const jointData = this.props.dashboardContext.explanationContext.jointDataset;
+        const jointData = this.props.jointDataset;
         return (
             <div className="explanation-chart">
                 <FilterControl 
-                    jointDataset={this.props.dashboardContext.explanationContext.jointDataset}
+                    jointDataset={jointData}
                     filterContext={this.props.filterContext}
                 />
                 <div className="path-selector">
@@ -85,7 +97,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
     }
 
     private generateDropdownOptions(): IDropdownOption[] {
-        const jointData = this.props.dashboardContext.explanationContext.jointDataset;
+        const jointData = this.props.jointDataset;
         return Object.keys(jointData.metaDict).map((key, index) => {
             return {
                 key: key,
@@ -100,7 +112,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
         plotlyProps.data[0].datapointLevelAccessors = undefined;
         plotlyProps.data[0].hoverinfo = "all";
         let hovertemplate = "";
-        const jointData = this.props.dashboardContext.explanationContext.jointDataset;
+        const jointData = this.props.jointDataset;
         if (this.props.chartProps.colorAxis) {
             jointData.sort(this.props.chartProps.colorAxis.property);
         }
@@ -187,29 +199,29 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
     private generateDefaultChartAxes(): void {
         let maxIndex: number = 0;
         let maxVal: number = Number.MIN_SAFE_INTEGER;
-        const exp = this.props.dashboardContext.explanationContext;
+        // const exp = this.props.dashboardContext.explanationContext;
 
-        if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
-            // Find the top metric
-            exp.globalExplanation.perClassFeatureImportances
-                .map(classArray => classArray.reduce((a, b) => a + b), 0)
-                .forEach((val, index) => {
-                    if (val >= maxVal) {
-                        maxIndex = index;
-                        maxVal = val;
-                    }
-                });
-        } else if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
-            exp.globalExplanation.flattenedFeatureImportances
-                .forEach((val, index) => {
-                    if (val >= maxVal) {
-                        maxIndex = index;
-                        maxVal = val;
-                    }
-                });
-        }
+        // if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
+        //     // Find the top metric
+        //     exp.globalExplanation.perClassFeatureImportances
+        //         .map(classArray => classArray.reduce((a, b) => a + b), 0)
+        //         .forEach((val, index) => {
+        //             if (val >= maxVal) {
+        //                 maxIndex = index;
+        //                 maxVal = val;
+        //             }
+        //         });
+        // } else if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
+        //     exp.globalExplanation.flattenedFeatureImportances
+        //         .forEach((val, index) => {
+        //             if (val >= maxVal) {
+        //                 maxIndex = index;
+        //                 maxVal = val;
+        //             }
+        //         });
+        // }
         const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
-        const yIsDithered = exp.jointDataset.metaDict[yKey].isCategorical;
+        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
             xAxis: {
@@ -224,7 +236,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                 }
             },
             colorAxis: {
-                property: exp.jointDataset.hasPredictedY ?
+                property: this.props.jointDataset.hasPredictedY ?
                     JointDataset.PredictedYLabel : JointDataset.IndexLabel,
                 options: {}
             }

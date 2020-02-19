@@ -21,19 +21,6 @@ export interface IScatterProps {
     onChange: (props: IPlotlyProperty, id: string) => void;
 }
 
-export interface INewScatterProps {
-    chartProps: IGenericChartProps;
-    selectionContext: SelectionContext;
-    theme?: string;
-    messages?: HelpMessageDict;
-    dashboardContext: IDashboardContext;
-    filterContext: IFilterContext;
-    onChange: (props: IGenericChartProps, id: string) => void;
-}
-
-
-
-
 export interface IProjectedData {
     TrainingData: any[];
     LocalExplanation?: number[];

@@ -1,33 +1,31 @@
 import React from "react";
 import { IExplanationDashboardProps, IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
-import { IFilter } from "./Interfaces/IFilter";
+import { IFilter, IFilterContext } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
 import { IGenericChartProps } from "./Controls/ChartWithControls";
 import { ModelMetadata } from "mlchartlib";
 import { localization } from "../Localization/localization";
 import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import * as memoize from "memoize-one";
-import { IPivot, IPivotItemProps } from "office-ui-fabric-react/lib/Pivot";
+import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
+import _ from "lodash";
+import { NewDataExploration, DataScatterId } from "./Controls/Scatter/NewDataExploration";
 
 export interface INewExplanationDashboardState {
     filters: IFilter[];
-    activeGlobalTab: number;
+    activeGlobalTab: globalTabKeys;
     jointDataset: JointDataset;
     modelMetadata: IExplanationModelMetadata;
     chartConfigs: {[key: string]: IGenericChartProps};
 }
 
+enum globalTabKeys {
+    dataExploration ="dataExploration",
+    explanationTab = "explanationTab",
+    whatIfTab = "whatIfTab"
+}
+
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
-
-    private static globalTabKeys: string[] = [
-        "dataExploration",
-        "globalImportance",
-        "explanationExploration",
-        "summaryImportance",
-        "modelExplanation",
-        "customVisualization"
-    ];
-
     private static buildModelMetadata(props: IExplanationDashboardProps): IExplanationModelMetadata {
         const modelType = NewExplanationDashboard.getModelType(props);
         let featureNames = props.dataSummary.featureNames;
@@ -134,21 +132,127 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         });
         return {
             filters: [],
-            activeGlobalTab: 0,
+            activeGlobalTab: globalTabKeys.dataExploration,
             jointDataset,
             modelMetadata,
             chartConfigs: {}
         };
     }
 
-    private pivotItems: IPivotItemProps[];
+    private pivotItems: IPivotItemProps[] = [];
     private pivotRef: IPivot;
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        this.onConfigChanged = this.onConfigChanged.bind(this);
+        this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
+        this.addFilter = this.addFilter.bind(this);
+        this.deleteFilter = this.deleteFilter.bind(this);
         if (this.props.locale) {
-            localization.setLanguage(this.props.locale)
+            localization.setLanguage(this.props.locale);
         }
-        const state: INewExplanationDashboardState = NewExplanationDashboard.buildInitialExplanationContext(props);
+        this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
 
+        if (this.state.jointDataset.hasDataset) {
+            this.pivotItems.push({headerText: localization.dataExploration, itemKey: globalTabKeys.dataExploration});
+        }
+        if (this.state.jointDataset.localExplanationFeatureCount > 0) {
+            this.pivotItems.push({headerText: localization.globalImportance, itemKey: globalTabKeys.explanationTab});
+        }
+        if (this.state.jointDataset.localExplanationFeatureCount > 0 && this.state.jointDataset.hasDataset && this.props.requestPredictions) {
+            this.pivotItems.push({headerText: localization.explanationExploration, itemKey: globalTabKeys.whatIfTab});
+        }
+    }
+
+    render(): React.ReactNode {
+        const filterContext: IFilterContext = {
+            filters: this.state.filters,
+            onAdd: this.addFilter,
+            onDelete: this.deleteFilter,
+            onUpdate: this.updateFilter
+        }
+        this.state.jointDataset.applyFilters(this.state.filters);
+        return (
+            <>
+                <div className="explainerDashboard">
+                    <div className="charts-wrapper">
+                        <div className="global-charts-wrapper">
+                            <Pivot
+                                componentRef={ref => {this.pivotRef = ref;}}
+                                selectedKey={this.state.activeGlobalTab}
+                                onLinkClick={this.handleGlobalTabClick}
+                                linkSize={PivotLinkSize.normal}
+                                headersOnly={true}
+                            >
+                                {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
+                            </Pivot>
+                            {this.state.activeGlobalTab === globalTabKeys.dataExploration && (
+                                <NewDataExploration
+                                    jointDataset={this.state.jointDataset}
+                                    theme={this.props.theme}
+                                    metadata={this.state.modelMetadata}
+                                    chartProps={this.state.chartConfigs[DataScatterId] as IGenericChartProps}
+                                    onChange={this.onConfigChanged}
+                                    filterContext={filterContext}
+                                />
+                                // <DataExploration
+                                //     dashboardContext={this.state.dashboardContext}
+                                //     theme={this.props.theme}
+                                //     selectionContext={this.selectionContext}
+                                //     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
+                                //     onChange={this.onConfigChanged}
+                                //     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
+                                // />
+                            )}
+                            {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
+                                <div>TODO</div>
+                            )}
+                            {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
+                                <div>TODO</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    private onConfigChanged(newConfig: IGenericChartProps, configId: string): void {
+        this.setState(prevState => {
+            const newConfigs = _.cloneDeep(prevState.chartConfigs);
+            newConfigs[configId] = newConfig;
+            return {chartConfigs: newConfigs};
+        });
+    }
+
+    private handleGlobalTabClick(item: PivotItem): void {
+        let index: globalTabKeys = globalTabKeys[item.props.itemKey];
+        this.setState({activeGlobalTab: index});
+
+    }
+
+    private addFilter(newFilter: IFilter): void {
+        this.setState(prevState => {
+            const filters = [...prevState.filters];
+            filters.push(newFilter);
+            return {filters}
+        });
+    }
+
+    private deleteFilter(index: number): void {
+        this.setState(prevState => {
+            if (prevState.filters.length < index || index < 0) {
+                return;
+            }
+            prevState.filters.splice(index, 1);
+            return prevState;
+        });
+    }
+
+    private updateFilter(filter: IFilter, index: number): void {
+        this.setState(prevState => {
+            const filters = [...prevState.filters];
+            filters[index] = filter;
+            return {filters};
+        });
     }
 }
