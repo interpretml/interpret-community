@@ -3,11 +3,14 @@ import { INumericRange, ICategoricalRange, RangeTypes } from "mlchartlib";
 import { localization } from "../Localization/localization";
 import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import _ from "lodash";
+import { IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
+import { WeightVectors, WeightVectorOption } from "./IWeightedDropdownContext";
 
 export interface IJointDatasetArgs {
     dataset?: any[][];
     predictedY?: number[];
     trueY?: number[];
+    localExplanations?: IMultiClassLocalFeatureImportance | ISingleClassLocalFeatureImportance;
     metadata: IExplanationModelMetadata;
 }
 
@@ -45,18 +48,25 @@ export class JointDataset {
     public static readonly DitherLabel = "Dither";
     public static readonly ClassificationError = "ClassificationError";
     public static readonly RegressionError = "RegressionError";
+    public static readonly ReducedLocalImportanceRoot = "LocalImportance";
+    public static readonly ReducedLocalImportanceSortIndexRoot = "LocalImportanceSortIndex";
 
     public hasDataset: boolean = false;
     public hasPredictedY: boolean = false;
     public hasTrueY: boolean = false;
     public datasetFeatureCount: number = 0;
+    public localExplanationFeatureCount: number = 0;
 
     private _dataDict: Array<{[key: string]: any}>;
     private _filteredData: Array<{[key: string]: any}>;
     private _binDict: {[key: string]: number[]} = {};
+    private readonly _modelMeta: IExplanationModelMetadata;
+    private readonly _localExplanationIndexesComputed: boolean[];
+    public rawLocalImportance: number[][][];
     public metaDict: {[key: string]: IJointMeta} = {};
 
     constructor(args: IJointDatasetArgs) {
+        this._modelMeta = args.metadata;
         if (args.dataset && args.dataset.length > 0) {
             this.initializeDataDictIfNeeded(args.dataset);
             this.datasetFeatureCount = args.dataset[0].length;
@@ -164,6 +174,12 @@ export class JointDataset {
                     category: ColumnCategories.outcome
                 };
             }
+        }
+        if (args.localExplanations) {
+            this.rawLocalImportance = JointDataset.buildLocalFeatureMatrix(args.localExplanations.scores, args.metadata.modelType);
+            this.localExplanationFeatureCount = this.rawLocalImportance.length;
+            this._localExplanationIndexesComputed = new Array(this.localExplanationFeatureCount).fill(false);
+            this.buildLocalFlattenMatrix(WeightVectors.absAvg);
         }
         this.applyFilters();
     }
@@ -299,5 +315,79 @@ export class JointDataset {
             },
             category: ColumnCategories.outcome
         };
+    }
+
+    // project the 3d array based onthe selected vector weights. Costly to do, so avoid when possible.
+    private buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
+        switch(this._modelMeta.modelType) {
+            case ModelTypes.regression:
+            case ModelTypes.binary: {
+                // no need to flatten what is already flat
+                this.rawLocalImportance.forEach((featuresByClasses, rowIndex) => {
+                    featuresByClasses.forEach((classArray, featureIndex) => {
+                        this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = classArray[0];
+                        this._localExplanationIndexesComputed[rowIndex] = false;
+                    });
+                });
+            }
+            case ModelTypes.multiclass: {
+                this.rawLocalImportance.forEach((featuresByClasses, rowIndex) => {
+                    featuresByClasses.forEach((classArray, featureIndex) => {
+                        this._localExplanationIndexesComputed[rowIndex] = false;
+                        let value: number;
+                        switch (weightVector) {
+                            case WeightVectors.equal: {
+                                value = classArray.reduce((a, b) => a + b) / classArray.length;
+                                break;
+                            }
+                            // case WeightVectors.predicted: {
+                            //     return classArray[this.predictedY[rowIndex]];
+                            // }
+                            case WeightVectors.absAvg: {
+                                value = classArray.reduce((a, b) => a + Math.abs(b), 0) / classArray.length;
+                                break;
+                            }
+                            default: {
+                                value = classArray[weightVector];
+                            }
+                        }
+                        this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = value;
+                    });
+                });
+            }
+        }
+    }
+
+    private static buildLocalFeatureMatrix(localExplanationRaw: number[][] | number[][][], modelType: ModelTypes): number[][][] {
+        switch(modelType) {
+            case ModelTypes.regression: {
+                return (localExplanationRaw as number[][])
+                        .map(featureArray => featureArray.map(val => [val]));
+            }
+            case ModelTypes.binary: {
+                return JointDataset.transposeLocalImportanceMatrix(localExplanationRaw as number[][][])
+                        .map(featuresByClasses => featuresByClasses.map(classArray => classArray.slice(0, 1)));
+            }
+            case ModelTypes.multiclass: {
+                return JointDataset.transposeLocalImportanceMatrix(localExplanationRaw as number[][][]);
+            }
+        }
+    }
+
+    private static transposeLocalImportanceMatrix(input: number[][][]): number[][][] {
+        const numClasses =input.length;
+        const numRows = input[0].length;
+        const numFeatures = input[0][0].length;
+        const result: number[][][] = Array(numRows).fill(0)
+            .map(r => Array(numFeatures).fill(0)
+            .map(f => Array(numClasses).fill(0)));
+        input.forEach((rowByFeature, classIndex) => {
+            rowByFeature.forEach((featureArray, rowIndex) => {
+                featureArray.forEach((value, featureIndex) => {
+                    result[rowIndex][featureIndex][classIndex] = value;
+                });
+            });
+        });
+        return result;
     }
 }
