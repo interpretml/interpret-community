@@ -71,15 +71,16 @@ class KernelExplainer(BlackBoxExplainer):
     :type show_progress: bool
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
         If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
-        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing transformations with a list of columns since these are
+        are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
+        You can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -92,14 +93,14 @@ class KernelExplainer(BlackBoxExplainer):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
     :param allow_all_transformations: Allow many to many and many to one transformations.
     :type allow_all_transformations: bool
@@ -151,30 +152,37 @@ class KernelExplainer(BlackBoxExplainer):
             when using shap_values from the KernelExplainer.
         :type show_progress: bool
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
-        transformer. When transformations are provided, explanations are of the features before the transformation. The
-        format for list of transformations is same as the one here:
-        https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If you areusing a transformation that is not in the list of sklearn.preprocessing transformations that
-        are supported, then this parameter cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing transformations with a list of columns since these are
-        already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
-        Examples for transformations that work:
-        [
-            (["col1", "col2"], sklearn_one_hot_encoder),
-            (["col3"], None) #col3 passes as is
-        ]
-        [
-            (["col1"], my_own_transformer),
-            (["col2"], my_own_transformer),
-        ]
-        Example of transformations that would raise an error since it cannot be interpreted as one to many:
-        [
-            (["col1", "col2"], my_own_transformer)
-        ]
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to many
-        mapping when taking a sequence of columns.
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
+            https://github.com/scikit-learn-contrib/sklearn-pandas.
+
+            If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+            are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
+            You can use the following sklearn.preprocessing  transformations with a list of columns since these are
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations.
         :type allow_all_transformations: bool
