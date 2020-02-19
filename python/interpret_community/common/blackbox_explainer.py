@@ -55,7 +55,7 @@ class BlackBoxMixin(ChainedIdentity):
 
     :param model: The model to explain or function if is_function is True.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
-    :param is_function: Default set to false, set to True if passing sklearn.predict or sklearn.predict_proba
+    :param is_function: Default is False. Set to True if passing sklearn.predict or sklearn.predict_proba
         function instead of model.
     :type is_function: bool
     """
@@ -66,7 +66,7 @@ class BlackBoxMixin(ChainedIdentity):
         :param model: The model to explain or function if is_function is True.
         :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
             ndarray
-        :param is_function: Default set to false, set to True if passing sklearn.predict or sklearn.predict_proba
+        :param is_function: Default is False. Set to True if passing sklearn.predict or sklearn.predict_proba
             function instead of model.
         :type is_function: bool
         :param model_task: Optional parameter to specify whether the model is a classification or regression model.
@@ -143,7 +143,7 @@ class BlackBoxExplainer(BaseExplainer, BlackBoxMixin):
 
     :param model: The model to explain or function if is_function is True.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
-    :param is_function: Default set to false, set to True if passing sklearn.predict or sklearn.predict_proba
+    :param is_function: Default is false. Set to True if passing sklearn.predict or sklearn.predict_proba
         function instead of model.
     :type is_function: bool
     """
@@ -154,7 +154,7 @@ class BlackBoxExplainer(BaseExplainer, BlackBoxMixin):
         :param model: The model to explain or function if is_function is True.
         :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
             ndarray
-        :param is_function: Default set to false, set to True if passing sklearn.predict or sklearn.predict_proba
+        :param is_function: Default is False. Set to True if passing sklearn.predict or sklearn.predict_proba
             function instead of model.
         :type is_function: bool
         """

@@ -23,13 +23,13 @@ from ._internal.constants import DatabricksInterfaceConstants
 :param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
     explanation object.
 :type true_y: numpy.array or list[]
-:param classes: The class names
+:param classes: The class names.
 :type classes: numpy.array or list[]
-:param features: Feature names
+:param features: Feature names.
 :type features: numpy.array or list[]
-:param port: the port to use on localhosted service
+:param port: The port to use on locally hosted service.
 :type port: number
-:param use_cdn: should load latest dashboard script from cdn, fall back to local script if false
+:param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
 :type use_cdn: boolean
 """
 

@@ -46,7 +46,7 @@ class MimicExplainer(BlackBoxExplainer):
 
     """The Mimic Explainer for explaining black box models or functions.
 
-    :param model: The black box model or function (if is_function is True) to be explained.  Also known
+    :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
@@ -59,10 +59,10 @@ class MimicExplainer(BlackBoxExplainer):
     :param explainable_model_args: An optional map of arguments to pass to the explainable model
         for initialization.
     :type explainable_model_args: dict
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
     :param augment_data: If true, oversamples the initialization examples to improve surrogate
-        model accuracy to fit teacher model.  Useful for high-dimensional data where
+        model accuracy to fit teacher model. Useful for high-dimensional data where
         the number of rows is less than the number of columns.
     :type augment_data: bool
     :param max_num_of_augmentations: max number of times we can increase the input data size.
@@ -75,19 +75,20 @@ class MimicExplainer(BlackBoxExplainer):
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
+        that of the model output. Only required if explaining classifier.
     :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
+        You can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -100,14 +101,14 @@ class MimicExplainer(BlackBoxExplainer):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
     :param shap_values_output: The shap values output from the explainer.  Only applies to
         tree-based models that are in terms of raw feature values instead of probabilities.
@@ -155,7 +156,7 @@ class MimicExplainer(BlackBoxExplainer):
         :param explainable_model_args: An optional map of arguments to pass to the explainable model
             for initialization.
         :type explainable_model_args: dict
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
         :param augment_data: If true, oversamples the initialization examples to improve surrogate
             model accuracy to fit teacher model.  Useful for high-dimensional data where
@@ -173,31 +174,38 @@ class MimicExplainer(BlackBoxExplainer):
         :param classes: Class names as a list of strings. The order of the class names should match
             that of the model output.  Only required if explaining classifier.
         :type classes: list[str]
-        :param transformations: sklearn.compose.ColumnTransformer object or a list of tuples describing the column name
-        and transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for the list of transformations is same as the one here:
-        https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
-        already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
-        Examples for transformations that work:
-        [
-            (["col1", "col2"], sklearn_one_hot_encoder),
-            (["col3"], None) #col3 passes as is
-        ]
-        [
-            (["col1"], my_own_transformer),
-            (["col2"], my_own_transformer),
-        ]
-        Example of transformations that would raise an error since it cannot be interpreted as one to many:
-        [
-            (["col1", "col2"], my_own_transformer)
-        ]
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to many
-        mapping when taking a sequence of columns.
+        :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
+            https://github.com/scikit-learn-contrib/sklearn-pandas.
+
+            If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+            are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
+            You can use the following sklearn.preprocessing  transformations with a list of columns since these are
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param shap_values_output: The shap values output from the explainer.  Only applies to
             tree-based models that are in terms of raw feature values instead of probabilities.
@@ -308,7 +316,7 @@ class MimicExplainer(BlackBoxExplainer):
         """Get the kwargs for explain_global to create a global explanation.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
-            explain the model's output.  If specified, computes feature importances through aggregation.
+            explain the model's output.  If specified, computes feature importance through aggregation.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local
@@ -365,13 +373,13 @@ class MimicExplainer(BlackBoxExplainer):
                        batch_size=Defaults.DEFAULT_BATCH_SIZE):
         """Globally explains the blackbox model using the surrogate model.
 
-        If evaluation_examples are unspecified, retrieves global feature importances from explainable
-        surrogate model.  Note this will not include per class feature importances.  If evaluation_examples
+        If evaluation_examples are unspecified, retrieves global feature importance from explainable
+        surrogate model.  Note this will not include per class feature importance. If evaluation_examples
         are specified, aggregates local explanations to global from the given evaluation_examples - which
-        computes both global and per class feature importances.
+        computes both global and per class feature importance.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
-            explain the model's output.  If specified, computes feature importances through aggregation.
+            explain the model's output.  If specified, computes feature importance through aggregation.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local

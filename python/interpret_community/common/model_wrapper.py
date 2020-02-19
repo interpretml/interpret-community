@@ -25,7 +25,7 @@ try:
     import torch
     import torch.nn as nn
 except ImportError:
-    module_logger.debug('Could not import torch, required if using a pytorch model')
+    module_logger.debug('Could not import torch, required if using a PyTorch model')
 
 
 def _convert_to_two_cols(function, examples):
@@ -73,7 +73,7 @@ def _convert_to_two_cols(function, examples):
 
 
 class WrappedPytorchModel(object):
-    """A class for wrapping a Pytorch model in the scikit-learn specification."""
+    """A class for wrapping a PyTorch model in the scikit-learn specification."""
 
     def __init__(self, model):
         """Initialize the PytorchModelWrapper with the model and evaluation function."""
@@ -82,7 +82,7 @@ class WrappedPytorchModel(object):
         self._model.eval()
 
     def predict(self, dataset):
-        """Predict the output using the wrapped pytorch model.
+        """Predict the output using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict on.
         :type dataset: DatasetWrapper
@@ -99,7 +99,7 @@ class WrappedPytorchModel(object):
         return result
 
     def predict_classes(self, dataset):
-        """Predict the class using the wrapped pytorch model.
+        """Predict the class using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict on.
         :type dataset: DatasetWrapper
@@ -116,7 +116,7 @@ class WrappedPytorchModel(object):
         return result
 
     def predict_proba(self, dataset):
-        """Predict the output probability using the wrapped pytorch model.
+        """Predict the output probability using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict_proba on.
         :type dataset: DatasetWrapper

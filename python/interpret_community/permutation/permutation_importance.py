@@ -52,13 +52,13 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
 
     """Defines the Permutation Feature Importance Explainer for explaining black box models or functions.
 
-    :param model: The black box model or function (if is_function is True) to be explained.  Also known
+    :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
     :param metric: The metric name or function to evaluate the permutation.
-        Note that if a metric function is provided a higher value must be better.
+        Note that if a metric function is provided, a higher value must be better.
         Otherwise, take the negative of the function or set is_error_metric to True.
         By default, if no metric is provided, F1 Score is used for binary classification,
         F1 Score with micro average is used for multiclass classification and mean
@@ -69,7 +69,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
     :param is_error_metric: If custom metric function is provided, set to True if a higher
         value of the metric is better.
     :type is_error_metric: bool
-    :param explain_subset: List of feature indices. If specified, only selects a subset of the
+    :param explain_subset: List of feature indexes. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. For permutation feature importance,
         we can shuffle, score and evaluate on the specified indexes when this parameter is set.
         This argument is not supported when transformations are set.
@@ -81,15 +81,16 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
     :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
+        You can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -102,16 +103,16 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
-    :type transformations: [tuple]
-    :param allow_all_transformations: Allow many to many and many to one transformations
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
+    :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
+    :param allow_all_transformations: Allow many to many and many to one transformations.
     :type allow_all_transformations: bool
     :param seed: Random number seed for shuffling.
     :type seed: int
@@ -119,7 +120,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         is a classifier, set to True instead of the default False to use predict_proba instead of
         predict when calculating the metric.
     :type for_classifier_use_predict_proba: bool
-    :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+    :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
         when using PFIExplainer.
     :type show_progress: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
@@ -135,14 +136,14 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                  show_progress=True, model_task=ModelTask.Unknown, **kwargs):
         """Initialize the PFIExplainer.
 
-        :param model: The black box model or function (if is_function is True) to be explained.  Also known
+        :param model: The black box model or function (if is_function is True) to be explained. Also known
             as the teacher model.
         :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
             ndarray
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
         :param metric: The metric name or function to evaluate the permutation.
-            Note that if a metric function is provided a higher value must be better.
+            Note that if a metric function is provided, a higher value must be better.
             Otherwise, take the negative of the function or set is_error_metric to True.
             By default, if no metric is provided, F1 Score is used for binary classification,
             F1 Score with micro average is used for multiclass classification and mean
@@ -153,7 +154,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         :param is_error_metric: If custom metric function is provided, set to True if a higher
             value of the metric is better.
         :type is_error_metric: bool
-        :param explain_subset: List of feature indices. If specified, only selects a subset of the
+        :param explain_subset: List of feature indexes. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. For permutation feature importance,
             we can shuffle, score and evaluate on the specified indexes when this parameter is set.
             This argument is not supported when transformations are set.
@@ -163,31 +164,39 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         :param classes: Class names as a list of strings. The order of the class names should match
             that of the model output.  Only required if explaining classifier.
         :type classes: list[str]
-        :param transformations: List of tuples describing the column name and transformer. When transformations are
-            provided, explanations are of the features before the transformation. The format for
-            transformations is same as the one here: https://github.com/scikit-learn-contrib/sklearn-pandas.
-            If the user is using a transformation that is not in the list of sklearn.preprocessing transformations
-            that we support then we cannot take a list of more than one column as input for the transformation.
-            A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
-            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder,
-            MaxAbsScaler, MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer,
-            QuantileTransformer, RobustScaler, StandardScaler.
-            Examples for transformations that work:
-            [
-                (["col1", "col2"], sklearn_one_hot_encoder),
-                (["col3"], None) #col3 passes as is
-            ]
-            [
-                (["col1"], my_own_transformer),
-                (["col2"], my_own_transformer),
-            ]
-            Example of transformations that would raise an error since it cannot be interpreted as one to many:
-            [
-                (["col1", "col2"], my_own_transformer)
-            ]
-            This would not work since it is hard to make out whether my_own_transformer gives a many to many or
-            one to many mapping when taking a sequence of columns.
-        :type transformations: [tuple]
+        :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
+            https://github.com/scikit-learn-contrib/sklearn-pandas.
+
+            If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+            are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
+            You can use the following sklearn.preprocessing  transformations with a list of columns since these are
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
+        :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
         :param seed: Random number seed for shuffling.
