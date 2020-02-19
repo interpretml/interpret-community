@@ -104,7 +104,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         :type classes: list[str]
         :param shap_values_output: The type of the output when using TreeExplainer.
             Currently only types 'default' and 'probability' are supported.  If 'probability'
-            is specified, then the raw log-odds values are approximately scaled to probabilities from the 
+            is specified, then the raw log-odds values are approximately scaled to probabilities from the
             TreeExplainer.
         :type shap_values_output: interpret_community.common.constants.ShapValuesOutput
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
