@@ -170,7 +170,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             onDelete: this.deleteFilter,
             onUpdate: this.updateFilter
         }
-        this.state.jointDataset.applyFilters(this.state.filters);
+        // this.state.jointDataset.applyFilters(this.state.filters);
         return (
             <>
                 <div className="explainerDashboard">
@@ -194,14 +194,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     onChange={this.onConfigChanged}
                                     filterContext={filterContext}
                                 />
-                                // <DataExploration
-                                //     dashboardContext={this.state.dashboardContext}
-                                //     theme={this.props.theme}
-                                //     selectionContext={this.selectionContext}
-                                //     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
-                                //     onChange={this.onConfigChanged}
-                                //     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
-                                // />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
                                 <div>TODO</div>
@@ -234,7 +226,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setState(prevState => {
             const filters = [...prevState.filters];
             filters.push(newFilter);
-            return {filters}
+            prevState.jointDataset.applyFilters(filters);
+            return {filters};
         });
     }
 
@@ -244,7 +237,9 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                 return;
             }
             prevState.filters.splice(index, 1);
-            return prevState;
+            const filters = [...prevState.filters];
+            prevState.jointDataset.applyFilters(filters);
+            return {filters};
         });
     }
 
@@ -252,6 +247,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setState(prevState => {
             const filters = [...prevState.filters];
             filters[index] = filter;
+            prevState.jointDataset.applyFilters(filters);
             return {filters};
         });
     }
