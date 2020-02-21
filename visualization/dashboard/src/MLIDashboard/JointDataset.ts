@@ -49,6 +49,7 @@ export class JointDataset {
     public static readonly ClassificationError = "ClassificationError";
     public static readonly RegressionError = "RegressionError";
     public static readonly ReducedLocalImportanceRoot = "LocalImportance";
+    public static readonly ReducedLocalImportanceIntercept = "LocalImportanceIntercept";
     public static readonly ReducedLocalImportanceSortIndexRoot = "LocalImportanceSortIndex";
 
     public hasDataset: boolean = false;
@@ -177,7 +178,7 @@ export class JointDataset {
         }
         if (args.localExplanations) {
             this.rawLocalImportance = JointDataset.buildLocalFeatureMatrix(args.localExplanations.scores, args.metadata.modelType);
-            this.localExplanationFeatureCount = this.rawLocalImportance.length;
+            this.localExplanationFeatureCount = this.rawLocalImportance[0].length;
             this._localExplanationIndexesComputed = new Array(this.localExplanationFeatureCount).fill(false);
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
         }
@@ -288,6 +289,17 @@ export class JointDataset {
         return this._filteredData.map(row => row[key]);
     }
 
+    public calculateAverageImportance(useGlobal: boolean): number[] {
+        var dict = useGlobal ? this._dataDict : this._filteredData;
+        var result = new Array(this.localExplanationFeatureCount).fill(0);
+        dict.forEach(row => {
+            for (let i=0; i < this.localExplanationFeatureCount; i++) {
+                result[i] += Math.abs(row[JointDataset.ReducedLocalImportanceRoot + i.toString()]);
+            }
+        });
+        return result.map(val => val / dict.length);
+    }
+
     private initializeDataDictIfNeeded(arr: any[]): void {
         if (arr === undefined) {
             return;
@@ -317,7 +329,7 @@ export class JointDataset {
         };
     }
 
-    // project the 3d array based onthe selected vector weights. Costly to do, so avoid when possible.
+    // project the 3d array based on the selected vector weights. Costly to do, so avoid when possible.
     private buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
         switch(this._modelMeta.modelType) {
             case ModelTypes.regression:

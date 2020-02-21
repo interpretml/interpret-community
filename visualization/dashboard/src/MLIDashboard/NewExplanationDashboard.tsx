@@ -10,13 +10,27 @@ import * as memoize from "memoize-one";
 import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
 import _ from "lodash";
 import { NewDataExploration, DataScatterId } from "./Controls/Scatter/NewDataExploration";
+import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
+import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 
 export interface INewExplanationDashboardState {
     filters: IFilter[];
     activeGlobalTab: globalTabKeys;
     jointDataset: JointDataset;
     modelMetadata: IExplanationModelMetadata;
-    chartConfigs: {[key: string]: IGenericChartProps};
+    dataChartConfig: IGenericChartProps;
+    globalBarConfig: IGlobalBarSettings;
+    globalImportanceIntercept: number;
+    globalImportance: number[];
+    isGlobalImportanceDerivedFromLocal: boolean;
+    subsetAverageImportance: number[];
+    subsetAverageIntercept: number;
+}
+
+interface IGlobalExplanationProps {
+    globalImportanceIntercept: number;
+    globalImportance: number[];
+    isGlobalImportanceDerivedFromLocal: boolean;
 }
 
 enum globalTabKeys {
@@ -26,6 +40,12 @@ enum globalTabKeys {
 }
 
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
+    private static readonly classNames = mergeStyleSets({
+        pivotWrapper: {
+            display: "contents"
+        }
+    });
+
     private static buildModelMetadata(props: IExplanationDashboardProps): IExplanationModelMetadata {
         const modelType = NewExplanationDashboard.getModelType(props);
         let featureNames = props.dataSummary.featureNames;
@@ -116,6 +136,30 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         }
     }
 
+    private static buildGlobalProperties(props: IExplanationDashboardProps, jointDataset: JointDataset): IGlobalExplanationProps {
+        const result: IGlobalExplanationProps = {} as IGlobalExplanationProps;
+        if (props.precomputedExplanations &&
+            props.precomputedExplanations.globalFeatureImportance &&
+            props.precomputedExplanations.globalFeatureImportance.scores) {
+            result.isGlobalImportanceDerivedFromLocal = false;
+            if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
+                .every(dim1 => Array.isArray(dim1))) {
+                result.globalImportance = (props.precomputedExplanations.globalFeatureImportance.scores as number[][])
+                    .map(classArray => classArray.reduce((a, b) => a + b), 0);
+                result.globalImportanceIntercept = (props.precomputedExplanations.globalFeatureImportance.intercept as number[])
+                    .reduce((a, b) => a + b, 0);
+            } else {
+                result.globalImportance = props.precomputedExplanations.globalFeatureImportance.scores as number[];
+                result.globalImportanceIntercept = props.precomputedExplanations.globalFeatureImportance.intercept as number;
+            }
+        } else if (jointDataset.localExplanationFeatureCount > 0) {
+            result.isGlobalImportanceDerivedFromLocal = true;
+            result.globalImportance = jointDataset.calculateAverageImportance(true);
+            result.globalImportanceIntercept = undefined;
+        }
+        return result;
+    }
+
     public static buildInitialExplanationContext(props: IExplanationDashboardProps): INewExplanationDashboardState {
         const modelMetadata = NewExplanationDashboard.buildModelMetadata(props);
         let localExplanations: IMultiClassLocalFeatureImportance | ISingleClassLocalFeatureImportance;
@@ -130,12 +174,24 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             localExplanations,
             metadata: modelMetadata
         });
+        const globalProps = NewExplanationDashboard.buildGlobalProperties(props, jointDataset);
+        // consider taking filters in as param arg for programatic users
+        const filters = [];
+        jointDataset.applyFilters(filters);
+        const subsetAverageImportance = jointDataset.calculateAverageImportance(false);
+        const subsetAverageIntercept = undefined;
         return {
-            filters: [],
+            filters,
             activeGlobalTab: globalTabKeys.dataExploration,
             jointDataset,
             modelMetadata,
-            chartConfigs: {}
+            dataChartConfig: undefined,
+            globalBarConfig: undefined,
+            globalImportanceIntercept: globalProps.globalImportanceIntercept,
+            globalImportance: globalProps.globalImportance,
+            isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
+            subsetAverageImportance,
+            subsetAverageIntercept
         };
     }
 
@@ -147,6 +203,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.addFilter = this.addFilter.bind(this);
         this.deleteFilter = this.deleteFilter.bind(this);
+        this.setGlobalBarSettings = this.setGlobalBarSettings.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
@@ -175,7 +232,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             <>
                 <div className="explainerDashboard">
                     <div className="charts-wrapper">
-                        <div className="global-charts-wrapper">
+                        <div className={NewExplanationDashboard.classNames.pivotWrapper}>
                             <Pivot
                                 componentRef={ref => {this.pivotRef = ref;}}
                                 selectedKey={this.state.activeGlobalTab}
@@ -190,13 +247,23 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     jointDataset={this.state.jointDataset}
                                     theme={this.props.theme}
                                     metadata={this.state.modelMetadata}
-                                    chartProps={this.state.chartConfigs[DataScatterId] as IGenericChartProps}
+                                    chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
                                     filterContext={filterContext}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
-                                <div>TODO</div>
+                                <GlobalExplanationTab
+                                    globalBarSettings={this.state.globalBarConfig}
+                                    theme={this.props.theme}
+                                    jointDataset={this.state.jointDataset}
+                                    metadata={this.state.modelMetadata}
+                                    globalImportance={this.state.globalImportance}
+                                    subsetAverageImportance={this.state.subsetAverageImportance}
+                                    isGlobalDerivedFromLocal={this.state.isGlobalImportanceDerivedFromLocal}
+                                    filterContext={filterContext}
+                                    onChange={this.setGlobalBarSettings}
+                                />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
                                 <div>TODO</div>
@@ -208,12 +275,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         );
     }
 
-    private onConfigChanged(newConfig: IGenericChartProps, configId: string): void {
-        this.setState(prevState => {
-            const newConfigs = _.cloneDeep(prevState.chartConfigs);
-            newConfigs[configId] = newConfig;
-            return {chartConfigs: newConfigs};
-        });
+    private onConfigChanged(newConfig: IGenericChartProps): void {
+        this.setState({dataChartConfig: newConfig});
     }
 
     private handleGlobalTabClick(item: PivotItem): void {
@@ -227,7 +290,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             const filters = [...prevState.filters];
             filters.push(newFilter);
             prevState.jointDataset.applyFilters(filters);
-            return {filters};
+            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
+            return {filters, subsetAverageImportance};
         });
     }
 
@@ -239,7 +303,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             prevState.filters.splice(index, 1);
             const filters = [...prevState.filters];
             prevState.jointDataset.applyFilters(filters);
-            return {filters};
+            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
+            return {filters, subsetAverageImportance};
         });
     }
 
@@ -248,7 +313,12 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             const filters = [...prevState.filters];
             filters[index] = filter;
             prevState.jointDataset.applyFilters(filters);
-            return {filters};
+            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
+            return {filters, subsetAverageImportance};
         });
+    }
+
+    private setGlobalBarSettings(settings: IGlobalBarSettings): void {
+        this.setState({globalBarConfig: settings});
     }
 }

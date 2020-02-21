@@ -27,7 +27,7 @@ export interface INewScatterProps {
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     filterContext: IFilterContext;
-    onChange: (props: IGenericChartProps, id: string) => void;
+    onChange: (props: IGenericChartProps) => void;
 }
 
 export class NewDataExploration extends React.PureComponent<INewScatterProps> {
@@ -56,7 +56,6 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
 
     public render(): React.ReactNode {
         if (this.props.chartProps === undefined) {
-            // this.generateDefaultChartAxes();
             return (<div/>);
         }
         const plotlyProps = this.generatePlotlyProps();
@@ -81,19 +80,15 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                     axisOptions={this.axisOptions}
                     jointDataset={jointData}
                     chartProps={this.props.chartProps}
-                    onChange={this.onChange}
+                    onChange={this.props.onChange}
                 />
         </div>);
-    }
-
-    private readonly onChange = (newProps: IGenericChartProps): void => {
-        this.props.onChange(newProps, DataScatterId);
     }
 
     private onChartTypeChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.chartType = item.key as ChartTypes;
-        this.props.onChange(newProps, DataScatterId);
+        this.props.onChange(newProps);
     }
 
     private generateDropdownOptions(): IDropdownOption[] {
@@ -241,7 +236,7 @@ export class NewDataExploration extends React.PureComponent<INewScatterProps> {
                 options: {}
             }
         }
-        this.props.onChange(chartProps, DataScatterId);
+        this.props.onChange(chartProps);
     }
 
     private scatterSelection(guid: string, selections: string[], plotlyProps: IPlotlyProperty): void {
