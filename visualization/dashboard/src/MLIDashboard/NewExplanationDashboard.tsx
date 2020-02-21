@@ -2,14 +2,13 @@ import React from "react";
 import { IExplanationDashboardProps, IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
 import { IFilter, IFilterContext } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
-import { IGenericChartProps } from "./Controls/ChartWithControls";
 import { ModelMetadata } from "mlchartlib";
 import { localization } from "../Localization/localization";
 import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import * as memoize from "memoize-one";
 import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
 import _ from "lodash";
-import { NewDataExploration, DataScatterId } from "./Controls/Scatter/NewDataExploration";
+import { NewDataExploration, ChartTypes } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 

@@ -8,14 +8,15 @@ import { ScatterUtils } from "./ScatterUtils";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
-import { JointDataset } from "../../JointDataset";
+import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { IconButton, Button } from "office-ui-fabric-react/lib/Button";
+import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { IFilter, IFilterContext } from "../../Interfaces/IFilter";
 import { FilterControl } from "../FilterControl";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps } from "../../NewExplanationDashboard";
+import { AxisConfigDialog } from "../AxisConfigDialog";
 
 export enum ChartTypes {
     Scatter = "scattergl",
@@ -51,7 +52,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 size: 10
             },
             margin: {
-                t: 10
+                t: 10,
+                l: 0,
+                b: 0,
             },
             hovermode: "closest",
             showlegend: false,
@@ -69,6 +72,40 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             display: "flex",
             padding: "3px 15px",
             justifyContent: "space-between"
+        },
+        chartWithAxes: {
+            display: "flex",
+            padding: "5px 20px 0 20px",
+            flexDirection: "column"
+        },
+        chartWithVertical: {
+            display: "flex",
+            flexDirection: "row"
+        },
+        verticalAxis: {
+            position: "relative",
+            top: "0px",
+            height: "auto",
+            width: "50px"
+        },
+        rotatedVerticalBox: {
+            transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
+            marginLeft: "15px",
+            position: "absolute",
+            top: "50%",
+            textAlign: "center",
+            width: "max-content"
+        },
+        horizontalAxisWithPadding: {
+            display: "flex",
+            flexDirection: "row"
+        },
+        paddingDiv: {
+            width: "50px"
+        },
+        horizontalAxis: {
+            flex: 1,
+            textAlign:"center"
         }
     });
 
@@ -83,6 +120,11 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             text: "Histogram"
         }
     ];
+
+    private readonly _xButtonId = "x-button-id";
+    private readonly _colorButtonId = "color-button-id";
+    private readonly _yButtonId = "y-button-id";
+
     constructor(props: INewDataTabProps) {
         super(props);
         if (props.chartProps === undefined) {
@@ -122,14 +164,89 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         useComboBoxAsMenuWidth={true}
                         styles={FabricStyles.defaultDropdownStyle}
                     />
+                    <DefaultButton 
+                        onClick={this.setColorOpen.bind(this, true)}
+                        id={this._colorButtonId}
+                        text={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
+                        title={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
+                    />
+                    {(this.state.colorDialogOpen) && (
+                        <AxisConfigDialog 
+                            jointDataset={this.props.jointDataset}
+                            orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                            selectedColumn={this.props.chartProps.colorAxis}
+                            canBin={true}
+                            mustBin={false}
+                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                            onAccept={this.onColorSet}
+                            onCancel={this.setColorOpen.bind(this, false)}
+                            target={this._colorButtonId}
+                        />
+                    )}
                 </div>
-                <ChartWithControls
-                    filters={this.props.filterContext}
-                    axisOptions={this.axisOptions}
-                    jointDataset={jointData}
-                    chartProps={this.props.chartProps}
-                    onChange={this.props.onChange}
-                />
+                <div className={NewDataExploration.classNames.chartWithAxes}>
+                    <div className={NewDataExploration.classNames.chartWithVertical}>
+                        <div className={NewDataExploration.classNames.verticalAxis}>
+                            <div className={NewDataExploration.classNames.rotatedVerticalBox}>
+                                {(this.props.chartProps.chartType === ChartTypes.Scatter) && (
+                                    <DefaultButton 
+                                        onClick={this.setYOpen.bind(this, true)}
+                                        id={this._yButtonId}
+                                        text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                        title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                    />
+                                )}
+                                {(this.props.chartProps.chartType !== ChartTypes.Scatter) && (
+                                    <div>{localization.ExplanationScatter.count}</div>
+                                )}
+                                {(this.state.yDialogOpen) && (
+                                    <AxisConfigDialog 
+                                        jointDataset={this.props.jointDataset}
+                                        orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                        selectedColumn={this.props.chartProps.yAxis}
+                                        canBin={false}
+                                        mustBin={false}
+                                        canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                        onAccept={this.onYSet}
+                                        onCancel={this.setYOpen.bind(this, false)}
+                                        target={this._yButtonId}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                        <AccessibleChart
+                            plotlyProps={plotlyProps}
+                            sharedSelectionContext={undefined}
+                            theme={undefined}
+                            onSelection={undefined}
+                        />
+                    </div>
+                    <div className={NewDataExploration.classNames.horizontalAxisWithPadding}>
+                        <div className={NewDataExploration.classNames.paddingDiv}></div>
+                        <div className={NewDataExploration.classNames.horizontalAxis}>
+                            <DefaultButton 
+                                onClick={this.setXOpen.bind(this, true)}
+                                id={this._xButtonId}
+                                text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
+                            />
+                            {(this.state.xDialogOpen) && (
+                                <AxisConfigDialog 
+                                    jointDataset={this.props.jointDataset}
+                                    orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                    selectedColumn={this.props.chartProps.xAxis}
+                                    canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                    mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                    canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                    onAccept={this.onXSet}
+                                    onCancel={this.setXOpen.bind(this, false)}
+                                    target={this._xButtonId}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div >
+                
         </div>);
     }
 
