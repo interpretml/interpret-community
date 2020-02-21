@@ -42,7 +42,7 @@ const styles = mergeStyleSets({
     }
 });
 
-export default class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilter> {
+export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilter> {
     private _leftSelection: Selection;
     private readonly dataArray: IComboBoxOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {

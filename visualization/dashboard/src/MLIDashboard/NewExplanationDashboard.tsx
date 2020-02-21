@@ -33,6 +33,23 @@ interface IGlobalExplanationProps {
     isGlobalImportanceDerivedFromLocal: boolean;
 }
 
+export interface IGenericChartProps {
+    chartType: ChartTypes;
+    xAxis?: ISelectorConfig;
+    yAxis?: ISelectorConfig;
+    colorAxis?: ISelectorConfig;
+}
+
+export interface ISelectorConfig {
+    property: string;
+    index?: number;
+    options: {
+        dither?: boolean;
+        // this is only used in the ambiguous case of numeric values on color axis for scatter chart, when binned or unbinned are valid
+        bin?: boolean;
+    };
+}
+
 enum globalTabKeys {
     dataExploration ="dataExploration",
     explanationTab = "explanationTab",
