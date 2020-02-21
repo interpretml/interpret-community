@@ -214,8 +214,13 @@ export default class FilterEditor extends React.PureComponent<IFilterEditorProps
         if (checked) {
             this.props.jointDataset.addBin(this.state.column,
                 this.props.jointDataset.metaDict[this.state.column].featureRange.max + 1);
+            this.setState({arg:[], method: FilterMethods.includes});
+        } else {
+            this.setState({
+                arg:this.props.jointDataset.metaDict[this.state.column].featureRange.max,
+                method: FilterMethods.lessThan
+            });
         }
-        this.forceUpdate();
     }
 
     private readonly _setSelection = (): void => {
@@ -245,8 +250,8 @@ export default class FilterEditor extends React.PureComponent<IFilterEditorProps
     private readonly setCategoricalValues = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
         const selectedVals = [...(this.state.arg as number[])];
         const index = selectedVals.indexOf(item.key as number);
-        if (item.selected && index !== -1) {
-            selectedVals.push(index);
+        if (item.selected && index === -1) {
+            selectedVals.push(item.key as number);
         } else {
             selectedVals.splice(index, 1);
         }
