@@ -182,7 +182,7 @@ def wrap_model(model, examples, model_task):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The wrapper model.
-    :rtype model
+    :rtype: interpret_community.mimic.models.explainable_model.BaseExplainableModel.model
     """
     return _wrap_model(model, examples, model_task, False)
 

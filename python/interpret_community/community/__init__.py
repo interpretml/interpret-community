@@ -4,6 +4,6 @@
 
 """Module for model interpretability, including feature and class importance for blackbox and greybox models."""
 
-from .tabular_explainer import TabularExplainer
+from interpret_community import TabularExplainer
 
 __all__ = ["TabularExplainer"]
