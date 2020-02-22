@@ -6,6 +6,8 @@ import { BarChart } from "../SharedComponents";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
+import { DependencePlot } from "./DependencePlot";
+import { IGenericChartProps } from "../NewExplanationDashboard";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -20,12 +22,14 @@ export interface IGlobalExplanationTabProps {
     theme?: string;
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
+    dependenceProps: IGenericChartProps;
     metadata: IExplanationModelMetadata;
     globalImportance: number[];
     subsetAverageImportance: number[];
     isGlobalDerivedFromLocal: boolean;
     filterContext: IFilterContext;
     onChange: (props: IGlobalBarSettings) => void;
+    onDependenceChange: (props: IGenericChartProps) => void;
 }
 
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps> {
@@ -46,6 +50,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 sharedSelectionContext={undefined}
                 theme={this.props.theme}
                 onSelection={undefined}
+            />
+            <DependencePlot 
+                chartProps={this.props.dependenceProps}
+                jointDataset={this.props.jointDataset}
+                metadata={this.props.metadata}
+                onChange={this.props.onDependenceChange}
             />
         </>);
     }

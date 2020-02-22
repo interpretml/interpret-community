@@ -1,6 +1,5 @@
 import React from "react";
 import { JointDataset, ColumnCategories, IJointMeta } from "../JointDataset";
-import { ISelectorConfig } from "./ChartWithControls";
 import { Target, Callout } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { DetailsList, SelectionMode, Selection } from "office-ui-fabric-react/lib/DetailsList";
@@ -13,6 +12,7 @@ import { ComboBox, IComboBoxOption, IComboBox } from "office-ui-fabric-react/lib
 import { IComboBoxClassNames } from "office-ui-fabric-react/lib/components/ComboBox/ComboBox.classNames";
 import { FabricStyles } from "../FabricStyles";
 import { RangeTypes } from "mlchartlib";
+import { ISelectorConfig } from "../NewExplanationDashboard";
 
 const theme = getTheme();
 const styles = mergeStyleSets({

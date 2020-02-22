@@ -15,14 +15,8 @@ import { IFilter, IFilterContext } from "../../Interfaces/IFilter";
 import { FilterControl } from "../FilterControl";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
-import { ISelectorConfig, IGenericChartProps } from "../../NewExplanationDashboard";
+import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigDialog";
-
-export enum ChartTypes {
-    Scatter = "scattergl",
-    Bar = "histogram",
-    Box = "box"
-}
 
 export interface INewDataTabProps {
     chartProps: IGenericChartProps;
@@ -109,7 +103,6 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         }
     });
 
-    private axisOptions: IDropdownOption[];
     private chartOptions: IComboBoxOption[] = [
         {
             key: ChartTypes.Scatter,
@@ -130,7 +123,6 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
-        this.axisOptions = this.generateDropdownOptions();
         this.onXSet = this.onXSet.bind(this);
         this.onYSet = this.onYSet.bind(this);
         this.onColorSet = this.onColorSet.bind(this);
@@ -177,7 +169,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                             selectedColumn={this.props.chartProps.colorAxis}
                             canBin={true}
                             mustBin={false}
-                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                            canDither={false}
                             onAccept={this.onColorSet}
                             onCancel={this.setColorOpen.bind(this, false)}
                             target={this._colorButtonId}
@@ -254,16 +246,6 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.chartType = item.key as ChartTypes;
         this.props.onChange(newProps);
-    }
-
-    private generateDropdownOptions(): IDropdownOption[] {
-        const jointData = this.props.jointDataset;
-        return Object.keys(jointData.metaDict).map((key, index) => {
-            return {
-                key: key,
-                text: jointData.metaDict[key].label
-            };
-        });
     }
 
     private readonly setXOpen = (val: boolean): void => {

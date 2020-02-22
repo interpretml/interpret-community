@@ -9,8 +9,6 @@ import { FabricStyles } from "../../FabricStyles";
 import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { HelpMessageDict } from "../../Interfaces";
 import { PlotlyUtils } from "../../SharedComponents";
-import { IFilterContext } from "../../Interfaces/IFilter";
-import { IGenericChartProps } from "../ChartWithControls";
 
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;

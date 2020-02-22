@@ -8,7 +8,7 @@ import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import * as memoize from "memoize-one";
 import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
 import _ from "lodash";
-import { NewDataExploration, ChartTypes } from "./Controls/Scatter/NewDataExploration";
+import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 
@@ -19,6 +19,7 @@ export interface INewExplanationDashboardState {
     modelMetadata: IExplanationModelMetadata;
     dataChartConfig: IGenericChartProps;
     globalBarConfig: IGlobalBarSettings;
+    dependenceProps: IGenericChartProps;
     globalImportanceIntercept: number;
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
@@ -30,6 +31,12 @@ interface IGlobalExplanationProps {
     globalImportanceIntercept: number;
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
+}
+
+export enum ChartTypes {
+    Scatter = "scattergl",
+    Bar = "histogram",
+    Box = "box"
 }
 
 export interface IGenericChartProps {
@@ -202,6 +209,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             jointDataset,
             modelMetadata,
             dataChartConfig: undefined,
+            dependenceProps: undefined,
             globalBarConfig: undefined,
             globalImportanceIntercept: globalProps.globalImportanceIntercept,
             globalImportance: globalProps.globalImportance,
@@ -216,6 +224,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         this.onConfigChanged = this.onConfigChanged.bind(this);
+        this.onDependenceChange = this.onDependenceChange.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.addFilter = this.addFilter.bind(this);
         this.deleteFilter = this.deleteFilter.bind(this);
@@ -271,6 +280,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
                                 <GlobalExplanationTab
                                     globalBarSettings={this.state.globalBarConfig}
+                                    dependenceProps={this.state.dependenceProps}
                                     theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
@@ -279,6 +289,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     isGlobalDerivedFromLocal={this.state.isGlobalImportanceDerivedFromLocal}
                                     filterContext={filterContext}
                                     onChange={this.setGlobalBarSettings}
+                                    onDependenceChange={this.onDependenceChange}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
@@ -295,10 +306,13 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setState({dataChartConfig: newConfig});
     }
 
+    private onDependenceChange(newConfig: IGenericChartProps): void {
+        this.setState({dependenceProps: newConfig});
+    }
+
     private handleGlobalTabClick(item: PivotItem): void {
         let index: globalTabKeys = globalTabKeys[item.props.itemKey];
         this.setState({activeGlobalTab: index});
-
     }
 
     private addFilter(newFilter: IFilter): void {
