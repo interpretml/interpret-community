@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExplanationDashboard } from 'interpret-dashboard';
+import { NewExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
@@ -93,7 +93,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
             </select>
               <div style={{ width: '80vw', height: '90vh', backgroundColor: 'white', margin:'50px auto'}}>
                   <div style={{ width: '100%', height: '100%'}}>
-                      <ExplanationDashboard
+                      <NewExplanationDashboard
                         modelInformation={{modelClass: 'blackbox'}}
                         dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}
                         testData={data.trainingData}

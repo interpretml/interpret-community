@@ -9,8 +9,6 @@ import { FabricStyles } from "../../FabricStyles";
 import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { HelpMessageDict } from "../../Interfaces";
 import { PlotlyUtils } from "../../SharedComponents";
-import { IFilterContext } from "../../Interfaces/IFilter";
-import { IGenericChartProps } from "../ChartWithControls";
 
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;
@@ -20,19 +18,6 @@ export interface IScatterProps {
     dashboardContext: IDashboardContext;
     onChange: (props: IPlotlyProperty, id: string) => void;
 }
-
-export interface INewScatterProps {
-    chartProps: IGenericChartProps;
-    selectionContext: SelectionContext;
-    theme?: string;
-    messages?: HelpMessageDict;
-    dashboardContext: IDashboardContext;
-    filterContext: IFilterContext;
-    onChange: (props: IGenericChartProps, id: string) => void;
-}
-
-
-
 
 export interface IProjectedData {
     TrainingData: any[];

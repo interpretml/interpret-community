@@ -2,7 +2,7 @@ import React from "react";
 import { IJointMeta, JointDataset } from "../JointDataset";
 import { Button, IconButton } from "office-ui-fabric-react/lib/Button";
 import { IFilterContext, IFilter, FilterMethods } from "../Interfaces/IFilter";
-import FilterEditor from "./FilterEditor";
+import { FilterEditor } from "./FilterEditor";
 
 export interface IFilterControlProps {
     jointDataset: JointDataset
@@ -13,7 +13,7 @@ export interface IFilterControlState {
     dialogOpen: boolean;
 }
 
-export default class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
+export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
     constructor(props: IFilterControlProps) {
         super(props)
         this.openFilter = this.openFilter.bind(this);

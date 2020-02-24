@@ -51,7 +51,9 @@
         "yValue": "Y value:",
         "_yValue.comment": "label for y value dropdown",
         "colorValue": "Color:",
-        "_colorValue.comment": "label for selecting color value"
+        "_colorValue.comment": "label for selecting color value",
+        "count": "Count",
+        "_count.comment": "the default axis is the count of items"
     },
     "CrossClass": {
         "label": "Cross-class weighting:",

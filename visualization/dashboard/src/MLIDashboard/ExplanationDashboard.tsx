@@ -33,9 +33,7 @@ import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
 import { JointDataset } from "./JointDataset";
-import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { IFilterContext, IFilter } from "./Interfaces/IFilter";
-import { IGenericChartProps } from "./Controls/ChartWithControls";
 
 initializeIcons();
 
@@ -52,7 +50,7 @@ export interface IDashboardState {
     filters: IFilter[];
     activeGlobalTab: number;
     activeLocalTab: number;
-    configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig | IGenericChartProps};
+    configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig};
     selectedRow: number | undefined;
 }
 
@@ -482,23 +480,14 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
                             {this.state.activeGlobalTab === 0 && (
-                                <NewDataExploration
+                                <DataExploration
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
-                                    chartProps={this.state.configs[DataScatterId] as IGenericChartProps}
+                                    plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
-                                    filterContext={filterContext}
                                 />
-                                // <DataExploration
-                                //     dashboardContext={this.state.dashboardContext}
-                                //     theme={this.props.theme}
-                                //     selectionContext={this.selectionContext}
-                                //     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
-                                //     onChange={this.onConfigChanged}
-                                //     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
-                                // />
                             )}
                             {this.state.activeGlobalTab === 1 && (
                                 <FeatureImportanceBar
@@ -687,7 +676,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         });
     }
 
-    private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig | IGenericChartProps, configId: string): void {
+    private onConfigChanged(newConfig: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig, configId: string): void {
         this.setState(prevState => {
             const newConfigs = _.cloneDeep(prevState.configs);
             newConfigs[configId] = newConfig;
