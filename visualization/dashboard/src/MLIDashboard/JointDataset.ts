@@ -347,14 +347,6 @@ export class JointDataset {
                             featuresMinArray[featureIndex] = val;
                         }
                         this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = classArray[0];
-                        this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
-                            label: this.metadata.featureNames[colIndex],
-                            abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
-                            isCategorical: false,
-                            featureRange: args.metadata.featureRanges[colIndex] as INumericRange,
-                            category: ColumnCategories.dataset,
-                            index: colIndex
-                        }
                         this._localExplanationIndexesComputed[rowIndex] = false;
                     });
                 });
