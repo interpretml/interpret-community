@@ -319,12 +319,21 @@ export class JointDataset {
 
     // project the 3d array based onthe selected vector weights. Costly to do, so avoid when possible.
     private buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
+        const featuresMinArray = new Array(this.rawLocalImportance[0].length).fill(Number.MAX_SAFE_INTEGER);
+        const featuresMaxArray = new Array(this.rawLocalImportance[0].length).fill(Number.MIN_SAFE_INTEGER);
         switch(this._modelMeta.modelType) {
             case ModelTypes.regression:
             case ModelTypes.binary: {
                 // no need to flatten what is already flat
                 this.rawLocalImportance.forEach((featuresByClasses, rowIndex) => {
                     featuresByClasses.forEach((classArray, featureIndex) => {
+                        const val = classArray[0];
+                        if (val > featuresMaxArray[featureIndex]) {
+                            featuresMaxArray[featureIndex] = val;
+                        }
+                        if (val < featuresMinArray[featureIndex]) {
+                            featuresMinArray[featureIndex] = val;
+                        }
                         this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = classArray[0];
                         this._localExplanationIndexesComputed[rowIndex] = false;
                     });
@@ -351,11 +360,30 @@ export class JointDataset {
                                 value = classArray[weightVector];
                             }
                         }
+                        if (value > featuresMaxArray[featureIndex]) {
+                            featuresMaxArray[featureIndex] = value;
+                        }
+                        if (value < featuresMinArray[featureIndex]) {
+                            featuresMinArray[featureIndex] = value;
+                        }
                         this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = value;
                     });
                 });
             }
         }
+        this.rawLocalImportance[0].forEach((classArray, featureIndex) => {
+            this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
+                label: 'Importance '+ featureIndex.toString(),
+                abbridgedLabel: 'Importance '+ featureIndex.toString(),
+                isCategorical: false,
+                featureRange: {
+                    rangeType: RangeTypes.numeric,
+                    min: featuresMinArray[featureIndex],
+                    max: featuresMaxArray[featureIndex]
+                },
+                category: ColumnCategories.outcome
+            };
+        });
     }
 
     private static buildLocalFeatureMatrix(localExplanationRaw: number[][] | number[][][], modelType: ModelTypes): number[][][] {
