@@ -137,7 +137,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
     }
 
     public render(): React.ReactNode {
-        if (this.props.chartProps === undefined) { 
+        if (this.props.chartProps === undefined) {
             return (<div/>);
         }
         const plotlyProps = this.generatePlotlyProps();

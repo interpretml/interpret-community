@@ -11,6 +11,7 @@ import _ from "lodash";
 import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
+import { ModelExplanationUtils } from "./ModelExplanationUtils";
 
 export interface INewExplanationDashboardState {
     filters: IFilter[];
@@ -25,6 +26,7 @@ export interface INewExplanationDashboardState {
     isGlobalImportanceDerivedFromLocal: boolean;
     subsetAverageImportance: number[];
     subsetAverageIntercept: number;
+    sortVector: number[];
 }
 
 interface IGlobalExplanationProps {
@@ -215,7 +217,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             globalImportance: globalProps.globalImportance,
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
             subsetAverageImportance,
-            subsetAverageIntercept
+            subsetAverageIntercept,
+            sortVector: undefined
         };
     }
 
@@ -229,6 +232,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.addFilter = this.addFilter.bind(this);
         this.deleteFilter = this.deleteFilter.bind(this);
         this.setGlobalBarSettings = this.setGlobalBarSettings.bind(this);
+        this.setSortVector = this.setSortVector.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
@@ -279,6 +283,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
                                 <GlobalExplanationTab
                                     globalBarSettings={this.state.globalBarConfig}
+                                    sortVector={this.state.sortVector}
                                     dependenceProps={this.state.dependenceProps}
                                     theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
@@ -289,6 +294,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     filterContext={filterContext}
                                     onChange={this.setGlobalBarSettings}
                                     onDependenceChange={this.onDependenceChange}
+                                    requestSortVector={this.setSortVector}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
@@ -319,7 +325,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             filters.push(newFilter);
             prevState.jointDataset.applyFilters(filters);
             const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance};
+            return {filters, subsetAverageImportance, sortVector: undefined};
         });
     }
 
@@ -332,7 +338,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             const filters = [...prevState.filters];
             prevState.jointDataset.applyFilters(filters);
             const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance};
+            return {filters, subsetAverageImportance, sortVector: undefined};
         });
     }
 
@@ -342,11 +348,15 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             filters[index] = filter;
             prevState.jointDataset.applyFilters(filters);
             const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance};
+            return {filters, subsetAverageImportance, sortVector: undefined};
         });
     }
 
     private setGlobalBarSettings(settings: IGlobalBarSettings): void {
         this.setState({globalBarConfig: settings});
+    }
+
+    private setSortVector(): void {
+        this.setState({sortVector: ModelExplanationUtils.getSortIndices(this.state.globalImportance).reverse()});
     }
 }

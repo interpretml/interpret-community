@@ -16,17 +16,18 @@ import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib
 import { FabricStyles } from "../FabricStyles";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
+import { FilterControl } from "./FilterControl";
 
 export interface IGlobalBarSettings {
     topK: number;
     startingK: number;
     sortOption: string;
     includeOverallGlobal: boolean;
-    sortIndexVector: number[];
 }
 
 export interface IGlobalExplanationTabProps {
     globalBarSettings: IGlobalBarSettings;
+    sortVector: number[];
     // selectionContext: SelectionContext;
     theme?: string;
     // messages?: HelpMessageDict;
@@ -38,6 +39,7 @@ export interface IGlobalExplanationTabProps {
     isGlobalDerivedFromLocal: boolean;
     filterContext: IFilterContext;
     onChange: (props: IGlobalBarSettings) => void;
+    requestSortVector: () => void;
     onDependenceChange: (props: IGenericChartProps) => void;
 }
 
@@ -87,9 +89,20 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setStartingK = this.setStartingK.bind(this);
         this.onSecondaryChartChange = this.onSecondaryChartChange.bind(this);
     }
+
+    public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
+        if (!_.isEqual(this.props.sortVector, prevProps.sortVector)) {
+            this.setState({plotlyProps: undefined})
+        }
+    }
+
     public render(): React.ReactNode {
         if (this.props.globalBarSettings === undefined) {
             return (<div/>);
+        }
+        if (this.props.sortVector === undefined) {
+            this.props.requestSortVector();
+            return <LoadingSpinner/>;
         }
         if (this.state.plotlyProps === undefined) {
             this.loadProps();
@@ -103,6 +116,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         _.set(plotlyProps, 'layout.xaxis.range', [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]);
         return (
         <div className={GlobalExplanationTab.classNames.page}>
+            <FilterControl 
+                jointDataset={this.props.jointDataset}
+                filterContext={this.props.filterContext}
+            />
             <div className={GlobalExplanationTab.classNames.globalChartControls}>
                 <SpinButton
                     className={GlobalExplanationTab.classNames.topK}
@@ -166,7 +183,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 metadata={this.props.metadata}
                 topK={this.props.globalBarSettings.topK}
                 startingK={this.props.globalBarSettings.startingK}
-                sortVector={this.props.globalBarSettings.sortIndexVector}
+                sortVector={this.props.sortVector}
             />)}
         </div>);
     }
@@ -179,7 +196,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private buildBarPlotlyProps(): IPlotlyProperty {
-        const sortedIndexVector = this.props.globalBarSettings.sortIndexVector;
+        const sortedIndexVector = this.props.sortVector;
         const baseSeries = {
             config: { displaylogo: false, responsive: true, displayModeBar: false } as Plotly.Config,
             data: [],
@@ -267,7 +284,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         result.startingK = 0;
         result.sortOption = "global";
         result.includeOverallGlobal = this.props.filterContext.filters.length > 0 || !this.props.isGlobalDerivedFromLocal;
-        result.sortIndexVector = ModelExplanationUtils.getSortIndices(this.props.globalImportance).reverse();
         this.props.onChange(result);
     }
 

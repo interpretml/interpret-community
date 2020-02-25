@@ -99,6 +99,12 @@ export class SwarmFeaturePlot extends React.PureComponent<ISwarmFeaturePlotProps
         };
     }
 
+    public componentDidUpdate(prevProps: ISwarmFeaturePlotProps) {
+        if (this.props.sortVector !== prevProps.sortVector) {
+            this.setState({plotlyProps: undefined});
+        }
+    }
+
     public render(): React.ReactNode {
         if (this.state.plotlyProps === undefined) {
             const plotlyProps = SwarmFeaturePlot.buildPlotlyProps(this.props.jointDataset, this.props.metadata, this.props.sortVector, undefined);
