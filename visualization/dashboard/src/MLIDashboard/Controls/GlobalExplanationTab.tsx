@@ -2,7 +2,7 @@ import React from "react";
 import { JointDataset } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import { IFilterContext } from "../Interfaces/IFilter";
-import { BarChart } from "../SharedComponents";
+import { BarChart, LoadingSpinner } from "../SharedComponents";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
@@ -37,7 +37,7 @@ export interface IGlobalExplanationTabProps {
     onDependenceChange: (props: IGenericChartProps) => void;
 }
 
-export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps> {
+export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IPlotlyProperty> {
     private static readonly classNames = mergeStyleSets({
         page: {
             display: "contents"
@@ -65,11 +65,15 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         if (this.props.globalBarSettings === undefined) {
             return (<div/>);
         }
+        if (this.state === undefined || this.state === null) {
+            this.loadProps();
+            return <LoadingSpinner/>;
+        }
         const minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
         const maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
         const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.props.globalBarSettings.topK);
         const relayoutArg = {'xaxis.range': [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]};
-        const plotlyProps = this.buildBarPlotlyProps();
+        const plotlyProps = this.state;
         _.set(plotlyProps, 'layout.xaxis.range', [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]);
         return (
         <div className={GlobalExplanationTab.classNames.page}>
@@ -122,6 +126,13 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 onChange={this.props.onDependenceChange}
             />
         </div>);
+    }
+
+    private loadProps(): void {
+        setTimeout(() => {
+            const props = this.buildBarPlotlyProps();
+            this.setState(props);
+            }, 1);
     }
 
     private buildBarPlotlyProps(): IPlotlyProperty {
@@ -179,7 +190,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private readonly setNumericValue = (delta: number, max: number, min: number, stringVal: string): string | void => {
-        const newProps = _.cloneDeep(this.props.globalBarSettings);
+        const newProps = this.props.globalBarSettings;
         if (delta === 0) {
             const number = +stringVal;
             if (!Number.isInteger(number)
@@ -197,12 +208,14 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             newProps.topK = newVal
             this.props.onChange(newProps);
         }
+        this.forceUpdate();
     }
 
     private setStartingK(newValue: number): void {
-        const newConfig = _.cloneDeep(this.props.globalBarSettings);
+        const newConfig = this.props.globalBarSettings;
         newConfig.startingK = newValue;
         this.props.onChange(newConfig);
+        this.forceUpdate();
     }
 
     private setDefaultSettings(props: IGlobalExplanationTabProps): void {
