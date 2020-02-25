@@ -15,6 +15,7 @@ import { ModelExplanationUtils } from "../ModelExplanationUtils";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { FabricStyles } from "../FabricStyles";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -48,7 +49,10 @@ export interface IGlobalExplanationtabState {
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
     private static readonly classNames = mergeStyleSets({
         page: {
-            display: "contents"
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            width: "100%"
         },
         globalChartControls: {
             display: "flex",
@@ -71,7 +75,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             this.setDefaultSettings(props);
         }
         if (this.props.jointDataset.localExplanationFeatureCount > 0) {
-            // this.chartOptions.push({key: 'swarm', text: 'Swarm plot'});
+            this.chartOptions.push({key: 'swarm', text: 'Swarm plot'});
             if (this.props.jointDataset.datasetFeatureCount > 0) {
                 this.chartOptions.push({key: 'depPlot', text: 'Dependence plot'});
             }
@@ -156,6 +160,13 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
                 onChange={this.props.onDependenceChange}
+            />)}
+            {this.state.secondChart === 'swarm' && (<SwarmFeaturePlot
+                jointDataset={this.props.jointDataset}
+                metadata={this.props.metadata}
+                topK={this.props.globalBarSettings.topK}
+                startingK={this.props.globalBarSettings.startingK}
+                sortVector={this.props.globalBarSettings.sortIndexVector}
             />)}
         </div>);
     }

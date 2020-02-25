@@ -169,7 +169,7 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                             {(this.state.xDialogOpen) && (
                                 <AxisConfigDialog 
                                     jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                    orderedGroupTitles={[ColumnCategories.dataset]}
                                     selectedColumn={this.props.chartProps.xAxis}
                                     canBin={false}
                                     mustBin={false}

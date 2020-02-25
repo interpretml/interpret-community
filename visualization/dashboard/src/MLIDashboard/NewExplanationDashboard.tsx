@@ -256,7 +256,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         return (
             <>
                 <div className="explainerDashboard">
-                    <div className="charts-wrapper">
                         <div className={NewExplanationDashboard.classNames.pivotWrapper}>
                             <Pivot
                                 componentRef={ref => {this.pivotRef = ref;}}
@@ -297,7 +296,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             )}
                         </div>
                     </div>
-                </div>
             </>
         );
     }

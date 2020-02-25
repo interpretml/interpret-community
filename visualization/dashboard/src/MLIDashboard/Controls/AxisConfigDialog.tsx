@@ -67,19 +67,20 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         JointDataset.RegressionError
     ].map(key => {
         const metaVal = this.props.jointDataset.metaDict[key];
-        if (key === JointDataset.DataLabelRoot) {
-            return {key, title: "Dataset"};
+        if (key === JointDataset.DataLabelRoot && this.props.orderedGroupTitles.includes(ColumnCategories.dataset)) {
+            return {key, title: localization.Columns.dataset};
         }
-        if  (metaVal === undefined) {
+        if  (metaVal === undefined || !this.props.orderedGroupTitles.includes(metaVal.category)) {
             return undefined;
         }
+
         return {key, title: metaVal.abbridgedLabel};
     }).filter(obj => obj !== undefined);
 
     private readonly dataArray: IComboBoxOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
             const key = JointDataset.DataLabelRoot + index.toString();
-            return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel}
+            return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
         });
 
     constructor(props: IAxisConfigProps) {

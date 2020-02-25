@@ -17,6 +17,7 @@ export interface IJointDatasetArgs {
 export enum ColumnCategories {
     outcome = 'outcome',
     dataset = 'dataset',
+    index = "index",
     explanation = 'explanation'
 }
 
@@ -325,7 +326,7 @@ export class JointDataset {
                 min: 0,
                 max: arr.length - 1
             },
-            category: ColumnCategories.outcome
+            category: ColumnCategories.index
         };
     }
 
@@ -350,6 +351,7 @@ export class JointDataset {
                         this._localExplanationIndexesComputed[rowIndex] = false;
                     });
                 });
+                break;
             }
             case ModelTypes.multiclass: {
                 this.rawLocalImportance.forEach((featuresByClasses, rowIndex) => {
@@ -393,7 +395,7 @@ export class JointDataset {
                     min: featuresMinArray[featureIndex],
                     max: featuresMaxArray[featureIndex]
                 },
-                category: ColumnCategories.outcome
+                category: ColumnCategories.explanation
             };
         });
     }

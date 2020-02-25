@@ -165,7 +165,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                     {(this.state.colorDialogOpen) && (
                         <AxisConfigDialog 
                             jointDataset={this.props.jointDataset}
-                            orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                            orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                             selectedColumn={this.props.chartProps.colorAxis}
                             canBin={true}
                             mustBin={false}
@@ -194,7 +194,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                                 {(this.state.yDialogOpen) && (
                                     <AxisConfigDialog 
                                         jointDataset={this.props.jointDataset}
-                                        orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                        orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                         selectedColumn={this.props.chartProps.yAxis}
                                         canBin={false}
                                         mustBin={false}
@@ -225,7 +225,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                             {(this.state.xDialogOpen) && (
                                 <AxisConfigDialog 
                                     jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
+                                    orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                     selectedColumn={this.props.chartProps.xAxis}
                                     canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
                                     mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
