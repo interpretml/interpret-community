@@ -12,6 +12,9 @@ import { mergeStyleSets } from "@uifabric/styling";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
 import { ModelExplanationUtils } from "../ModelExplanationUtils";
+import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
+import { FabricStyles } from "../FabricStyles";
+import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -37,7 +40,12 @@ export interface IGlobalExplanationTabProps {
     onDependenceChange: (props: IGenericChartProps) => void;
 }
 
-export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IPlotlyProperty> {
+export interface IGlobalExplanationtabState {
+    secondChart: string;
+    plotlyProps: IPlotlyProperty;
+}
+
+export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
     private static readonly classNames = mergeStyleSets({
         page: {
             display: "contents"
@@ -51,21 +59,35 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         },
         startingK: {
             flex: 1
+        },
+        chartTypeDropdown: {
+            margin: "0 5px 0 0"
         }
     });
-    
+    private chartOptions: IDropdownOption[] = [];
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
         if (this.props.globalBarSettings === undefined) {
             this.setDefaultSettings(props);
         }
+        if (this.props.jointDataset.localExplanationFeatureCount > 0) {
+            // this.chartOptions.push({key: 'swarm', text: 'Swarm plot'});
+            if (this.props.jointDataset.datasetFeatureCount > 0) {
+                this.chartOptions.push({key: 'depPlot', text: 'Dependence plot'});
+            }
+        }
+        this.state = {
+            secondChart: this.chartOptions[0].key as string,
+            plotlyProps: undefined
+        };
         this.setStartingK = this.setStartingK.bind(this);
+        this.onSecondaryChartChange = this.onSecondaryChartChange.bind(this);
     }
     public render(): React.ReactNode {
         if (this.props.globalBarSettings === undefined) {
             return (<div/>);
         }
-        if (this.state === undefined || this.state === null) {
+        if (this.state.plotlyProps === undefined) {
             this.loadProps();
             return <LoadingSpinner/>;
         }
@@ -73,7 +95,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         const maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
         const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.props.globalBarSettings.topK);
         const relayoutArg = {'xaxis.range': [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]};
-        const plotlyProps = this.state;
+        const plotlyProps = this.state.plotlyProps;
         _.set(plotlyProps, 'layout.xaxis.range', [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]);
         return (
         <div className={GlobalExplanationTab.classNames.page}>
@@ -119,19 +141,29 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 relayoutArg={relayoutArg as any}
                 onSelection={undefined}
             />
-            <DependencePlot 
+            <ComboBox
+                className={GlobalExplanationTab.classNames.chartTypeDropdown}
+                label={localization.BarChart.sortBy}
+                selectedKey={this.state.secondChart}
+                onChange={this.onSecondaryChartChange}
+                options={this.chartOptions}
+                ariaLabel={"chart selector"}
+                useComboBoxAsMenuWidth={true}
+                styles={FabricStyles.smallDropdownStyle}
+            />
+            {this.state.secondChart === 'depPlot' && (<DependencePlot 
                 chartProps={this.props.dependenceProps}
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
                 onChange={this.props.onDependenceChange}
-            />
+            />)}
         </div>);
     }
 
     private loadProps(): void {
         setTimeout(() => {
             const props = this.buildBarPlotlyProps();
-            this.setState(props);
+            this.setState({plotlyProps: props});
             }, 1);
     }
 
@@ -226,5 +258,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         result.includeOverallGlobal = this.props.filterContext.filters.length > 0 || !this.props.isGlobalDerivedFromLocal;
         result.sortIndexVector = ModelExplanationUtils.getSortIndices(this.props.globalImportance).reverse();
         this.props.onChange(result);
+    }
+
+    private onSecondaryChartChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
+        this.setState({secondChart: item.key as string});
     }
 }
