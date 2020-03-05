@@ -6,6 +6,7 @@ import socket
 import requests
 import os
 import json
+import atexit
 from .explanation_dashboard_input import ExplanationDashboardInput
 from ._internal.constants import DatabricksInterfaceConstants
 
@@ -47,7 +48,19 @@ class ExplanationDashboard:
             self.port = port
             self.ip = '127.0.0.1'
             self.use_cdn = True
-            ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
+            if self.port is None:
+                # Try 100 different ports
+                for port in range(5000, 5100):
+                    available = ExplanationDashboard.DashboardService._local_port_available(self.ip, port, rais=False)
+                    if available:
+                        return
+                error_message = """Ports 5000 to 5100 not available.
+                    Please specify an open port for use via the 'port' parameter"""
+                raise RuntimeError(
+                    error_message.format(port)
+                )
+            else:
+                ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
 
         def run(self):
             class devnull:
@@ -56,6 +69,12 @@ class ExplanationDashboard:
             server = WSGIServer((self.ip, self.port), self.app, log=devnull)
             self.app.config["server"] = server
             server.serve_forever()
+
+            # Closes server on program exit, including freeing all sockets
+            def closeserver():
+                server.stop()
+
+            atexit.register(closeserver)
 
         def _local_port_available(ip, port, rais=True):
             """
@@ -127,7 +146,7 @@ class ExplanationDashboard:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
     def __init__(self, explanation, model=None, *, dataset=None,
-                 true_y=None, classes=None, features=None, port=5000, use_cdn=True,
+                 true_y=None, classes=None, features=None, port=None, use_cdn=True,
                  datasetX=None, trueY=None):
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
