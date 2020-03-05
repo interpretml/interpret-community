@@ -210,7 +210,7 @@ def _wrap_model(model, examples, model_task, is_function):
                 # Wrap the model in an extra layer that converts the numpy array
                 # to pytorch Variable and adds predict and predict_proba functions
                 model = WrappedPytorchModel(model)
-        except NameError:
+        except (NameError, AttributeError):
             module_logger.debug('Could not import torch, required if using a pytorch model')
         eval_function, eval_ml_domain = _eval_model(model, examples, model_task)
         if eval_ml_domain == ModelTask.Classification:

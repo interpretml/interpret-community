@@ -214,14 +214,18 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             outputs a 1 dimensional array.
         :type model_task: str
         """
+        log_pytorch_missing = False
         try:
             if isinstance(model, nn.Module):
                 # Wrap the model in an extra layer that converts the numpy array
                 # to pytorch Variable and adds predict and predict_proba functions
                 model = WrappedPytorchModel(model)
-        except NameError:
-            self._logger.debug('Could not import torch, required if using a pytorch model')
+        except (NameError, AttributeError):
+            log_pytorch_missing = True
         super(PFIExplainer, self).__init__(model, is_function=is_function, **kwargs)
+        # Note: we can't log debug until after init has been called to create the logger
+        if log_pytorch_missing:
+            self._logger.debug('Could not import torch, required if using a pytorch model')
         self._logger.debug('Initializing PFIExplainer')
 
         if transformations is not None and explain_subset is not None:
