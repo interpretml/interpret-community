@@ -4,6 +4,7 @@ import { Button, IconButton } from "office-ui-fabric-react/lib/Button";
 import { IFilterContext, IFilter, FilterMethods } from "../Interfaces/IFilter";
 import { FilterEditor } from "./FilterEditor";
 import _ from "lodash";
+import { mergeStyleSets } from "@uifabric/styling";
 
 export interface IFilterControlProps {
     jointDataset: JointDataset
@@ -16,6 +17,23 @@ export interface IFilterControlState {
 }
 
 export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
+    private static readonly classNames = mergeStyleSets({
+        existingFilter: {
+            border: '1px solid black',
+            borderRadius: '5px',
+            display: 'inline-flex',
+            marginRight: "4px"
+        },
+        filterLabel: {
+            padding: "3px 8px 2px 4px",
+            minWidth: "100px",
+            cursor: "pointer"
+        },
+        filterList: {
+            display: "inline-flex",
+            flexDirection: "row"
+        }
+    });
     constructor(props: IFilterControlProps) {
         super(props);
         this.openFilter = this.openFilter.bind(this);
@@ -35,8 +53,11 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
 
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
-            return (<div>
-                <div onClick={this.openFilter.bind(this, index)}>{this.props.jointDataset.metaDict[filter.column].abbridgedLabel}</div>
+            return (<div className={FilterControl.classNames.existingFilter}>
+                <div
+                    className={FilterControl.classNames.filterLabel}
+                    onClick={this.openFilter.bind(this, index)}>{this.props.jointDataset.metaDict[filter.column].abbridgedLabel}
+                </div>
                 <IconButton
                     iconProps={{iconName:"Clear"}}
                     onClick={this.removeFilter.bind(this, index)}
@@ -44,7 +65,7 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
             </div>);
         });
         return(
-            <div>
+            <div className={FilterControl.classNames.filterList}>
                 <Button
                     onClick={this.editNewFilter}
                     text="Add Filter"
