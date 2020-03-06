@@ -3,6 +3,7 @@ import { IJointMeta, JointDataset } from "../JointDataset";
 import { Button, IconButton } from "office-ui-fabric-react/lib/Button";
 import { IFilterContext, IFilter, FilterMethods } from "../Interfaces/IFilter";
 import { FilterEditor } from "./FilterEditor";
+import _ from "lodash";
 
 export interface IFilterControlProps {
     jointDataset: JointDataset
@@ -10,62 +11,71 @@ export interface IFilterControlProps {
 }
 
 export interface IFilterControlState {
-    dialogOpen: boolean;
+    openedFilter?: IFilter;
+    filterIndex?: number;
 }
 
 export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
     constructor(props: IFilterControlProps) {
-        super(props)
+        super(props);
         this.openFilter = this.openFilter.bind(this);
-        this.addFilter = this.addFilter.bind(this);
+        this.editNewFilter = this.editNewFilter.bind(this);
+        this.updateFilter = this.updateFilter.bind(this);
         this.cancelFilter = this.cancelFilter.bind(this);
-        this.state = {dialogOpen: false};
+        this.state = {openedFilter: undefined};
     }
+
+    private readonly initialFilter: IFilter = {
+        column: JointDataset.IndexLabel,
+        method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
+            FilterMethods.includes : FilterMethods.greaterThan,
+        arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
+            [0] : 0
+    };
+
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
             return (<div>
-                <div>{filter.column}</div>
-                <IconButton 
+                <div onClick={this.openFilter.bind(this, index)}>{this.props.jointDataset.metaDict[filter.column].abbridgedLabel}</div>
+                <IconButton
                     iconProps={{iconName:"Clear"}}
                     onClick={this.removeFilter.bind(this, index)}
                 />
-            </div>)
+            </div>);
         });
-        const initialFilter: IFilter = {
-            column: JointDataset.IndexLabel,
-            method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-                FilterMethods.includes : FilterMethods.greaterThan,
-            arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-                [0] : 0
-        };
         return(
             <div>
                 <Button
-                    onClick={this.openFilter}
+                    onClick={this.editNewFilter}
                     text="Add Filter"
                 />
-                {this.state.dialogOpen && (<FilterEditor
+                {this.state.openedFilter !== undefined && (<FilterEditor
                     jointDataset={this.props.jointDataset}
-                    onAccept={this.addFilter}
+                    onAccept={this.updateFilter}
                     onCancel={this.cancelFilter}
-                    initialFilter={initialFilter}
+                    initialFilter={this.state.openedFilter}
                 />)}
                 {filterList}
             </div>
         );
     }
 
-    private addFilter(filter: IFilter): void {
-        this.setState({dialogOpen: false});
-        this.props.filterContext.onAdd(filter);
+    private updateFilter(filter: IFilter): void {
+        const index = this.state.filterIndex;
+        this.setState({openedFilter: undefined, filterIndex: undefined});
+        this.props.filterContext.onUpdate(filter, index);
     }
 
     private cancelFilter(): void {
-        this.setState({dialogOpen: false});
+        this.setState({openedFilter: undefined, filterIndex: undefined});
     }
 
-    private openFilter(): void {
-        this.setState({dialogOpen: true});
+    private editNewFilter(): void {
+        this.setState({openedFilter: this.initialFilter, filterIndex: this.props.filterContext.filters.length});
+    }
+
+    private openFilter(index: number): void {
+        this.setState({openedFilter: this.props.filterContext.filters[index], filterIndex: index});
     }
 
     private removeFilter(index: number): void {

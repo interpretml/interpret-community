@@ -231,6 +231,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.addFilter = this.addFilter.bind(this);
         this.deleteFilter = this.deleteFilter.bind(this);
+        this.updateFilter = this.updateFilter.bind(this);
         this.setGlobalBarSettings = this.setGlobalBarSettings.bind(this);
         this.setSortVector = this.setSortVector.bind(this);
         if (this.props.locale) {
