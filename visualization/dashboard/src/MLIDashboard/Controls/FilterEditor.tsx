@@ -36,6 +36,7 @@ const styles = mergeStyleSets({
         borderRight: "2px solid #CCC"
     },
     rightHalf: {
+        margin: "10px",
         display: "inline-flex",
         width: "50%",
         flexDirection: "column"
@@ -121,7 +122,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                             selection={this._leftSelection}
                             selectionPreservedOnEmptyClick={true}
                             setKey={"set"}
-                            columns={[{key: 'col1', name: 'name', minWidth: 200, fieldName: 'title'}]}
+                            columns={[{key: 'col1', name: 'name', minWidth: 50, fieldName: 'title'}]}
                         />
                     </div>
                     <div className={styles.rightHalf}>
