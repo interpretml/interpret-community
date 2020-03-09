@@ -53,6 +53,7 @@ class ExplanationDashboard:
                 for port in range(5000, 5100):
                     available = ExplanationDashboard.DashboardService._local_port_available(self.ip, port, rais=False)
                     if available:
+                        self.port = port
                         return
                 error_message = """Ports 5000 to 5100 not available.
                     Please specify an open port for use via the 'port' parameter"""
