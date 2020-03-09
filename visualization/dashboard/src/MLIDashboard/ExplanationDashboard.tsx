@@ -279,7 +279,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             featureNames = ExplanationDashboard.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
         }
-        const classNames = props.dataSummary.classNames || ExplanationDashboard.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
+        let classNames = props.dataSummary.classNames;
+        const classLength = ExplanationDashboard.getClassLength(props);
+        if (!classNames || classNames.length !== classLength) {
+            classNames = ExplanationDashboard.buildIndexedNames(classLength, localization.defaultClassNames);
+        }
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
@@ -315,7 +319,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY) {
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
             return props.probabilityY[0].length;
         }
         if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {

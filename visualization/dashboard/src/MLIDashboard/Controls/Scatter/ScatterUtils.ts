@@ -243,9 +243,13 @@ export class ScatterUtils {
             }
             if (explanationContext.testDataset.probabilityY) {
                 explanationContext.testDataset.probabilityY[0].forEach((probClass, index) => {
+                    let className = explanationContext.modelMetadata.classNames[index];
+                    if (!className) {
+                        className = `class ${index}`;
+                    }
                     result.push({
                         key: `ProbabilityY[${index}]`,
-                        text: localization.formatString(localization.ExplanationScatter.probabilityLabel, explanationContext.modelMetadata.classNames[index]) as string,
+                        text: localization.formatString(localization.ExplanationScatter.probabilityLabel, className) as string,
                         data: {isCategorical: false}
                     });
                 });
