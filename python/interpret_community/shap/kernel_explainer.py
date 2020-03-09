@@ -36,7 +36,7 @@ class KernelExplainer(BlackBoxExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.BLACKBOX
 
-    """Tthe Kernel Explainer for explaining black box models or functions.
+    """The Kernel Explainer for explaining black box models or functions.
 
     :param model: The model to explain or function if is_function is True.
     :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
@@ -44,7 +44,7 @@ class KernelExplainer(BlackBoxExplainer):
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
         scipy.sparse.csr_matrix
-    :param is_function: Default set to false, set to True if passing function instead of model.
+    :param is_function: Default is False. Set to True if passing function instead of a model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
@@ -59,27 +59,28 @@ class KernelExplainer(BlackBoxExplainer):
     :param features: A list of feature names.
     :type features: list[str]
     :param classes: Class names as a list of strings. The order of the class names should match
-        that of the model output.  Only required if explaining classifier.
+        that of the model output. Only required if explaining classifier.
     :type classes: list[str]
     :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
         samples weighted by the number of data points they each represent. When the number of initialization
         examples is larger than (10 x nclusters), those examples will be summarized with k-means where
         k = nclusters.
     :type nclusters: int
-    :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+    :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
         when using shap_values from the KernelExplainer.
     :type show_progress: bool
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
+        You can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -92,16 +93,16 @@ class KernelExplainer(BlackBoxExplainer):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
-    :param allow_all_transformations: Allow many to many and many to one transformations
+    :param allow_all_transformations: Allow many to many and many to one transformations.
     :type allow_all_transformations: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
@@ -125,7 +126,7 @@ class KernelExplainer(BlackBoxExplainer):
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
-        :param is_function: Default set to false, set to True if passing function instead of model.
+        :param is_function: Default is False. Set to True if passing function instead of a model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation, which will speed up the explanation
@@ -147,36 +148,43 @@ class KernelExplainer(BlackBoxExplainer):
             examples is larger than (10 x nclusters), those examples will be summarized with k-means where
             k = nclusters.
         :type nclusters: int
-        :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
+        :param show_progress: Default to 'True'. Determines whether to display the explanation status bar
             when using shap_values from the KernelExplainer.
         :type show_progress: bool
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
-        transformer. When transformations are provided, explanations are of the features before the transformation. The
-        format for list of transformations is same as the one here:
-        https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
-        already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
-        Examples for transformations that work:
-        [
-            (["col1", "col2"], sklearn_one_hot_encoder),
-            (["col3"], None) #col3 passes as is
-        ]
-        [
-            (["col1"], my_own_transformer),
-            (["col2"], my_own_transformer),
-        ]
-        Example of transformations that would raise an error since it cannot be interpreted as one to many:
-        [
-            (["col1", "col2"], my_own_transformer)
-        ]
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to many
-        mapping when taking a sequence of columns.
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
+            https://github.com/scikit-learn-contrib/sklearn-pandas.
+
+            If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+            are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
+            You can use the following sklearn.preprocessing  transformations with a list of columns since these are
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
-        :param allow_all_transformations: Allow many to many and many to one transformations
+        :param allow_all_transformations: Allow many to many and many to one transformations.
         :type allow_all_transformations: bool
         :param model_task: Optional parameter to specify whether the model is a classification or regression model.
             In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
@@ -208,9 +216,10 @@ class KernelExplainer(BlackBoxExplainer):
         self._reset_evaluation_background(self.function, **kwargs)
 
     def _reset_evaluation_background(self, function, **kwargs):
-        """Modify the explainer to use the new evalaution example for background data.
+        """Modify the explainer to use the new evaluation example for background data.
 
-        Note when constructing explainer an evaluation example is not available hence the initialization data is used.
+        Note: when constructing an explainer, an evaluation example is not available and hence the initialization
+        data is used.
 
         :param function: Function.
         :type function: Function that accepts a 2d ndarray
@@ -351,7 +360,7 @@ class KernelExplainer(BlackBoxExplainer):
             to explain the model's output.
         :type evaluation_examples: DatasetWrapper
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         kwargs = self._get_explain_local_kwargs(evaluation_examples)

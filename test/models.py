@@ -30,8 +30,9 @@ def retrieve_model(model, **kwargs):
 
 
 class DataFrameTestModel(object):
-    def __init__(self, sample_df):
+    def __init__(self, sample_df, assert_index_present=True):
         self._sample_df = sample_df
+        self._assert_index_present = assert_index_present
 
     def fit(self, X):
         self._assert_df_index_and_columns(X)
@@ -42,8 +43,9 @@ class DataFrameTestModel(object):
 
     def _assert_df_index_and_columns(self, X):
         assert isinstance(X, pd.DataFrame)
-        assert list(X.index.names) == list(self._sample_df.index.names)
         assert list(X.columns) == list(self._sample_df.columns)
         assert list(X.dtypes) == list(self._sample_df.dtypes)
-        for i in range(len(X.index.names)):
-            assert X.index.get_level_values(i).dtype == self._sample_df.index.get_level_values(i).dtype
+        if self._assert_index_present:
+            assert list(X.index.names) == list(self._sample_df.index.names)
+            for i in range(len(X.index.names)):
+                assert X.index.get_level_values(i).dtype == self._sample_df.index.get_level_values(i).dtype
