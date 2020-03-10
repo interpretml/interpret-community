@@ -1,4 +1,3 @@
-from gevent.pywsgi import WSGIServer
 from flask import Flask, render_template, request
 from IPython.display import display, IFrame
 import threading
@@ -9,6 +8,11 @@ import json
 import atexit
 from .explanation_dashboard_input import ExplanationDashboardInput
 from ._internal.constants import DatabricksInterfaceConstants
+try:
+    from gevent.pywsgi import WSGIServer
+except ModuleNotFoundError:
+    raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
+                       "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
 """Explanation Dashboard Class.
 
@@ -53,6 +57,7 @@ class ExplanationDashboard:
                 for port in range(5000, 5100):
                     available = ExplanationDashboard.DashboardService._local_port_available(self.ip, port, rais=False)
                     if available:
+                        self.port = port
                         return
                 error_message = """Ports 5000 to 5100 not available.
                     Please specify an open port for use via the 'port' parameter"""
