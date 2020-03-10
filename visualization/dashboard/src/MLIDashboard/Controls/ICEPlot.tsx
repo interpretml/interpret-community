@@ -248,7 +248,6 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                     <div className="chart-wrapper">
                         <AccessibleChart
                             plotlyProps={plotlyProps}
-                            sharedSelectionContext={undefined}
                             theme={this.props.theme}
                         />
                     </div>

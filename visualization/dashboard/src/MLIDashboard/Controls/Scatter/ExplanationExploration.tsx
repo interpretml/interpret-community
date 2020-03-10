@@ -124,9 +124,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                     )}
                     <AccessibleChart
                         plotlyProps={ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps))}
-                        sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
-                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );

@@ -1,7 +1,7 @@
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import * as Plotly from "plotly.js-dist";
 import React from "react";
-import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions, PlotlyMode } from "mlchartlib";
+import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions, PlotlyMode, IPlotlyAnimateProps } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
 import { ScatterUtils } from "./ScatterUtils";
@@ -140,7 +140,10 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
-        const plotlyProps = this.generatePlotlyProps();
+        const plotlyProps = NewDataExploration.generatePlotlyProps(
+            this.props.jointDataset,
+            this.props.chartProps
+        );
         const jointData = this.props.jointDataset;
         return (
             <div className={NewDataExploration.classNames.dataTab}>
@@ -208,9 +211,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         </div>
                         <AccessibleChart
                             plotlyProps={plotlyProps}
-                            sharedSelectionContext={undefined}
                             theme={undefined}
-                            onSelection={undefined}
                         />
                     </div>
                     <div className={NewDataExploration.classNames.horizontalAxisWithPadding}>
@@ -293,81 +294,53 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         this.setState({colorDialogOpen: false})
     }
 
-    private generatePlotlyProps(): IPlotlyProperty {
+    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(NewDataExploration.basePlotlyProperties);
-        const jointData = this.props.jointDataset;
         plotlyProps.data[0].hoverinfo = "all";
-        let hovertemplate = "";
-        if (this.props.chartProps.colorAxis && (this.props.chartProps.colorAxis.options.bin ||
-            jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical)) {
-                jointData.sort(this.props.chartProps.colorAxis.property);
+        if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
+            jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {
+                jointData.sort(chartProps.colorAxis.property);
         }
-        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
-            const dict = {};
-            dict[JointDataset.IndexLabel] = val;
-            return dict;
-        });
-        switch(this.props.chartProps.chartType) {
+        switch(chartProps.chartType) {
             case ChartTypes.Scatter: {
-                plotlyProps.data[0].type = this.props.chartProps.chartType;
+                plotlyProps.data[0].type = chartProps.chartType;
                 plotlyProps.data[0].mode = PlotlyMode.markers;
-                if (this.props.chartProps.xAxis) {
-                    if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
-                        const xLabels = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues;
+                if (chartProps.xAxis) {
+                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                        const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
                         const xLabelIndexes = xLabels.map((unused, index) => index);
                         _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                         _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
                     }
-                    const rawX = jointData.unwrap(this.props.chartProps.xAxis.property);
-                    if (this.props.chartProps.xAxis.options.dither) {
+                    const rawX = jointData.unwrap(chartProps.xAxis.property);
+                    if (chartProps.xAxis.options.dither) {
                         const dithered = jointData.unwrap(JointDataset.DitherLabel);
                         plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
-                        hovertemplate += "x: %{customdata.X}<br>";
-                        rawX.forEach((val, index) => {
-                            // If categorical, show string value in tooltip
-                            if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
-                                customdata[index]["X"] = jointData.metaDict[this.props.chartProps.xAxis.property]
-                                    .sortedCategoricalValues[val];
-                            } else {
-                                customdata[index]["X"] = val;
-                            }
-                        });
                     } else {
                         plotlyProps.data[0].x = rawX;
-                        hovertemplate += "x: %{x}<br>";
                     }
                 }
-                if (this.props.chartProps.yAxis) {
-                    if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
-                        const yLabels = jointData.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
+                if (chartProps.yAxis) {
+                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                        const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
                         const yLabelIndexes = yLabels.map((unused, index) => index);
                         _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                         _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
                     }
-                    const rawY = jointData.unwrap(this.props.chartProps.yAxis.property);
-                    if (this.props.chartProps.yAxis.options.dither) {
+                    const rawY = jointData.unwrap(chartProps.yAxis.property);
+                    if (chartProps.yAxis.options.dither) {
                         const dithered = jointData.unwrap(JointDataset.DitherLabel);
                         plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
-                        hovertemplate += "y: %{customdata.Y}<br>";
-                        rawY.forEach((val, index) => {
-                            // If categorical, show string value in tooltip
-                            if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
-                                customdata[index]["Y"] = jointData.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues[val];
-                            } else {
-                                customdata[index]["Y"] = val;
-                            }
-                        });
                     } else {
                         plotlyProps.data[0].y = rawY;
-                        hovertemplate += "y: %{y}<br>";
                     }
                 }
-                if (this.props.chartProps.colorAxis) {
-                    const isBinned = this.props.chartProps.colorAxis.options && this.props.chartProps.colorAxis.options.bin;
-                    const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, isBinned);
+                if (chartProps.colorAxis) {
+                    const isBinned = chartProps.colorAxis.options && chartProps.colorAxis.options.bin;
+                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, isBinned);
                     // handle binning to categories later
-                    if (jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical || isBinned) {
-                        const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                    if (jointData.metaDict[chartProps.colorAxis.property].isCategorical || isBinned) {
+                        const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                             return {
                                 target: index,
                                 value: { name: label}
@@ -398,9 +371,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
                 // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
                 plotlyProps.data[0].type = "bar";
-                const rawX = jointData.unwrap(this.props.chartProps.xAxis.property, true);
+                const rawX = jointData.unwrap(chartProps.xAxis.property, true);
                 
-                const xLabels = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues;
+                const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
                 const y = new Array(rawX.length).fill(1);
                 const xLabelIndexes = xLabels.map((unused, index) => index);
                 plotlyProps.data[0].text = rawX.map(index => xLabels[index]);
@@ -408,8 +381,6 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 plotlyProps.data[0].y = y;
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
-                hovertemplate += "x: %{text}<br>";
-                hovertemplate += "count: %{y}<br>";
                 const transforms: Partial<Transform>[] = [
                     {
                         type: "aggregate",
@@ -419,9 +390,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         ]
                     }
                 ];
-                if (this.props.chartProps.colorAxis) {
-                    const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, true);
-                    const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                if (chartProps.colorAxis) {
+                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, true);
+                    const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                         return {
                             target: index,
                             value: { name: label}
@@ -438,10 +409,75 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 break;
             }
         }
-        hovertemplate += "<extra></extra>";
-        plotlyProps.data[0].customdata = customdata as any;
-        plotlyProps.data[0].hovertemplate = hovertemplate;
+        plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps);
+        plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(chartProps);
         return plotlyProps;
+    }
+
+    private static buildHoverTemplate(chartProps: IGenericChartProps): string {
+        let hovertemplate = "";
+        switch(chartProps.chartType) {
+            case ChartTypes.Scatter: {
+                if (chartProps.xAxis) {
+                    if (chartProps.xAxis.options.dither) {
+                        hovertemplate += "x: %{customdata.X}<br>";
+                    } else {
+                        hovertemplate += "x: %{x}<br>";
+                    }
+                }
+                if (chartProps.yAxis) {
+                    if (chartProps.yAxis.options.dither) {
+                        hovertemplate += "y: %{customdata.Y}<br>";
+                    } else {
+                        hovertemplate += "y: %{y}<br>";
+                    }
+                }
+                break;
+            }
+            case ChartTypes.Bar: {
+                hovertemplate += "x: %{text}<br>";
+                hovertemplate += "count: %{y}<br>";
+            }
+        }
+        hovertemplate += "<extra></extra>";
+        return hovertemplate;
+    }
+
+    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps): Array<any> {
+        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+            const dict = {};
+            dict[JointDataset.IndexLabel] = val;
+            return dict;
+        });
+        if (chartProps.chartType === ChartTypes.Scatter) {
+            const xAxis = chartProps.xAxis;
+            if (xAxis && xAxis.property && xAxis.options.dither) {
+                const rawX = jointData.unwrap(chartProps.xAxis.property);
+                rawX.forEach((val, index) => {
+                    // If categorical, show string value in tooltip
+                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                        customdata[index]["X"] = jointData.metaDict[chartProps.xAxis.property]
+                            .sortedCategoricalValues[val];
+                    } else {
+                        customdata[index]["X"] = val;
+                    }
+                });
+            }
+            const yAxis = chartProps.yAxis;
+            if (yAxis && yAxis.property && yAxis.options.dither) {
+                const rawY = jointData.unwrap(chartProps.yAxis.property);
+                rawY.forEach((val, index) => {
+                    // If categorical, show string value in tooltip
+                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                        customdata[index]["Y"] = jointData.metaDict[chartProps.yAxis.property]
+                            .sortedCategoricalValues[val];
+                    } else {
+                        customdata[index]["Y"] = val;
+                    }
+                });
+            }
+        }
+        return customdata;
     }
 
     private generateDefaultChartAxes(): void {

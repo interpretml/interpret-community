@@ -152,9 +152,7 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                         </div>
                         <AccessibleChart
                             plotlyProps={plotlyProps}
-                            sharedSelectionContext={undefined}
                             theme={undefined}
-                            onSelection={undefined}
                         />
                     </div>
                     <div className={DependencePlot.classNames.horizontalAxisWithPadding}>

@@ -157,10 +157,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             </div>
             <AccessibleChart
                 plotlyProps={plotlyProps}
-                sharedSelectionContext={undefined}
                 theme={this.props.theme}
                 relayoutArg={relayoutArg as any}
-                onSelection={undefined}
             />
             <ComboBox
                 className={GlobalExplanationTab.classNames.chartTypeDropdown}

@@ -327,10 +327,8 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                     )}
                     <AccessibleChart
                         plotlyProps={plotlyProps}
-                        sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
                         relayoutArg={relayoutArg as any}
-                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );  

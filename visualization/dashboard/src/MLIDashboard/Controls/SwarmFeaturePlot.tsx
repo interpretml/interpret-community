@@ -120,10 +120,8 @@ export class SwarmFeaturePlot extends React.PureComponent<ISwarmFeaturePlotProps
         return (<>
             <AccessibleChart
                 plotlyProps={plotlyProps}
-                sharedSelectionContext={undefined}
                 theme={this.props.theme}
                 relayoutArg={relayoutArg as any}
-                onSelection={undefined}
             />
         </>);
     }
