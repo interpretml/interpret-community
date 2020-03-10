@@ -9,9 +9,11 @@ import {bostonData} from '../__mock_data/bostonData';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
+import { initializeIcons } from "@uifabric/icons";
 
   var ibmNoClass = _.cloneDeep(ibmData);
   ibmNoClass.classNames = undefined;
+  // initializeIcons();
 
   var irisNoFeatures = _.cloneDeep(irisData);
   irisNoFeatures.featureNames = undefined;
@@ -100,11 +102,11 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         predictedY={data.predictedY}
                         probabilityY={data.probabilityY}
                         trueY={data.trueY}
-                        precomputedExplanations={{
-                          localFeatureImportance: data.localExplanations,
-                          globalFeatureImportance: data.globalExplanation,
-                          ebmGlobalExplanation: data.ebmData
-                        }}
+                        // precomputedExplanations={{
+                        //   localFeatureImportance: data.localExplanations,
+                        //   globalFeatureImportance: data.globalExplanation,
+                        //   ebmGlobalExplanation: data.ebmData
+                        // }}
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         // theme={"dark"}
