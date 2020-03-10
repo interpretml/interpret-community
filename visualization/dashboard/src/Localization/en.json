@@ -208,5 +208,9 @@
         "falsePositive": "False positive",
         "falseNegative": "False negative",
         "dataset": "Dataset"
+    },
+    "WhatIf": {
+        "closeAriaLabel": "Close",
+        "panelHeader": "What if Panel"
     }
 }

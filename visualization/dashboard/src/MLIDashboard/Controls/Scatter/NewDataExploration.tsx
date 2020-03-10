@@ -238,8 +238,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                             )}
                         </div>
                     </div>
-                </div >
-                
+                </div>
         </div>);
     }
 

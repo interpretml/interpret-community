@@ -12,6 +12,7 @@ import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
+import { WhatIfTab } from "./Controls/WhatIfTab";
 
 export interface INewExplanationDashboardState {
     filters: IFilter[];
@@ -104,7 +105,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             featureNames = NewExplanationDashboard.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
         }
-        const classNames = props.dataSummary.classNames || NewExplanationDashboard.buildIndexedNames(NewExplanationDashboard.getClassLength(props), localization.defaultClassNames);
+        let classNames = props.dataSummary.classNames;
+        const classLength = NewExplanationDashboard.getClassLength(props);
+        if (!classNames || classNames.length !== classLength) {
+            classNames = NewExplanationDashboard.buildIndexedNames(classLength, localization.defaultClassNames);
+        }
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
@@ -119,7 +124,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY) {
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
             return props.probabilityY[0].length;
         }
         if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
@@ -299,7 +304,12 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
-                                <div>TODO</div>
+                                <WhatIfTab 
+                                    theme={this.props.theme}
+                                    jointDataset={this.state.jointDataset}
+                                    metadata={this.state.modelMetadata}
+                                    filterContext={filterContext}
+                                />
                             )}
                         </div>
                     </div>
