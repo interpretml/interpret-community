@@ -3128,16 +3128,16 @@ internal-ip@^4.2.0:
     default-gateway "^4.2.0"
     ipaddr.js "^1.9.0"
 
-interpret-dashboard@0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.3.tgz#8466907da3be2200ac1d707ff9724d616e68b5fe"
-  integrity sha512-UeylkQW6wwUZs3OBc4hjKKJGyTDmp0S3ff134+tnl3sVTRMvuZrzZ2FX98CBIRb10++pTMrZ7KWytWsMdEyS1w==
+interpret-dashboard@0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.6.tgz#4cc0e9daaa27059c1b998424f23f6e716de01458"
+  integrity sha512-sFgYJoUUq17s3WzrcNkW6pxlKkZ65Ugwnm0w27HAoQN+w85VGduATWf+yt+ea/O46XBqXitH4VteP/EfeuJ6yQ==
   dependencies:
     jmespath "^0.15.0"
     localized-strings "^0.2.2"
     lodash "^4.17.11"
     memoize-one "^5.0.2"
-    mlchartlib "0.1.36"
+    mlchartlib "0.1.37"
     moment "^2.24.0"
     office-ui-fabric-react "^7.74.1"
     plotly.js-dist "^1.45.3"
@@ -3739,10 +3739,10 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.36:
-  version "0.1.36"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.36.tgz#c8e18ee8febfc25c729ab0d2b56658e8787b6ba2"
-  integrity sha512-WXJ0I2cS/wD32HNhzGUtqQRX9fryz2MZNK7dTLfReC7bdqLtv/eCZQ9snmMAopPCPyHNhGCWXTcOe1Gyj1N6Ig==
+mlchartlib@0.1.37:
+  version "0.1.37"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.37.tgz#3a87f65e9f4831bb004cd0e3863640fad132ebcc"
+  integrity sha512-lVJRm8BkjY9i2T+olWm0qE2XfwTKvoZGSGDkz2aKz/6V88EvMZkshnqDYENOS6B5sK00wkQzZMSotZYKSDMlTg==
   dependencies:
     jmespath "^0.15.0"
     lodash "^4.17.11"
