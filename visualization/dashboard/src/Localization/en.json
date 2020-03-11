@@ -211,6 +211,8 @@
     },
     "WhatIf": {
         "closeAriaLabel": "Close",
-        "panelHeader": "What if Panel"
+        "panelHeader": "What if Panel",
+        "indexLabel": "Datapoint index: ",
+        "indexErrorMessage": "Error: index must be an integer between 0 and {0}"
     }
 }

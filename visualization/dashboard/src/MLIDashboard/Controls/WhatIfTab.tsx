@@ -14,6 +14,7 @@ import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../NewExplanati
 import { AxisConfigDialog } from "./AxisConfigDialog";
 import { Transform } from "plotly.js-dist";
 import _ from "lodash";
+import { TextField } from "office-ui-fabric-react/lib/TextField";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -28,9 +29,14 @@ export interface IWhatIfTabState {
     isPanelOpen: boolean;
     xDialogOpen: boolean;
     yDialogOpen: boolean;
+    selectedIndex?: number;
+    editingData: {[key: string]: number};
+    indexText: string;
+    selectedIndexErrorMessage?: string;
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
+    private readonly defaultIndexString = " - ";
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],
@@ -62,7 +68,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         expandedPanel: {
             width: "250px",
             height: "100%",
-            borderRight: "1px solid black"
+            borderRight: "1px solid black",
+            display: "flex",
+            flexDirection: "column"
+        },
+        parameterList: {
+            display: "flex",
+            flexGrow: 1,
+            flexDirection: "column",
+            maxHeight: "700px",
+            overflowY: "auto"
+        },
+        customPointsList: {
+            height: "250px",
         },
         collapsedPanel: {
             width: "40px",
@@ -119,12 +137,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.state = {
             isPanelOpen: false,
             xDialogOpen: false,
-            yDialogOpen: false
+            yDialogOpen: false,
+            selectedIndex: 0,
+            indexText: "0",
+            editingData: this.props.jointDataset.getRow(0)
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
         this.onYSet = this.onYSet.bind(this);
+        this.setIndexText = this.setIndexText.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -144,7 +166,25 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         iconProps={{iconName: "ChevronLeft"}}
                         onClick={this.dismissPanel}
                     />
-                    <div>Test content</div>
+                    <div className={WhatIfTab.classNames.parameterList}>
+                    <TextField
+                        label={localization.WhatIf.indexLabel}
+                        value={this.state.indexText}
+                        onChange={this.setIndexText}
+                        styles={{ fieldGroup: { width: 100 } }}
+                    />
+                    {new Array(this.props.jointDataset.datasetFeatureCount).fill(0).map((unused, colIndex) => {
+                        const key = JointDataset.DataLabelRoot + colIndex.toString();
+                        return <TextField
+                            label={this.props.jointDataset.metaDict[key].abbridgedLabel}
+                            value={this.state.editingData[key].toString()}
+                            styles={{ fieldGroup: { width: 100 } }}
+                        />  
+                    })}
+                    </div>
+                    <div className={WhatIfTab.classNames.customPointsList}>
+                        custom points here
+                    </div>
                 </div>)}
                 {!this.state.isPanelOpen && (<IconButton 
                     iconProps={{iconName: "ChevronRight"}}
@@ -218,6 +258,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 </div >
             </div>
         </div>);
+    }
+
+    private setIndexText(event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
+        const asNumber = +newValue;
+        const maxIndex = this.props.jointDataset.metaDict[JointDataset.IndexLabel].featureRange.max;
+        if (Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= maxIndex) {
+            const editingData = this.props.jointDataset.getRow(asNumber);
+            this.setState({selectedIndex: asNumber, indexText: newValue, selectedIndexErrorMessage: undefined, editingData})
+        } else {
+            const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
+            this.setState({indexText: newValue, selectedIndex: undefined, selectedIndexErrorMessage: error});
+        }
     }
 
     private dismissPanel(): void {

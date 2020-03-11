@@ -59,8 +59,8 @@ export class JointDataset {
     public datasetFeatureCount: number = 0;
     public localExplanationFeatureCount: number = 0;
 
-    private _dataDict: Array<{[key: string]: any}>;
-    private _filteredData: Array<{[key: string]: any}>;
+    private _dataDict: Array<{[key: string]: number}>;
+    private _filteredData: Array<{[key: string]: number}>;
     private _binDict: {[key: string]: number[]} = {};
     private readonly _modelMeta: IExplanationModelMetadata;
     private readonly _localExplanationIndexesComputed: boolean[];
@@ -72,32 +72,39 @@ export class JointDataset {
         if (args.dataset && args.dataset.length > 0) {
             this.initializeDataDictIfNeeded(args.dataset);
             this.datasetFeatureCount = args.dataset[0].length;
+            // first set metadata 
+            args.dataset[0].forEach((unused, colIndex) => {
+                const key = JointDataset.DataLabelRoot + colIndex.toString();
+                if (args.metadata.featureIsCategorical[colIndex]) {
+                    const sortedUnique = (args.metadata.featureRanges[colIndex] as ICategoricalRange).uniqueValues.concat().sort();
+                    this.metaDict[key] = {
+                        label: args.metadata.featureNames[colIndex],
+                        abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
+                        isCategorical: true,
+                        treatAsCategorical: true,
+                        sortedCategoricalValues: sortedUnique,
+                        category: ColumnCategories.dataset,
+                        index: colIndex
+                    }
+                } else {
+                    this.metaDict[key] = {
+                        label: args.metadata.featureNames[colIndex],
+                        abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
+                        isCategorical: false,
+                        featureRange: args.metadata.featureRanges[colIndex] as INumericRange,
+                        category: ColumnCategories.dataset,
+                        index: colIndex
+                    }
+                }
+            });
             args.dataset.forEach((row, index) => {
                 row.forEach((val, colIndex) => {
                     const key = JointDataset.DataLabelRoot + colIndex.toString();
                     // store the index for categorical values rather than the actual value. Makes dataset uniform numeric and enables dithering
                     if (args.metadata.featureIsCategorical[colIndex]) {
-                        const sortedUnique = (args.metadata.featureRanges[colIndex] as ICategoricalRange).uniqueValues.concat().sort();
-                        this._dataDict[index][key] = sortedUnique.indexOf(val);
-                        this.metaDict[key] = {
-                            label: args.metadata.featureNames[colIndex],
-                            abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
-                            isCategorical: true,
-                            treatAsCategorical: true,
-                            sortedCategoricalValues: sortedUnique,
-                            category: ColumnCategories.dataset,
-                            index: colIndex
-                        }
+                        this._dataDict[index][key] = this.metaDict[key].sortedCategoricalValues.indexOf(val);
                     } else {
                         this._dataDict[index][key] = val;
-                        this.metaDict[key] = {
-                            label: args.metadata.featureNames[colIndex],
-                            abbridgedLabel: args.metadata.featureNamesAbridged[colIndex],
-                            isCategorical: false,
-                            featureRange: args.metadata.featureRanges[colIndex] as INumericRange,
-                            category: ColumnCategories.dataset,
-                            index: colIndex
-                        }
                     }
                 });
             });
@@ -202,6 +209,11 @@ export class JointDataset {
                 }
             })
         );
+    }
+
+    // return a copy of the row
+    public getRow(index: number): {[key: string]: number} {
+        return {...this._dataDict[index]}
     }
 
     public sort(columnName: string = JointDataset.IndexLabel, reverse?: boolean): void {
