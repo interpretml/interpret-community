@@ -2,7 +2,7 @@ import React from "react";
 import { JointDataset, ColumnCategories } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import { mergeStyleSets } from "@uifabric/styling";
-import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
+import { IPlotlyProperty, AccessibleChart, PlotlyMode } from "mlchartlib";
 import { Panel, PanelType, IPanelProps } from "office-ui-fabric-react/lib/Panel";
 import { localization } from "../../Localization/localization";
 import { IRenderFunction } from "@uifabric/utilities";
@@ -12,6 +12,7 @@ import { FilterControl } from "./FilterControl";
 import { IFilterContext } from "../Interfaces/IFilter";
 import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../NewExplanationDashboard";
 import { AxisConfigDialog } from "./AxisConfigDialog";
+import { Transform } from "plotly.js-dist";
 import _ from "lodash";
 
 export interface IWhatIfTabProps {
@@ -112,6 +113,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     constructor(props: IWhatIfTabProps) {
         super(props);
+        if (props.chartProps === undefined) {
+            this.generateDefaultChartAxes();
+        }
         this.state = {
             isPanelOpen: false,
             xDialogOpen: false,
@@ -119,6 +123,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
+        this.onXSet = this.onXSet.bind(this);
+        this.onYSet = this.onYSet.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -216,10 +222,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private dismissPanel(): void {
         this.setState({isPanelOpen: false});
+        window.dispatchEvent(new Event('resize'));
     }
 
     private openPanel(): void {
         this.setState({isPanelOpen: true});
+        window.dispatchEvent(new Event('resize'));
     }
 
     private onXSet(value: ISelectorConfig): void {
@@ -234,5 +242,255 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         newProps.yAxis = value;
         this.props.onChange(newProps);
         this.setState({yDialogOpen: false})
+    }
+
+    private readonly setXOpen = (val: boolean): void => {
+        if (val && this.state.xDialogOpen === false) {
+            this.setState({xDialogOpen: true});
+            return;
+        }
+        this.setState({xDialogOpen: false});
+    }
+
+    private readonly setYOpen = (val: boolean): void => {
+        if (val && this.state.yDialogOpen === false) {
+            this.setState({yDialogOpen: true});
+            return;
+        }
+        this.setState({yDialogOpen: false});
+    }
+
+    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
+        const plotlyProps = _.cloneDeep(WhatIfTab.basePlotlyProperties);
+        plotlyProps.data[0].hoverinfo = "all";
+        if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
+            jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {
+                jointData.sort(chartProps.colorAxis.property);
+        }
+        switch(chartProps.chartType) {
+            case ChartTypes.Scatter: {
+                plotlyProps.data[0].type = chartProps.chartType;
+                plotlyProps.data[0].mode = PlotlyMode.markers;
+                if (chartProps.xAxis) {
+                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                        const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
+                        const xLabelIndexes = xLabels.map((unused, index) => index);
+                        _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
+                        _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
+                    }
+                    const rawX = jointData.unwrap(chartProps.xAxis.property);
+                    if (chartProps.xAxis.options.dither) {
+                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                        plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
+                    } else {
+                        plotlyProps.data[0].x = rawX;
+                    }
+                }
+                if (chartProps.yAxis) {
+                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                        const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
+                        const yLabelIndexes = yLabels.map((unused, index) => index);
+                        _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
+                        _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
+                    }
+                    const rawY = jointData.unwrap(chartProps.yAxis.property);
+                    if (chartProps.yAxis.options.dither) {
+                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                        plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
+                    } else {
+                        plotlyProps.data[0].y = rawY;
+                    }
+                }
+                if (chartProps.colorAxis) {
+                    const isBinned = chartProps.colorAxis.options && chartProps.colorAxis.options.bin;
+                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, isBinned);
+                    // handle binning to categories later
+                    if (jointData.metaDict[chartProps.colorAxis.property].isCategorical || isBinned) {
+                        const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                            return {
+                                target: index,
+                                value: { name: label}
+                            };
+                        });
+                        plotlyProps.data[0].transforms = [{
+                            type: "groupby",
+                            groups: rawColor,
+                            styles
+                        }];
+                        plotlyProps.layout.showlegend = true;
+                    } else {
+                        plotlyProps.data[0].marker = {
+                            color: rawColor,
+                            colorbar: {
+                                title: {
+                                    side: "right",
+                                    text: "placeholder"
+                                } as any
+                            },
+                            colorscale: "Bluered"
+                        };
+                    }
+                }
+                break;
+            }
+            case ChartTypes.Bar: {
+                // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
+                // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
+                plotlyProps.data[0].type = "bar";
+                const rawX = jointData.unwrap(chartProps.xAxis.property, true);
+                
+                const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
+                const y = new Array(rawX.length).fill(1);
+                const xLabelIndexes = xLabels.map((unused, index) => index);
+                plotlyProps.data[0].text = rawX.map(index => xLabels[index]);
+                plotlyProps.data[0].x = rawX;
+                plotlyProps.data[0].y = y;
+                _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
+                _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
+                const transforms: Partial<Transform>[] = [
+                    {
+                        type: "aggregate",
+                        groups: rawX,
+                        aggregations: [
+                          {target: "y", func: "sum"},
+                        ]
+                    }
+                ];
+                if (chartProps.colorAxis) {
+                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, true);
+                    const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                        return {
+                            target: index,
+                            value: { name: label}
+                        };
+                    });
+                    transforms.push({
+                        type: "groupby",
+                        groups: rawColor,
+                        styles
+                    });
+                    plotlyProps.layout.showlegend = true;
+                }
+                plotlyProps.data[0].transforms = transforms;
+                break;
+            }
+        }
+        plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps);
+        plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(chartProps);
+        return plotlyProps;
+    }
+
+    private static buildHoverTemplate(chartProps: IGenericChartProps): string {
+        let hovertemplate = "";
+        switch(chartProps.chartType) {
+            case ChartTypes.Scatter: {
+                if (chartProps.xAxis) {
+                    if (chartProps.xAxis.options.dither) {
+                        hovertemplate += "x: %{customdata.X}<br>";
+                    } else {
+                        hovertemplate += "x: %{x}<br>";
+                    }
+                }
+                if (chartProps.yAxis) {
+                    if (chartProps.yAxis.options.dither) {
+                        hovertemplate += "y: %{customdata.Y}<br>";
+                    } else {
+                        hovertemplate += "y: %{y}<br>";
+                    }
+                }
+                break;
+            }
+            case ChartTypes.Bar: {
+                hovertemplate += "x: %{text}<br>";
+                hovertemplate += "count: %{y}<br>";
+            }
+        }
+        hovertemplate += "<extra></extra>";
+        return hovertemplate;
+    }
+
+    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps): Array<any> {
+        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+            const dict = {};
+            dict[JointDataset.IndexLabel] = val;
+            return dict;
+        });
+        if (chartProps.chartType === ChartTypes.Scatter) {
+            const xAxis = chartProps.xAxis;
+            if (xAxis && xAxis.property && xAxis.options.dither) {
+                const rawX = jointData.unwrap(chartProps.xAxis.property);
+                rawX.forEach((val, index) => {
+                    // If categorical, show string value in tooltip
+                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                        customdata[index]["X"] = jointData.metaDict[chartProps.xAxis.property]
+                            .sortedCategoricalValues[val];
+                    } else {
+                        customdata[index]["X"] = val;
+                    }
+                });
+            }
+            const yAxis = chartProps.yAxis;
+            if (yAxis && yAxis.property && yAxis.options.dither) {
+                const rawY = jointData.unwrap(chartProps.yAxis.property);
+                rawY.forEach((val, index) => {
+                    // If categorical, show string value in tooltip
+                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                        customdata[index]["Y"] = jointData.metaDict[chartProps.yAxis.property]
+                            .sortedCategoricalValues[val];
+                    } else {
+                        customdata[index]["Y"] = val;
+                    }
+                });
+            }
+        }
+        return customdata;
+    }
+
+    private generateDefaultChartAxes(): void {
+        let maxIndex: number = 0;
+        let maxVal: number = Number.MIN_SAFE_INTEGER;
+        // const exp = this.props.dashboardContext.explanationContext;
+
+        // if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
+        //     // Find the top metric
+        //     exp.globalExplanation.perClassFeatureImportances
+        //         .map(classArray => classArray.reduce((a, b) => a + b), 0)
+        //         .forEach((val, index) => {
+        //             if (val >= maxVal) {
+        //                 maxIndex = index;
+        //                 maxVal = val;
+        //             }
+        //         });
+        // } else if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
+        //     exp.globalExplanation.flattenedFeatureImportances
+        //         .forEach((val, index) => {
+        //             if (val >= maxVal) {
+        //                 maxIndex = index;
+        //                 maxVal = val;
+        //             }
+        //         });
+        // }
+        const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
+        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
+        const chartProps: IGenericChartProps = {
+            chartType: ChartTypes.Scatter,
+            xAxis: {
+                property: JointDataset.IndexLabel,
+                options: {}
+            },
+            yAxis: {
+                property: yKey,
+                options: {
+                    dither: yIsDithered,
+                    bin: false
+                }
+            },
+            colorAxis: {
+                property: this.props.jointDataset.hasPredictedY ?
+                    JointDataset.PredictedYLabel : JointDataset.IndexLabel,
+                options: {}
+            }
+        }
+        this.props.onChange(chartProps);
     }
 }

@@ -20,6 +20,7 @@ export interface INewExplanationDashboardState {
     jointDataset: JointDataset;
     modelMetadata: IExplanationModelMetadata;
     dataChartConfig: IGenericChartProps;
+    whatIfChartConfig: IGenericChartProps;
     globalBarConfig: IGlobalBarSettings;
     dependenceProps: IGenericChartProps;
     globalImportanceIntercept: number;
@@ -216,6 +217,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             jointDataset,
             modelMetadata,
             dataChartConfig: undefined,
+            whatIfChartConfig: undefined,
             dependenceProps: undefined,
             globalBarConfig: undefined,
             globalImportanceIntercept: globalProps.globalImportanceIntercept,
@@ -232,6 +234,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         this.onConfigChanged = this.onConfigChanged.bind(this);
+        this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
         this.onDependenceChange = this.onDependenceChange.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.addFilter = this.addFilter.bind(this);
@@ -309,6 +312,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
                                     filterContext={filterContext}
+                                    onChange={this.onWhatIfConfigChanged}
+                                    chartProps={this.state.whatIfChartConfig}
                                 />
                             )}
                         </div>
@@ -319,6 +324,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private onConfigChanged(newConfig: IGenericChartProps): void {
         this.setState({dataChartConfig: newConfig});
+    }
+
+    private onWhatIfConfigChanged(newConfig: IGenericChartProps): void {
+        this.setState({whatIfChartConfig: newConfig});
     }
 
     private onDependenceChange(newConfig: IGenericChartProps): void {
