@@ -25,9 +25,9 @@ export class BarChart extends React.PureComponent<IBarChartProps> {
     private static buildTextArray(sortedIndexVector: number[], importanceVector: number[], featureNames: string[], className?: string, rowDataArray?: Array<string | number>): string[] {
         return sortedIndexVector.map(index => {
             let result = [];
-            result.push(localization.formatString(localization.AggregateImportance.featureLabel, featureNames[index]));  
+            result.push(localization.formatString(localization.AggregateImportance.featureLabel, featureNames[index] || "unknown feature"));  
             result.push(localization.formatString(localization.AggregateImportance.importanceLabel, importanceVector[index].toLocaleString(undefined, {minimumFractionDigits: 3})));
-            if (rowDataArray) {
+            if (rowDataArray && rowDataArray.length > index) {
                 result.push(localization.formatString(localization.AggregateImportance.valueLabel, rowDataArray[index]));
             }
             if (className) {
