@@ -2,7 +2,7 @@ import React from "react";
 import { JointDataset, ColumnCategories } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import { mergeStyleSets } from "@uifabric/styling";
-import { IPlotlyProperty, AccessibleChart, PlotlyMode } from "mlchartlib";
+import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
 import { Panel, PanelType, IPanelProps } from "office-ui-fabric-react/lib/Panel";
 import { localization } from "../../Localization/localization";
 import { IRenderFunction } from "@uifabric/utilities";
@@ -15,6 +15,7 @@ import { AxisConfigDialog } from "./AxisConfigDialog";
 import { Transform } from "plotly.js-dist";
 import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
+import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -30,13 +31,22 @@ export interface IWhatIfTabState {
     xDialogOpen: boolean;
     yDialogOpen: boolean;
     selectedIndex?: number;
-    editingData: {[key: string]: number};
+    editingData: {[key: string]: any};
+    editingDataCustomIndex: number;
+    customPoints: Array<{[key: string]: any}>;
     indexText: string;
     selectedIndexErrorMessage?: string;
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
-    private readonly defaultIndexString = " - ";
+    private static readonly defaultIndexString = " - ";
+    private static readonly colorPath = "Color";
+    private static readonly namePath = "Name"
+    private readonly colorOptions: IDropdownOption[] = [
+        {key: "#FF0000", text: "Red", data: {color: "#FF0000"}}, 
+        {key: "#00FF00", text: "Blue", data: {color: "#00FF00"}},
+        {key: "#0000FF", text: "Green", data: {color: "#0000FF"}}
+    ]; 
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],
@@ -75,11 +85,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         parameterList: {
             display: "flex",
             flexGrow: 1,
+            flexDirection: "column"
+        },
+        featureList: {
+            display: "flex",
+            flexGrow: 1,
             flexDirection: "column",
-            maxHeight: "700px",
+            maxHeight: "400px",
             overflowY: "auto"
         },
         customPointsList: {
+            borderTop: "2px solid black",
             height: "250px",
         },
         collapsedPanel: {
@@ -123,6 +139,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         horizontalAxis: {
             flex: 1,
             textAlign:"center"
+        },
+        customPointItem: {
+            padding: "2px 5px",
+            borderBottom: "1px solid black",
+            cursor: "pointer"
+        },
+        colorBox: {
+            width: "10px",
+            height: "10px",
+            paddingLeft: "3px",
+            display: "inline-block"
         }
     });
 
@@ -134,19 +161,27 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
+        const editingData = this.props.jointDataset.getRow(0) as any;
+        editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, 0) as string;
+        editingData[WhatIfTab.colorPath] = this.colorOptions[0].key;
         this.state = {
             isPanelOpen: false,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedIndex: 0,
             indexText: "0",
-            editingData: this.props.jointDataset.getRow(0)
+            editingData,
+            editingDataCustomIndex: 0,
+            customPoints: []
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
         this.onYSet = this.onYSet.bind(this);
         this.setIndexText = this.setIndexText.bind(this);
+        this.setCustomRowProperty = this.setCustomRowProperty.bind(this);
+        this.setCustomRowPropertyDropdown = this.setCustomRowPropertyDropdown.bind(this);
+        this.updateCustomRowToArray = this.updateCustomRowToArray.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -167,23 +202,61 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         onClick={this.dismissPanel}
                     />
                     <div className={WhatIfTab.classNames.parameterList}>
-                    <TextField
-                        label={localization.WhatIf.indexLabel}
-                        value={this.state.indexText}
-                        onChange={this.setIndexText}
-                        styles={{ fieldGroup: { width: 100 } }}
-                    />
-                    {new Array(this.props.jointDataset.datasetFeatureCount).fill(0).map((unused, colIndex) => {
-                        const key = JointDataset.DataLabelRoot + colIndex.toString();
-                        return <TextField
-                            label={this.props.jointDataset.metaDict[key].abbridgedLabel}
-                            value={this.state.editingData[key].toString()}
+                        <TextField
+                            label={localization.WhatIf.indexLabel}
+                            value={this.state.indexText}
+                            onChange={this.setIndexText}
                             styles={{ fieldGroup: { width: 100 } }}
-                        />  
-                    })}
+                        />
+                        <TextField
+                            label={localization.WhatIf.namePropLabel}
+                            value={this.state.editingData[WhatIfTab.namePath]}
+                            onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
+                            styles={{ fieldGroup: { width: 200 } }}
+                        />
+                        <Dropdown
+                            label={localization.WhatIf.colorLabel}
+                            selectedKey={this.state.editingData[WhatIfTab.colorPath]}
+                            onChange={this.setCustomRowPropertyDropdown.bind(this, WhatIfTab.colorPath)}
+                            onRenderTitle={this._onRenderTitle}
+                            onRenderOption={this._onRenderOption}
+                            styles={{ dropdown: { width: 200 } }}
+                            options={this.colorOptions}
+                        />
+                        <div className={WhatIfTab.classNames.featureList}>
+                            <div>Features: </div>
+                            {new Array(this.props.jointDataset.datasetFeatureCount).fill(0).map((unused, colIndex) => {
+                                const key = JointDataset.DataLabelRoot + colIndex.toString();
+                                return <TextField
+                                    label={this.props.jointDataset.metaDict[key].abbridgedLabel}
+                                    value={this.state.editingData[key].toString()}
+                                    onChange={this.setCustomRowProperty.bind(this, key, this.props.jointDataset.metaDict[key].treatAsCategorical)}
+                                    styles={{ fieldGroup: { width: 100 } }}
+                                />  
+                            })}
+                        </div>
                     </div>
+                    <DefaultButton
+                        text={"save point"}
+                        onClick={this.updateCustomRowToArray}
+                    />
                     <div className={WhatIfTab.classNames.customPointsList}>
-                        custom points here
+                        {this.state.customPoints.length !== 0 &&
+                            this.state.customPoints.map((row, index) => {
+                                return <div className={WhatIfTab.classNames.customPointItem}
+                                            onClick={this.editCustomPoint.bind(this, index)}>
+                                            <div className={WhatIfTab.classNames.colorBox} 
+                                                style={{backgroundColor: row[WhatIfTab.colorPath]}} />
+                                            <span>{row[WhatIfTab.namePath]}</span>
+                                            <IconButton iconProps={{iconName: "Cancel"}}
+                                                onClick={this.removeCustomPoint.bind(this, index)}
+                                            />
+                                    </div>
+                            })
+                        }
+                        {this.state.customPoints.length === 0 && (
+                            <div>{localization.WhatIf.noCustomPoints}</div>
+                        )}
                     </div>
                 </div>)}
                 {!this.state.isPanelOpen && (<IconButton 
@@ -260,16 +333,91 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         </div>);
     }
 
+    private _onRenderOption = (option: IDropdownOption): JSX.Element => {
+        return (
+          <div>
+            {option.data && option.data.color && (
+              <div style={{ marginRight: '8px', backgroundColor: option.data.color }} className={WhatIfTab.classNames.colorBox} aria-hidden="true" title={option.data.color} />
+            )}
+            <span>{option.text}</span>
+          </div>
+        );
+      };
+    
+      private _onRenderTitle = (options: IDropdownOption[]): JSX.Element => {
+        const option = options[0];
+    
+        return (
+          <div>
+            {option.data && option.data.color && (
+              <div style={{ marginRight: '8px', backgroundColor: option.data.color}} className={WhatIfTab.classNames.colorBox} aria-hidden="true" title={option.data.color} />
+            )}
+            <span>{option.text}</span>
+          </div>
+        );
+      };
+
     private setIndexText(event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
         const asNumber = +newValue;
         const maxIndex = this.props.jointDataset.metaDict[JointDataset.IndexLabel].featureRange.max;
         if (Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= maxIndex) {
-            const editingData = this.props.jointDataset.getRow(asNumber);
-            this.setState({selectedIndex: asNumber, indexText: newValue, selectedIndexErrorMessage: undefined, editingData})
+            const editingData: {[key: string]: any} = this.props.jointDataset.getRow(asNumber);
+            editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, asNumber) as string;
+            editingData[WhatIfTab.colorPath] = this.state.editingData[WhatIfTab.colorPath];
+            this.setState({
+                selectedIndex: asNumber,
+                indexText: newValue,
+                selectedIndexErrorMessage: undefined,
+                editingDataCustomIndex: this.state.customPoints.length,
+                editingData})
         } else {
             const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
             this.setState({indexText: newValue, selectedIndex: undefined, selectedIndexErrorMessage: error});
         }
+    }
+
+    private editCustomPoint(index: number): void {
+        const editingData = this.state.customPoints[index];
+        this.setState({
+            selectedIndex: editingData[JointDataset.IndexLabel],
+            indexText: editingData[JointDataset.IndexLabel].toString(),
+            selectedIndexErrorMessage: undefined,
+            editingDataCustomIndex: index,
+            editingData})
+    }
+
+    private removeCustomPoint(index: number): void {
+        this.setState(prevState => {
+            const customPoints = [...prevState.customPoints];
+            customPoints.splice(index, 1);
+            return {customPoints};
+        })
+    }
+
+    private setCustomRowProperty(key: string, isString: boolean, event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
+        if (isString) {
+            this.state.editingData[key] = newValue;
+        } else {
+            const asNumber = +newValue;
+            if (!Number.isFinite(asNumber)) {
+                alert('thats no number')
+            }
+            this.state.editingData[key] = asNumber;
+        }
+        this.forceUpdate();
+    }
+
+    private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.state.editingData[key] = item.key;
+        this.forceUpdate();
+    }
+
+    private updateCustomRowToArray(): void {
+        this.setState(prevState => {
+            const customPoints = [...prevState.customPoints];
+            customPoints[prevState.editingDataCustomIndex] = prevState.editingData;
+            return {customPoints};
+        })
     }
 
     private dismissPanel(): void {
