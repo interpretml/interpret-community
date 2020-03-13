@@ -188,7 +188,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
-        const plotlyProps = WhatIfTab.generatePlotlyProps(
+        const plotlyProps = this.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps
         );
@@ -460,149 +460,80 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState({yDialogOpen: false});
     }
 
-    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
+    private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(WhatIfTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
-        if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
-            jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {
-                jointData.sort(chartProps.colorAxis.property);
-        }
-        switch(chartProps.chartType) {
-            case ChartTypes.Scatter: {
-                plotlyProps.data[0].type = chartProps.chartType;
-                plotlyProps.data[0].mode = PlotlyMode.markers;
-                if (chartProps.xAxis) {
-                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
-                        const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
-                        const xLabelIndexes = xLabels.map((unused, index) => index);
-                        _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
-                        _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
-                    }
-                    const rawX = jointData.unwrap(chartProps.xAxis.property);
-                    if (chartProps.xAxis.options.dither) {
-                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
-                        plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
-                    } else {
-                        plotlyProps.data[0].x = rawX;
-                    }
-                }
-                if (chartProps.yAxis) {
-                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
-                        const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
-                        const yLabelIndexes = yLabels.map((unused, index) => index);
-                        _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
-                        _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
-                    }
-                    const rawY = jointData.unwrap(chartProps.yAxis.property);
-                    if (chartProps.yAxis.options.dither) {
-                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
-                        plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
-                    } else {
-                        plotlyProps.data[0].y = rawY;
-                    }
-                }
-                if (chartProps.colorAxis) {
-                    const isBinned = chartProps.colorAxis.options && chartProps.colorAxis.options.bin;
-                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, isBinned);
-                    // handle binning to categories later
-                    if (jointData.metaDict[chartProps.colorAxis.property].isCategorical || isBinned) {
-                        const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
-                            return {
-                                target: index,
-                                value: { name: label}
-                            };
-                        });
-                        plotlyProps.data[0].transforms = [{
-                            type: "groupby",
-                            groups: rawColor,
-                            styles
-                        }];
-                        plotlyProps.layout.showlegend = true;
-                    } else {
-                        plotlyProps.data[0].marker = {
-                            color: rawColor,
-                            colorbar: {
-                                title: {
-                                    side: "right",
-                                    text: "placeholder"
-                                } as any
-                            },
-                            colorscale: "Bluered"
-                        };
-                    }
-                }
-                break;
+
+        plotlyProps.data[0].type = chartProps.chartType;
+        plotlyProps.data[0].mode = PlotlyMode.markers;
+
+        plotlyProps.data[1] = {
+            type: "scattergl",
+            mode: PlotlyMode.markers,
+            marker: {
+                color: JointDataset.unwrap(this.state.customPoints, WhatIfTab.colorPath)
             }
-            case ChartTypes.Bar: {
-                // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
-                // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
-                plotlyProps.data[0].type = "bar";
-                const rawX = jointData.unwrap(chartProps.xAxis.property, true);
-                
+        }
+
+        if (chartProps.xAxis) {
+            if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
                 const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
-                const y = new Array(rawX.length).fill(1);
                 const xLabelIndexes = xLabels.map((unused, index) => index);
-                plotlyProps.data[0].text = rawX.map(index => xLabels[index]);
-                plotlyProps.data[0].x = rawX;
-                plotlyProps.data[0].y = y;
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
-                const transforms: Partial<Transform>[] = [
-                    {
-                        type: "aggregate",
-                        groups: rawX,
-                        aggregations: [
-                          {target: "y", func: "sum"},
-                        ]
-                    }
-                ];
-                if (chartProps.colorAxis) {
-                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, true);
-                    const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
-                        return {
-                            target: index,
-                            value: { name: label}
-                        };
-                    });
-                    transforms.push({
-                        type: "groupby",
-                        groups: rawColor,
-                        styles
-                    });
-                    plotlyProps.layout.showlegend = true;
-                }
-                plotlyProps.data[0].transforms = transforms;
-                break;
+            }
+            const rawX = jointData.unwrap(chartProps.xAxis.property);
+            const customX = JointDataset.unwrap(this.state.customPoints, chartProps.xAxis.property);
+            if (chartProps.xAxis.options.dither) {
+                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
+                plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
+                plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither;});
+            } else {
+                plotlyProps.data[0].x = rawX;
+                plotlyProps.data[1].x = customX;
             }
         }
-        plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps);
-        plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(chartProps);
+        if (chartProps.yAxis) {
+            if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
+                const yLabelIndexes = yLabels.map((unused, index) => index);
+                _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
+                _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
+            }
+            const rawY = jointData.unwrap(chartProps.yAxis.property);
+            const customY = JointDataset.unwrap(this.state.customPoints, chartProps.yAxis.property);
+            if (chartProps.yAxis.options.dither) {
+                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
+                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
+                plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither;});
+            } else {
+                plotlyProps.data[0].y = rawY;
+                plotlyProps.data[1].y = customY;
+            }
+        }
+
+            
+        plotlyProps.data[0].customdata = WhatIfTab.buildCustomData(jointData, chartProps);
+        plotlyProps.data[0].hovertemplate = WhatIfTab.buildHoverTemplate(chartProps);
         return plotlyProps;
     }
 
     private static buildHoverTemplate(chartProps: IGenericChartProps): string {
         let hovertemplate = "";
-        switch(chartProps.chartType) {
-            case ChartTypes.Scatter: {
-                if (chartProps.xAxis) {
-                    if (chartProps.xAxis.options.dither) {
-                        hovertemplate += "x: %{customdata.X}<br>";
-                    } else {
-                        hovertemplate += "x: %{x}<br>";
-                    }
-                }
-                if (chartProps.yAxis) {
-                    if (chartProps.yAxis.options.dither) {
-                        hovertemplate += "y: %{customdata.Y}<br>";
-                    } else {
-                        hovertemplate += "y: %{y}<br>";
-                    }
-                }
-                break;
+        if (chartProps.xAxis) {
+            if (chartProps.xAxis.options.dither) {
+                hovertemplate += "x: %{customdata.X}<br>";
+            } else {
+                hovertemplate += "x: %{x}<br>";
             }
-            case ChartTypes.Bar: {
-                hovertemplate += "x: %{text}<br>";
-                hovertemplate += "count: %{y}<br>";
+        }
+        if (chartProps.yAxis) {
+            if (chartProps.yAxis.options.dither) {
+                hovertemplate += "y: %{customdata.Y}<br>";
+            } else {
+                hovertemplate += "y: %{y}<br>";
             }
         }
         hovertemplate += "<extra></extra>";

@@ -67,6 +67,19 @@ export class JointDataset {
     public rawLocalImportance: number[][][];
     public metaDict: {[key: string]: IJointMeta} = {};
 
+    // creating public static methods of the class instance methonds.
+    // This is to enable prototyping the cohort concept, where we don't have a single
+    // datasource as initially envisioned but an array of them, all build off of the true datasource
+    public static unwrap(dataset: Array<{[key: string]: any}>, key: string, binVector?: number[]): any[] {
+        if (binVector) {
+            return dataset.map(row => {
+                const rowValue = row[key];
+                return binVector.findIndex(upperLimit => upperLimit >= rowValue );
+            });
+        }
+        return dataset.map(row => row[key]);
+    }
+
     constructor(args: IJointDatasetArgs) {
         this._modelMeta = args.metadata;
         if (args.dataset && args.dataset.length > 0) {
