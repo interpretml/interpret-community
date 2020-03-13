@@ -11,6 +11,7 @@ be used to explain the teacher model.
 """
 
 import numpy as np
+import scipy as sp
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -468,7 +469,10 @@ class MimicExplainer(BlackBoxExplainer):
         if self.explain_subset:
             self._logger.debug('Getting subset of local_importance_values')
             if classification:
-                local_importance_values = local_importance_values[:, :, self.explain_subset]
+                is_ndarray = isinstance(local_importance_values, np.ndarray)
+                if is_ndarray and len(local_importance_values) > 0 and sp.sparse.issparse(local_importance_values[0]):
+                    for i in range(len(local_importance_values)):
+                        local_importance_values[i] = local_importance_values[i][:, self.explain_subset]
             else:
                 local_importance_values = local_importance_values[:, self.explain_subset]
         if classification:
