@@ -44,8 +44,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private static readonly namePath = "Name"
     private readonly colorOptions: IDropdownOption[] = [
         {key: "#FF0000", text: "Red", data: {color: "#FF0000"}}, 
-        {key: "#00FF00", text: "Blue", data: {color: "#00FF00"}},
-        {key: "#0000FF", text: "Green", data: {color: "#0000FF"}}
+        {key: "#00FF00", text: "Green", data: {color: "#00FF00"}},
+        {key: "#0000FF", text: "Blue", data: {color: "#0000FF"}}
     ]; 
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
@@ -182,6 +182,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setCustomRowProperty = this.setCustomRowProperty.bind(this);
         this.setCustomRowPropertyDropdown = this.setCustomRowPropertyDropdown.bind(this);
         this.updateCustomRowToArray = this.updateCustomRowToArray.bind(this);
+        this.selectPointFromChart = this.selectPointFromChart.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -302,6 +303,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <AccessibleChart
                             plotlyProps={plotlyProps}
                             theme={undefined}
+                            onClickHandler={this.selectPointFromChart}
                         />
                     </div>
                     <div className={WhatIfTab.classNames.horizontalAxisWithPadding}>
@@ -361,19 +363,23 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const asNumber = +newValue;
         const maxIndex = this.props.jointDataset.metaDict[JointDataset.IndexLabel].featureRange.max;
         if (Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= maxIndex) {
-            const editingData: {[key: string]: any} = this.props.jointDataset.getRow(asNumber);
-            editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, asNumber) as string;
-            editingData[WhatIfTab.colorPath] = this.state.editingData[WhatIfTab.colorPath];
-            this.setState({
-                selectedIndex: asNumber,
-                indexText: newValue,
-                selectedIndexErrorMessage: undefined,
-                editingDataCustomIndex: this.state.customPoints.length,
-                editingData})
+            this.editCopyOfExistingPoint(asNumber);
         } else {
             const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
             this.setState({indexText: newValue, selectedIndex: undefined, selectedIndexErrorMessage: error});
         }
+    }
+
+    editCopyOfExistingPoint(index: number): void {
+        const editingData: {[key: string]: any} = this.props.jointDataset.getRow(index);
+            editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, index) as string;
+            editingData[WhatIfTab.colorPath] = this.state.editingData[WhatIfTab.colorPath];
+            this.setState({
+                selectedIndex: index,
+                indexText: index.toString(),
+                selectedIndexErrorMessage: undefined,
+                editingDataCustomIndex: this.state.customPoints.length,
+                editingData});
     }
 
     private editCustomPoint(index: number): void {
@@ -458,6 +464,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             return;
         }
         this.setState({yDialogOpen: false});
+    }
+
+    private selectPointFromChart(data: any): void {
+
+        const trace = data.points[0];
+        // custom point
+        if (trace.curveNumber === 1) {
+            this.editCustomPoint(trace.pointNumber);
+        } else {
+            this.editCopyOfExistingPoint(trace.customdata[JointDataset.IndexLabel])
+        }
     }
 
     private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
@@ -578,30 +595,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private generateDefaultChartAxes(): void {
-        let maxIndex: number = 0;
-        let maxVal: number = Number.MIN_SAFE_INTEGER;
-        // const exp = this.props.dashboardContext.explanationContext;
-
-        // if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
-        //     // Find the top metric
-        //     exp.globalExplanation.perClassFeatureImportances
-        //         .map(classArray => classArray.reduce((a, b) => a + b), 0)
-        //         .forEach((val, index) => {
-        //             if (val >= maxVal) {
-        //                 maxIndex = index;
-        //                 maxVal = val;
-        //             }
-        //         });
-        // } else if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
-        //     exp.globalExplanation.flattenedFeatureImportances
-        //         .forEach((val, index) => {
-        //             if (val >= maxVal) {
-        //                 maxIndex = index;
-        //                 maxVal = val;
-        //             }
-        //         });
-        // }
-        const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
+        const yKey = JointDataset.DataLabelRoot + "0";
         const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
