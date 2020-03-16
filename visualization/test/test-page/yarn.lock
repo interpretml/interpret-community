@@ -944,9 +944,9 @@ acorn-dynamic-import@^4.0.0:
   integrity sha512-d3OEjQV4ROpoflsnUA8HozoIR504TFxNivYEUi6uwz0IYhBkTDXGuWlNdMtybRt3nqVx/L6XqMt0FxkXuWKZhw==
 
 acorn@^6.0.5:
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.4.0.tgz#b659d2ffbafa24baf5db1cdbb2c94a983ecd2784"
-  integrity sha512-gac8OEcQ2Li1dxIEWGZzsp2BitJxwkwcOm0zHAJLcPJaVvm58FRnk6RkuLRpU1EujipU2ZFODv2P9DLMfnV8mw==
+  version "6.4.1"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.4.1.tgz#531e58ba3f51b9dacb9a6646ca4debf5b14ca474"
+  integrity sha512-ZVA9k326Nwrj3Cj9jlh3wGFutC2ZornPNARZwsNYqQYgN0EsV2d53w5RN/co65Ohn4sUAUtb1rSUAOD6XN9idA==
 
 ajv-errors@^1.0.0:
   version "1.0.1"
@@ -3077,13 +3077,13 @@ internal-ip@^4.2.0:
     ipaddr.js "^1.9.0"
 
 interpret-dashboard@../../dashboard:
-  version "0.1.3"
+  version "0.1.6"
   dependencies:
     jmespath "^0.15.0"
     localized-strings "^0.2.2"
     lodash "^4.17.11"
     memoize-one "^5.0.2"
-    mlchartlib "0.1.36"
+    mlchartlib "0.1.37"
     moment "^2.24.0"
     office-ui-fabric-react "^7.74.1"
     plotly.js-dist "^1.45.3"
@@ -3670,10 +3670,10 @@ mkdirp@^0.5.1, mkdirp@~0.5.0:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.36:
-  version "0.1.36"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.36.tgz#c8e18ee8febfc25c729ab0d2b56658e8787b6ba2"
-  integrity sha512-WXJ0I2cS/wD32HNhzGUtqQRX9fryz2MZNK7dTLfReC7bdqLtv/eCZQ9snmMAopPCPyHNhGCWXTcOe1Gyj1N6Ig==
+mlchartlib@0.1.37:
+  version "0.1.37"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.37.tgz#3a87f65e9f4831bb004cd0e3863640fad132ebcc"
+  integrity sha512-lVJRm8BkjY9i2T+olWm0qE2XfwTKvoZGSGDkz2aKz/6V88EvMZkshnqDYENOS6B5sK00wkQzZMSotZYKSDMlTg==
   dependencies:
     jmespath "^0.15.0"
     lodash "^4.17.11"

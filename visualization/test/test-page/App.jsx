@@ -102,11 +102,11 @@ import { initializeIcons } from "@uifabric/icons";
                         predictedY={data.predictedY}
                         probabilityY={data.probabilityY}
                         trueY={data.trueY}
-                        // precomputedExplanations={{
-                        //   localFeatureImportance: data.localExplanations,
-                        //   globalFeatureImportance: data.globalExplanation,
-                        //   ebmGlobalExplanation: data.ebmData
-                        // }}
+                        precomputedExplanations={{
+                          localFeatureImportance: data.localExplanations,
+                          globalFeatureImportance: data.globalExplanation,
+                          ebmGlobalExplanation: data.ebmData
+                        }}
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         // theme={"dark"}
