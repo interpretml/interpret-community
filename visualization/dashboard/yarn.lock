@@ -509,9 +509,9 @@ acorn-walk@^6.0.1:
   integrity sha512-7evsyfH1cLOCdAzZAd43Cic04yKydNx0cF+7tiA19p1XnLLPU4dpCQOqpjqwokFe//vS0QqfqqjCS2JkiIs0cA==
 
 acorn@^5.5.3:
-  version "5.7.3"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
-  integrity sha512-T/zvzYRfbVojPWahDsE5evJdHb3oJoQfFbsrKM7w5Zcs++Tr257tia3BmMP8XYVjp1S9RZXQMh7gao96BlqZOw==
+  version "5.7.4"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.4.tgz#3e8d8a9947d0599a1796d10225d7432f4a4acf5e"
+  integrity sha512-1D++VG7BhrtvQpNbBzovKNc1FLGGEE/oGe7b9xJm/RFHMBeUaUGpluV9RLjZa47YFdPcDAenEYuq9pQPcMdLJg==
 
 acorn@^6.0.1:
   version "6.3.0"
@@ -2724,10 +2724,10 @@ mkdirp@0.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.36:
-  version "0.1.36"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.36.tgz#c8e18ee8febfc25c729ab0d2b56658e8787b6ba2"
-  integrity sha512-WXJ0I2cS/wD32HNhzGUtqQRX9fryz2MZNK7dTLfReC7bdqLtv/eCZQ9snmMAopPCPyHNhGCWXTcOe1Gyj1N6Ig==
+mlchartlib@0.1.37:
+  version "0.1.37"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.37.tgz#3a87f65e9f4831bb004cd0e3863640fad132ebcc"
+  integrity sha512-lVJRm8BkjY9i2T+olWm0qE2XfwTKvoZGSGDkz2aKz/6V88EvMZkshnqDYENOS6B5sK00wkQzZMSotZYKSDMlTg==
   dependencies:
     jmespath "^0.15.0"
     lodash "^4.17.11"

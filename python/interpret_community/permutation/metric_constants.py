@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines Metric Constants for PFIExplainer."""
+"""Defines metric constants for PFIExplainer."""
 
 from enum import Enum
 

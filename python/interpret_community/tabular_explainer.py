@@ -42,15 +42,16 @@ class TabularExplainer(BaseExplainer):
     :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
+        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations
+        that are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
         A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -63,14 +64,14 @@ class TabularExplainer(BaseExplainer):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
     :param allow_all_transformations: Allow many to many and many to one transformations
     :type allow_all_transformations: bool
@@ -99,30 +100,37 @@ class TabularExplainer(BaseExplainer):
             that of the model output.  Only required if explaining classifier.
         :type classes: list[str]
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
-            transformer. When transformations are provided, explanations are of the features before the
-            transformation. The format for list of transformations is same as the one here:
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
             https://github.com/scikit-learn-contrib/sklearn-pandas.
+
             If the user is using a transformation that is not in the list of sklearn.preprocessing transformations
-            that we support then we cannot take a list of more than one column as input for the transformation.
+            that are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
             A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
-            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder,
-            MaxAbsScaler, MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer,
-            QuantileTransformer, RobustScaler, StandardScaler.
-            Examples for transformations that work:
-            [
-                (["col1", "col2"], sklearn_one_hot_encoder),
-                (["col3"], None) #col3 passes as is
-            ]
-            [
-                (["col1"], my_own_transformer),
-                (["col2"], my_own_transformer),
-            ]
-            Example of transformations that would raise an error since it cannot be interpreted as one to many:
-            [
-                (["col1", "col2"], my_own_transformer)
-            ]
-            This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-            many mapping when taking a sequence of columns.
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool

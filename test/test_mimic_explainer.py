@@ -8,6 +8,7 @@ import pytest
 import json
 import logging
 import numpy as np
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
@@ -15,6 +16,8 @@ from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_re
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data
 from models import retrieve_model, DataFrameTestModel
 from datasets import retrieve_dataset
+from sklearn import datasets
+import uuid
 
 from constants import owner_email_tools_and_ux
 
@@ -254,6 +257,60 @@ class TestMimicExplainer(object):
         if grains_dict:
             kwargs['categorical_features'] = ['fruit']
         mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
+
+    def _timeseries_generated_data(self):
+        # Load diabetes data and convert to data frame
+        x, y = datasets.load_diabetes(return_X_y=True)
+        nrows, ncols = x.shape
+        column_names = [str(i) for i in range(ncols)]
+        X = pd.DataFrame(x, columns=column_names)
+
+        # Add an arbitrary time axis
+        time_column_name = "Date" + str(uuid.uuid4())
+        dates = pd.date_range('1980-01-01', periods=nrows, freq='MS')
+        X[time_column_name] = dates
+        index_keys = [time_column_name]
+        X.set_index(index_keys, inplace=True)
+
+        # Split into train and test sets
+        test_frac = 0.2
+        cutoff_index = int(np.floor((1.0 - test_frac) * nrows))
+
+        X_train = X.iloc[:cutoff_index]
+        y_train = y[:cutoff_index]
+        X_test = X.iloc[cutoff_index:]
+        y_test = y[cutoff_index:]
+
+        return X_train, X_test, y_train, y_test, time_column_name
+
+    def test_datetime_features(self, mimic_explainer):
+        X_train, _, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'reset'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values) + list(X_train.index.names)
+        mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+
+    def test_datetime_features_ignore(self, mimic_explainer):
+        # Validate we throw when reset_index is set to ignore
+        X_train, _, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'ignore'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values) + list(X_train.index.names)
+        # Validate we hit the assertion error on the DataFrameTestModel for checking the presence of index column
+        with pytest.raises(AssertionError):
+            mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+        # Validate we don't hit error if we disable the index column asserts
+        model = DataFrameTestModel(X_train.copy(), assert_index_present=False)
+        mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+
+    def test_datetime_features_already_featurized(self, mimic_explainer):
+        # Validate we still passthrough underlying index to teacher model
+        # even if we don't use it for surrogate model
+        X_train, _, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'reset_teacher'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values) + list(X_train.index.names)
+        mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
 
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
         model = retrieve_model('unbalanced_model.pkl')

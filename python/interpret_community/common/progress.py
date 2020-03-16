@@ -17,7 +17,7 @@ def get_tqdm(logger, show_progress):
     :param show_progress: Default to 'True'.  Determines whether to display the explanation status bar
         when using PFIExplainer.
     :type show_progress: bool
-    :return: The tqdm progress bar.
+    :return: The tqdm (https://github.com/tqdm/tqdm) progress bar.
     :rtype: function
     """
     # This is used to get around code style build error F811

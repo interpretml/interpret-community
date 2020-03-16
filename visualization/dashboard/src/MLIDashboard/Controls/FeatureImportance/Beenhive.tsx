@@ -61,10 +61,10 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             return data.localExplanation.flattenedValues.map((row, rowIndex) => {
                 const predictedClassIndex = data.testDataset.predictedY ? data.testDataset.predictedY[rowIndex] : undefined;
                 const predictedClass = data.testDataset.predictedY ?
-                    (isClassifier ? data.modelMetadata.classNames[predictedClassIndex] : predictedClassIndex) : undefined;
+                    (isClassifier ? data.modelMetadata.classNames[predictedClassIndex] || `class ${predictedClassIndex}`: predictedClassIndex) : undefined;
                 const trueClassIndex = data.testDataset.trueY ? data.testDataset.trueY[rowIndex] : undefined;
                 const trueClass = data.testDataset.trueY ?
-                    (isClassifier ? data.modelMetadata.classNames[trueClassIndex] : trueClassIndex) : undefined;
+                    (isClassifier ? data.modelMetadata.classNames[trueClassIndex] || `class ${trueClassIndex}` : trueClassIndex) : undefined;
                 return {
                     rowIndex: rowIndex.toString(),
                     normalizedFeatureValue: mappers !== undefined ?
@@ -137,10 +137,14 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             }
         } else {
             if (data.testDataset.predictedY) {
-                result.push(localization.formatString('AggregateImportance.predictedClassTooltip', data.modelMetadata.classNames[data.testDataset.predictedY[rowIndex]]));
+                const classIndex = data.testDataset.predictedY[rowIndex];
+                const className =  data.modelMetadata.classNames[classIndex] || "unknown class";
+                result.push(localization.formatString('AggregateImportance.predictedClassTooltip', className));
             }
             if (data.testDataset.trueY) {
-                result.push(localization.formatString('AggregateImportance.trueClassTooltip', data.modelMetadata.classNames[data.testDataset.trueY[rowIndex]]));
+                const classIndex = data.testDataset.trueY[rowIndex];
+                const className =  data.modelMetadata.classNames[classIndex] || "unknown class";
+                result.push(localization.formatString('AggregateImportance.trueClassTooltip', className));
             }
         }
         return result.join('<br>');

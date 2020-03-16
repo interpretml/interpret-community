@@ -35,8 +35,6 @@ import { EbmExplanation } from "./Controls/EbmExplanation";
 import { JointDataset } from "./JointDataset";
 import { IFilterContext, IFilter } from "./Interfaces/IFilter";
 
-initializeIcons();
-
 const s = require("./ExplanationDashboard.css");
 const RowIndex: string = "rowIndex";
 
@@ -58,6 +56,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     private readonly selectionContext = new SelectionContext(RowIndex, 1);
     private selectionSubscription: string;
 
+    private static iconsInitialized = false;
+
     private static globalTabKeys: string[] = [
         "dataExploration",
         "globalImportance",
@@ -72,6 +72,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         "perturbationExploration",
         "ICE"
     ];
+
+    private static initializeIcons(props: IExplanationDashboardProps): void {
+        if (ExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
+            initializeIcons(props.iconUrl);
+            ExplanationDashboard.iconsInitialized = true;
+        }
+    }
 
     private static transposeLocalImportanceMatrix: (input: number[][][]) =>  number[][][]
         = (memoize as any).default(
@@ -106,7 +113,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 trueY: props.trueY
             };
         let localExplanation: ILocalExplanation;
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined && testDataset) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined &&
+            props.precomputedExplanations.localFeatureImportance.scores !== undefined && testDataset) {
             let weighting = props.predictedY ? WeightVectors.predicted : WeightVectors.absAvg;
             let localFeatureMatrix = ExplanationDashboard.buildLocalFeatureMatrix(props.precomputedExplanations.localFeatureImportance.scores, modelMetadata.modelType);
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(localFeatureMatrix, modelMetadata.modelType, testDataset, weighting);
@@ -125,7 +133,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
         let globalExplanation: IGlobalExplanation;
         let isGlobalDerived: boolean = false;
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined && props.precomputedExplanations.globalFeatureImportance.scores !== undefined) {
             let intercepts = undefined;
             // if (props.precomputedExplanations.globalFeatureImportance.intercept) {
             //     intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
@@ -157,7 +165,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                     if (featureExplanation.type !== "univariate") {
                         return undefined;
                     }
-                    if (featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
+                    if (featureExplanation.scores && featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
                         return {
                             type: "univariate",
                             scores: featureExplanation.scores,
@@ -185,6 +193,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             predictedY: props.predictedY, 
             trueY: props.trueY,
             metadata: modelMetadata});
+        let customVis = (props.precomputedExplanations && props.precomputedExplanations.customVis) ?
+            props.precomputedExplanations.customVis : undefined;
 
         return {
             modelMetadata,
@@ -195,7 +205,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             globalExplanation,
             isGlobalDerived,
             ebmExplanation: ebmExplanation,
-            customVis: props.precomputedExplanations.customVis
+            customVis: customVis
         };
     }
 
@@ -272,9 +282,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             let featureLength = 0;
             if (props.testData && props.testData[0] !== undefined) {
                 featureLength = props.testData[0].length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
                 featureLength = props.precomputedExplanations.globalFeatureImportance.scores.length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance && props.precomputedExplanations.localFeatureImportance.scores) {
                 const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
                 if ((localImportances as number[][][]).every(dim1 => {
                     return dim1.every(dim2 => Array.isArray(dim2));
@@ -289,7 +299,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             featureNames = ExplanationDashboard.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
         }
-        const classNames = props.dataSummary.classNames || ExplanationDashboard.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
+        let classNames = props.dataSummary.classNames;
+        const classLength = ExplanationDashboard.getClassLength(props);
+        if (!classNames || classNames.length !== classLength) {
+            classNames = ExplanationDashboard.buildIndexedNames(classLength, localization.defaultClassNames);
+        }
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
@@ -325,10 +339,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY) {
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
             return props.probabilityY[0].length;
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
+            && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
             if ((localImportances as number[][][]).every(dim1 => {
                 return dim1.every(dim2 => Array.isArray(dim2));
@@ -336,7 +351,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 return localImportances.length;
             }
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
             // determine if passed in vaules is 1D or 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
                 .every(dim1 => Array.isArray(dim1))) {
@@ -367,6 +382,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        ExplanationDashboard.initializeIcons(props);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale)
         }
@@ -463,6 +479,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             onUpdate: this.updateFilter
         }
         this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
+        if (this.pivotItems.length === 0) {
+            return <div>No valid views. Incomplete data.</div>
+        }
         return (
             <>
                 <div className="explainerDashboard">

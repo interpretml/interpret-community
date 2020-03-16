@@ -87,7 +87,7 @@ def _get_dnn_model_framework(model):
 
     TODO: Refactor out SHAP's code so we can reference this method directly from SHAP.
 
-    :return: The DNN Framework, Pytorch or Tensorflow.
+    :return: The DNN Framework, PyTorch or TensorFlow.
     :rtype: str
     """
     actual_model = model[0] if type(model) is tuple else model
@@ -95,7 +95,7 @@ def _get_dnn_model_framework(model):
 
 
 def _get_summary_data(initialization_examples, nclusters, framework):
-    """Compute the summary data from the intialization examples.
+    """Compute the summary data from the initialization examples.
 
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
@@ -126,10 +126,10 @@ class DeepExplainer(StructuredInitModelExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.GREYBOX
 
-    """An explainer for DNN models, implemented using shap's DeepExplainer, supports tensorflow and pytorch.
+    """An explainer for DNN models, implemented using shap's DeepExplainer, supports TensorFlow and PyTorch.
 
     :param model: The DNN model to explain.
-    :type model: pytorch or tensorflow model
+    :type model: PyTorch or TensorFlow model
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -150,15 +150,16 @@ class DeepExplainer(StructuredInitModelExplainer):
     :type classes: list[str]
     :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
         transformer. When transformations are provided, explanations are of the features before the transformation.
-        The format for list of transformations is same as the one here:
+        The format for a list of transformations is same as the one here:
         https://github.com/scikit-learn-contrib/sklearn-pandas.
 
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
+        If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+        are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+        package, then this parameter cannot take a list of more than one column as input for the transformation.
+        You can use the following sklearn.preprocessing  transformations with a list of columns since these are
         already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
+        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+        RobustScaler, StandardScaler.
 
         Examples for transformations that work::
 
@@ -171,14 +172,14 @@ class DeepExplainer(StructuredInitModelExplainer):
                 (["col2"], my_own_transformer),
             ]
 
-        Example of transformations that would raise an error since it cannot be interpreted as one to many::
+        An example of a transformation that would raise an error since it cannot be interpreted as one to many::
 
             [
                 (["col1", "col2"], my_own_transformer)
             ]
 
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to
-        many mapping when taking a sequence of columns.
+        The last example would not work since the interpret-community package can't determine whether
+        my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
     :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
     :param allow_all_transformations: Allow many to many and many to one transformations
     :type allow_all_transformations: bool
@@ -194,7 +195,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         """Initialize the DeepExplainer.
 
         :param model: The DNN model to explain.
-        :type model: pytorch or tensorflow model
+        :type model: PyTorch or TensorFlow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -214,30 +215,37 @@ class DeepExplainer(StructuredInitModelExplainer):
             that of the model output.  Only required if explaining classifier.
         :type classes: list[str]
         :param transformations: sklearn.compose.ColumnTransformer or a list of tuples describing the column name and
-        transformer. When transformations are provided, explanations are of the features before the transformation. The
-        format for list of transformations is same as the one here:
-        https://github.com/scikit-learn-contrib/sklearn-pandas.
-        If the user is using a transformation that is not in the list of sklearn.preprocessing transformations that
-        we support then we cannot take a list of more than one column as input for the transformation.
-        A user can use the following sklearn.preprocessing  transformations with a list of columns since these are
-        already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
-        MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer, RobustScaler,
-        StandardScaler.
-        Examples for transformations that work:
-        [
-            (["col1", "col2"], sklearn_one_hot_encoder),
-            (["col3"], None) #col3 passes as is
-        ]
-        [
-            (["col1"], my_own_transformer),
-            (["col2"], my_own_transformer),
-        ]
-        Example of transformations that would raise an error since it cannot be interpreted as one to many:
-        [
-            (["col1", "col2"], my_own_transformer)
-        ]
-        This would not work since it is hard to make out whether my_own_transformer gives a many to many or one to many
-        mapping when taking a sequence of columns.
+            transformer. When transformations are provided, explanations are of the features before the transformation.
+            The format for a list of transformations is same as the one here:
+            https://github.com/scikit-learn-contrib/sklearn-pandas.
+
+            If you are using a transformation that is not in the list of sklearn.preprocessing transformations that
+            are supported by the `interpret-community <https://github.com/interpretml/interpret-community>`_
+            package, then this parameter cannot take a list of more than one column as input for the transformation.
+            You can use the following sklearn.preprocessing  transformations with a list of columns since these are
+            already one to many or one to one: Binarizer, KBinsDiscretizer, KernelCenterer, LabelEncoder, MaxAbsScaler,
+            MinMaxScaler, Normalizer, OneHotEncoder, OrdinalEncoder, PowerTransformer, QuantileTransformer,
+            RobustScaler, StandardScaler.
+
+            Examples for transformations that work::
+
+                [
+                    (["col1", "col2"], sklearn_one_hot_encoder),
+                    (["col3"], None) #col3 passes as is
+                ]
+                [
+                    (["col1"], my_own_transformer),
+                    (["col2"], my_own_transformer),
+                ]
+
+            An example of a transformation that would raise an error since it cannot be interpreted as one to many::
+
+                [
+                    (["col1", "col2"], my_own_transformer)
+                ]
+
+            The last example would not work since the interpret-community package can't determine whether
+            my_own_transformer gives a many to many or one to many mapping when taking a sequence of columns.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
@@ -369,13 +377,13 @@ class DeepExplainer(StructuredInitModelExplainer):
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
-        """Explain the model by using shap's deep explainer.
+        """Explain the model by using SHAP's deep explainer.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
-            of ExpectedValuesMixin. If the model is a classfier, it will have the properties of the ClassesMixin.
+            of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
         kwargs = self._get_explain_local_kwargs(evaluation_examples)
