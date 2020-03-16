@@ -65,7 +65,13 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
             padding: "5px 20px 0 20px",
             flexDirection: "column"
         },
+        chart: {
+            height: "100%",
+            flex: 1
+        },
         chartWithVertical: {
+            height: "400px",
+            width: "100%",
             display: "flex",
             flexDirection: "row"
         },
@@ -156,10 +162,12 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                                 <div>{this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}</div>
                             </div>
                         </div>
-                        <AccessibleChart
-                            plotlyProps={plotlyProps}
-                            theme={undefined}
-                        />
+                        <div className={DependencePlot.classNames.chart}>
+                            <AccessibleChart
+                                plotlyProps={plotlyProps}
+                                theme={undefined}
+                            />
+                        </div>
                     </div>
                     <div className={DependencePlot.classNames.horizontalAxisWithPadding}>
                         <div className={DependencePlot.classNames.paddingDiv}></div>

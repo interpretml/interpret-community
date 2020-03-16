@@ -68,6 +68,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         },
         chartTypeDropdown: {
             margin: "0 5px 0 0"
+        },
+        globalChart: {
+            height: "400px",
+            width: "100%"
         }
     });
     private chartOptions: IDropdownOption[] = [];
@@ -156,12 +160,14 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     showValue={true}
                 />
             </div>
-            <AccessibleChart
-                plotlyProps={plotlyProps}
-                theme={this.props.theme}
-                relayoutArg={relayoutArg as any}
-                onClickHandler={this.selectPointFromChart}
-            />
+            <div className={GlobalExplanationTab.classNames.globalChart}>
+                <AccessibleChart
+                    plotlyProps={plotlyProps}
+                    theme={this.props.theme}
+                    relayoutArg={relayoutArg as any}
+                    onClickHandler={this.selectPointFromChart}
+                />
+            </div>
             <ComboBox
                 className={GlobalExplanationTab.classNames.chartTypeDropdown}
                 label={localization.BarChart.sortBy}
@@ -297,7 +303,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         const featureNumber = this.props.sortVector[trace.x];
         // set to dependence plot initially, can be changed if other feature importances available
         const xKey = JointDataset.DataLabelRoot + featureNumber.toString();
-        const xIsDithered = this.props.jointDataset.metaDict[xKey].isCategorical;
+        const xIsDithered = this.props.jointDataset.metaDict[xKey].treatAsCategorical;
         const yKey = JointDataset.ReducedLocalImportanceRoot + featureNumber.toString();
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
