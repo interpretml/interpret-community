@@ -126,8 +126,14 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                     <DefaultButton 
                         onClick={this.setColorOpen.bind(this, true)}
                         id={this._colorButtonId}
-                        text={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
-                        title={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
+                        text={this.props.chartProps.colorAxis ? 
+                            localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel :
+                            localization.ExplanationScatter.colorValue + "not set"
+                        }
+                        title={this.props.chartProps.colorAxis ?
+                            localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label :
+                            localization.ExplanationScatter.colorValue + "not set"
+                        }
                     />
                     {(this.state.colorDialogOpen) && (
                         <AxisConfigDialog 

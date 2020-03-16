@@ -7,7 +7,7 @@ import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
 import { DependencePlot } from "./DependencePlot";
-import { IGenericChartProps } from "../NewExplanationDashboard";
+import { IGenericChartProps, ChartTypes } from "../NewExplanationDashboard";
 import { mergeStyleSets } from "@uifabric/styling";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
@@ -88,6 +88,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         };
         this.setStartingK = this.setStartingK.bind(this);
         this.onSecondaryChartChange = this.onSecondaryChartChange.bind(this);
+        this.selectPointFromChart = this.selectPointFromChart.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -159,6 +160,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 plotlyProps={plotlyProps}
                 theme={this.props.theme}
                 relayoutArg={relayoutArg as any}
+                onClickHandler={this.selectPointFromChart}
             />
             <ComboBox
                 className={GlobalExplanationTab.classNames.chartTypeDropdown}
@@ -288,4 +290,31 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private onSecondaryChartChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         this.setState({secondChart: item.key as string});
     }
+
+    private selectPointFromChart(data: any): void {
+
+        const trace = data.points[0];
+        const featureNumber = this.props.sortVector[trace.x];
+        // set to dependence plot initially, can be changed if other feature importances available
+        const xKey = JointDataset.DataLabelRoot + featureNumber.toString();
+        const xIsDithered = this.props.jointDataset.metaDict[xKey].isCategorical;
+        const yKey = JointDataset.ReducedLocalImportanceRoot + featureNumber.toString();
+        const chartProps: IGenericChartProps = {
+            chartType: ChartTypes.Scatter,
+            xAxis: {
+                property: xKey,
+                options: {
+                    dither: xIsDithered,
+                    bin: false
+                }
+            },
+            yAxis: {
+                property: yKey,
+                options: {}
+            }
+        };
+        this.props.onDependenceChange(chartProps);
+        this.setState({secondChart: "depPlot"});
+        // each group will be a different cohort, setting the selected cohort should follow impl.
+    }  
 }
