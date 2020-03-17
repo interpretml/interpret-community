@@ -478,7 +478,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             onDelete: this.deleteFilter,
             onUpdate: this.updateFilter
         }
-        this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
+        // this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
         if (this.pivotItems.length === 0) {
             return <div>No valid views. Incomplete data.</div>
         }
@@ -741,7 +741,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 return;
             }
             prevState.filters.splice(index, 1);
-            prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
+            // prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
             return prevState;
         });
     }

@@ -47,6 +47,7 @@ export interface IGenericChartProps {
     xAxis?: ISelectorConfig;
     yAxis?: ISelectorConfig;
     colorAxis?: ISelectorConfig;
+    selectedCohortIndex?: number;
 }
 
 export interface ISelectorConfig {

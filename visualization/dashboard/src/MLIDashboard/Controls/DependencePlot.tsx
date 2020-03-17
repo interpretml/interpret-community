@@ -12,6 +12,7 @@ import { IExplanationModelMetadata } from "../IExplanationContext";
 import { AxisConfigDialog } from "./AxisConfigDialog";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
+import { Cohort } from "../Cohort";
 
 export interface INewDataTabProps {
     chartProps: IGenericChartProps;
@@ -19,6 +20,7 @@ export interface INewDataTabProps {
     theme?: string;
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
+    cohorts: Cohort[];
     metadata: IExplanationModelMetadata;
     onChange: (props: IGenericChartProps) => void;
 }
@@ -235,13 +237,15 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
     private generatePlotlyProps(): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(DependencePlot.basePlotlyProperties);
         const jointData = this.props.jointDataset;
+        const selectedCohortIndex = this.props.chartProps.selectedCohortIndex || 0;
+        const cohort = this.props.cohorts[selectedCohortIndex];
         plotlyProps.data[0].hoverinfo = "all";
         let hovertemplate = "";
         if (this.props.chartProps.colorAxis && (this.props.chartProps.colorAxis.options.bin ||
             jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical)) {
-                jointData.sort(this.props.chartProps.colorAxis.property);
+                cohort.sort(this.props.chartProps.colorAxis.property);
         }
-        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+        const customdata = cohort.unwrap(JointDataset.IndexLabel).map(val => {
             const dict = {};
             dict[JointDataset.IndexLabel] = val;
             return dict;
@@ -255,9 +259,9 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
             }
-            const rawX = jointData.unwrap(this.props.chartProps.xAxis.property);
+            const rawX = cohort.unwrap(this.props.chartProps.xAxis.property);
             if (this.props.chartProps.xAxis.options.dither) {
-                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
                 hovertemplate += "x: %{customdata.X}<br>";
                 rawX.forEach((val, index) => {
@@ -281,9 +285,9 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                 _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
             }
-            const rawY = jointData.unwrap(this.props.chartProps.yAxis.property);
+            const rawY = cohort.unwrap(this.props.chartProps.yAxis.property);
             if (this.props.chartProps.yAxis.options.dither) {
-                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
                 hovertemplate += "y: %{customdata.Y}<br>";
                 rawY.forEach((val, index) => {
@@ -301,7 +305,7 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
         }
         if (this.props.chartProps.colorAxis) {
             const isBinned = this.props.chartProps.colorAxis.options && this.props.chartProps.colorAxis.options.bin;
-            const rawColor = jointData.unwrap(this.props.chartProps.colorAxis.property, isBinned);
+            const rawColor = cohort.unwrap(this.props.chartProps.colorAxis.property, isBinned);
             // handle binning to categories later
             if (jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical || isBinned) {
                 const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {

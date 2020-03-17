@@ -176,6 +176,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             />
             {this.state.secondChart === 'depPlot' && (<DependencePlot 
                 chartProps={this.props.dependenceProps}
+                cohorts={this.props.cohorts}
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
                 onChange={this.props.onDependenceChange}
@@ -183,6 +184,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             {this.state.secondChart === 'swarm' && (<SwarmFeaturePlot
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
+                cohort={this.props.cohorts[0]}
                 topK={this.props.globalBarSettings.topK}
                 startingK={this.props.globalBarSettings.startingK}
                 sortVector={this.props.sortVector}

@@ -7,6 +7,7 @@ import _ from "lodash";
 import { localization } from "../../Localization/localization";
 import { PlotlyUtils, LoadingSpinner } from "../SharedComponents";
 import { IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
+import { Cohort } from "../Cohort";
 
 export interface ISwarmFeaturePlotProps {
     topK: number;
@@ -16,6 +17,7 @@ export interface ISwarmFeaturePlotProps {
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
+    cohort: Cohort;
     sortVector: number[];
 }
 
@@ -24,11 +26,11 @@ export interface ISwarmFeaturePlotState {
 }
 
 export class SwarmFeaturePlot extends React.PureComponent<ISwarmFeaturePlotProps, ISwarmFeaturePlotState> {
-    private static buildPlotlyProps: (jointDataset: JointDataset, metadata: IExplanationModelMetadata, sortVector: number[], selectedOption: IComboBoxOption) => IPlotlyProperty
+    private static buildPlotlyProps: (jointDataset: JointDataset, metadata: IExplanationModelMetadata, cohort: Cohort, sortVector: number[], selectedOption: IComboBoxOption) => IPlotlyProperty
     = (memoize as any).default(
-    (jointDataset: JointDataset, metadata: IExplanationModelMetadata, sortVector: number[], selectedOption: IComboBoxOption): IPlotlyProperty => {
+    (jointDataset: JointDataset, metadata: IExplanationModelMetadata, cohort: Cohort, sortVector: number[], selectedOption: IComboBoxOption): IPlotlyProperty => {
         const plotlyProps = _.cloneDeep(SwarmFeaturePlot.BasePlotlyProps);
-        const ditherVector = jointDataset.unwrap(JointDataset.DitherLabel);
+        const ditherVector = cohort.unwrap(JointDataset.DitherLabel);
         const numRows = ditherVector.length;
         _.set(plotlyProps, 'layout.xaxis.ticktext', sortVector.map(i => metadata.featureNamesAbridged[i]));
         _.set(plotlyProps, 'layout.xaxis.tickvals', sortVector.map((val, index) => index));
@@ -52,7 +54,7 @@ export class SwarmFeaturePlot extends React.PureComponent<ISwarmFeaturePlotProps
         const y = [];
         sortVector.forEach((featureIndex, xIndex) => {
             x.push(...new Array(numRows).fill(xIndex).map((val, i) => { return val + ditherVector[i];}));
-            y.push(...jointDataset.unwrap(JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()));
+            y.push(...cohort.unwrap(JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()));
 
         });
         plotlyProps.data[0].x = x;
@@ -107,7 +109,7 @@ export class SwarmFeaturePlot extends React.PureComponent<ISwarmFeaturePlotProps
 
     public render(): React.ReactNode {
         if (this.state.plotlyProps === undefined) {
-            const plotlyProps = SwarmFeaturePlot.buildPlotlyProps(this.props.jointDataset, this.props.metadata, this.props.sortVector, undefined);
+            const plotlyProps = SwarmFeaturePlot.buildPlotlyProps(this.props.jointDataset, this.props.metadata, this.props.cohort, this.props.sortVector, undefined);
             this.setState({plotlyProps});
             return <LoadingSpinner/>;
         }
