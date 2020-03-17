@@ -232,21 +232,21 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             baseSeries.data.push({
                 orientation: 'v',
                 type: 'bar',
-                name: 'Absolute Average of Subset',
+                name: cohort.name,
                 x,
                 y: sortedIndexVector.map(index => importances[index])
             } as any);
         })
         
-        if (this.props.globalBarSettings.includeOverallGlobal) {
-            baseSeries.data.push({
-                orientation: 'v',
-                type: 'bar',
-                name: 'Global Importance',
-                x,
-                y: sortedIndexVector.map(index => this.props.globalImportance[index])
-            } as any);
-        }
+        // if (this.props.globalBarSettings.includeOverallGlobal) {
+        //     baseSeries.data.push({
+        //         orientation: 'v',
+        //         type: 'bar',
+        //         name: 'Global Importance',
+        //         x,
+        //         y: sortedIndexVector.map(index => this.props.globalImportance[index])
+        //     } as any);
+        // }
 
         const ticktext = sortedIndexVector.map(i =>this.props.metadata.featureNamesAbridged[i]);
         const tickvals = sortedIndexVector.map((val, index) => index);

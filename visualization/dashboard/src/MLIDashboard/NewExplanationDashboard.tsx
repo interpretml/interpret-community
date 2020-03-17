@@ -14,6 +14,7 @@ import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab";
 import { Cohort } from "./Cohort";
+import { CohortControl } from "./Controls/CohortControl";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -230,6 +231,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.setGlobalBarSettings = this.setGlobalBarSettings.bind(this);
         this.setSortVector = this.setSortVector.bind(this);
+        this.onCohortChange = this.onCohortChange.bind(this);
+        this.deleteCohort = this.deleteCohort.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
@@ -257,6 +260,12 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         return (
             <>
                 <div className="explainerDashboard">
+                    <CohortControl 
+                        cohorts={this.state.cohorts}
+                        jointDataset={this.state.jointDataset}
+                        onChange={this.onCohortChange}
+                        onDelete={this.deleteCohort}
+                    />
                         <div className={NewExplanationDashboard.classNames.pivotWrapper}>
                             <Pivot
                                 componentRef={ref => {this.pivotRef = ref;}}
@@ -332,5 +341,17 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private setSortVector(): void {
         this.setState({sortVector: ModelExplanationUtils.getSortIndices(this.state.cohorts[0].calculateAverageImportance()).reverse()});
+    }
+
+    private onCohortChange(newCohort: Cohort, index: number): void {
+        const prevCohorts = [...this.state.cohorts];
+        prevCohorts[index] = newCohort;
+        this.setState({cohorts: prevCohorts});
+    }
+
+    private deleteCohort(index: number): void {
+        const prevCohorts = [...this.state.cohorts];
+        prevCohorts.splice(index, 1);
+        this.setState({cohorts: prevCohorts});
     }
 }

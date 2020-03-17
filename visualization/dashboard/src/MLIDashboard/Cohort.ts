@@ -13,8 +13,8 @@ export class Cohort {
         if (index === undefined) {
             index = this.filters.length;
         } 
-        const filters = [...this.filters];
-        filters[index] = filter;
+
+        this.filters[index] = filter;
         this.applyFilters();
     }
 
@@ -71,9 +71,9 @@ export class Cohort {
         return result.map(val => val / dict.length);
     }
 
-    private applyFilters(filters: IFilter[] = []): void {
+    private applyFilters(): void {
         this._filteredData = this.jointDataset.dataDict.filter(row => 
-            filters.every(filter => {
+            this.filters.every(filter => {
                 const rowVal = row[filter.column];
                 switch(filter.method){
                     case FilterMethods.equal:
