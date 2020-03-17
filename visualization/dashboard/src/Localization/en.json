@@ -218,5 +218,8 @@
         "defaultCustomRootName": "Copy of row {0}",
         "namePropLabel": "Name :",
         "colorLabel": "Select color:"
-    }
+    },
+    "Cohort": {
+        "cohort": "Cohort"
+    } 
 }

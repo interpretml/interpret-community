@@ -13,9 +13,10 @@ import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExpla
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab";
+import { Cohort } from "./Cohort";
 
 export interface INewExplanationDashboardState {
-    filters: IFilter[];
+    cohorts: Cohort[];
     activeGlobalTab: globalTabKeys;
     jointDataset: JointDataset;
     modelMetadata: IExplanationModelMetadata;
@@ -26,8 +27,6 @@ export interface INewExplanationDashboardState {
     globalImportanceIntercept: number;
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
-    subsetAverageImportance: number[];
-    subsetAverageIntercept: number;
     sortVector: number[];
 }
 
@@ -167,7 +166,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         }
     }
 
-    private static buildGlobalProperties(props: IExplanationDashboardProps, jointDataset: JointDataset): IGlobalExplanationProps {
+    private static buildGlobalProperties(props: IExplanationDashboardProps): IGlobalExplanationProps {
         const result: IGlobalExplanationProps = {} as IGlobalExplanationProps;
         if (props.precomputedExplanations &&
             props.precomputedExplanations.globalFeatureImportance &&
@@ -183,10 +182,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                 result.globalImportance = props.precomputedExplanations.globalFeatureImportance.scores as number[];
                 result.globalImportanceIntercept = props.precomputedExplanations.globalFeatureImportance.intercept as number;
             }
-        } else if (jointDataset.localExplanationFeatureCount > 0) {
-            result.isGlobalImportanceDerivedFromLocal = true;
-            result.globalImportance = jointDataset.calculateAverageImportance(true);
-            result.globalImportanceIntercept = undefined;
         }
         return result;
     }
@@ -205,14 +200,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             localExplanations,
             metadata: modelMetadata
         });
-        const globalProps = NewExplanationDashboard.buildGlobalProperties(props, jointDataset);
+        const globalProps = NewExplanationDashboard.buildGlobalProperties(props);
         // consider taking filters in as param arg for programatic users
-        const filters = [];
-        jointDataset.applyFilters(filters);
-        const subsetAverageImportance = jointDataset.calculateAverageImportance(false);
-        const subsetAverageIntercept = undefined;
+        const cohorts = [new Cohort(localization.Cohort.cohort + " 0", jointDataset, [])];
         return {
-            filters,
+            cohorts,
             activeGlobalTab: globalTabKeys.dataExploration,
             jointDataset,
             modelMetadata,
@@ -223,8 +215,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             globalImportanceIntercept: globalProps.globalImportanceIntercept,
             globalImportance: globalProps.globalImportance,
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
-            subsetAverageImportance,
-            subsetAverageIntercept,
             sortVector: undefined
         };
     }
@@ -237,9 +227,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
         this.onDependenceChange = this.onDependenceChange.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
-        this.addFilter = this.addFilter.bind(this);
-        this.deleteFilter = this.deleteFilter.bind(this);
-        this.updateFilter = this.updateFilter.bind(this);
         this.setGlobalBarSettings = this.setGlobalBarSettings.bind(this);
         this.setSortVector = this.setSortVector.bind(this);
         if (this.props.locale) {
@@ -259,12 +246,12 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     }
 
     render(): React.ReactNode {
-        const filterContext: IFilterContext = {
-            filters: this.state.filters,
-            onAdd: this.addFilter,
-            onDelete: this.deleteFilter,
-            onUpdate: this.updateFilter
-        }
+        // const filterContext: IFilterContext = {
+        //     filters: this.state.filters,
+        //     onAdd: this.addFilter,
+        //     onDelete: this.deleteFilter,
+        //     onUpdate: this.updateFilter
+        // }
         // this.state.jointDataset.applyFilters(this.state.filters);
         return (
             <>
@@ -286,7 +273,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     metadata={this.state.modelMetadata}
                                     chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
-                                    filterContext={filterContext}
+                                    cohorts={this.state.cohorts}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
@@ -298,12 +285,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
                                     globalImportance={this.state.globalImportance}
-                                    subsetAverageImportance={this.state.subsetAverageImportance}
                                     isGlobalDerivedFromLocal={this.state.isGlobalImportanceDerivedFromLocal}
-                                    filterContext={filterContext}
                                     onChange={this.setGlobalBarSettings}
                                     onDependenceChange={this.onDependenceChange}
                                     requestSortVector={this.setSortVector}
+                                    cohorts={this.state.cohorts}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
@@ -311,7 +297,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
-                                    filterContext={filterContext}
+                                    cohorts={this.state.cohorts}
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
                                 />
@@ -339,44 +325,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setState({activeGlobalTab: index});
     }
 
-    private addFilter(newFilter: IFilter): void {
-        this.setState(prevState => {
-            const filters = [...prevState.filters];
-            filters.push(newFilter);
-            prevState.jointDataset.applyFilters(filters);
-            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance, sortVector: undefined};
-        });
-    }
-
-    private deleteFilter(index: number): void {
-        this.setState(prevState => {
-            if (prevState.filters.length < index || index < 0) {
-                return;
-            }
-            prevState.filters.splice(index, 1);
-            const filters = [...prevState.filters];
-            prevState.jointDataset.applyFilters(filters);
-            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance, sortVector: undefined};
-        });
-    }
-
-    private updateFilter(filter: IFilter, index: number): void {
-        this.setState(prevState => {
-            const filters = [...prevState.filters];
-            filters[index] = filter;
-            prevState.jointDataset.applyFilters(filters);
-            const subsetAverageImportance = prevState.jointDataset.calculateAverageImportance(false);
-            return {filters, subsetAverageImportance, sortVector: undefined};
-        });
-    }
-
     private setGlobalBarSettings(settings: IGlobalBarSettings): void {
         this.setState({globalBarConfig: settings});
     }
 
     private setSortVector(): void {
-        this.setState({sortVector: ModelExplanationUtils.getSortIndices(this.state.globalImportance).reverse()});
+        this.setState({sortVector: ModelExplanationUtils.getSortIndices(this.state.cohorts[0].calculateAverageImportance()).reverse()});
     }
 }

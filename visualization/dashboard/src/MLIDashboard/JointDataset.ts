@@ -59,9 +59,11 @@ export class JointDataset {
     public datasetFeatureCount: number = 0;
     public localExplanationFeatureCount: number = 0;
 
-    private _dataDict: Array<{[key: string]: number}>;
-    private _filteredData: Array<{[key: string]: number}>;
-    private _binDict: {[key: string]: number[]} = {};
+    // these properties should only be accessed by Cohort class,
+    // which enables independent filtered views of this data
+    public dataDict: Array<{[key: string]: number}>;
+    public binDict: {[key: string]: number[]} = {};
+
     private readonly _modelMeta: IExplanationModelMetadata;
     private readonly _localExplanationIndexesComputed: boolean[];
     public rawLocalImportance: number[][][];
@@ -115,9 +117,9 @@ export class JointDataset {
                     const key = JointDataset.DataLabelRoot + colIndex.toString();
                     // store the index for categorical values rather than the actual value. Makes dataset uniform numeric and enables dithering
                     if (args.metadata.featureIsCategorical[colIndex]) {
-                        this._dataDict[index][key] = this.metaDict[key].sortedCategoricalValues.indexOf(val);
+                        this.dataDict[index][key] = this.metaDict[key].sortedCategoricalValues.indexOf(val);
                     } else {
-                        this._dataDict[index][key] = val;
+                        this.dataDict[index][key] = val;
                     }
                 });
             });
@@ -126,7 +128,7 @@ export class JointDataset {
         if (args.predictedY) {
             this.initializeDataDictIfNeeded(args.predictedY);
             args.predictedY.forEach((val, index) => {
-                this._dataDict[index][JointDataset.PredictedYLabel] = val;
+                this.dataDict[index][JointDataset.PredictedYLabel] = val;
             });
             this.metaDict[JointDataset.PredictedYLabel] = {
                 label: localization.ExplanationScatter.predictedY,
@@ -148,17 +150,17 @@ export class JointDataset {
         if (args.trueY) {
             this.initializeDataDictIfNeeded(args.trueY);
             args.trueY.forEach((val, index) => {
-                this._dataDict[index][JointDataset.TrueYLabel] = val;
+                this.dataDict[index][JointDataset.TrueYLabel] = val;
             });
             this.hasTrueY = true;
         }
         // include error columns if applicable
         if (this.hasPredictedY && this.hasTrueY) {
             if (args.metadata.modelType === ModelTypes.regression) {
-                this._dataDict.forEach(row => {
+                this.dataDict.forEach(row => {
                     row[JointDataset.RegressionError] = row[JointDataset.TrueYLabel] - row[JointDataset.PredictedYLabel];
                 });
-                const regressionErrorArray = this._dataDict.map(row => row[JointDataset.RegressionError]);
+                const regressionErrorArray = this.dataDict.map(row => row[JointDataset.RegressionError]);
                 this.metaDict[JointDataset.RegressionError] = {
                     label: localization.Columns.regressionError,
                     abbridgedLabel: localization.Columns.error,
@@ -173,7 +175,7 @@ export class JointDataset {
                 };
             }
             if (args.metadata.modelType === ModelTypes.binary) {
-                this._dataDict.forEach(row => {
+                this.dataDict.forEach(row => {
                     // sum pred and 2*true to map to ints 0 - 3,
                     // 0: FP
                     // 1: FN
@@ -203,39 +205,10 @@ export class JointDataset {
             this._localExplanationIndexesComputed = new Array(this.localExplanationFeatureCount).fill(false);
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
         }
-        this.applyFilters();
     }
 
-    public applyFilters(filters: IFilter[] = []): void {
-        this._filteredData = this._dataDict.filter(row => 
-            filters.every(filter => {
-                const rowVal = row[filter.column];
-                switch(filter.method){
-                    case FilterMethods.equal:
-                        return rowVal === filter.arg;
-                    case FilterMethods.greaterThan:
-                        return rowVal > filter.arg;
-                    case FilterMethods.lessThan:
-                        return rowVal < filter.arg;
-                    case FilterMethods.includes:
-                        return (filter.arg as number[]).includes(rowVal);
-                }
-            })
-        );
-    }
-
-    // return a copy of the row
     public getRow(index: number): {[key: string]: number} {
-        return {...this._dataDict[index]}
-    }
-
-    public sort(columnName: string = JointDataset.IndexLabel, reverse?: boolean): void {
-        this._filteredData.sort((a, b) => {
-            return a[columnName] - b[columnName];
-        });
-        if (reverse) {
-            this._filteredData.reverse();
-        }
+        return {...this.dataDict[index]}
     }
 
     public addBin(key: string, binCount?: number): void {
@@ -244,7 +217,7 @@ export class JointDataset {
         // use filtered data for user provided binCount
         if (binCount === undefined) {
             if (meta.featureRange.rangeType === RangeTypes.integer) {
-                const uniqueValues = _.uniq(this._dataDict.map(row => row[key]));
+                const uniqueValues = _.uniq(this.dataDict.map(row => row[key]));
                 binCount = Math.min(5, uniqueValues.length);
             }
             if (binCount === undefined) {
@@ -253,7 +226,7 @@ export class JointDataset {
         }
         let delta = meta.featureRange.max - meta.featureRange.min;
         if (delta === 0 || binCount === 0) {
-            this._binDict[key] = [meta.featureRange.max];
+            this.binDict[key] = [meta.featureRange.max];
             meta.sortedCategoricalValues = [`${meta.featureRange.min} - ${meta.featureRange.max}`];
             return;
         }
@@ -271,7 +244,7 @@ export class JointDataset {
                 prevMax = num;
                 return label;
             });
-            this._binDict[key] = array;
+            this.binDict[key] = array;
             meta.sortedCategoricalValues = labelArray;
             return;
         }
@@ -291,52 +264,21 @@ export class JointDataset {
             previousVal = num + 1;
             return label;
         });
-        this._binDict[key] = array;
+        this.binDict[key] = array;
         meta.sortedCategoricalValues = labelArray;
     } 
-
-    // whether to apply bins is a decision made at the ui control level,
-    // should not mutate the true dataset. Instead, bin props are preserved
-    // and applied when requested.
-    // Bin object stores array of upper bounds for each bin, return the index
-    // if the bin of the value;
-    public unwrap(key: string, applyBin?: boolean): any[] {
-        if (applyBin && this.metaDict[key].isCategorical === false) {
-            let binVector = this._binDict[key];
-            if (binVector === undefined) {
-                this.addBin(key);
-                binVector = this._binDict[key];
-            }
-            return this._filteredData.map(row => {
-                const rowValue = row[key];
-                return binVector.findIndex(upperLimit => upperLimit >= rowValue );
-            });
-        }
-        return this._filteredData.map(row => row[key]);
-    }
-
-    public calculateAverageImportance(useGlobal: boolean): number[] {
-        var dict = useGlobal ? this._dataDict : this._filteredData;
-        var result = new Array(this.localExplanationFeatureCount).fill(0);
-        dict.forEach(row => {
-            for (let i=0; i < this.localExplanationFeatureCount; i++) {
-                result[i] += Math.abs(row[JointDataset.ReducedLocalImportanceRoot + i.toString()]);
-            }
-        });
-        return result.map(val => val / dict.length);
-    }
 
     private initializeDataDictIfNeeded(arr: any[]): void {
         if (arr === undefined) {
             return;
         }
-        if (this._dataDict !== undefined) {
-            if (this._dataDict.length !== arr.length) {
+        if (this.dataDict !== undefined) {
+            if (this.dataDict.length !== arr.length) {
                 throw new Error("Differing length inputs. Ensure data matches explanations and predictions.")
             }
             return;
         }
-        this._dataDict = Array.from({length: arr.length} as any).map((unused, index) => {
+        this.dataDict = Array.from({length: arr.length} as any).map((unused, index) => {
             const dict = {};
             dict[JointDataset.IndexLabel] = index;
             dict[JointDataset.DitherLabel] = 0.2 * Math.random() - 0.1;
@@ -372,7 +314,7 @@ export class JointDataset {
                         if (val < featuresMinArray[featureIndex]) {
                             featuresMinArray[featureIndex] = val;
                         }
-                        this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = classArray[0];
+                        this.dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = classArray[0];
                         this._localExplanationIndexesComputed[rowIndex] = false;
                     });
                 });
@@ -405,7 +347,7 @@ export class JointDataset {
                         if (value < featuresMinArray[featureIndex]) {
                             featuresMinArray[featureIndex] = value;
                         }
-                        this._dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = value;
+                        this.dataDict[rowIndex][JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = value;
                     });
                 });
             }

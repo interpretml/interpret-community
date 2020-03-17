@@ -16,12 +16,13 @@ import { Transform } from "plotly.js-dist";
 import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
+import { Cohort } from "../Cohort";
 
 export interface IWhatIfTabProps {
     theme: any;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
-    filterContext: IFilterContext;
+    cohorts: Cohort[];
     chartProps: IGenericChartProps;
     onChange: (config: IGenericChartProps) => void; 
 }
@@ -36,6 +37,7 @@ export interface IWhatIfTabState {
     customPoints: Array<{[key: string]: any}>;
     indexText: string;
     selectedIndexErrorMessage?: string;
+    selectedCohortIndex: number;
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
@@ -172,7 +174,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             indexText: "0",
             editingData,
             editingDataCustomIndex: 0,
-            customPoints: []
+            customPoints: [],
+            selectedCohortIndex: 0
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
@@ -191,7 +194,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
         const plotlyProps = this.generatePlotlyProps(
             this.props.jointDataset,
-            this.props.chartProps
+            this.props.chartProps,
+            this.props.cohorts[this.state.selectedCohortIndex]
         );
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
@@ -266,10 +270,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 />)}
             </div>
             <div className={WhatIfTab.classNames.mainArea}>
-                <FilterControl 
+                {/* <FilterControl 
                     jointDataset={this.props.jointDataset}
                     filterContext={this.props.filterContext}
-                />
+                /> */}
                 <div className={WhatIfTab.classNames.chartWithAxes}>
                     <div className={WhatIfTab.classNames.chartWithVertical}>
                         <div className={WhatIfTab.classNames.verticalAxis}>
@@ -477,7 +481,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
     }
 
-    private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
+    private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(WhatIfTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
 
@@ -499,10 +503,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
             }
-            const rawX = jointData.unwrap(chartProps.xAxis.property);
+            const rawX = cohort.unwrap(chartProps.xAxis.property);
             const customX = JointDataset.unwrap(this.state.customPoints, chartProps.xAxis.property);
             if (chartProps.xAxis.options.dither) {
-                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
                 plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
                 plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither;});
@@ -518,10 +522,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
             }
-            const rawY = jointData.unwrap(chartProps.yAxis.property);
+            const rawY = cohort.unwrap(chartProps.yAxis.property);
             const customY = JointDataset.unwrap(this.state.customPoints, chartProps.yAxis.property);
             if (chartProps.yAxis.options.dither) {
-                const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
                 plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
                 plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither;});
@@ -532,7 +536,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
 
             
-        plotlyProps.data[0].customdata = WhatIfTab.buildCustomData(jointData, chartProps);
+        plotlyProps.data[0].customdata = WhatIfTab.buildCustomData(jointData, chartProps, cohort);
         plotlyProps.data[0].hovertemplate = WhatIfTab.buildHoverTemplate(chartProps);
         return plotlyProps;
     }
@@ -557,8 +561,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         return hovertemplate;
     }
 
-    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps): Array<any> {
-        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): Array<any> {
+        const customdata = cohort.unwrap(JointDataset.IndexLabel).map(val => {
             const dict = {};
             dict[JointDataset.IndexLabel] = val;
             return dict;
@@ -566,7 +570,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (chartProps.chartType === ChartTypes.Scatter) {
             const xAxis = chartProps.xAxis;
             if (xAxis && xAxis.property && xAxis.options.dither) {
-                const rawX = jointData.unwrap(chartProps.xAxis.property);
+                const rawX = cohort.unwrap(chartProps.xAxis.property);
                 rawX.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
@@ -579,7 +583,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
             const yAxis = chartProps.yAxis;
             if (yAxis && yAxis.property && yAxis.options.dither) {
-                const rawY = jointData.unwrap(chartProps.yAxis.property);
+                const rawY = cohort.unwrap(chartProps.yAxis.property);
                 rawY.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {

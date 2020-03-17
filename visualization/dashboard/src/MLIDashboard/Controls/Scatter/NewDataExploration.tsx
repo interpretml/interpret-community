@@ -17,6 +17,7 @@ import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigDialog";
+import { Cohort } from "../../Cohort";
 
 export interface INewDataTabProps {
     chartProps: IGenericChartProps;
@@ -25,7 +26,7 @@ export interface INewDataTabProps {
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
-    filterContext: IFilterContext;
+    cohorts: Cohort[];
     onChange: (props: IGenericChartProps) => void;
 }
 
@@ -33,6 +34,7 @@ export interface INewDataTabState {
     xDialogOpen: boolean;
     yDialogOpen: boolean;
     colorDialogOpen: boolean;
+    selectedCohortIndex: number;
 }
 
 export class NewDataExploration extends React.PureComponent<INewDataTabProps, INewDataTabState> {
@@ -132,7 +134,8 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         this.state = {
             xDialogOpen: false,
             yDialogOpen: false,
-            colorDialogOpen: false
+            colorDialogOpen: false,
+            selectedCohortIndex: 0
         };
     }
 
@@ -142,15 +145,16 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         }
         const plotlyProps = NewDataExploration.generatePlotlyProps(
             this.props.jointDataset,
-            this.props.chartProps
+            this.props.chartProps,
+            this.props.cohorts[this.state.selectedCohortIndex]
         );
         const jointData = this.props.jointDataset;
         return (
             <div className={NewDataExploration.classNames.dataTab}>
-                <FilterControl 
+                {/* <FilterControl 
                     jointDataset={jointData}
                     filterContext={this.props.filterContext}
-                />
+                /> */}
                 <div className={NewDataExploration.classNames.topConfigArea}>
                     <ComboBox
                         options={this.chartOptions}
@@ -293,12 +297,12 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         this.setState({colorDialogOpen: false})
     }
 
-    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps): IPlotlyProperty {
+    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(NewDataExploration.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
         if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
             jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {
-                jointData.sort(chartProps.colorAxis.property);
+                cohort.sort(chartProps.colorAxis.property);
         }
         switch(chartProps.chartType) {
             case ChartTypes.Scatter: {
@@ -311,9 +315,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                         _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
                     }
-                    const rawX = jointData.unwrap(chartProps.xAxis.property);
+                    const rawX = cohort.unwrap(chartProps.xAxis.property);
                     if (chartProps.xAxis.options.dither) {
-                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                        const dithered = cohort.unwrap(JointDataset.DitherLabel);
                         plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
                     } else {
                         plotlyProps.data[0].x = rawX;
@@ -326,9 +330,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                         _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
                     }
-                    const rawY = jointData.unwrap(chartProps.yAxis.property);
+                    const rawY = cohort.unwrap(chartProps.yAxis.property);
                     if (chartProps.yAxis.options.dither) {
-                        const dithered = jointData.unwrap(JointDataset.DitherLabel);
+                        const dithered = cohort.unwrap(JointDataset.DitherLabel);
                         plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
                     } else {
                         plotlyProps.data[0].y = rawY;
@@ -336,7 +340,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 }
                 if (chartProps.colorAxis) {
                     const isBinned = chartProps.colorAxis.options && chartProps.colorAxis.options.bin;
-                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, isBinned);
+                    const rawColor = cohort.unwrap(chartProps.colorAxis.property, isBinned);
                     // handle binning to categories later
                     if (jointData.metaDict[chartProps.colorAxis.property].isCategorical || isBinned) {
                         const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
@@ -370,7 +374,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
                 // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
                 plotlyProps.data[0].type = "bar";
-                const rawX = jointData.unwrap(chartProps.xAxis.property, true);
+                const rawX = cohort.unwrap(chartProps.xAxis.property, true);
                 
                 const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
                 const y = new Array(rawX.length).fill(1);
@@ -390,7 +394,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                     }
                 ];
                 if (chartProps.colorAxis) {
-                    const rawColor = jointData.unwrap(chartProps.colorAxis.property, true);
+                    const rawColor = cohort.unwrap(chartProps.colorAxis.property, true);
                     const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                         return {
                             target: index,
@@ -408,7 +412,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                 break;
             }
         }
-        plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps);
+        plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps, cohort);
         plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(chartProps);
         return plotlyProps;
     }
@@ -442,8 +446,8 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         return hovertemplate;
     }
 
-    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps): Array<any> {
-        const customdata = jointData.unwrap(JointDataset.IndexLabel).map(val => {
+    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): Array<any> {
+        const customdata = cohort.unwrap(JointDataset.IndexLabel).map(val => {
             const dict = {};
             dict[JointDataset.IndexLabel] = val;
             return dict;
@@ -451,7 +455,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         if (chartProps.chartType === ChartTypes.Scatter) {
             const xAxis = chartProps.xAxis;
             if (xAxis && xAxis.property && xAxis.options.dither) {
-                const rawX = jointData.unwrap(chartProps.xAxis.property);
+                const rawX = cohort.unwrap(chartProps.xAxis.property);
                 rawX.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
@@ -464,7 +468,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             }
             const yAxis = chartProps.yAxis;
             if (yAxis && yAxis.property && yAxis.options.dither) {
-                const rawY = jointData.unwrap(chartProps.yAxis.property);
+                const rawY = cohort.unwrap(chartProps.yAxis.property);
                 rawY.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {

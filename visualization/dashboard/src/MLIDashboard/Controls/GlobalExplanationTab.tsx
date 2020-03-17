@@ -17,6 +17,7 @@ import { FabricStyles } from "../FabricStyles";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 import { FilterControl } from "./FilterControl";
+import { Cohort } from "../Cohort";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -34,10 +35,9 @@ export interface IGlobalExplanationTabProps {
     jointDataset: JointDataset;
     dependenceProps: IGenericChartProps;
     metadata: IExplanationModelMetadata;
-    globalImportance: number[];
-    subsetAverageImportance: number[];
+    globalImportance?: number[];
     isGlobalDerivedFromLocal: boolean;
-    filterContext: IFilterContext;
+    cohorts: Cohort[];
     onChange: (props: IGlobalBarSettings) => void;
     requestSortVector: () => void;
     onDependenceChange: (props: IGenericChartProps) => void;
@@ -121,10 +121,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         _.set(plotlyProps, 'layout.xaxis.range', [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]);
         return (
         <div className={GlobalExplanationTab.classNames.page}>
-            <FilterControl 
-                jointDataset={this.props.jointDataset}
-                filterContext={this.props.filterContext}
-            />
             <div className={GlobalExplanationTab.classNames.globalChartControls}>
                 <SpinButton
                     className={GlobalExplanationTab.classNames.topK}
@@ -227,16 +223,19 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         };
 
         const x = sortedIndexVector.map((unused, index) => index);
-        const y = sortedIndexVector.map(index => this.props.subsetAverageImportance[index]);
+        // y = sortedIndexVector.map(index => this.props.subsetAverageImportance[index]);
 
-        baseSeries.data.push({
-            orientation: 'v',
-            type: 'bar',
-            name: 'Absolute Average of Subset',
-            x,
-            y
-        } as any);
-
+        this.props.cohorts.forEach(cohort => {
+            const importances = cohort.calculateAverageImportance();
+            baseSeries.data.push({
+                orientation: 'v',
+                type: 'bar',
+                name: 'Absolute Average of Subset',
+                x,
+                y: sortedIndexVector.map(index => importances[index])
+            } as any);
+        })
+        
         if (this.props.globalBarSettings.includeOverallGlobal) {
             baseSeries.data.push({
                 orientation: 'v',
@@ -289,7 +288,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         result.topK = Math.min(this.props.jointDataset.localExplanationFeatureCount, 4);
         result.startingK = 0;
         result.sortOption = "global";
-        result.includeOverallGlobal = this.props.filterContext.filters.length > 0 || !this.props.isGlobalDerivedFromLocal;
+        result.includeOverallGlobal = !this.props.isGlobalDerivedFromLocal;
         this.props.onChange(result);
     }
 
