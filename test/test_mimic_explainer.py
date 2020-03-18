@@ -334,7 +334,7 @@ class TestMimicExplainer(object):
     @property
     def iris_overall_expected_features(self):
         return [['petal length', 'petal width', 'sepal length', 'sepal width'],
-                ['petal length', 'petal width', 'sepal width', 'sepal length'],
+                ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal width', 'sepal length']]
 
