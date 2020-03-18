@@ -217,7 +217,8 @@
         "noCustomPoints": "No custom points",
         "defaultCustomRootName": "Copy of row {0}",
         "namePropLabel": "Name :",
-        "colorLabel": "Select color:"
+        "colorLabel": "Select color:",
+        "filterFeaturePlaceholder": "Search features"
     },
     "Cohort": {
         "cohort": "Cohort"

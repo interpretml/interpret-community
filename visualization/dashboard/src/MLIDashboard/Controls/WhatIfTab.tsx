@@ -3,10 +3,10 @@ import { JointDataset, ColumnCategories } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import { mergeStyleSets } from "@uifabric/styling";
 import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
-import { Panel, PanelType, IPanelProps } from "office-ui-fabric-react/lib/Panel";
 import { localization } from "../../Localization/localization";
 import { IRenderFunction } from "@uifabric/utilities";
 import { IconButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
+import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
 import { IconNames } from "@uifabric/icons";
 import { FilterControl } from "./FilterControl";
 import { IFilterContext } from "../Interfaces/IFilter";
@@ -38,6 +38,7 @@ export interface IWhatIfTabState {
     indexText: string;
     selectedIndexErrorMessage?: string;
     selectedCohortIndex: number;
+    filteredFeatureList: Array<{key: string, label: string}>;
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
@@ -158,6 +159,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
+    private readonly featureList: Array<{key: string, label: string}> = new Array(this.props.jointDataset.datasetFeatureCount)
+        .fill(0).map((unused, colIndex) => {
+            const key = JointDataset.DataLabelRoot + colIndex.toString();
+            const meta = this.props.jointDataset.metaDict[key];
+            return {key, label: meta.label.toLowerCase()};
+        });
+
     constructor(props: IWhatIfTabProps) {
         super(props);
         if (props.chartProps === undefined) {
@@ -175,7 +183,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             editingData,
             editingDataCustomIndex: 0,
             customPoints: [],
-            selectedCohortIndex: 0
+            selectedCohortIndex: 0,
+            filteredFeatureList: this.featureList
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
@@ -186,6 +195,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setCustomRowPropertyDropdown = this.setCustomRowPropertyDropdown.bind(this);
         this.updateCustomRowToArray = this.updateCustomRowToArray.bind(this);
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
+        this.filterFeatures = this.filterFeatures.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -228,14 +238,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             styles={{ dropdown: { width: 200 } }}
                             options={this.colorOptions}
                         />
+                        <div>Features: </div>
+                        <SearchBox
+                            placeholder={localization.WhatIf.filterFeaturePlaceholder}
+                            onChange={this.filterFeatures}
+                        />
                         <div className={WhatIfTab.classNames.featureList}>
-                            <div>Features: </div>
-                            {new Array(this.props.jointDataset.datasetFeatureCount).fill(0).map((unused, colIndex) => {
-                                const key = JointDataset.DataLabelRoot + colIndex.toString();
+                            {this.state.filteredFeatureList.map(item => {
                                 return <TextField
-                                    label={this.props.jointDataset.metaDict[key].abbridgedLabel}
-                                    value={this.state.editingData[key].toString()}
-                                    onChange={this.setCustomRowProperty.bind(this, key, this.props.jointDataset.metaDict[key].treatAsCategorical)}
+                                    label={this.props.jointDataset.metaDict[item.key].abbridgedLabel}
+                                    value={this.state.editingData[item.key].toString()}
+                                    onChange={this.setCustomRowProperty.bind(this, item.key, this.props.jointDataset.metaDict[item.key].treatAsCategorical)}
                                     styles={{ fieldGroup: { width: 100 } }}
                                 />  
                             })}
@@ -452,6 +465,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         newProps.yAxis = value;
         this.props.onChange(newProps);
         this.setState({yDialogOpen: false})
+    }
+
+    private filterFeatures(event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void {
+        if (newValue === undefined || newValue === null || !/\S/.test(newValue)) {
+            this.setState({filteredFeatureList: this.featureList});
+        }
+        const filteredFeatureList = this.featureList.filter(item => {
+            return item.label.includes(newValue.toLowerCase());
+        });
+        this.setState({filteredFeatureList});
     }
 
     private readonly setXOpen = (val: boolean): void => {

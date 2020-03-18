@@ -15,6 +15,7 @@ import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab";
 import { Cohort } from "./Cohort";
 import { CohortControl } from "./Controls/CohortControl";
+import { initializeIcons } from "@uifabric/icons";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -68,6 +69,15 @@ enum globalTabKeys {
 }
 
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
+    private static iconsInitialized = false;
+    
+    private static initializeIcons(props: IExplanationDashboardProps): void {
+        if (NewExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
+            initializeIcons(props.iconUrl);
+            NewExplanationDashboard.iconsInitialized = true;
+        }
+    }
+    
     private static readonly classNames = mergeStyleSets({
         pivotWrapper: {
             display: "contents"
@@ -225,6 +235,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     private pivotRef: IPivot;
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        NewExplanationDashboard.initializeIcons(props);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
         this.onDependenceChange = this.onDependenceChange.bind(this);
