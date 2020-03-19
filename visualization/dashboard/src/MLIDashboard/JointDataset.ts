@@ -82,6 +82,15 @@ export class JointDataset {
         return dataset.map(row => row[key]);
     }
 
+    // recover the array representation of just the eval dataset values from a row
+    public static datasetSlice(row: {[key: string]: any}, length: number): any[] {
+        const result = new Array(length);
+        for(let i: number = 0; i < length; i++) {
+            result[i] = row[JointDataset.DataLabelRoot] + i.toString();
+        }
+        return result;
+    }
+
     constructor(args: IJointDatasetArgs) {
         this._modelMeta = args.metadata;
         if (args.dataset && args.dataset.length > 0) {

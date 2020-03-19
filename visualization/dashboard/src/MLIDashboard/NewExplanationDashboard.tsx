@@ -321,6 +321,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     cohorts={this.state.cohorts}
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
+                                    invokeModel={this.props.requestPredictions}
                                 />
                             )}
                         </div>

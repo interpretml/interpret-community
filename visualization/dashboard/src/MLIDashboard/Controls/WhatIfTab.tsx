@@ -25,6 +25,7 @@ export interface IWhatIfTabProps {
     cohorts: Cohort[];
     chartProps: IGenericChartProps;
     onChange: (config: IGenericChartProps) => void; 
+    invokeModel: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
 export interface IWhatIfTabState {
@@ -32,13 +33,13 @@ export interface IWhatIfTabState {
     xDialogOpen: boolean;
     yDialogOpen: boolean;
     selectedIndex?: number;
-    editingData: {[key: string]: any};
     editingDataCustomIndex: number;
     customPoints: Array<{[key: string]: any}>;
     indexText: string;
     selectedIndexErrorMessage?: string;
     selectedCohortIndex: number;
     filteredFeatureList: Array<{key: string, label: string}>;
+    requestList: AbortController[]
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
@@ -171,19 +172,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
-        const editingData = this.props.jointDataset.getRow(0) as any;
-        editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, 0) as string;
-        editingData[WhatIfTab.colorPath] = this.colorOptions[0].key;
+        const editingData = this.createCopyOfFirstRow();
         this.state = {
             isPanelOpen: false,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedIndex: 0,
             indexText: "0",
-            editingData,
             editingDataCustomIndex: 0,
-            customPoints: [],
+            customPoints: [editingData],
             selectedCohortIndex: 0,
+            requestList: [],
             filteredFeatureList: this.featureList
         };
         this.dismissPanel = this.dismissPanel.bind(this);
@@ -193,7 +192,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setIndexText = this.setIndexText.bind(this);
         this.setCustomRowProperty = this.setCustomRowProperty.bind(this);
         this.setCustomRowPropertyDropdown = this.setCustomRowPropertyDropdown.bind(this);
-        this.updateCustomRowToArray = this.updateCustomRowToArray.bind(this);
+        this.createNewPoint = this.createNewPoint.bind(this);
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
         this.filterFeatures = this.filterFeatures.bind(this);
     }
@@ -207,6 +206,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
+        const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
                 WhatIfTab.classNames.expandedPanel :
@@ -225,13 +225,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         />
                         <TextField
                             label={localization.WhatIf.namePropLabel}
-                            value={this.state.editingData[WhatIfTab.namePath]}
+                            value={editingData[WhatIfTab.namePath]}
                             onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
                             styles={{ fieldGroup: { width: 200 } }}
                         />
                         <Dropdown
                             label={localization.WhatIf.colorLabel}
-                            selectedKey={this.state.editingData[WhatIfTab.colorPath]}
+                            selectedKey={editingData[WhatIfTab.colorPath]}
                             onChange={this.setCustomRowPropertyDropdown.bind(this, WhatIfTab.colorPath)}
                             onRenderTitle={this._onRenderTitle}
                             onRenderOption={this._onRenderOption}
@@ -247,7 +247,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             {this.state.filteredFeatureList.map(item => {
                                 return <TextField
                                     label={this.props.jointDataset.metaDict[item.key].abbridgedLabel}
-                                    value={this.state.editingData[item.key].toString()}
+                                    value={editingData[item.key].toString()}
                                     onChange={this.setCustomRowProperty.bind(this, item.key, this.props.jointDataset.metaDict[item.key].treatAsCategorical)}
                                     styles={{ fieldGroup: { width: 100 } }}
                                 />  
@@ -255,8 +255,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         </div>
                     </div>
                     <DefaultButton
-                        text={"save point"}
-                        onClick={this.updateCustomRowToArray}
+                        text={"create new point"}
+                        onClick={this.createNewPoint}
                     />
                     <div className={WhatIfTab.classNames.customPointsList}>
                         {this.state.customPoints.length !== 0 &&
@@ -266,6 +266,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                             <div className={WhatIfTab.classNames.colorBox} 
                                                 style={{backgroundColor: row[WhatIfTab.colorPath]}} />
                                             <span>{row[WhatIfTab.namePath]}</span>
+                                            <span>{row[JointDataset.PredictedYLabel] || "loading"}</span>
                                             <IconButton iconProps={{iconName: "Cancel"}}
                                                 onClick={this.removeCustomPoint.bind(this, index)}
                                             />
@@ -380,23 +381,24 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const asNumber = +newValue;
         const maxIndex = this.props.jointDataset.metaDict[JointDataset.IndexLabel].featureRange.max;
         if (Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= maxIndex) {
-            this.editCopyOfExistingPoint(asNumber);
+            this.editCopyOfDatasetPoint(asNumber);
         } else {
             const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
             this.setState({indexText: newValue, selectedIndex: undefined, selectedIndexErrorMessage: error});
         }
     }
 
-    editCopyOfExistingPoint(index: number): void {
+    editCopyOfDatasetPoint(index: number): void {
         const editingData: {[key: string]: any} = this.props.jointDataset.getRow(index);
-            editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, index) as string;
-            editingData[WhatIfTab.colorPath] = this.state.editingData[WhatIfTab.colorPath];
-            this.setState({
-                selectedIndex: index,
-                indexText: index.toString(),
-                selectedIndexErrorMessage: undefined,
-                editingDataCustomIndex: this.state.customPoints.length,
-                editingData});
+        editingData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, index) as string;
+        editingData[WhatIfTab.colorPath] = this.state.customPoints[this.state.editingDataCustomIndex][WhatIfTab.colorPath];
+        const customPoints = [...this.state.customPoints];
+        customPoints.push(editingData);
+        this.setState({
+            selectedIndex: index,
+            indexText: index.toString(),
+            selectedIndexErrorMessage: undefined
+        });
     }
 
     private editCustomPoint(index: number): void {
@@ -405,8 +407,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             selectedIndex: editingData[JointDataset.IndexLabel],
             indexText: editingData[JointDataset.IndexLabel].toString(),
             selectedIndexErrorMessage: undefined,
-            editingDataCustomIndex: index,
-            editingData})
+            editingDataCustomIndex: index
+        });
     }
 
     private removeCustomPoint(index: number): void {
@@ -418,29 +420,41 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private setCustomRowProperty(key: string, isString: boolean, event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
+        const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
         if (isString) {
-            this.state.editingData[key] = newValue;
+            editingData[key] = newValue;
         } else {
             const asNumber = +newValue;
             if (!Number.isFinite(asNumber)) {
                 alert('thats no number')
             }
-            this.state.editingData[key] = asNumber;
+            editingData[key] = asNumber;
         }
-        this.forceUpdate();
+        this.fetchData(editingData);
     }
 
     private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        this.state.editingData[key] = item.key;
-        this.forceUpdate();
+        const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
+        editingData[key] = item.key;
+        this.fetchData(editingData);
     }
 
-    private updateCustomRowToArray(): void {
+    private createNewPoint(): void {
         this.setState(prevState => {
             const customPoints = [...prevState.customPoints];
-            customPoints[prevState.editingDataCustomIndex] = prevState.editingData;
-            return {customPoints};
+            customPoints.push(this.createCopyOfFirstRow());
+            return {
+                customPoints,
+                editingDataCustomIndex: prevState.customPoints.length
+            };
         })
+    }
+
+    private createCopyOfFirstRow(): {[key: string]: any} {
+        const customData = this.props.jointDataset.getRow(0) as any;
+        customData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, 0) as string;
+        customData[WhatIfTab.colorPath] = this.colorOptions[0].key;
+        return customData;
     }
 
     private dismissPanel(): void {
@@ -500,8 +514,39 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (trace.curveNumber === 1) {
             this.editCustomPoint(trace.pointNumber);
         } else {
-            this.editCopyOfExistingPoint(trace.customdata[JointDataset.IndexLabel])
+            this.editCopyOfDatasetPoint(trace.customdata[JointDataset.IndexLabel])
         }
+    }
+
+    private fetchData(fetchingReference: {[key: string]: any}): void {
+        if (this.state.requestList[this.state.editingDataCustomIndex] !== undefined) {
+            this.state.requestList[this.state.editingDataCustomIndex].abort();
+        }
+        const requestList = [...this.state.requestList];
+        const abortController = new AbortController();
+        requestList[this.state.editingDataCustomIndex] = abortController;
+        const rawData = JointDataset.datasetSlice(fetchingReference, this.props.jointDataset.datasetFeatureCount);
+        fetchingReference[JointDataset.PredictedYLabel] = undefined;
+        const promise = this.props.invokeModel([rawData], abortController.signal);
+        
+
+        this.setState({requestList}, async () => {
+            try {
+                const fetchedData = await promise;
+                if (Array.isArray(fetchedData)) {
+                    fetchingReference[JointDataset.PredictedYLabel] = fetchedData[0];
+                    delete this.state.requestList[this.state.editingDataCustomIndex];
+                    this.forceUpdate();
+                }
+            } catch(err) {
+                if (err.name === 'AbortError') {
+                    return;
+                }
+                if (err.name === 'PythonError') {
+                    alert("error");
+                }
+            }
+        });
     }
 
     private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
