@@ -9,6 +9,7 @@ import uuid
 import json
 import pandas as pd
 import gc
+import scipy as sp
 
 from abc import ABCMeta, abstractmethod
 
@@ -21,6 +22,7 @@ from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
+from sklearn.utils.sparsefuncs import csc_median_axis_0
 
 
 class BaseExplanation(ChainedIdentity):
@@ -308,14 +310,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     """The common local explanation returned by explainers.
 
     :param local_importance_values: The feature importance values.
-    :type local_importance_values: numpy.array
+    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
     """
 
     def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array
+        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -335,9 +337,12 @@ class LocalExplanation(FeatureImportanceExplanation):
             2 is "fish", the first 2d matrix of importance values will be for "dog", the second will be for "cat", and
             the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
             be passed in using this same order.
-        :rtype: list[list[float]] or list[list[list[float]]]
+        :rtype: list[list[float]] or list[list[list[float]]] or scipy.sparse.csr_matrix
         """
-        return self._local_importance_values.tolist()
+        if sp.sparse.issparse(self._local_importance_values):
+            return self._local_importance_values
+        else:
+            return self._local_importance_values.tolist()
 
     @property
     def num_examples(self):
@@ -1383,7 +1388,12 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
-        per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
+        is_ndarray = isinstance(local_importance_values, np.ndarray)
+        if is_ndarray and len(local_importance_values) > 0 and sp.sparse.issparse(local_importance_values[0]):
+            medians = [np.array(csc_median_axis_0(matrix.tocsc())) for matrix in local_importance_values]
+            per_class_values = np.array(medians)
+        else:
+            per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
         per_class_rank = _order_imp(per_class_values)
         global_importance_values = np.mean(per_class_values, axis=0)
         global_importance_rank = _order_imp(global_importance_values)
@@ -1391,6 +1401,8 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
         kwargs[ExplainParams.PER_CLASS_RANK] = per_class_rank
     else:
         global_importance_values = np.mean(np.absolute(local_importance_values), axis=0)
+        if sp.sparse.issparse(local_importance_values):
+            global_importance_values = np.array(global_importance_values).flatten()
         global_importance_rank = _order_imp(global_importance_values)
 
     kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = global_importance_rank
@@ -1513,7 +1525,10 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
         local_importance_values = local_explanation_row._local_importance_values
         # in-place abs
-        np.abs(local_importance_values, out=local_importance_values)
+        if sp.sparse.issparse(local_importance_values):
+            local_importance_values = abs(local_importance_values)
+        else:
+            np.abs(local_importance_values, out=local_importance_values)
         reduction_axis = len(local_importance_values.shape) - 2
         if importance_values is None:
             importance_values = np.sum(local_importance_values, axis=reduction_axis)
