@@ -33,5 +33,6 @@ ReactDOM.render(<ExplanationDashboard
       ebmGlobalExplanation: data.ebmData
     }}
     requestPredictions={data.predictionUrl !== undefined ? generatePrediction : undefined}
+    locale={data.locale}
     key={new Date()}
   />, document.getElementById(data.divId));
