@@ -110,6 +110,7 @@ import { initializeIcons } from "@uifabric/icons";
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         // theme={"dark"}
+                        locale={undefined}
                         key={new Date()}
                       />
                   </div>
