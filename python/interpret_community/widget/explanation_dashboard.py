@@ -152,7 +152,7 @@ class ExplanationDashboard:
 
     def __init__(self, explanation, model=None, *, dataset=None,
                  true_y=None, classes=None, features=None, port=None, use_cdn=True,
-                 datasetX=None, trueY=None):
+                 datasetX=None, trueY=None, locale=None):
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
             dataset = datasetX
@@ -173,7 +173,7 @@ class ExplanationDashboard:
             ExplanationDashboard.service.port,
             str(ExplanationDashboard.model_count))
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] =\
-            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url)
+            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
