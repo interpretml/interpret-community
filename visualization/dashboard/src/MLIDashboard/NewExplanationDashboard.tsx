@@ -261,6 +261,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     }
 
     render(): React.ReactNode {
+        const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID());
         // const filterContext: IFilterContext = {
         //     filters: this.state.filters,
         //     onAdd: this.addFilter,
@@ -311,6 +312,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     onDependenceChange={this.onDependenceChange}
                                     requestSortVector={this.setSortVector}
                                     cohorts={this.state.cohorts}
+                                    cohortIDs={cohortIDs}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (

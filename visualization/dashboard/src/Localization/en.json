@@ -222,5 +222,8 @@
     },
     "Cohort": {
         "cohort": "Cohort"
-    } 
+    },
+    "GlobalTab": {
+        "secondaryChart": "Select chart type:"
+    }
 }

@@ -18,6 +18,7 @@ import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 import { FilterControl } from "./FilterControl";
 import { Cohort } from "../Cohort";
+import { FeatureImportanceBar } from "./FeatureImportanceBar";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -38,6 +39,7 @@ export interface IGlobalExplanationTabProps {
     globalImportance?: number[];
     isGlobalDerivedFromLocal: boolean;
     cohorts: Cohort[];
+    cohortIDs: string[];
     onChange: (props: IGlobalBarSettings) => void;
     requestSortVector: () => void;
     onDependenceChange: (props: IGenericChartProps) => void;
@@ -45,7 +47,9 @@ export interface IGlobalExplanationTabProps {
 
 export interface IGlobalExplanationtabState {
     secondChart: string;
-    plotlyProps: IPlotlyProperty;
+    includedCohorts: number[];
+    startingK: number;
+    sortArray: number[];
 }
 
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
@@ -74,7 +78,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             width: "100%"
         }
     });
+
     private chartOptions: IDropdownOption[] = [];
+    private unsortedYs: number[][];
+    private includedCohortNames: string[];
+
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
         if (this.props.globalBarSettings === undefined) {
@@ -88,16 +96,21 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         }
         this.state = {
             secondChart: this.chartOptions[0].key as string,
-            plotlyProps: undefined
+            includedCohorts: this.props.cohorts.map((unused, i) => i),
+            startingK: 0,
+            sortArray: ModelExplanationUtils.getSortIndices(
+                this.props.cohorts[0].calculateAverageImportance()).reverse()
         };
-        this.setStartingK = this.setStartingK.bind(this);
+        this.buildYsandNames();
         this.onSecondaryChartChange = this.onSecondaryChartChange.bind(this);
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
+        this.updateStartingK = this.updateStartingK.bind(this);
+        this.updateSortArray = this.updateSortArray.bind(this);
     }
 
-    public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
-        if (!_.isEqual(this.props.sortVector, prevProps.sortVector)) {
-            this.setState({plotlyProps: undefined})
+    public componentDidUpdate(prevProps: IGlobalExplanationTabProps, prevState: IGlobalExplanationtabState) {
+        if (this.props.cohorts !== prevProps.cohorts) {
+            this.updateIncludedCohortsOnCohortEdit(prevProps.cohorts);
         }
     }
 
@@ -105,68 +118,22 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         if (this.props.globalBarSettings === undefined) {
             return (<div/>);
         }
-        if (this.props.sortVector === undefined) {
-            this.props.requestSortVector();
-            return <LoadingSpinner/>;
-        }
-        if (this.state.plotlyProps === undefined) {
-            this.loadProps();
-            return <LoadingSpinner/>;
-        }
-        const minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
-        const maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
-        const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.props.globalBarSettings.topK);
-        const relayoutArg = {'xaxis.range': [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]};
-        const plotlyProps = this.state.plotlyProps;
-        _.set(plotlyProps, 'layout.xaxis.range', [this.props.globalBarSettings.startingK - 0.5, this.props.globalBarSettings.startingK + this.props.globalBarSettings.topK - 0.5]);
+
         return (
         <div className={GlobalExplanationTab.classNames.page}>
-            <div className={GlobalExplanationTab.classNames.globalChartControls}>
-                <SpinButton
-                    className={GlobalExplanationTab.classNames.topK}
-                    styles={{
-                        spinButtonWrapper: {maxWidth: "150px"},
-                        labelWrapper: { alignSelf: "center"},
-                        root: {
-                            display: "inline-flex",
-                            float: "right",
-                            selectors: {
-                                "> div": {
-                                    maxWidth: "160px"
-                                }
-                            }
-                        }
-                    }}
-                    label={localization.AggregateImportance.topKFeatures}
-                    min={minK}
-                    max={maxK}
-                    value={this.props.globalBarSettings.topK.toString()}
-                    onIncrement={this.setNumericValue.bind(this, 1, maxK, minK)}
-                    onDecrement={this.setNumericValue.bind(this, -1, maxK, minK)}
-                    onValidate={this.setNumericValue.bind(this, 0, maxK, minK)}
-                />
-                <Slider
-                    className={GlobalExplanationTab.classNames.startingK}
-                    ariaLabel={localization.AggregateImportance.topKFeatures}
-                    max={maxStartingK}
-                    min={0}
-                    step={1}
-                    value={this.props.globalBarSettings.startingK}
-                    onChange={this.setStartingK}
-                    showValue={true}
-                />
-            </div>
-            <div className={GlobalExplanationTab.classNames.globalChart}>
-                <AccessibleChart
-                    plotlyProps={plotlyProps}
-                    theme={this.props.theme}
-                    relayoutArg={relayoutArg as any}
-                    onClickHandler={this.selectPointFromChart}
-                />
-            </div>
+            <FeatureImportanceBar
+                unsortedX={this.props.metadata.featureNamesAbridged}
+                unsortedYs={this.unsortedYs}
+                theme={this.props.theme}
+                topK={this.props.globalBarSettings.topK}
+                seriesNames={this.includedCohortNames}
+                onSort={this.updateSortArray}
+                onClick={this.selectPointFromChart}
+                onSetStartingIndex={this.updateStartingK}
+            />
             <ComboBox
                 className={GlobalExplanationTab.classNames.chartTypeDropdown}
-                label={localization.BarChart.sortBy}
+                label={localization.GlobalTab.secondaryChart}
                 selectedKey={this.state.secondChart}
                 onChange={this.onSecondaryChartChange}
                 options={this.chartOptions}
@@ -186,17 +153,40 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 metadata={this.props.metadata}
                 cohort={this.props.cohorts[0]}
                 topK={this.props.globalBarSettings.topK}
-                startingK={this.props.globalBarSettings.startingK}
-                sortVector={this.props.sortVector}
+                startingK={this.state.startingK}
+                sortVector={this.state.sortArray}
             />)}
         </div>);
     }
 
-    private loadProps(): void {
-        setTimeout(() => {
-            const props = this.buildBarPlotlyProps();
-            this.setState({plotlyProps: props});
-            }, 1);
+    private buildYsandNames(): void {
+        this.unsortedYs = this.state.includedCohorts.map(index => {
+            return this.props.cohorts[index].calculateAverageImportance();
+        });
+        this.includedCohortNames = this.state.includedCohorts.map(index => {
+            return this.props.cohorts[index].name;
+        });
+        this.forceUpdate();
+    }
+
+    private updateIncludedCohortsOnCohortEdit(prevCohorts: Cohort[]): void {
+        const newIndexes: number[] = [];
+        this.state.includedCohorts.forEach(i => {
+            const cohort = prevCohorts[i];
+            if (cohort !== undefined) {
+                const newIndex = this.props.cohorts.indexOf(cohort);
+                if (newIndex !== -1) {
+                    newIndexes.push(newIndex);
+                }
+            }
+        });
+        // add the newly created cohort if that is the change
+        if (prevCohorts.length === this.props.cohorts.length - 1) {
+            newIndexes.push(prevCohorts.length);
+        }
+        this.setState({includedCohorts: newIndexes}, () => {
+            this.buildYsandNames();
+        });
     }
 
     private buildBarPlotlyProps(): IPlotlyProperty {
@@ -256,33 +246,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         return baseSeries;
     }
 
-    private readonly setNumericValue = (delta: number, max: number, min: number, stringVal: string): string | void => {
-        const newProps = this.props.globalBarSettings;
-        if (delta === 0) {
-            const number = +stringVal;
-            if (!Number.isInteger(number)
-                || number > max || number < min) {
-                return this.props.globalBarSettings.topK.toString();
-            }
-            newProps.topK = number;
-            this.props.onChange(newProps);
-        } else {
-            const prevVal = this.props.globalBarSettings.topK;
-            const newVal = prevVal + delta;
-            if (newVal > max || newVal < min) {
-                return prevVal.toString();
-            }
-            newProps.topK = newVal
-            this.props.onChange(newProps);
-        }
-        this.forceUpdate();
+    private updateSortArray(newArray: number[]): void {
+        this.setState({sortArray: newArray});
     }
 
-    private setStartingK(newValue: number): void {
-        const newConfig = this.props.globalBarSettings;
-        newConfig.startingK = newValue;
-        this.props.onChange(newConfig);
-        this.forceUpdate();
+    private updateStartingK(startingK: number): void {
+        this.setState({startingK})
     }
 
     private setDefaultSettings(props: IGlobalExplanationTabProps): void {

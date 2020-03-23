@@ -2,10 +2,17 @@ import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
 
 export class Cohort {
+    private static _cohortIndex: number = 0;
+
+    private readonly cohortIndex: number;
+    private mutateCount: number = 0;
     private _filteredData: Array<{[key: string]: number}>;
+    private _cachedAverageImportance: number[];
     private currentSortKey: string | undefined;
     private currentSortReversed: boolean = false;
     constructor(public name: string, private jointDataset: JointDataset, public filters: IFilter[] = []) {
+        this.cohortIndex = Cohort._cohortIndex;
+        Cohort._cohortIndex += 1;
         this.applyFilters();
     }
 
@@ -16,6 +23,11 @@ export class Cohort {
 
         this.filters[index] = filter;
         this.applyFilters();
+    }
+
+    // An id to track if a change requireing rerender has occured.
+    public getCohortID(): string {
+        return `${this.cohortIndex} + ${this.mutateCount}`
     }
 
     public deleteFilter(index: number): void {
@@ -61,6 +73,9 @@ export class Cohort {
     }
 
     public calculateAverageImportance(): number[] {
+        if (this._cachedAverageImportance) {
+            return this._cachedAverageImportance;
+        }
         var dict = this._filteredData;
         var result = new Array(this.jointDataset.localExplanationFeatureCount).fill(0);
         dict.forEach(row => {
@@ -68,10 +83,13 @@ export class Cohort {
                 result[i] += Math.abs(row[JointDataset.ReducedLocalImportanceRoot + i.toString()]);
             }
         });
-        return result.map(val => val / dict.length);
+        this._cachedAverageImportance = result.map(val => val / dict.length);
+        return this._cachedAverageImportance;
     }
 
     private applyFilters(): void {
+        this._cachedAverageImportance = undefined;
+        this.mutateCount += 1;
         this._filteredData = this.jointDataset.dataDict.filter(row => 
             this.filters.every(filter => {
                 const rowVal = row[filter.column];
