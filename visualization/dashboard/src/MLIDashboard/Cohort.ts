@@ -26,8 +26,8 @@ export class Cohort {
     }
 
     // An id to track if a change requireing rerender has occured.
-    public getCohortID(): string {
-        return `${this.cohortIndex} + ${this.mutateCount}`
+    public getCohortID(): number {
+        return this.cohortIndex;
     }
 
     public deleteFilter(index: number): void {

@@ -174,7 +174,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.state.includedCohorts.forEach(i => {
             const cohort = prevCohorts[i];
             if (cohort !== undefined) {
-                const newIndex = this.props.cohorts.indexOf(cohort);
+                const newIndex = this.props.cohorts.findIndex((c) => {
+                    return cohort.getCohortID() === c.getCohortID();
+                });
                 if (newIndex !== -1) {
                     newIndexes.push(newIndex);
                 }
@@ -270,7 +272,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private selectPointFromChart(data: any): void {
 
         const trace = data.points[0];
-        const featureNumber = this.props.sortVector[trace.x];
+        const featureNumber = this.state.sortArray[trace.x];
         // set to dependence plot initially, can be changed if other feature importances available
         const xKey = JointDataset.DataLabelRoot + featureNumber.toString();
         const xIsDithered = this.props.jointDataset.metaDict[xKey].treatAsCategorical;

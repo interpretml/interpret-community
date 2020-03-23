@@ -261,7 +261,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     }
 
     render(): React.ReactNode {
-        const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID());
+        const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID().toString());
         // const filterContext: IFilterContext = {
         //     filters: this.state.filters,
         //     onAdd: this.addFilter,
