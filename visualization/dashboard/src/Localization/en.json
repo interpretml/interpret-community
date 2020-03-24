@@ -225,5 +225,8 @@
     },
     "GlobalTab": {
         "secondaryChart": "Select chart type:"
+    },
+    "FeatureBar": {
+        "sortBy": "Sort by:"
     }
 }

@@ -17,6 +17,7 @@ import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Cohort } from "../Cohort";
+import { FeatureImportanceBar } from "./FeatureImportanceBar";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -32,17 +33,19 @@ export interface IWhatIfTabState {
     isPanelOpen: boolean;
     xDialogOpen: boolean;
     yDialogOpen: boolean;
-    selectedIndex?: number;
+    selectedWhatIfRootIndex?: number;
     editingDataCustomIndex: number;
     customPoints: Array<{[key: string]: any}>;
     indexText: string;
     selectedIndexErrorMessage?: string;
     selectedCohortIndex: number;
     filteredFeatureList: Array<{key: string, label: string}>;
-    requestList: AbortController[]
+    requestList: AbortController[];
+    selectedPointsIndexes: number[]; 
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
+    private static readonly MAX_SELECTION = 2;
     private static readonly defaultIndexString = " - ";
     private static readonly colorPath = "Color";
     private static readonly namePath = "Name"
@@ -177,13 +180,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             isPanelOpen: false,
             xDialogOpen: false,
             yDialogOpen: false,
-            selectedIndex: 0,
+            selectedWhatIfRootIndex: 0,
             indexText: "0",
             editingDataCustomIndex: 0,
             customPoints: [editingData],
             selectedCohortIndex: 0,
             requestList: [],
-            filteredFeatureList: this.featureList
+            filteredFeatureList: this.featureList,
+            selectedPointsIndexes: [0]
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
@@ -201,6 +205,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
+        const unsortedYs = this.state.selectedPointsIndexes.map(i => {
+            const row = this.props.jointDataset.getRow(i);
+            return JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
+        });
+        const names = this.state.selectedPointsIndexes.map(i => {
+            return "Row " + i;
+        });
         const plotlyProps = this.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps,
@@ -349,6 +360,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         </div>
                     </div>
                 </div >
+                <div>
+                    <FeatureImportanceBar
+                        unsortedX={this.props.metadata.featureNamesAbridged}
+                        unsortedYs={unsortedYs}
+                        theme={this.props.theme}
+                        topK={8}
+                        seriesNames={names}
+                    />
+                </div>
             </div>
         </div>);
     }
@@ -384,7 +404,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.editCopyOfDatasetPoint(asNumber);
         } else {
             const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
-            this.setState({indexText: newValue, selectedIndex: undefined, selectedIndexErrorMessage: error});
+            this.setState({indexText: newValue, selectedWhatIfRootIndex: undefined, selectedIndexErrorMessage: error});
         }
     }
 
@@ -395,7 +415,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const customPoints = [...this.state.customPoints];
         customPoints.push(editingData);
         this.setState({
-            selectedIndex: index,
+            selectedWhatIfRootIndex: index,
             indexText: index.toString(),
             selectedIndexErrorMessage: undefined
         });
@@ -404,7 +424,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private editCustomPoint(index: number): void {
         const editingData = this.state.customPoints[index];
         this.setState({
-            selectedIndex: editingData[JointDataset.IndexLabel],
+            selectedWhatIfRootIndex: editingData[JointDataset.IndexLabel],
             indexText: editingData[JointDataset.IndexLabel].toString(),
             selectedIndexErrorMessage: undefined,
             editingDataCustomIndex: index
@@ -514,7 +534,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (trace.curveNumber === 1) {
             this.editCustomPoint(trace.pointNumber);
         } else {
-            this.editCopyOfDatasetPoint(trace.customdata[JointDataset.IndexLabel])
+            const index = trace.customdata[JointDataset.IndexLabel];
+            this.editCopyOfDatasetPoint(index);
+            const indexOf = this.state.selectedPointsIndexes.indexOf(index);
+            let newSelections = [];
+            if (indexOf === -1) {
+                const startingIdex = this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION ? 1 : 0;
+                newSelections = this.state.selectedPointsIndexes.slice(startingIdex);
+                newSelections.push(index);
+            } else {
+                newSelections = [...this.state.selectedPointsIndexes]
+                newSelections.splice(indexOf,1);
+            }
+            this.setState({selectedPointsIndexes: newSelections});
         }
     }
 

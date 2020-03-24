@@ -7,6 +7,8 @@ import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
 import { LoadingSpinner } from "../SharedComponents";
+import { isThisExpression } from "@babel/types";
+import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 
 export interface IFeatureBarProps {
     theme: any;
@@ -47,6 +49,7 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
     });
 
     private sortArray: number[];
+    private sortingY: number[];
 
     constructor(props: IFeatureBarProps) {
         super(props);
@@ -55,15 +58,30 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             plotlyProps: undefined,
             sortingSeriesIndex: 0
         };
-        this.sortArray = ModelExplanationUtils.getSortIndices(
-            this.props.unsortedYs[this.state.sortingSeriesIndex]).reverse();
+        this.setSortingArray(this.props.unsortedYs[this.state.sortingSeriesIndex]);
         this.setStartingK = this.setStartingK.bind(this);
-
+        this.setSortIndex = this.setSortIndex.bind(this);
     }
 
     public componentDidUpdate(prevProps: IFeatureBarProps) {
         if (this.props.unsortedYs !== prevProps.unsortedYs) {
-            this.setState({plotlyProps: undefined})
+            if(this.props.unsortedYs.length === 0) {
+                this.setState({plotlyProps: undefined});
+                return;
+            }
+            // if the passed in Y's don't match, try to find the new index of the prev selection
+            // if not present, pick the first item.
+            if (this.props.unsortedYs[this.state.sortingSeriesIndex] !== this.sortingY) {
+                const newIndex = this.props.unsortedYs.findIndex(array => array === this.sortingY);
+                if (newIndex !== -1) {
+                    this.setState({plotlyProps: undefined, sortingSeriesIndex: newIndex});
+                } else {
+                    this.setSortingArray(this.props.unsortedYs[0]);
+                    this.setState({plotlyProps: undefined, sortingSeriesIndex: 0});
+                }
+            } else {
+                this.setState({plotlyProps: undefined});
+            }
         }
     }
 
@@ -74,12 +92,25 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         const relayoutArg = {'xaxis.range': [this.state.startingK - 0.5, this.state.startingK + this.props.topK - 0.5]};
         const plotlyProps = this.state.plotlyProps;
         _.set(plotlyProps, 'layout.xaxis.range', [this.state.startingK - 0.5, this.state.startingK + this.props.topK - 0.5]);
+        const nameOptions: IDropdownOption[] = this.props.seriesNames.map((name, i) => {
+            return {key: i, text: name};
+        });
+        if (this.props.unsortedYs.length === 0) {
+            return (<div>No Data</div>)
+        }
         if (this.state.plotlyProps === undefined) {
             this.loadProps();
             return <LoadingSpinner/>;
         };
         return (<div className={FeatureImportanceBar.classNames.wrapper}>
             <div className={FeatureImportanceBar.classNames.globalChartControls}>
+                <Dropdown
+                    label={localization.FeatureBar.sortBy}
+                    selectedKey={this.state.sortingSeriesIndex}
+                    onChange={this.setSortIndex}
+                    styles={{ dropdown: { width: 150 } }}
+                    options={nameOptions}
+                />
                 <SpinButton
                     className={FeatureImportanceBar.classNames.topK}
                     styles={{
@@ -125,6 +156,15 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         </div>);
     }
 
+    // done outside of normal react state management to reduce recomputing
+    private setSortingArray(unsortedY: number[]): void {
+        this.sortingY = unsortedY;
+        this.sortArray = ModelExplanationUtils.getSortIndices(this.sortingY).reverse();
+        if (this.props.onSort) {
+            this.props.onSort(this.sortArray);
+        }
+    }
+
     private loadProps(): void {
         setTimeout(() => {
             const props = this.buildBarPlotlyProps();
@@ -132,8 +172,19 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             }, 1);
     }
 
+    private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        const newIndex = item.key as number;
+        if (newIndex === this.state.sortingSeriesIndex) {
+            return;
+        }
+        this.setSortingArray(this.props.unsortedYs[newIndex]);
+        this.setState({sortingSeriesIndex: newIndex, plotlyProps: undefined});
+    }
+
     private setStartingK(newValue: number): void {
-        this.props.onSetStartingIndex(newValue);
+        if (this.props.onSetStartingIndex) {
+            this.props.onSetStartingIndex(newValue);
+        }
         this.setState({startingK: newValue});
     }
 

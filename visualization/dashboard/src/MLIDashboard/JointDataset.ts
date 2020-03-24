@@ -86,7 +86,16 @@ export class JointDataset {
     public static datasetSlice(row: {[key: string]: any}, length: number): any[] {
         const result = new Array(length);
         for(let i: number = 0; i < length; i++) {
-            result[i] = row[JointDataset.DataLabelRoot] + i.toString();
+            result[i] = row[JointDataset.DataLabelRoot + i.toString()];
+        }
+        return result;
+    }
+
+    // recover the array representation of just the local explanations from a row
+    public static localExplanationSlice(row: {[key: string]: any}, length: number): any[] {
+        const result = new Array(length);
+        for(let i: number = 0; i < length; i++) {
+            result[i] = row[JointDataset.ReducedLocalImportanceRoot + i.toString()];
         }
         return result;
     }
