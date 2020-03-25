@@ -310,14 +310,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     """The common local explanation returned by explainers.
 
     :param local_importance_values: The feature importance values.
-    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
+    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
     """
 
     def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
+        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -338,8 +338,9 @@ class LocalExplanation(FeatureImportanceExplanation):
             the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
             be passed in using this same order.
         :rtype: list[list[float]] or list[list[list[float]]] or scipy.sparse.csr_matrix
+            or list[scipy.sparse.csr_matrix]
         """
-        if sp.sparse.issparse(self._local_importance_values):
+        if self.is_local_sparse:
             return self._local_importance_values
         else:
             return self._local_importance_values.tolist()
@@ -352,9 +353,19 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: int
         """
         if ClassesMixin._does_quack(self):
-            return len(self.local_importance_values[0])
+            return self._local_importance_values[0].shape[0]
         else:
-            return len(self.local_importance_values)
+            return self._local_importance_values.shape[0]
+
+    @property
+    def is_local_sparse(self):
+        """Determines whether the local importance values are sparse.
+
+        :return: True if the local importance values are sparse.
+        :rtype: bool
+        """
+        local_vals = self._local_importance_values
+        return sp.sparse.issparse(local_vals) or (isinstance(local_vals, list) and sp.sparse.issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
