@@ -62,7 +62,7 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
     :param importance_values: The importance values computed for the dataset.
-    :type importance_values: np.array
+    :type importance_values: np.array or list[scipy.sparse.csr_matrix]
     :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
     :type raw_to_output_feature_maps: list[numpy.array or sparse matrix]
     :return: Raw feature importance values.
@@ -83,6 +83,12 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     raw_to_output_map = normalize(raw_to_output_map, norm='l1', axis=0)
 
     orig_single_dimensional_importances = False
+    if isinstance(importance_values, list):
+        raw_importances = []
+        for class_matrix in importance_values:
+            raw_importances.append(class_matrix.dot(raw_to_output_map.T))
+        return np.array(raw_importances)
+
     if len(importance_values.shape) < 2:
         importance_values = importance_values.reshape(1, -1)
         orig_single_dimensional_importances = True

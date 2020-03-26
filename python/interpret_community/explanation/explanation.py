@@ -310,14 +310,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     """The common local explanation returned by explainers.
 
     :param local_importance_values: The feature importance values.
-    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
+    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
     """
 
     def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix
+        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -338,8 +338,9 @@ class LocalExplanation(FeatureImportanceExplanation):
             the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
             be passed in using this same order.
         :rtype: list[list[float]] or list[list[list[float]]] or scipy.sparse.csr_matrix
+            or list[scipy.sparse.csr_matrix]
         """
-        if sp.sparse.issparse(self._local_importance_values):
+        if self.is_local_sparse:
             return self._local_importance_values
         else:
             return self._local_importance_values.tolist()
@@ -352,9 +353,19 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: int
         """
         if ClassesMixin._does_quack(self):
-            return len(self.local_importance_values[0])
+            return self._local_importance_values[0].shape[0]
         else:
-            return len(self.local_importance_values)
+            return self._local_importance_values.shape[0]
+
+    @property
+    def is_local_sparse(self):
+        """Determines whether the local importance values are sparse.
+
+        :return: True if the local importance values are sparse.
+        :rtype: bool
+        """
+        local_vals = self._local_importance_values
+        return sp.sparse.issparse(local_vals) or (isinstance(local_vals, list) and sp.sparse.issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -458,7 +469,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: Raw feature importance.
         :rtype: list[list] or list[list[list]]
         """
-        return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
+        if self.is_local_sparse:
+            return _get_raw_feature_importances(self.local_importance_values, raw_to_output_maps).tolist()
+        else:
+            return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
 
     def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
@@ -1388,8 +1402,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
-        is_ndarray = isinstance(local_importance_values, np.ndarray)
-        if is_ndarray and len(local_importance_values) > 0 and sp.sparse.issparse(local_importance_values[0]):
+        if local_explanation.is_local_sparse:
             medians = [np.array(csc_median_axis_0(matrix.tocsc())) for matrix in local_importance_values]
             per_class_values = np.array(medians)
         else:
@@ -1401,7 +1414,7 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
         kwargs[ExplainParams.PER_CLASS_RANK] = per_class_rank
     else:
         global_importance_values = np.mean(np.absolute(local_importance_values), axis=0)
-        if sp.sparse.issparse(local_importance_values):
+        if local_explanation.is_local_sparse:
             global_importance_values = np.array(global_importance_values).flatten()
         global_importance_rank = _order_imp(global_importance_values)
 
@@ -1449,7 +1462,10 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
     new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
     if hasattr(engineered_feats_explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
-        local_explanation = LocalExplanation(np.array(engineered_feats_explanation.local_importance_values),
+        engineered_local_importance_values = engineered_feats_explanation.local_importance_values
+        if not engineered_feats_explanation.is_local_sparse:
+            engineered_local_importance_values = np.array(engineered_local_importance_values)
+        local_explanation = LocalExplanation(engineered_local_importance_values,
                                              model_task=kwargs[ExplainParams.MODEL_TASK], method=None, features=None)
         raw_local_importances = local_explanation.get_raw_feature_importances(feature_maps)
         raw_local_explanation = LocalExplanation(

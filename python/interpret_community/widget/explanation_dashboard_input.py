@@ -22,7 +22,8 @@ class ExplanationDashboardInput:
             true_y=None,
             classes=None,
             features=None,
-            predict_url=None):
+            predict_url=None,
+            locale=None):
         """Initialize the Explanation Dashboard Input.
 
         :param explanation: An object that represents an explanation.
@@ -164,6 +165,8 @@ class ExplanationDashboardInput:
             self.dashboard_input[ExplanationDashboardInterface.PROBABILITY_Y] = probability_y
         if model is not None:
             self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = predict_url
+        if locale is not None:
+            self.dashboard_input[ExplanationDashboardInterface.LOCALE] = locale
 
     def on_predict(self, data):
         try:

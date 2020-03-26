@@ -27,6 +27,7 @@ class ExplanationDashboardInterface(object):
     MLI_DATASET_X_KEY = "dataset_x"
     MLI_DATASET_Y_KEY = "dataset_y"
     HAS_MODEL = "has_model"
+    LOCALE = "locale"
 
 
 class DatabricksInterfaceConstants(object):
