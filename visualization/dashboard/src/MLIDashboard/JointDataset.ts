@@ -5,6 +5,7 @@ import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import _ from "lodash";
 import { IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
 import { WeightVectors, WeightVectorOption } from "./IWeightedDropdownContext";
+import { Cohort } from "./Cohort";
 
 export interface IJointDatasetArgs {
     dataset?: any[][];
@@ -18,7 +19,8 @@ export enum ColumnCategories {
     outcome = 'outcome',
     dataset = 'dataset',
     index = "index",
-    explanation = 'explanation'
+    explanation = 'explanation',
+    cohort = 'cohort'
 }
 
 // The object that will store user-facing strings and associated metadata
@@ -312,6 +314,12 @@ export class JointDataset {
                 max: arr.length - 1
             },
             category: ColumnCategories.index
+        };
+        this.metaDict[Cohort.CohortKey] = {
+            label: localization.Cohort.cohort,
+            abbridgedLabel: localization.Cohort.cohort,
+            isCategorical: true,
+            category: ColumnCategories.cohort
         };
     }
 

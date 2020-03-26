@@ -29,6 +29,7 @@
     "feature": "Feature:",
     "intercept": "Intercept",
     "_intercept.comment": "The label for the linear intercept, the bias value",
+    "modelPerformance": "Model Performance",
     "ExplanationScatter": {
         "dataLabel": "Data : {0}",
         "_dataLabel.comment": "prepend in front of column names",

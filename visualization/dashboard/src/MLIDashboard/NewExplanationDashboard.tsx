@@ -16,12 +16,14 @@ import { WhatIfTab } from "./Controls/WhatIfTab";
 import { Cohort } from "./Cohort";
 import { CohortControl } from "./Controls/CohortControl";
 import { initializeIcons } from "@uifabric/icons";
+import { ModelPerformanceTab } from "./Controls/ModelPerformaceTab";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
     activeGlobalTab: globalTabKeys;
     jointDataset: JointDataset;
     modelMetadata: IExplanationModelMetadata;
+    modelChartConfig: IGenericChartProps;
     dataChartConfig: IGenericChartProps;
     whatIfChartConfig: IGenericChartProps;
     globalBarConfig: IGlobalBarSettings;
@@ -63,7 +65,8 @@ export interface ISelectorConfig {
 }
 
 enum globalTabKeys {
-    dataExploration ="dataExploration",
+    modelPerformance = "modelPerformance",
+    dataExploration = "dataExploration",
     explanationTab = "explanationTab",
     whatIfTab = "whatIfTab"
 }
@@ -220,6 +223,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             activeGlobalTab: globalTabKeys.dataExploration,
             jointDataset,
             modelMetadata,
+            modelChartConfig: undefined,
             dataChartConfig: undefined,
             whatIfChartConfig: undefined,
             dependenceProps: undefined,
@@ -236,6 +240,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
+        this.onModelConfigChanged = this.onModelConfigChanged.bind(this);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
         this.onDependenceChange = this.onDependenceChange.bind(this);
@@ -251,6 +256,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
         if (this.state.jointDataset.hasDataset) {
             this.pivotItems.push({headerText: localization.dataExploration, itemKey: globalTabKeys.dataExploration});
+            this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
         }
         if (this.state.jointDataset.localExplanationFeatureCount > 0) {
             this.pivotItems.push({headerText: localization.globalImportance, itemKey: globalTabKeys.explanationTab});
@@ -288,6 +294,16 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             >
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
+                            {this.state.activeGlobalTab === globalTabKeys.modelPerformance && (
+                                <ModelPerformanceTab
+                                    jointDataset={this.state.jointDataset}
+                                    theme={this.props.theme}
+                                    metadata={this.state.modelMetadata}
+                                    chartProps={this.state.modelChartConfig}
+                                    onChange={this.onModelConfigChanged}
+                                    cohorts={this.state.cohorts}
+                                />
+                            )}
                             {this.state.activeGlobalTab === globalTabKeys.dataExploration && (
                                 <NewDataExploration
                                     jointDataset={this.state.jointDataset}
@@ -334,6 +350,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private onConfigChanged(newConfig: IGenericChartProps): void {
         this.setState({dataChartConfig: newConfig});
+    }
+
+    private onModelConfigChanged(newConfig: IGenericChartProps): void {
+        this.setState({modelChartConfig: newConfig});
     }
 
     private onWhatIfConfigChanged(newConfig: IGenericChartProps): void {

@@ -13,6 +13,7 @@ import { IComboBoxClassNames } from "office-ui-fabric-react/lib/components/Combo
 import { FabricStyles } from "../FabricStyles";
 import { RangeTypes } from "mlchartlib";
 import { ISelectorConfig } from "../NewExplanationDashboard";
+import { Cohort } from "../Cohort";
 
 const theme = getTheme();
 const styles = mergeStyleSets({
@@ -59,6 +60,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private readonly MAX_HIST_COLS = 40;
 
     private readonly leftItems= [
+        Cohort.CohortKey,
         JointDataset.IndexLabel,
         JointDataset.DataLabelRoot,
         JointDataset.PredictedYLabel,
@@ -122,7 +124,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                             columns={[{key: 'col1', name: 'name', minWidth: 200, fieldName: 'title'}]}
                         />
                     </div>
-                    <div className={styles.rightHalf}>
+                    {this.state.selectedColumn.property === Cohort.CohortKey && (
+                            <div className={styles.rightHalf}>Group by cohort</div>
+                    )}
+                    {this.state.selectedColumn.property !== Cohort.CohortKey &&
+                    (<div className={styles.rightHalf}>
                         {isDataColumn && (
                             <ComboBox
                                 options={this.dataArray}
@@ -186,7 +192,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 )}
                             </div>
                         )}
-                    </div>
+                    </div>)}
                 </div>
                 <DefaultButton 
                     text={"Accept"}

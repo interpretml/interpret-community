@@ -2,7 +2,7 @@ import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
 
 export class Cohort {
-    public static CohortKey: "Cohort";
+    public static CohortKey: string = "Cohort";
     private static _cohortIndex: number = 0;
 
     private readonly cohortIndex: number;
