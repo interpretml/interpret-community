@@ -449,14 +449,15 @@ class MimicExplainer(BlackBoxExplainer):
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
+        is_sparse = sp.sparse.issparse(local_importance_values) or sp.sparse.issparse(local_importance_values[0])
         expected_values = self.surrogate_model.expected_values
         kwargs[ExplainParams.METHOD] = ExplainType.MIMIC
         self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 
-        if self.predict_proba_flag:
+        if self.predict_proba_flag and not is_sparse:
             if self.surrogate_model.multiclass:
-                # For multiclass case, convert to array
+                # For multiclass case, convert to array, but only if not sparse
                 local_importance_values = np.array(local_importance_values)
             else:
                 # TODO: Eventually move this back inside the surrogate model
@@ -469,10 +470,11 @@ class MimicExplainer(BlackBoxExplainer):
         if self.explain_subset:
             self._logger.debug('Getting subset of local_importance_values')
             if classification:
-                is_ndarray = isinstance(local_importance_values, np.ndarray)
-                if is_ndarray and len(local_importance_values) > 0 and sp.sparse.issparse(local_importance_values[0]):
+                if is_sparse and self.surrogate_model.multiclass:
                     for i in range(len(local_importance_values)):
                         local_importance_values[i] = local_importance_values[i][:, self.explain_subset]
+                else:
+                    local_importance_values = local_importance_values[:, :, self.explain_subset]
             else:
                 local_importance_values = local_importance_values[:, self.explain_subset]
         if classification:
