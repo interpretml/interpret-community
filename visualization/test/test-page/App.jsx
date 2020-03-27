@@ -3,6 +3,7 @@ import { ExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
+import {ibmDataInconsistent} from '../__mock_data/ibmDataInconsistent'
 import {irisGlobal} from '../__mock_data/irisGlobal';
 import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
@@ -32,6 +33,7 @@ import { initializeIcons } from "@uifabric/icons";
         {label: 'irisGlobal', data: irisGlobal},
         {label: 'irisDataGlobal', data: irisDataGlobal},
         {label: 'ibmData', data: ibmData},
+        {label: 'ibmDataInconsistent', data: ibmDataInconsistent},
         {label: 'breastCancer', data: breastCancerData},
         {label: 'ibmNoClass', data: ibmNoClass},
         {label: 'irisNoFeature', data: irisNoFeatures},

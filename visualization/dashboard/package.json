@@ -1,6 +1,6 @@
 {
   "name": "interpret-dashboard",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "See license file 'LICENSE'",
   "description": "ML Chart Lib",
   "main": "rel/index.js",
@@ -19,8 +19,8 @@
   "devDependencies": {
     "@types/jest": "^24.0.15",
     "@types/lodash": "4.14.123",
-    "@types/plotly.js-dist": "npm:@types/plotly.js",
     "@types/memoize-one": "4.1.1",
+    "@types/plotly.js-dist": "npm:@types/plotly.js",
     "@types/react": "16.8.10",
     "@types/uuid": "3.4.4",
     "identity-obj-proxy": "^3.0.0",

@@ -15,6 +15,7 @@ export interface IExplanationContext {
     isGlobalDerived: boolean;
     ebmExplanation?: IFeatureValueExplanation;
     customVis?: string;
+    inputError?: string;
 }
 
 // The interface containing either the local explanations matrix, 
