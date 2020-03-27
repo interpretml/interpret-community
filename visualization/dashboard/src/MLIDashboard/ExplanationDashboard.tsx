@@ -104,6 +104,19 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         };
         const modelMetadata = ExplanationDashboard.buildModelMetadata(props);
         const errorMessage = ExplanationDashboard.validateInputs(props, modelMetadata);
+        if (errorMessage !== undefined) {
+            return {
+                modelMetadata,
+                explanationGenerators,
+                localExplanation: undefined,
+                testDataset: {},
+                globalExplanation: undefined,
+                isGlobalDerived: false,
+                ebmExplanation: undefined,
+                customVis:undefined,
+                inputError: errorMessage
+            };
+        }
         const testDataset: ITestDataset =  {
                 dataset: props.testData,
                 predictedY: props.predictedY,
@@ -286,7 +299,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                     return "Local explanation not a non-empty array";
                 }
                 if (rowLength === undefined) {
-                    rowLength = length;
+                    rowLength = rLength;
                 }
                 if (rLength !== rowLength) {
                     return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength}], expected [${classLength} x ${rowLength}]`;
@@ -297,6 +310,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 const fLength = (localExp[0][0] as number[]).length;
                 if (fLength !== featureLength) {
                     return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength} x ${fLength}], expected [${classLength} x ${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(classArray => classArray.every(rowArray => rowArray.length === featureLength))) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
                 }
             } else {
                 const length = localExp.length;
@@ -309,21 +325,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 if (length === 0) {
                     return "Local explanation not a non-empty array";
                 }
-            }
-            
-            
-            if (length !== rowLength) {
-                return `Inconsistent dimensions. Eval dataset has length [${length}], expected [${rowLength}]`;
-            }
-            if (length === 0) {
-                return "Eval dataset not a non-empty array";
-            }
-            const fLength = props.testData[0].length;
-            if (fLength !== classLength) {
-                return `Inconsistent dimensions. Predicted probability has dimensions [${length} x ${fLength}], expected [${rowLength} x ${classLength}]`;
-            }
-            if (!props.testData.every(row => row.length === featureLength)) {
-                return `Inconsistent dimensions. Predicted probability has rows of varying length`;
+                const fLength = (localExp[0] as number[]).length;
+                if (fLength !== featureLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${length} x ${fLength}], expected [${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(rowArray => rowArray.length === featureLength)) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
             }
         }
     }
@@ -466,7 +474,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             })) {
                 return localImportances.length;
             } else {
-                // assume regression
+                // 2d is regression (could be a non-scikit convention binary, but that is not supported)
                 return 1;
             }
         }
@@ -591,6 +599,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
+        if (this.state.dashboardContext.explanationContext.inputError) {
+            return <div>{this.state.dashboardContext.explanationContext.inputError}</div>
+        }
         if (this.pivotItems.length === 0) {
             return <div>No valid views. Incomplete data.</div>
         }
