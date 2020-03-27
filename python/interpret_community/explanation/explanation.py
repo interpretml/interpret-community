@@ -560,9 +560,13 @@ class LocalExplanation(FeatureImportanceExplanation):
             return False
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
-        if not isinstance(explanation.local_importance_values, list):
+        is_list = isinstance(explanation.local_importance_values, list)
+        is_sparse = sp.sparse.issparse(explanation.local_importance_values)
+        if not is_list and not is_sparse:
             return False
         if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
+            return False
+        if not hasattr(explanation, ExplainParams.IS_LOCAL_SPARSE):
             return False
         return True
 
@@ -1709,7 +1713,7 @@ def load_explanation(expljson):
         id_value = None
 
     # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES']:
+    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES', 'IS_LOCAL_SPARSE']:
         if getattr(ExplainParams, remove_key) in expldict:
             paramkeys.remove(remove_key)
 

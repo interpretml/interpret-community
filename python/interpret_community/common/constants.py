@@ -61,6 +61,7 @@ class ExplainParams(object):
     INCLUDE_LOCAL = 'include_local'
     INIT_DATA = 'init_data'
     IS_ENG = 'is_engineered'
+    IS_LOCAL_SPARSE = 'is_local_sparse'
     IS_RAW = 'is_raw'
     LOCAL_EXPLANATION = 'local_explanation'
     LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
