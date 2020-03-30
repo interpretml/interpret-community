@@ -254,9 +254,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         }
         this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
 
+        if (this.state.jointDataset.hasPredictedY) {
+            this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
+        }
         if (this.state.jointDataset.hasDataset) {
             this.pivotItems.push({headerText: localization.dataExploration, itemKey: globalTabKeys.dataExploration});
-            this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
         }
         if (this.state.jointDataset.localExplanationFeatureCount > 0) {
             this.pivotItems.push({headerText: localization.globalImportance, itemKey: globalTabKeys.explanationTab});
@@ -268,13 +270,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     render(): React.ReactNode {
         const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID().toString());
-        // const filterContext: IFilterContext = {
-        //     filters: this.state.filters,
-        //     onAdd: this.addFilter,
-        //     onDelete: this.deleteFilter,
-        //     onUpdate: this.updateFilter
-        // }
-        // this.state.jointDataset.applyFilters(this.state.filters);
+
         return (
             <>
                 <div className="explainerDashboard">

@@ -19,6 +19,7 @@ import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 import { FilterControl } from "./FilterControl";
 import { Cohort } from "../Cohort";
 import { FeatureImportanceBar } from "./FeatureImportanceBar";
+import { GlobalViolinPlot } from "./GlobalViolinPlot";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -148,7 +149,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 metadata={this.props.metadata}
                 onChange={this.props.onDependenceChange}
             />)}
-            {this.state.secondChart === 'swarm' && (<SwarmFeaturePlot
+            {this.state.secondChart === 'swarm' && (<GlobalViolinPlot
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
                 cohort={this.props.cohorts[0]}
