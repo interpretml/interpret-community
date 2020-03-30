@@ -1260,7 +1260,11 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-    if init_data is not None or eval_data is not None:
+    init_data_exists = init_data is not None
+    eval_data_exists = eval_data is not None
+    eval_ys_predicted_exists = eval_ys_predicted is not None
+    eval_ys_predicted_proba_exists = eval_ys_predicted_proba is not None
+    if init_data_exists or eval_data_exists or eval_ys_predicted_exists or eval_ys_predicted_proba_exists:
         mixins.append(_DatasetsMixin)
         if init_data is not None:
             kwargs[ExplainParams.INIT_DATA] = init_data
