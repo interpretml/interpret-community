@@ -1,4 +1,3 @@
-from gevent.pywsgi import WSGIServer
 from flask import Flask, render_template, request
 from IPython.display import display, IFrame
 import threading
@@ -6,8 +5,14 @@ import socket
 import requests
 import os
 import json
+import atexit
 from .explanation_dashboard_input import ExplanationDashboardInput
 from ._internal.constants import DatabricksInterfaceConstants
+try:
+    from gevent.pywsgi import WSGIServer
+except ModuleNotFoundError:
+    raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
+                       "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
 """Explanation Dashboard Class.
 
@@ -23,13 +28,13 @@ from ._internal.constants import DatabricksInterfaceConstants
 :param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
     explanation object.
 :type true_y: numpy.array or list[]
-:param classes: The class names
+:param classes: The class names.
 :type classes: numpy.array or list[]
-:param features: Feature names
+:param features: Feature names.
 :type features: numpy.array or list[]
-:param port: the port to use on localhosted service
+:param port: The port to use on locally hosted service.
 :type port: number
-:param use_cdn: should load latest dashboard script from cdn, fall back to local script if false
+:param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
 :type use_cdn: boolean
 """
 
@@ -47,7 +52,20 @@ class ExplanationDashboard:
             self.port = port
             self.ip = '127.0.0.1'
             self.use_cdn = True
-            ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
+            if self.port is None:
+                # Try 100 different ports
+                for port in range(5000, 5100):
+                    available = ExplanationDashboard.DashboardService._local_port_available(self.ip, port, rais=False)
+                    if available:
+                        self.port = port
+                        return
+                error_message = """Ports 5000 to 5100 not available.
+                    Please specify an open port for use via the 'port' parameter"""
+                raise RuntimeError(
+                    error_message.format(port)
+                )
+            else:
+                ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
 
         def run(self):
             class devnull:
@@ -56,6 +74,12 @@ class ExplanationDashboard:
             server = WSGIServer((self.ip, self.port), self.app, log=devnull)
             self.app.config["server"] = server
             server.serve_forever()
+
+            # Closes server on program exit, including freeing all sockets
+            def closeserver():
+                server.stop()
+
+            atexit.register(closeserver)
 
         def _local_port_available(ip, port, rais=True):
             """
@@ -127,8 +151,8 @@ class ExplanationDashboard:
                 return ExplanationDashboard.explanations[id].on_predict(data)
 
     def __init__(self, explanation, model=None, *, dataset=None,
-                 true_y=None, classes=None, features=None, port=5000, use_cdn=True,
-                 datasetX=None, trueY=None):
+                 true_y=None, classes=None, features=None, port=None, use_cdn=True,
+                 datasetX=None, trueY=None, locale=None):
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
             dataset = datasetX
@@ -149,7 +173,7 @@ class ExplanationDashboard:
             ExplanationDashboard.service.port,
             str(ExplanationDashboard.model_count))
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] =\
-            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url)
+            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
             html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
@@ -175,7 +199,7 @@ def _render_databricks(html):  # pragma: no cover
         for frame in inspect.getouterframes(inspect.currentframe()):
             global_names = set(frame.frame.f_globals)
             target_names = {DatabricksInterfaceConstants.DISPLAY_HTML,
-                            DatabricksInterfaceConstants.DIPLAY,
+                            DatabricksInterfaceConstants.DISPLAY,
                             DatabricksInterfaceConstants.SPARK}
             if target_names.issubset(global_names):
                 _render_databricks.displayHTML = frame.frame.f_globals[

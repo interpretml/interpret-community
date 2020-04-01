@@ -3,15 +3,18 @@ import { ExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
+import {ibmDataInconsistent} from '../__mock_data/ibmDataInconsistent'
 import {irisGlobal} from '../__mock_data/irisGlobal';
 import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
+import { initializeIcons } from "@uifabric/icons";
 
   var ibmNoClass = _.cloneDeep(ibmData);
   ibmNoClass.classNames = undefined;
+  // initializeIcons();
 
   var irisNoFeatures = _.cloneDeep(irisData);
   irisNoFeatures.featureNames = undefined;
@@ -30,6 +33,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
         {label: 'irisGlobal', data: irisGlobal},
         {label: 'irisDataGlobal', data: irisDataGlobal},
         {label: 'ibmData', data: ibmData},
+        {label: 'ibmDataInconsistent', data: ibmDataInconsistent},
         {label: 'breastCancer', data: breastCancerData},
         {label: 'ibmNoClass', data: ibmNoClass},
         {label: 'irisNoFeature', data: irisNoFeatures},
@@ -108,6 +112,7 @@ import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         // theme={"dark"}
+                        locale={undefined}
                         key={new Date()}
                       />
                   </div>

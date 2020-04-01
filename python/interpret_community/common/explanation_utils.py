@@ -59,13 +59,13 @@ def _summarize_data(X, k=10, to_round_values=True):
 
 
 def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
-    """Return raw feature importances.
+    """Return raw feature importance values.
 
-    :param importance_values: importance values computed for the dataset
-    :type importance_values: np.array
-    :param raw_to_output_feature_maps: list of feature maps from raw to generated feature.
+    :param importance_values: The importance values computed for the dataset.
+    :type importance_values: np.array or list[scipy.sparse.csr_matrix]
+    :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
     :type raw_to_output_feature_maps: list[numpy.array or sparse matrix]
-    :return: raw feature importances
+    :return: Raw feature importance values.
     :rtype: np.array
     """
     if not isinstance(raw_to_output_feature_maps, list):
@@ -83,6 +83,12 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     raw_to_output_map = normalize(raw_to_output_map, norm='l1', axis=0)
 
     orig_single_dimensional_importances = False
+    if isinstance(importance_values, list):
+        raw_importances = []
+        for class_matrix in importance_values:
+            raw_importances.append(class_matrix.dot(raw_to_output_map.T))
+        return np.array(raw_importances)
+
     if len(importance_values.shape) < 2:
         importance_values = importance_values.reshape(1, -1)
         orig_single_dimensional_importances = True
@@ -105,7 +111,7 @@ def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):
     :type np_tensor: numpy array
     :param sp_matrix: sparse matrix
     :type sp_matrix: scipy sparse matrix
-    :return: product of numpy array and sparse matrix
+    :return: The product of numpy array and sparse matrix.
     :rtype: numpy array
     """
     if len(np_tensor.shape) != 3:

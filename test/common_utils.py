@@ -38,6 +38,22 @@ def create_binary_newsgroups_data():
     return newsgroups_train, newsgroups_test, class_names
 
 
+def create_multiclass_sparse_newsgroups_data():
+    remove = ('headers', 'footers', 'quotes')
+    categories = ['alt.atheism', 'talk.religion.misc', 'comp.graphics', 'sci.space']
+    from sklearn.datasets import fetch_20newsgroups
+    ngroups = fetch_20newsgroups(subset='train', categories=categories,
+                                 shuffle=True, random_state=42, remove=remove)
+    x_train, x_test, y_train, y_validation = train_test_split(ngroups.data, ngroups.target,
+                                                              test_size=0.02, random_state=42)
+    from sklearn.feature_extraction.text import HashingVectorizer
+    vectorizer = HashingVectorizer(stop_words='english', alternate_sign=False,
+                                   n_features=2**16)
+    x_train = vectorizer.transform(x_train)
+    x_test = vectorizer.transform(x_test)
+    return x_train, x_test, y_train, y_validation, categories, vectorizer
+
+
 def create_random_forest_tfidf():
     vectorizer = TfidfVectorizer(lowercase=False)
     rf = RandomForestClassifier(n_estimators=500, random_state=777)
