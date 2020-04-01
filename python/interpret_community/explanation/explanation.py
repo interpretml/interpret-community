@@ -1137,7 +1137,7 @@ class _DatasetsMixin(object):
         """Get initialization (background) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | or str
         """
         return self._convert_to_list(self._init_data)
 
@@ -1146,7 +1146,7 @@ class _DatasetsMixin(object):
         """Get evaluation (testing) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | str
         """
         return self._convert_to_list(self._eval_data)
 
@@ -1155,7 +1155,7 @@ class _DatasetsMixin(object):
         """Get predicted ys for the evaluation data.
 
         :return: The predicted ys for the evaluation data.
-        :rtype: list
+        :rtype: list[input data base type] | sparse
         """
         return self._convert_to_list(self._eval_y_predicted)
 
@@ -1164,7 +1164,7 @@ class _DatasetsMixin(object):
         """Get predicted probability ys for the evaluation data.
 
         :return: The predicted probability ys for the evaluation data.
-        :rtype: list
+        :rtype: list[list[input data base type]] | sparse
         """
         return self._convert_to_list(self._eval_y_predicted_proba)
 
@@ -1174,7 +1174,7 @@ class _DatasetsMixin(object):
         :param data: The data to be converted.
         :type data: np.array, pd.DataFrame, list, scipy.sparse
         :return: The data converted to a list (except for sparse which is unchanged).
-        :rtype: list | scipy.sparse
+        :rtype: list | scipy.sparse | list[scipy.sparse]
         """
         if isinstance(data, np.ndarray):
             return data.tolist()
