@@ -22,7 +22,6 @@ from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
-from sklearn.utils.sparsefuncs import csc_median_axis_0
 
 
 class BaseExplanation(ChainedIdentity):
@@ -1423,8 +1422,8 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
         if local_explanation.is_local_sparse:
-            medians = [np.array(csc_median_axis_0(matrix.tocsc())) for matrix in local_importance_values]
-            per_class_values = np.array(medians)
+            means = [(np.array(abs(m).sum(axis=0)) / m.shape[0]).flatten() for m in local_importance_values]
+            per_class_values = np.array(means)
         else:
             per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
         per_class_rank = _order_imp(per_class_values)
