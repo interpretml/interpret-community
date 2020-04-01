@@ -496,11 +496,11 @@ class LocalExplanation(FeatureImportanceExplanation):
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
             if _DatasetsMixin._does_quack(self):
-                parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
-                if isinstance(self.eval_data, DatasetWrapper):
-                    eval_data = self.eval_data
+                parent_data[InterpretData.PERF] = perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
+                if isinstance(self._eval_data, DatasetWrapper):
+                    eval_data = self._eval_data
                 else:
-                    eval_data = DatasetWrapper(self.eval_data)
+                    eval_data = DatasetWrapper(self._eval_data)
                 parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
         return parent_data
 
@@ -543,7 +543,7 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
-        predicted = self.eval_y_predicted
+        predicted = self._eval_y_predicted
         dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
 
