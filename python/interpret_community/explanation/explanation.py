@@ -1132,7 +1132,7 @@ class _DatasetsMixin(object):
         """Get predicted ys for the evaluation data.
 
         :return: The predicted ys for the evaluation data.
-        :rtype: np.array
+        :rtype: list
         """
         return self._convert_to_list(self._eval_y_predicted)
 
@@ -1140,17 +1140,24 @@ class _DatasetsMixin(object):
     def eval_y_predicted_proba(self):
         """Get predicted probability ys for the evaluation data.
 
-        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-        :type eval_ys_predicted_proba: np.array
+        :return: The predicted probability ys for the evaluation data.
+        :rtype: list
         """
         return self._convert_to_list(self._eval_y_predicted_proba)
 
     def _convert_to_list(self, data):
+        """Convert data to a Python list.
+
+        :param data: The data to be converted.
+        :type data: np.array, pd.DataFrame, list, scipy.sparse
+        :return: The data converted to a list (except for sparse which is unchanged).
+        :rtype: list | scipy.sparse
         if isinstance(data, np.array):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
         else:
+            # doesn't handle sparse right now
             return data
 
     @staticmethod
