@@ -266,7 +266,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         plotlyProps.data[0].hoverinfo = "all";
         switch (chartProps.chartType) {
             case ChartTypes.Box: {
-                plotlyProps.data[0].type = "violin" as any;
+                plotlyProps.data[0].type = "box" as any;
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);

@@ -18,6 +18,8 @@ import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Cohort } from "../Cohort";
 import { FeatureImportanceBar } from "./FeatureImportanceBar";
+import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
+import { MultiICEPlot } from "./MultiICEPlot";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -199,6 +201,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.createNewPoint = this.createNewPoint.bind(this);
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
         this.filterFeatures = this.filterFeatures.bind(this);
+        this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
     public render(): React.ReactNode {
@@ -218,6 +221,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.cohorts[this.state.selectedCohortIndex]
         );
         const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
+        const datapoints = this.state.selectedPointsIndexes.map(i => {
+            const row = this.props.jointDataset.getRow(i);
+            return JointDataset.datasetSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
+        });
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
                 WhatIfTab.classNames.expandedPanel :
@@ -360,15 +367,26 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         </div>
                     </div>
                 </div >
-                <div>
-                    <FeatureImportanceBar
-                        unsortedX={this.props.metadata.featureNamesAbridged}
-                        unsortedYs={unsortedYs}
-                        theme={this.props.theme}
-                        topK={8}
-                        seriesNames={names}
-                    />
-                </div>
+                <Pivot>
+                    <PivotItem headerText={"Feature Importance"}>
+                        <FeatureImportanceBar
+                            unsortedX={this.props.metadata.featureNamesAbridged}
+                            unsortedYs={unsortedYs}
+                            theme={this.props.theme}
+                            topK={8}
+                            seriesNames={names}
+                        />
+                    </PivotItem>
+                    <PivotItem headerText={"ICE"}>
+                        <MultiICEPlot 
+                            invokeModel={this.props.invokeModel}
+                            datapoints={datapoints}
+                            jointDataset={this.props.jointDataset}
+                            metadata={this.props.metadata}
+                            theme={this.props.theme}
+                        />
+                    </PivotItem>
+                </Pivot>
             </div>
         </div>);
     }
