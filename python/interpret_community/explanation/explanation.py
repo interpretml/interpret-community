@@ -1176,7 +1176,7 @@ class _DatasetsMixin(object):
         :return: The data converted to a list (except for sparse which is unchanged).
         :rtype: list | scipy.sparse
         """
-        if isinstance(data, np.array):
+        if isinstance(data, np.ndarray):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
