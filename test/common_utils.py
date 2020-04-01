@@ -6,9 +6,8 @@
 import numpy as np
 import pandas as pd
 from sklearn import svm, ensemble, linear_model
-from sklearn.datasets import load_iris, load_boston
+from sklearn.datasets import load_iris, load_boston, load_breast_cancer, fetch_20newsgroups
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
@@ -333,6 +332,20 @@ def create_cancer_data():
     x_train, x_test, y_train, y_validation = train_test_split(cancer_data, cancer_target,
                                                               test_size=0.2, random_state=0)
     return x_train, x_test, y_train, y_validation, feature_names, target_names
+
+
+def create_scikit_cancer_data():
+    breast_cancer_data = load_breast_cancer()
+    classes = breast_cancer_data.target_names.tolist()
+
+    # Split data into train and test
+    x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,
+                                                        breast_cancer_data.target,
+                                                        test_size=0.2,
+                                                        random_state=0)
+    feature_names = breast_cancer_data.feature_names
+    classes = breast_cancer_data.target_names.tolist()
+    return x_train, x_test, y_train, y_test, feature_names, classes
 
 
 def create_reviews_data(test_size):
