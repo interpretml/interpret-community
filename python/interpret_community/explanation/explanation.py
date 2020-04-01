@@ -1116,7 +1116,7 @@ class _DatasetsMixin(object):
         :return: The dataset or dataset ID.
         :rtype: list or str
         """
-        return self._init_data
+        return self._convert_to_list(self._init_data)
 
     @property
     def eval_data(self):
@@ -1125,7 +1125,7 @@ class _DatasetsMixin(object):
         :return: The dataset or dataset ID.
         :rtype: list or str
         """
-        return self._eval_data
+        return self._convert_to_list(self._eval_data)
 
     @property
     def eval_y_predicted(self):
@@ -1134,7 +1134,7 @@ class _DatasetsMixin(object):
         :return: The predicted ys for the evaluation data.
         :rtype: np.array
         """
-        return self._eval_y_predicted
+        return self._convert_to_list(self._eval_y_predicted)
 
     @property
     def eval_y_predicted_proba(self):
@@ -1143,7 +1143,15 @@ class _DatasetsMixin(object):
         :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
         :type eval_ys_predicted_proba: np.array
         """
-        return self._eval_y_predicted_proba
+        return self._convert_to_list(self._eval_y_predicted_proba)
+
+    def _convert_to_list(self, data):
+        if isinstance(data, np.array):
+            return data.tolist()
+        elif isinstance(data, pd.DataFrame):
+            return data.values.tolist()
+        else:
+            return data
 
     @staticmethod
     def _does_quack(explanation):
