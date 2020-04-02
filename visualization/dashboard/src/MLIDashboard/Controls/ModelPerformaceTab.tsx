@@ -117,7 +117,14 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     />
                                 )}
                                 {(this.props.chartProps.chartType === ChartTypes.Bar) && (
-                                    <div>{localization.ExplanationScatter.count}</div>
+                                    <div>{localization.ExplanationScatter.count}
+                                        <DefaultButton 
+                                            onClick={this.setYOpen.bind(this, true)}
+                                            id={this._yButtonId}
+                                            text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                            title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        />
+                                    </div>
                                 )}
                                 {(this.state.yDialogOpen) && (
                                     <AxisConfigDialog 
@@ -194,6 +201,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
     private onYSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.yAxis = value;
+        newProps.chartType = this.props.jointDataset.metaDict[value.property].isCategorical ? ChartTypes.Bar : ChartTypes.Box;
+
         this.props.onChange(newProps);
         this.setState({yDialogOpen: false})
     }
@@ -284,7 +293,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 plotlyProps.data[0].y = y;
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
-                const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                const styles = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues.map((label, index) => {
                     return {
                         target: index,
                         value: { name: label}
