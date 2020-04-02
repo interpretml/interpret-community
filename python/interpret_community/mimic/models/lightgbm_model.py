@@ -80,7 +80,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         self._lgbm = initializer(random_state=random_state, **initializer_args)
         super(LGBMExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing LGBMExplainableModel')
-        self._method = 'mimic.lightgbm'
+        self._method = 'lightgbm'
         self._tree_explainer = None
         self._shap_values_output = shap_values_output
         self._classification = classification
