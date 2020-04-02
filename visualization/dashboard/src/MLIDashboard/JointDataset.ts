@@ -85,10 +85,16 @@ export class JointDataset {
     }
 
     // recover the array representation of just the eval dataset values from a row
-    public static datasetSlice(row: {[key: string]: any}, length: number): any[] {
+    // This includes subbing categorical values back in in place of indexes
+    public static datasetSlice(row: {[key: string]: any}, metaDict: {[key: string]: IJointMeta}, length: number): any[] {
         const result = new Array(length);
         for(let i: number = 0; i < length; i++) {
-            result[i] = row[JointDataset.DataLabelRoot + i.toString()];
+            const key = JointDataset.DataLabelRoot + i.toString();
+            if (metaDict[key].isCategorical) {
+                result[i] = metaDict[key].sortedCategoricalValues[row[key]];
+            } else {
+                result[i] = row[key];
+            }
         }
         return result;
     }
@@ -229,6 +235,15 @@ export class JointDataset {
 
     public getRow(index: number): {[key: string]: number} {
         return {...this.dataDict[index]}
+    }
+
+    public setTreatAsCategorical(key: string, value: boolean): void {
+        const metadata = this.metaDict[key];
+        metadata.treatAsCategorical = value;
+        if (value) {
+            const values = this.dataDict.map(row => row[key]);
+            metadata.sortedCategoricalValues = _.uniq(values).sort((a, b) => {return a - b}) as any[];
+        }
     }
 
     public addBin(key: string, binCount?: number): void {

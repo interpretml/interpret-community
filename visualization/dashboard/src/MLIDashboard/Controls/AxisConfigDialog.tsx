@@ -211,11 +211,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     }
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
-        this.props.jointDataset.metaDict[this.state.selectedColumn.property].treatAsCategorical = checked;
-        if (checked) {
-            this.props.jointDataset.addBin(this.state.selectedColumn.property,
-                this.props.jointDataset.metaDict[this.state.selectedColumn.property].featureRange.max + 1);
-        }
+        this.props.jointDataset.setTreatAsCategorical(this.state.selectedColumn.property, checked);
         this.forceUpdate();
     }
 

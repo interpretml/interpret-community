@@ -50,7 +50,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private static readonly MAX_SELECTION = 2;
     private static readonly defaultIndexString = " - ";
     private static readonly colorPath = "Color";
-    private static readonly namePath = "Name"
+    private static readonly namePath = "Name";
     private readonly colorOptions: IDropdownOption[] = [
         {key: "#FF0000", text: "Red", data: {color: "#FF0000"}}, 
         {key: "#00FF00", text: "Green", data: {color: "#00FF00"}},
@@ -172,6 +172,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             return {key, label: meta.label.toLowerCase()};
         });
 
+    // derived state for child component props
+    private rowNames: string[];
+    private unsortedYsBar: number[][];
+    private selectedDatapointArrays: number[][];
+
     constructor(props: IWhatIfTabProps) {
         super(props);
         if (props.chartProps === undefined) {
@@ -191,6 +196,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             filteredFeatureList: this.featureList,
             selectedPointsIndexes: [0]
         };
+        this.setSelectedRowsDerivdProps([0]);
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -208,23 +214,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
-        const unsortedYs = this.state.selectedPointsIndexes.map(i => {
-            const row = this.props.jointDataset.getRow(i);
-            return JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
-        });
-        const names = this.state.selectedPointsIndexes.map(i => {
-            return "Row " + i;
-        });
         const plotlyProps = this.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
         const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
-        const datapoints = this.state.selectedPointsIndexes.map(i => {
-            const row = this.props.jointDataset.getRow(i);
-            return JointDataset.datasetSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
-        });
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
                 WhatIfTab.classNames.expandedPanel :
@@ -371,16 +366,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <PivotItem headerText={"Feature Importance"}>
                         <FeatureImportanceBar
                             unsortedX={this.props.metadata.featureNamesAbridged}
-                            unsortedYs={unsortedYs}
+                            unsortedYs={this.unsortedYsBar}
                             theme={this.props.theme}
                             topK={8}
-                            seriesNames={names}
+                            seriesNames={this.rowNames}
                         />
                     </PivotItem>
                     <PivotItem headerText={"ICE"}>
                         <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
-                            datapoints={datapoints}
+                            datapoints={this.selectedDatapointArrays}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
                             theme={this.props.theme}
@@ -564,8 +559,23 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 newSelections = [...this.state.selectedPointsIndexes]
                 newSelections.splice(indexOf,1);
             }
+            this.setSelectedRowsDerivdProps(newSelections);
             this.setState({selectedPointsIndexes: newSelections});
         }
+    }
+
+    private setSelectedRowsDerivdProps(indexes: number[]): void {
+        this.rowNames = indexes.map(i => {
+            return "Row " + i;
+        });
+        this.unsortedYsBar = indexes.map(i => {
+            const row = this.props.jointDataset.getRow(i);
+            return JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
+        });
+        this.selectedDatapointArrays = indexes.map(i => {
+            const row = this.props.jointDataset.getRow(i);
+            return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount) as number[];
+        });
     }
 
     private fetchData(fetchingReference: {[key: string]: any}): void {
@@ -575,7 +585,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const requestList = [...this.state.requestList];
         const abortController = new AbortController();
         requestList[this.state.editingDataCustomIndex] = abortController;
-        const rawData = JointDataset.datasetSlice(fetchingReference, this.props.jointDataset.datasetFeatureCount);
+        const rawData = JointDataset.datasetSlice(fetchingReference, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
         fetchingReference[JointDataset.PredictedYLabel] = undefined;
         const promise = this.props.invokeModel([rawData], abortController.signal);
         

@@ -40,7 +40,7 @@ export interface IRangeView {
     maxErrorMessage?: string;
     steps?: string;
     stepsErrorMessage?: string;
-    selectedOptionKeys?: string[]; 
+    selectedOptionKeys?: Array<string|number>; 
     categoricalOptions?: IComboBoxOption[];
 }
 
@@ -200,7 +200,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                             {this.state.rangeView.type === RangeTypes.categorical &&
                                 <ComboBox
                                     multiSelect
-                                    selectedKey={this.state.rangeView.selectedOptionKeys}
+                                    selectedKey={this.state.rangeView.selectedOptionKeys as string[]}
                                     allowFreeform={true}
                                     autoComplete="on"
                                     options={this.state.rangeView.categoricalOptions}
@@ -347,7 +347,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
         this.setState({rangeView}, () => {this.fetchData()});
     }
 
-    private updateSelectedOptionKeys = (selectedKeys: string[], option: IComboBoxOption): string[] => {
+    private updateSelectedOptionKeys = (selectedKeys: Array<string|number>, option: IComboBoxOption): Array<string|number> => {
         selectedKeys = [...selectedKeys]; // modify a copy
         const index = selectedKeys.indexOf(option.key as string);
         if (option.selected && index < 0) {

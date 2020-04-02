@@ -48,7 +48,7 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
             FilterMethods.includes : FilterMethods.greaterThan,
         arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-            [0] : 0
+            [] : 0
     };
 
     public render(): React.ReactNode {

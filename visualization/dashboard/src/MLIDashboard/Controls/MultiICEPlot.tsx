@@ -74,6 +74,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
     }
     
     private featuresOption: IDropdownOption[];
+    private debounceFetchData: () => void;
     constructor(props: IMultiICEPlotProps) {
         super(props);
         this.featuresOption =  new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
@@ -96,11 +97,17 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         this.onMinRangeChanged = this.onMinRangeChanged.bind(this);
         this.onMaxRangeChanged = this.onMaxRangeChanged.bind(this);
         this.onStepsRangeChanged = this.onStepsRangeChanged.bind(this);
-        this.fetchData = _.debounce(this.fetchData.bind(this), 500);
+        this.debounceFetchData = _.debounce(this.fetchData.bind(this), 500);
     }
 
     public componentDidMount(): void {
         this.fetchData();
+    }
+
+    public componentDidUpdate(prevProps: IMultiICEPlotProps): void {
+        if (this.props.datapoints !== prevProps.datapoints) {
+            this.fetchData();
+        }
     }
 
     public componentWillUnmount(): void {
@@ -146,7 +153,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                             {this.state.rangeView.type === RangeTypes.categorical &&
                                 <ComboBox
                                     multiSelect
-                                    selectedKey={this.state.rangeView.selectedOptionKeys}
+                                    selectedKey={this.state.rangeView.selectedOptionKeys as string[]}
                                     allowFreeform={true}
                                     autoComplete="on"
                                     options={this.state.rangeView.categoricalOptions}
@@ -205,8 +212,8 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
     private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
         const rangeView = this.buildRangeView(item.key as string);
         const xAxisArray = this.buildRange(rangeView);
-        this.setState({rangeView, xAxisArray }, ()=> {
-            this.fetchData();
+        this.setState({rangeView, xAxisArray, requestFeatureKey: item.key as string }, ()=> {
+            this.debounceFetchData();
         });
     }
 
@@ -221,7 +228,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         else {
             const xAxisArray = this.buildRange(rangeView);
             rangeView.minErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.fetchData()});
+            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
         }
     }
 
@@ -236,7 +243,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         else {
             const xAxisArray = this.buildRange(rangeView);
             rangeView.maxErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.fetchData()});
+            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
         }
     }
 
@@ -251,7 +258,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         else {
             const xAxisArray = this.buildRange(rangeView);
             rangeView.stepsErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.fetchData()});
+            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
         }
     }
 
@@ -269,10 +276,10 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             rangeView.categoricalOptions.push(newOption);
         }
         const xAxisArray = this.buildRange(rangeView);
-        this.setState({rangeView, xAxisArray}, () => {this.fetchData()});
+        this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
     }
 
-    private updateSelectedOptionKeys = (selectedKeys: string[], option: IComboBoxOption): string[] => {
+    private updateSelectedOptionKeys = (selectedKeys: Array<string|number>, option: IComboBoxOption): Array<string|number> => {
         selectedKeys = [...selectedKeys]; // modify a copy
         const index = selectedKeys.indexOf(option.key as string);
         if (option.selected && index < 0) {
@@ -325,12 +332,23 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
     private buildRangeView(featureKey: string): IRangeView {
         const summary = this.props.jointDataset.metaDict[featureKey];
         if (summary.treatAsCategorical) {
+            // Columns that are passed in as categorical strings should be strings when passed to predict
+            if (summary.isCategorical) {
+                return {
+                    featureIndex: summary.index,
+                    selectedOptionKeys: summary.sortedCategoricalValues,
+                    categoricalOptions: summary.sortedCategoricalValues.map(text => {return {key: text, text}}),
+                    type: RangeTypes.categorical
+                }; 
+            }
+            // Columns that were integers that are flagged in the UX as categorical should still be integers when
+            // calling predict on the model.
             return {
                 featureIndex: summary.index,
-                selectedOptionKeys: summary.sortedCategoricalValues,
-                categoricalOptions: summary.sortedCategoricalValues.map((text, i) => {return {key: i, text}}),
+                selectedOptionKeys: summary.sortedCategoricalValues.map(x => +x),
+                categoricalOptions: summary.sortedCategoricalValues.map(text => {return {key: +text, text: text.toString()}}),
                 type: RangeTypes.categorical
-            }; 
+            };  
         }
         else {
             return {
@@ -355,7 +373,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         const steps = +rangeView.steps;
 
         if (rangeView.type === RangeTypes.categorical && Array.isArray(rangeView.selectedOptionKeys)) {
-            return rangeView.selectedOptionKeys;
+            return rangeView.selectedOptionKeys as string[];
         } else if (!Number.isNaN(min) && !Number.isNaN(max) && Number.isInteger(steps)) {
             let delta = steps > 0 ? (max - min) / steps :
                 max - min;

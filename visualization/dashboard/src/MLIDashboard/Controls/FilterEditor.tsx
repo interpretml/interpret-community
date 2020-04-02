@@ -102,8 +102,14 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
             1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
         const isDataColumn = this.state.column.indexOf(JointDataset.DataLabelRoot) !== -1;
-        const categoricalOptions: IComboBoxOption[] = selectedMeta.treatAsCategorical ?
-            selectedMeta.sortedCategoricalValues.map((label, index) => {return {key: index, text: label}}) : [];
+        let categoricalOptions: IComboBoxOption[] = [];
+        if (selectedMeta.treatAsCategorical) {
+            // Numerical values treated as categorical are stored with the values in the column,
+            // true categorical values store indexes to the string values
+            categoricalOptions = selectedMeta.isCategorical ? 
+                selectedMeta.sortedCategoricalValues.map((label, index) => {return {key: index, text: label}}) :
+                selectedMeta.sortedCategoricalValues.map((label) => {return {key: label, text: label.toString()}})
+        }
         return (
             <Callout
                 target={this.props.target ? '#' + this.props.target : undefined}
@@ -211,10 +217,8 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     }
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
-        this.props.jointDataset.metaDict[this.state.column].treatAsCategorical = checked;
+        this.props.jointDataset.setTreatAsCategorical(this.state.column, checked);
         if (checked) {
-            this.props.jointDataset.addBin(this.state.column,
-                this.props.jointDataset.metaDict[this.state.column].featureRange.max + 1);
             this.setState({arg:[], method: FilterMethods.includes});
         } else {
             this.setState({
@@ -287,6 +291,9 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         if (meta.isCategorical) {
             filter.method = FilterMethods.includes;
             filter.arg = Array.from(Array(meta.sortedCategoricalValues.length).keys());
+        } else if(meta.treatAsCategorical) {
+            filter.method = FilterMethods.includes;
+            filter.arg = meta.sortedCategoricalValues as any[];
         } else {
             filter.method = FilterMethods.lessThan;
             filter.arg = meta.featureRange.max;
