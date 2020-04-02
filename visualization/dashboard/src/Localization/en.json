@@ -219,7 +219,8 @@
         "defaultCustomRootName": "Copy of row {0}",
         "namePropLabel": "Name :",
         "colorLabel": "Select color:",
-        "filterFeaturePlaceholder": "Search features"
+        "filterFeaturePlaceholder": "Search features",
+        "rowLabel": "Row "
     },
     "Cohort": {
         "cohort": "Cohort"

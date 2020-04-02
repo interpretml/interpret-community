@@ -1,4 +1,5 @@
 import React from "react";
+import * as memoize from 'memoize-one';
 import { JointDataset, ColumnCategories } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
 import { mergeStyleSets } from "@uifabric/styling";
@@ -44,6 +45,15 @@ export interface IWhatIfTabState {
     filteredFeatureList: Array<{key: string, label: string}>;
     requestList: AbortController[];
     selectedPointsIndexes: number[]; 
+}
+
+interface ISelectedRowInfo {
+    name: string;
+    color: string;
+    rowData: any[];
+    rowImportances?: number[];
+    isCustom: boolean;
+    index?: number;
 }
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
@@ -162,6 +172,31 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
     });
 
+    private static buildJoinedSelectedRows: (jointData: JointDataset, rowIndices: number[], customRows: Array<{[key: string]: any}>) => ISelectedRowInfo[]
+    = (memoize as any).default((jointDataset: JointDataset, rowIndices: number[], customRows: Array<{[key: string]: any}>): ISelectedRowInfo[] => {
+        const result: ISelectedRowInfo[] = [];
+        rowIndices.forEach(i => {
+            const row = jointDataset.getRow(i);
+            result.push({
+                name: localization.WhatIf.rowLabel + i,
+                rowData: JointDataset.datasetSlice(row, jointDataset.metaDict, jointDataset.localExplanationFeatureCount),
+                rowImportances: JointDataset.localExplanationSlice(row, jointDataset.localExplanationFeatureCount) as number[],
+                isCustom: false,
+                color: "",
+                index: i
+            });
+        });
+        customRows.forEach(row => {
+            result.push({
+                name: row[WhatIfTab.namePath],
+                rowData: JointDataset.datasetSlice(row, jointDataset.metaDict, jointDataset.localExplanationFeatureCount),
+                isCustom: true,
+                color: row[WhatIfTab.colorPath]
+            });
+        });
+        return result;
+    }, _.isEqual);
+
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
@@ -171,11 +206,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             const meta = this.props.jointDataset.metaDict[key];
             return {key, label: meta.label.toLowerCase()};
         });
-
-    // derived state for child component props
-    private rowNames: string[];
-    private unsortedYsBar: number[][];
-    private selectedDatapointArrays: number[][];
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -196,7 +226,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             filteredFeatureList: this.featureList,
             selectedPointsIndexes: [0]
         };
-        this.setSelectedRowsDerivdProps([0]);
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -219,6 +248,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
+        const selectedRows = WhatIfTab.buildJoinedSelectedRows(this.props.jointDataset, this.state.selectedPointsIndexes, this.state.customPoints);
+        const unsortedYsImportance = selectedRows.map(row => {
+            return row.rowImportances;
+        }).filter(x => !!x);
+        const names = selectedRows.map(row => {
+            if (row.rowImportances) {
+                return row.name
+            }
+            return undefined;
+        }).filter(x => !!x);
+        const datasets = selectedRows.map(row => {
+            return row.rowData;
+        }).filter(x => !!x);
         const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
@@ -366,16 +408,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <PivotItem headerText={"Feature Importance"}>
                         <FeatureImportanceBar
                             unsortedX={this.props.metadata.featureNamesAbridged}
-                            unsortedYs={this.unsortedYsBar}
+                            unsortedYs={unsortedYsImportance}
                             theme={this.props.theme}
                             topK={8}
-                            seriesNames={this.rowNames}
+                            seriesNames={names}
                         />
                     </PivotItem>
                     <PivotItem headerText={"ICE"}>
                         <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
-                            datapoints={this.selectedDatapointArrays}
+                            datapoints={datasets}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
                             theme={this.props.theme}
@@ -559,23 +601,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 newSelections = [...this.state.selectedPointsIndexes]
                 newSelections.splice(indexOf,1);
             }
-            this.setSelectedRowsDerivdProps(newSelections);
             this.setState({selectedPointsIndexes: newSelections});
         }
-    }
-
-    private setSelectedRowsDerivdProps(indexes: number[]): void {
-        this.rowNames = indexes.map(i => {
-            return "Row " + i;
-        });
-        this.unsortedYsBar = indexes.map(i => {
-            const row = this.props.jointDataset.getRow(i);
-            return JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[];
-        });
-        this.selectedDatapointArrays = indexes.map(i => {
-            const row = this.props.jointDataset.getRow(i);
-            return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount) as number[];
-        });
     }
 
     private fetchData(fetchingReference: {[key: string]: any}): void {
