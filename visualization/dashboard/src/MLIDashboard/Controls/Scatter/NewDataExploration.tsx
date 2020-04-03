@@ -50,7 +50,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             margin: {
                 t: 10,
                 l: 0,
-                b: 0,
+                b: 20,
             },
             hovermode: "closest",
             showlegend: false,

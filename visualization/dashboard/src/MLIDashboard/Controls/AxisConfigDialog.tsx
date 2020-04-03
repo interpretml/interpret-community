@@ -66,7 +66,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         JointDataset.PredictedYLabel,
         JointDataset.TrueYLabel,
         JointDataset.ClassificationError,
-        JointDataset.RegressionError
+        JointDataset.RegressionError,
+        JointDataset.ProbabilityYRoot + "0"
     ].map(key => {
         const metaVal = this.props.jointDataset.metaDict[key];
         if (key === JointDataset.DataLabelRoot && this.props.orderedGroupTitles.includes(ColumnCategories.dataset)) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../NewExplanationDashboard";
 import { JointDataset, ColumnCategories } from "../JointDataset";
-import { IExplanationModelMetadata } from "../IExplanationContext";
+import { IExplanationModelMetadata, ModelTypes } from "../IExplanationContext";
 import { Cohort } from "../Cohort";
 import { mergeStyleSets } from "@uifabric/styling";
 import _ from "lodash";
@@ -208,14 +208,27 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
     }
 
     private generateDefaultChartAxes(): void {
+        let bestModelMetricKey: string;
+        if (this.props.metadata.modelType === ModelTypes.binary && this.props.jointDataset.hasPredictedProbabilities) {
+            bestModelMetricKey = JointDataset.ProbabilityYRoot + "0";
+        } else if (this.props.metadata.modelType === ModelTypes.regression) {
+            if (this.props.jointDataset.hasPredictedY && this.props.jointDataset.hasTrueY) {
+                bestModelMetricKey = JointDataset.RegressionError;
+            } else {
+                bestModelMetricKey = JointDataset.PredictedYLabel;
+            }
+        } else {
+            bestModelMetricKey = JointDataset.PredictedYLabel;
+        } // not handling multiclass at this time
+
         const chartProps: IGenericChartProps = {
-            chartType: ChartTypes.Box,
+            chartType: this.props.jointDataset.metaDict[bestModelMetricKey].isCategorical ? ChartTypes.Bar : ChartTypes.Box,
             xAxis: {
                 property: Cohort.CohortKey,
                 options: {}
             },
             yAxis: {
-                property: JointDataset.PredictedYLabel,
+                property: bestModelMetricKey,
                 options: {
                     bin: false
                 }
@@ -239,7 +252,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 margin: {
                     t: 10,
                     l: 0,
-                    b: 0,
+                    b: 20,
                 },
                 hovermode: "closest",
                 showlegend: false,

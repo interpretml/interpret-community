@@ -211,6 +211,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const jointDataset = new JointDataset({
             dataset: props.testData,
             predictedY: props.predictedY, 
+            predictedProbabilities: props.probabilityY,
             trueY: props.trueY,
             localExplanations,
             metadata: modelMetadata
@@ -220,7 +221,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const cohorts = [new Cohort(localization.Cohort.cohort + " 0", jointDataset, [])];
         return {
             cohorts,
-            activeGlobalTab: globalTabKeys.dataExploration,
+            activeGlobalTab: globalTabKeys.modelPerformance,
             jointDataset,
             modelMetadata,
             modelChartConfig: undefined,

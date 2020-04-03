@@ -78,7 +78,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             margin: {
                 t: 10,
                 l: 0,
-                b: 0,
+                b: 20,
             },
             hovermode: "closest",
             showlegend: false,

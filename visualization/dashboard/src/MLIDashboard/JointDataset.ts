@@ -10,6 +10,7 @@ import { Cohort } from "./Cohort";
 export interface IJointDatasetArgs {
     dataset?: any[][];
     predictedY?: number[];
+    predictedProbabilities?: number[][];
     trueY?: number[];
     localExplanations?: IMultiClassLocalFeatureImportance | ISingleClassLocalFeatureImportance;
     metadata: IExplanationModelMetadata;
@@ -47,6 +48,7 @@ export class JointDataset {
     public static readonly IndexLabel = "Index";
     public static readonly DataLabelRoot = "Data";
     public static readonly PredictedYLabel = "PredictedY";
+    public static readonly ProbabilityYRoot = "ProbabilityClass"
     public static readonly TrueYLabel = "TrueY";
     public static readonly DitherLabel = "Dither";
     public static readonly ClassificationError = "ClassificationError";
@@ -57,6 +59,7 @@ export class JointDataset {
 
     public hasDataset: boolean = false;
     public hasPredictedY: boolean = false;
+    public hasPredictedProbabilities: boolean = false;
     public hasTrueY: boolean = false;
     public datasetFeatureCount: number = 0;
     public localExplanationFeatureCount: number = 0;
@@ -173,6 +176,31 @@ export class JointDataset {
             }
             this.hasPredictedY = true;
         }
+        if (args.predictedProbabilities) {
+            if (args.metadata.modelType === ModelTypes.binary) {
+                this.initializeDataDictIfNeeded(args.predictedY);
+                const key = JointDataset.ProbabilityYRoot + "0";
+                args.predictedProbabilities.forEach((val, index) => {
+                        this.dataDict[index][key] = val[0];
+                });
+                const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, args.metadata.classNames[0]) as string;
+                const projection = args.predictedProbabilities.map(row => row[0]);
+                this.metaDict[key] = {
+                    label,
+                    abbridgedLabel: label,
+                    isCategorical: false,
+                    treatAsCategorical: false,
+                    sortedCategoricalValues: undefined,
+                    category: ColumnCategories.outcome,
+                    featureRange: {
+                        min: Math.min(...projection),
+                        max: Math.max(...projection),
+                        rangeType: RangeTypes.numeric
+                    }
+                };
+                this.hasPredictedProbabilities = true;
+            }
+        }
         if (args.trueY) {
             this.initializeDataDictIfNeeded(args.trueY);
             args.trueY.forEach((val, index) => {
@@ -203,9 +231,9 @@ export class JointDataset {
             if (args.metadata.modelType === ModelTypes.binary) {
                 this.dataDict.forEach(row => {
                     // sum pred and 2*true to map to ints 0 - 3,
-                    // 0: FP
-                    // 1: FN
-                    // 2: TN
+                    // 0: TN
+                    // 1: FP
+                    // 2: FN
                     // 3: TP
                     const predictionCategory = 2 * row[JointDataset.TrueYLabel] + row[JointDataset.PredictedYLabel];
                     row[JointDataset.ClassificationError] = predictionCategory;
@@ -216,9 +244,9 @@ export class JointDataset {
                     isCategorical: true,
                     treatAsCategorical: true,
                     sortedCategoricalValues: [
+                        localization.Columns.trueNegative,
                         localization.Columns.falsePositive,
                         localization.Columns.falseNegative,
-                        localization.Columns.trueNegative,
                         localization.Columns.truePositive
                     ],
                     category: ColumnCategories.outcome
