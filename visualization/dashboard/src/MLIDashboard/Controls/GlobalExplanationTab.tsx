@@ -14,7 +14,7 @@ import { Slider } from "office-ui-fabric-react/lib/Slider";
 import { ModelExplanationUtils } from "../ModelExplanationUtils";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { FabricStyles } from "../FabricStyles";
-import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 import { FilterControl } from "./FilterControl";
 import { Cohort } from "../Cohort";
@@ -51,6 +51,7 @@ export interface IGlobalExplanationtabState {
     includedCohorts: number[];
     startingK: number;
     sortArray: number[];
+    selectedCohortIndex: number;
 }
 
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
@@ -99,6 +100,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             secondChart: this.chartOptions[0].key as string,
             includedCohorts: this.props.cohorts.map((unused, i) => i),
             startingK: 0,
+            selectedCohortIndex: 0,
             sortArray: ModelExplanationUtils.getSortIndices(
                 this.props.cohorts[0].calculateAverageImportance()).reverse()
         };
@@ -107,6 +109,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
         this.updateStartingK = this.updateStartingK.bind(this);
         this.updateSortArray = this.updateSortArray.bind(this);
+        this.setSelectedCohort = this.setSelectedCohort.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps, prevState: IGlobalExplanationtabState) {
@@ -119,6 +122,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         if (this.props.globalBarSettings === undefined) {
             return (<div/>);
         }
+        const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};});
 
         return (
         <div className={GlobalExplanationTab.classNames.page}>
@@ -132,6 +136,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 onClick={this.selectPointFromChart}
                 onSetStartingIndex={this.updateStartingK}
             />
+            {cohortOptions && (<Dropdown 
+                styles={{ dropdown: { width: 150 } }}
+                options={cohortOptions}
+                selectedKey={this.state.selectedCohortIndex}
+                onChange={this.setSelectedCohort}
+            />)}
             <ComboBox
                 className={GlobalExplanationTab.classNames.chartTypeDropdown}
                 label={localization.GlobalTab.secondaryChart}
@@ -144,7 +154,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             />
             {this.state.secondChart === 'depPlot' && (<DependencePlot 
                 chartProps={this.props.dependenceProps}
-                cohorts={this.props.cohorts}
+                cohort={this.props.cohorts[this.state.selectedCohortIndex]}
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
                 onChange={this.props.onDependenceChange}
@@ -152,12 +162,16 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             {this.state.secondChart === 'swarm' && (<GlobalViolinPlot
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}
-                cohort={this.props.cohorts[0]}
+                cohort={this.props.cohorts[this.state.selectedCohortIndex]}
                 topK={this.props.globalBarSettings.topK}
                 startingK={this.state.startingK}
                 sortVector={this.state.sortArray}
             />)}
         </div>);
+    }
+
+    private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.setState({selectedCohortIndex: item.key as number});
     }
 
     private buildYsandNames(): void {
@@ -187,7 +201,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         if (prevCohorts.length === this.props.cohorts.length - 1) {
             newIndexes.push(prevCohorts.length);
         }
-        this.setState({includedCohorts: newIndexes}, () => {
+        let selectedCohortIndex = this.state.selectedCohortIndex;
+        if (selectedCohortIndex >= this.props.cohorts.length) {
+            selectedCohortIndex = 0;
+        }
+        this.setState({includedCohorts: newIndexes, selectedCohortIndex}, () => {
             this.buildYsandNames();
         });
     }
@@ -218,7 +236,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         };
 
         const x = sortedIndexVector.map((unused, index) => index);
-        // y = sortedIndexVector.map(index => this.props.subsetAverageImportance[index]);
 
         this.props.cohorts.forEach(cohort => {
             const importances = cohort.calculateAverageImportance();
@@ -293,7 +310,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             }
         };
         this.props.onDependenceChange(chartProps);
-        this.setState({secondChart: "depPlot"});
+        this.setState({secondChart: "depPlot", selectedCohortIndex: trace.curveNumber});
         // each group will be a different cohort, setting the selected cohort should follow impl.
     }  
 }

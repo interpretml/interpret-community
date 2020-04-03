@@ -20,7 +20,7 @@ export interface INewDataTabProps {
     theme?: string;
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
-    cohorts: Cohort[];
+    cohort: Cohort;
     metadata: IExplanationModelMetadata;
     onChange: (props: IGenericChartProps) => void;
 }
@@ -127,7 +127,6 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
             return (<div/>);
         }
         const plotlyProps = this.generatePlotlyProps();
-        const jointData = this.props.jointDataset;
         return (
             <div className={DependencePlot.classNames.DependencePlot}>
                 <div className={DependencePlot.classNames.topConfigArea}>
@@ -237,8 +236,7 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
     private generatePlotlyProps(): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(DependencePlot.basePlotlyProperties);
         const jointData = this.props.jointDataset;
-        const selectedCohortIndex = this.props.chartProps.selectedCohortIndex || 0;
-        const cohort = this.props.cohorts[selectedCohortIndex];
+        const cohort = this.props.cohort;
         plotlyProps.data[0].hoverinfo = "all";
         let hovertemplate = "";
         if (this.props.chartProps.colorAxis && (this.props.chartProps.colorAxis.options.bin ||

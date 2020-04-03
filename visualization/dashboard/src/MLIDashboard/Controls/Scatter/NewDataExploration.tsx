@@ -9,7 +9,7 @@ import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
-import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { IFilter, IFilterContext } from "../../Interfaces/IFilter";
 import { FilterControl } from "../FilterControl";
@@ -130,6 +130,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         this.onColorSet = this.onColorSet.bind(this);
         this.scatterSelection = this.scatterSelection.bind(this);
         this.onChartTypeChange = this.onChartTypeChange.bind(this);
+        this.setSelectedCohort = this.setSelectedCohort.bind(this);
 
         this.state = {
             xDialogOpen: false,
@@ -148,21 +149,24 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
-        const jointData = this.props.jointDataset;
+        const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
+            this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
             <div className={NewDataExploration.classNames.dataTab}>
-                {/* <FilterControl 
-                    jointDataset={jointData}
-                    filterContext={this.props.filterContext}
-                /> */}
                 <div className={NewDataExploration.classNames.topConfigArea}>
                     <ComboBox
                         options={this.chartOptions}
                         onChange={this.onChartTypeChange}
                         selectedKey={this.props.chartProps.chartType}
                         useComboBoxAsMenuWidth={true}
-                        styles={FabricStyles.defaultDropdownStyle}
+                        styles={FabricStyles.smallDropdownStyle}
                     />
+                    {cohortOptions && (<Dropdown 
+                        styles={{ dropdown: { width: 150 } }}
+                        options={cohortOptions}
+                        selectedKey={this.state.selectedCohortIndex}
+                        onChange={this.setSelectedCohort}
+                    />)}
                     <DefaultButton 
                         onClick={this.setColorOpen.bind(this, true)}
                         id={this._colorButtonId}
@@ -244,6 +248,10 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                     </div>
                 </div>
         </div>);
+    }
+
+    private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.setState({selectedCohortIndex: item.key as number});
     }
 
     private onChartTypeChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {

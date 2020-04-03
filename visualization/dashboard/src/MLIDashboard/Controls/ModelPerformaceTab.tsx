@@ -10,6 +10,7 @@ import { localization } from "../../Localization/localization";
 import { AxisConfigDialog } from "./AxisConfigDialog";
 import { AccessibleChart, IPlotlyProperty } from "mlchartlib";
 import { Transform } from "plotly.js-dist";
+import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 
 export interface IModelPerformanceTabProps {
     chartProps: IGenericChartProps;
@@ -84,6 +85,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         this.onYSet = this.onYSet.bind(this);
         this.setXOpen = this.setXOpen.bind(this);
         this.setYOpen = this.setYOpen.bind(this);
+        this.setSelectedCohort = this.setSelectedCohort.bind(this);
 
         this.state = {
             xDialogOpen: false,
@@ -102,8 +104,16 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             this.props.cohorts,
             this.state.selectedCohortIndex
         );
+        const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
+            this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
             <div className={ModelPerformanceTab.classNames.tab}>
+                {cohortOptions && (<Dropdown 
+                    styles={{ dropdown: { width: 150 } }}
+                    options={cohortOptions}
+                    selectedKey={this.state.selectedCohortIndex}
+                    onChange={this.setSelectedCohort}
+                />)}
                 <div className={ModelPerformanceTab.classNames.chartWithAxes}>
                     <div className={ModelPerformanceTab.classNames.chartWithVertical}>
                         <div className={ModelPerformanceTab.classNames.verticalAxis}>
@@ -158,7 +168,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             {(this.state.xDialogOpen) && (
                                 <AxisConfigDialog 
                                     jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
+                                    orderedGroupTitles={[ColumnCategories.cohort, ColumnCategories.dataset]}
                                     selectedColumn={this.props.chartProps.xAxis}
                                     canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
                                     mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
@@ -174,6 +184,10 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             </div>
         );
     } 
+
+    private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.setState({selectedCohortIndex: item.key as number});
+    }
 
     private readonly setXOpen = (val: boolean): void => {
         if (val && this.state.xDialogOpen === false) {
@@ -283,7 +297,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             rawX = cohort.unwrap(chartProps.xAxis.property, true);
             rawY = cohort.unwrap(chartProps.yAxis.property, chartProps.chartType === ChartTypes.Bar);
             xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
-            const xLabelIndexes = xLabels.map((unused, index) => index);
+            xLabelIndexes = xLabels.map((unused, index) => index);
         }
         plotlyProps.data[0].hoverinfo = "all";
         switch (chartProps.chartType) {

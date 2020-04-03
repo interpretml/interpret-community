@@ -214,7 +214,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
         const editingData = this.createCopyOfFirstRow();
         this.state = {
-            isPanelOpen: false,
+            isPanelOpen: true,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
@@ -236,6 +236,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.createNewPoint = this.createNewPoint.bind(this);
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
         this.filterFeatures = this.filterFeatures.bind(this);
+        this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -262,6 +263,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             return row.rowData;
         }).filter(x => !!x);
         const editingData = this.state.customPoints[this.state.editingDataCustomIndex];
+        const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};});
         return (<div className={WhatIfTab.classNames.dataTab}>
             <div className={this.state.isPanelOpen ?
                 WhatIfTab.classNames.expandedPanel :
@@ -343,6 +345,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     jointDataset={this.props.jointDataset}
                     filterContext={this.props.filterContext}
                 /> */}
+                {cohortOptions && (<Dropdown 
+                    styles={{ dropdown: { width: 150 } }}
+                    options={cohortOptions}
+                    selectedKey={this.state.selectedCohortIndex}
+                    onChange={this.setSelectedCohort}
+                />)}
                 <div className={WhatIfTab.classNames.chartWithAxes}>
                     <div className={WhatIfTab.classNames.chartWithVertical}>
                         <div className={WhatIfTab.classNames.verticalAxis}>
@@ -426,6 +434,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 </Pivot>
             </div>
         </div>);
+    }
+
+    private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.setState({selectedCohortIndex: item.key as number});
     }
 
     private _onRenderOption = (option: IDropdownOption): JSX.Element => {
