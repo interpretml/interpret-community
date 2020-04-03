@@ -4,7 +4,7 @@
 
 """Defines an explainable lightgbm model."""
 
-from .explainable_model import BaseExplainableModel, _get_initializer_args
+from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
 from .tree_model_utils import _explain_local_tree_surrogate, _expected_values_tree_surrogate
 from ...common.constants import ShapValuesOutput, LightGBMSerializationConstants, \
     ExplainableModelType, Extension
@@ -88,9 +88,9 @@ class LGBMExplainableModel(BaseExplainableModel):
     try:
         __init__.__doc__ = (__init__.__doc__ +
                             '\nIf multiclass=True, uses the parameters for LGBMClassifier:\n' +
-                            LGBMClassifier.__init__.__doc__ +
+                            _clean_doc(LGBMClassifier.__init__.__doc__) +
                             '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
-                            LGBMRegressor.__init__.__doc__)
+                            _clean_doc(LGBMRegressor.__init__.__doc__))
     except Exception:
         pass
 
@@ -107,9 +107,9 @@ class LGBMExplainableModel(BaseExplainableModel):
     try:
         fit.__doc__ = (fit.__doc__ +
                        '\nIf multiclass=True, uses the parameters for LGBMClassifier:\n' +
-                       LGBMClassifier.fit.__doc__ +
+                       _clean_doc(LGBMClassifier.fit.__doc__) +
                        '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
-                       LGBMRegressor.fit.__doc__)
+                       _clean_doc(LGBMRegressor.fit.__doc__))
     except Exception:
         pass
 
@@ -126,9 +126,9 @@ class LGBMExplainableModel(BaseExplainableModel):
     try:
         predict.__doc__ = (predict.__doc__ +
                            '\nIf multiclass=True, uses the parameters for LGBMClassifier:\n' +
-                           LGBMClassifier.predict.__doc__ +
+                           _clean_doc(LGBMClassifier.predict.__doc__) +
                            '\nOtherwise, if multiclass=False, uses the parameters for LGBMRegressor:\n' +
-                           LGBMRegressor.predict.__doc__)
+                           _clean_doc(LGBMRegressor.predict.__doc__))
     except Exception:
         pass
 
@@ -148,7 +148,7 @@ class LGBMExplainableModel(BaseExplainableModel):
     try:
         predict_proba.__doc__ = (predict_proba.__doc__ +
                                  '\nIf multiclass=True, uses the parameters for LGBMClassifier:\n' +
-                                 LGBMClassifier.predict_proba.__doc__ +
+                                 _clean_doc(LGBMClassifier.predict_proba.__doc__) +
                                  '\nOtherwise predict_proba is not supported for ' +
                                  'regression or binary classification.\n')
     except Exception:
