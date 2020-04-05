@@ -21,6 +21,7 @@ import { Cohort } from "../Cohort";
 import { FeatureImportanceBar } from "./FeatureImportanceBar";
 import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
 import { MultiICEPlot } from "./MultiICEPlot";
+import { FabricStyles } from "../FabricStyles";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -224,7 +225,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             selectedCohortIndex: 0,
             requestList: [],
             filteredFeatureList: this.featureList,
-            selectedPointsIndexes: [0]
+            selectedPointsIndexes: this.getDefaultSelectedPointIndexes(props.cohorts[0])
         };
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
@@ -436,8 +437,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         </div>);
     }
 
+    private getDefaultSelectedPointIndexes(cohort: Cohort): number[] {
+        const indexes = cohort.unwrap(JointDataset.IndexLabel);
+        if (indexes.length > 0) {
+            return [indexes[0]];
+        }
+        return [];
+    }
+
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        this.setState({selectedCohortIndex: item.key as number});
+        this.setState({selectedCohortIndex: item.key as number, selectedPointsIndexes: []});
     }
 
     private _onRenderOption = (option: IDropdownOption): JSX.Element => {
@@ -651,9 +660,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(WhatIfTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
-
+        const indexes = cohort.unwrap(JointDataset.IndexLabel);
         plotlyProps.data[0].type = chartProps.chartType;
         plotlyProps.data[0].mode = PlotlyMode.markers;
+        plotlyProps.data[0].marker = {
+            symbol: indexes.map(i => this.state.selectedPointsIndexes.includes(i) ? "square" : "circle") as any,
+            color: indexes.map((rowIndex, i) => {
+                const selectionIndex = this.state.selectedPointsIndexes.indexOf(rowIndex);
+                return selectionIndex !== -1 ? FabricStyles.plotlyColorHexPalette[selectionIndex] : "black"
+            }) as any
+        }
 
         plotlyProps.data[1] = {
             type: "scattergl",
