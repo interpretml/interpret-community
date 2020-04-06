@@ -188,10 +188,20 @@ class BaseExplanation(ChainedIdentity):
     @property
     @abstractmethod
     def selector(self):
+        """Get the local or global selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         return None
 
     @property
     def name(self):
+        """Get the name of the explanation.
+
+        :return: The name of the explanation.
+        :rtype: str
+        """
         return gen_name_from_class(self)
 
     @staticmethod
@@ -542,6 +552,11 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
+        """Get the local selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         predicted = self._eval_y_predicted
         dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
@@ -766,6 +781,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
+        """Get the global selector if this is only a global explanation otherwise local.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         if LocalExplanation._does_quack(self):
             return LocalExplanation.selector.__get__(self)
         nan_predicted = np.empty((1, 1))
