@@ -26,6 +26,7 @@ test_logger.setLevel(logging.DEBUG)
 
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
+LIGHTGBM_METHOD = 'mimic.lightgbm'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -221,6 +222,7 @@ class TestMimicExplainer(object):
         de_global_explanation = deserialized_explainer.explain_global(x_test, include_local=False)
         np.testing.assert_array_equal(global_explanation.global_importance_values,
                                       de_global_explanation.global_importance_values)
+        assert global_explanation.method == LIGHTGBM_METHOD
 
     def test_explain_model_serialization_multiclass(self, mimic_explainer):
         x_train, x_test, y_train, _, _, _ = create_iris_data()
@@ -330,6 +332,7 @@ class TestMimicExplainer(object):
         assert len(np.unique(surrogate_predictions)) == 2
         assert len(np.unique(model_predictions)) == 2
         assert np.isclose(surrogate_predictions, model_predictions).all()
+        assert global_explanation.method == LIGHTGBM_METHOD
 
     @property
     def iris_overall_expected_features(self):
