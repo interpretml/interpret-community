@@ -18,7 +18,7 @@ import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "./SwarmFeaturePlot";
 import { FilterControl } from "./FilterControl";
 import { Cohort } from "../Cohort";
-import { FeatureImportanceBar } from "./FeatureImportanceBar";
+import { FeatureImportanceBar, IBarSeries } from "./FeatureImportanceBar";
 import { GlobalViolinPlot } from "./GlobalViolinPlot";
 
 export interface IGlobalBarSettings {
@@ -48,7 +48,6 @@ export interface IGlobalExplanationTabProps {
 
 export interface IGlobalExplanationtabState {
     secondChart: string;
-    includedCohorts: number[];
     startingK: number;
     sortArray: number[];
     selectedCohortIndex: number;
@@ -82,8 +81,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     });
 
     private chartOptions: IDropdownOption[] = [];
-    private unsortedYs: number[][];
-    private includedCohortNames: string[];
+    private unsortedSeries: IBarSeries[];
 
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
@@ -98,7 +96,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         }
         this.state = {
             secondChart: this.chartOptions[0].key as string,
-            includedCohorts: this.props.cohorts.map((unused, i) => i),
             startingK: 0,
             selectedCohortIndex: 0,
             sortArray: ModelExplanationUtils.getSortIndices(
@@ -112,9 +109,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
     }
 
-    public componentDidUpdate(prevProps: IGlobalExplanationTabProps, prevState: IGlobalExplanationtabState) {
+    public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
         if (this.props.cohorts !== prevProps.cohorts) {
-            this.updateIncludedCohortsOnCohortEdit(prevProps.cohorts);
+            this.updateIncludedCohortsOnCohortEdit();
         }
     }
 
@@ -128,10 +125,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         <div className={GlobalExplanationTab.classNames.page}>
             <FeatureImportanceBar
                 unsortedX={this.props.metadata.featureNamesAbridged}
-                unsortedYs={this.unsortedYs}
+                unsortedSeries={this.unsortedSeries}
                 theme={this.props.theme}
                 topK={this.props.globalBarSettings.topK}
-                seriesNames={this.includedCohortNames}
                 onSort={this.updateSortArray}
                 onClick={this.selectPointFromChart}
                 onSetStartingIndex={this.updateStartingK}
@@ -175,95 +171,24 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private buildYsandNames(): void {
-        this.unsortedYs = this.state.includedCohorts.map(index => {
-            return this.props.cohorts[index].calculateAverageImportance();
-        });
-        this.includedCohortNames = this.state.includedCohorts.map(index => {
-            return this.props.cohorts[index].name;
+        this.unsortedSeries = this.props.cohorts.map((cohort, i) => {
+            return {
+                name: cohort.name,
+                unsortedY: cohort.calculateAverageImportance(),
+                color: FabricStyles.plotlyColorHexPalette[i]
+            }
         });
         this.forceUpdate();
     }
 
-    private updateIncludedCohortsOnCohortEdit(prevCohorts: Cohort[]): void {
-        const newIndexes: number[] = [];
-        this.state.includedCohorts.forEach(i => {
-            const cohort = prevCohorts[i];
-            if (cohort !== undefined) {
-                const newIndex = this.props.cohorts.findIndex((c) => {
-                    return cohort.getCohortID() === c.getCohortID();
-                });
-                if (newIndex !== -1) {
-                    newIndexes.push(newIndex);
-                }
-            }
-        });
-        // add the newly created cohort if that is the change
-        if (prevCohorts.length === this.props.cohorts.length - 1) {
-            newIndexes.push(prevCohorts.length);
-        }
+    private updateIncludedCohortsOnCohortEdit(): void {
         let selectedCohortIndex = this.state.selectedCohortIndex;
         if (selectedCohortIndex >= this.props.cohorts.length) {
             selectedCohortIndex = 0;
         }
-        this.setState({includedCohorts: newIndexes, selectedCohortIndex}, () => {
+        this.setState({selectedCohortIndex}, () => {
             this.buildYsandNames();
         });
-    }
-
-    private buildBarPlotlyProps(): IPlotlyProperty {
-        const sortedIndexVector = this.props.sortVector;
-        const baseSeries = {
-            config: { displaylogo: false, responsive: true, displayModeBar: false } as Plotly.Config,
-            data: [],
-            layout: {
-                autosize: true,
-                dragmode: false,
-                barmode: 'group',
-                font: {
-                    size: 10
-                },
-                margin: {t: 10, r: 10, b: 30},
-                hovermode: 'closest',
-                xaxis: {
-                    automargin: true
-                },
-                yaxis: {
-                    automargin: true,
-                    title: localization.featureImportance
-                },
-                showlegend: this.props.globalBarSettings.includeOverallGlobal
-            } as any
-        };
-
-        const x = sortedIndexVector.map((unused, index) => index);
-
-        this.props.cohorts.forEach(cohort => {
-            const importances = cohort.calculateAverageImportance();
-            baseSeries.data.push({
-                orientation: 'v',
-                type: 'bar',
-                name: cohort.name,
-                x,
-                y: sortedIndexVector.map(index => importances[index])
-            } as any);
-        })
-        
-        // if (this.props.globalBarSettings.includeOverallGlobal) {
-        //     baseSeries.data.push({
-        //         orientation: 'v',
-        //         type: 'bar',
-        //         name: 'Global Importance',
-        //         x,
-        //         y: sortedIndexVector.map(index => this.props.globalImportance[index])
-        //     } as any);
-        // }
-
-        const ticktext = sortedIndexVector.map(i =>this.props.metadata.featureNamesAbridged[i]);
-        const tickvals = sortedIndexVector.map((val, index) => index);
-
-        _.set(baseSeries, 'layout.xaxis.ticktext', ticktext);
-        _.set(baseSeries, 'layout.xaxis.tickvals', tickvals);
-        return baseSeries;
     }
 
     private updateSortArray(newArray: number[]): void {

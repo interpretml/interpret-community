@@ -22,6 +22,7 @@ import { FeatureImportanceBar } from "./FeatureImportanceBar";
 import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
 import { MultiICEPlot } from "./MultiICEPlot";
 import { FabricStyles } from "../FabricStyles";
+import { InteractiveLegend } from "./InteractiveLegend";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -170,6 +171,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             height: "10px",
             paddingLeft: "3px",
             display: "inline-block"
+        },
+        secondaryTab: {
+            display: "inline-flex",
+            flexDirection: "row",
+            width: "100%"
         }
     });
 
@@ -414,16 +420,26 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div>
                 </div >
                 <Pivot>
-                    <PivotItem headerText={"Feature Importance"}>
-                        <FeatureImportanceBar
+                    <PivotItem headerText={"Feature Importance"} className={WhatIfTab.classNames.secondaryTab}>
+                        {/* <FeatureImportanceBar
                             unsortedX={this.props.metadata.featureNamesAbridged}
                             unsortedYs={unsortedYsImportance}
                             theme={this.props.theme}
                             topK={8}
                             seriesNames={names}
                         />
+                        <InteractiveLegend
+                            onClick={() => {}}
+                            items={selectedRows.map(row => {
+                                return {
+                                    name: row.name,
+                                    color: row.color,
+                                    editable: row.isCustom
+                                }
+                            })}
+                        /> */}
                     </PivotItem>
-                    <PivotItem headerText={"ICE"}>
+                    <PivotItem headerText={"ICE"} className={WhatIfTab.classNames.secondaryTab}>
                         <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
                             datapoints={datasets}
@@ -431,6 +447,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             metadata={this.props.metadata}
                             theme={this.props.theme}
                         />
+                        {/* <InteractiveLegend
+                            onClick={() => {}}
+                            items={selectedRows.map(row => {
+                                return {
+                                    name: row.name,
+                                    color: row.color,
+                                    editable: row.isCustom
+                                }
+                            })}
+                        /> */}
                     </PivotItem>
                 </Pivot>
             </div>
@@ -667,7 +693,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             symbol: indexes.map(i => this.state.selectedPointsIndexes.includes(i) ? "square" : "circle") as any,
             color: indexes.map((rowIndex, i) => {
                 const selectionIndex = this.state.selectedPointsIndexes.indexOf(rowIndex);
-                return selectionIndex !== -1 ? FabricStyles.plotlyColorHexPalette[selectionIndex] : "black"
+                return selectionIndex !== -1 ? FabricStyles.plotlyColorHexPalette[selectionIndex] : "#0c297e"
             }) as any
         }
 
