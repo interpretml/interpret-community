@@ -445,6 +445,9 @@ class MimicExplainer(BlackBoxExplainer):
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
             probabilities = self.function(original_evaluation_examples)
+        # if index column should not be set on surrogate model, remove it
+        if self.reset_index == ResetIndex.ResetTeacher:
+            evaluation_examples.set_index()
         if self._timestamp_featurizer:
             evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
