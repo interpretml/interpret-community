@@ -1,4 +1,4 @@
-import { IStyle, mergeStyleSets, IProcessedStyleSet } from "office-ui-fabric-react";
+import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme } from "office-ui-fabric-react";
 
 export interface IInteractiveLegendStyles {
   root: IStyle;
@@ -12,7 +12,7 @@ export interface IInteractiveLegendStyles {
   inactiveItem: IStyle;
 }
 
-export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegendStyles> = () => {
+export const interactiveLegendStyles: (theme: ITheme) => IProcessedStyleSet<IInteractiveLegendStyles> = (theme: ITheme) => {
   return mergeStyleSets<IInteractiveLegendStyles>({
     root: { 
         width: "250px",
@@ -27,25 +27,29 @@ export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegen
     },
     disabledItem: {
         height: "35px",
+        backgroundColor: "#444444",// theme.semanticColors.listBackground,
         border: "1px solid black",
         display: "flex",
         flexDirection: "row"
     },
     inactiveItem: {
         height: "35px",
+        backgroundColor: "#CCCCCC",
         border: "1px solid black",
         display: "flex",
         flexDirection: "row"
     },
     colorBox: {
-        paddingLeft: "4px",
+        margin: "11px 4px 11px 8px",
         width: "12px",
         height: "12px",
-        display: "inline-block"
+        display: "inline-block",
+        cursor: "pointer"
     },
     label: {
         display: "inline-block",
-        flex: "1"
+        flex: "1",
+        cursor: "pointer"
     },
     editButton: {
         display: "inline-block"

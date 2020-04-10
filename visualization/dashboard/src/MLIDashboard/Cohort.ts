@@ -1,5 +1,6 @@
 import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
+import { ModelExplanationUtils } from "./ModelExplanationUtils";
 
 export class Cohort {
     public static CohortKey: string = "Cohort";
@@ -9,6 +10,7 @@ export class Cohort {
     private mutateCount: number = 0;
     private _filteredData: Array<{[key: string]: number}>;
     private _cachedAverageImportance: number[];
+    private _cachedTransposedLocalFeatureImportances: number[][];
     private currentSortKey: string | undefined;
     private currentSortReversed: boolean = false;
     constructor(public name: string, private jointDataset: JointDataset, public filters: IFilter[] = []) {
@@ -77,19 +79,32 @@ export class Cohort {
         if (this._cachedAverageImportance) {
             return this._cachedAverageImportance;
         }
-        var dict = this._filteredData;
-        var result = new Array(this.jointDataset.localExplanationFeatureCount).fill(0);
-        dict.forEach(row => {
-            for (let i=0; i < this.jointDataset.localExplanationFeatureCount; i++) {
-                result[i] += Math.abs(row[JointDataset.ReducedLocalImportanceRoot + i.toString()]);
+
+        this._cachedAverageImportance = this.transposedLocalFeatureImportances().map(featureValues => {
+            if (!featureValues || featureValues.length === 0) {
+                return Number.NaN;
             }
-        });
-        this._cachedAverageImportance = result.map(val => val / dict.length);
+            const total = featureValues.reduce((prev, current) => {return prev + Math.abs(current)}, 0);
+            return total / featureValues.length;
+        })
         return this._cachedAverageImportance;
+    }
+
+    public transposedLocalFeatureImportances(): number[][] {
+        if (this._cachedTransposedLocalFeatureImportances) {
+            return this._cachedTransposedLocalFeatureImportances;
+        }
+        const featureLength = this.jointDataset.localExplanationFeatureCount;
+        const localFeatureImportances = this._filteredData.map(row => {
+            return JointDataset.localExplanationSlice(row, featureLength);
+        });
+        this._cachedTransposedLocalFeatureImportances = ModelExplanationUtils.transpose2DArray(localFeatureImportances);
+        return this._cachedTransposedLocalFeatureImportances;
     }
 
     private applyFilters(): void {
         this._cachedAverageImportance = undefined;
+        this._cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
         this._filteredData = this.jointDataset.dataDict.filter(row => 
             this.filters.every(filter => {

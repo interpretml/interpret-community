@@ -103,8 +103,8 @@ export class JointDataset {
     }
 
     // recover the array representation of just the local explanations from a row
-    public static localExplanationSlice(row: {[key: string]: any}, length: number): any[] {
-        const result = new Array(length);
+    public static localExplanationSlice(row: {[key: string]: any}, length: number): number[] {
+        const result: number[] = new Array(length);
         for(let i: number = 0; i < length; i++) {
             result[i] = row[JointDataset.ReducedLocalImportanceRoot + i.toString()];
         }

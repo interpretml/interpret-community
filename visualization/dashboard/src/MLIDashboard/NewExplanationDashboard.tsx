@@ -9,7 +9,7 @@ import * as memoize from "memoize-one";
 import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
 import _ from "lodash";
 import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
-import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab";
+import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab/GlobalExplanationTab";
 import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab";
@@ -323,7 +323,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     isGlobalDerivedFromLocal={this.state.isGlobalImportanceDerivedFromLocal}
                                     onChange={this.setGlobalBarSettings}
                                     onDependenceChange={this.onDependenceChange}
-                                    requestSortVector={this.setSortVector}
                                     cohorts={this.state.cohorts}
                                     cohortIDs={cohortIDs}
                                 />
