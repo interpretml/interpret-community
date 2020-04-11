@@ -4,7 +4,7 @@
 
 """Tests the Explanation JSON serializer"""
 
-import collections
+import collections.abc
 import pytest
 import logging
 import json
@@ -70,7 +70,7 @@ def _assert_explanation_equivalence(actual, expected):
             else:
                 expected_dataset = expected_value.original_dataset
             np.testing.assert_array_equal(actual_dataset, expected_dataset)
-        elif isinstance(actual_value, (np.ndarray, collections.Sequence)):
+        elif isinstance(actual_value, (np.ndarray, collections.abc.Sequence)):
             np.testing.assert_array_equal(actual_value, expected_value)
         elif isinstance(actual_value, pd.DataFrame) and isinstance(expected_value, pd.DataFrame):
             np.testing.assert_array_equal(actual_value.values, expected_value.values)
