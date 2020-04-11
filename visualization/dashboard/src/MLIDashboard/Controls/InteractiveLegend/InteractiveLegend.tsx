@@ -23,11 +23,10 @@ export interface ILegendItem {
 
 export interface IInteractiveLegendProps {
     items: ILegendItem[];
-    theme: ITheme;
 }
 
 export class InteractiveLegend extends React.PureComponent<IInteractiveLegendProps> {
-    private readonly classes = interactiveLegendStyles(this.props.theme);
+    private readonly classes = interactiveLegendStyles();
 
     public render(): React.ReactNode {
         return (<div className={this.classes.root}>

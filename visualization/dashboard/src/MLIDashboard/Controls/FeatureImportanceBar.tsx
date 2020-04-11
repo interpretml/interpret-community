@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
 import { localization } from "../../Localization/localization";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, getTheme } from "@uifabric/styling";
 import { ModelExplanationUtils } from "../ModelExplanationUtils";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
@@ -15,7 +15,6 @@ import { JointDataset } from "../JointDataset";
 import { IGlobalSeries } from "./GlobalExplanationTab/IGlobalSeries";
 
 export interface IFeatureBarProps {
-    theme: any;
     jointDataset: JointDataset;
     sortArray: number[];
     selectedFeatureIndex?: number;
@@ -86,7 +85,7 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         return (<div className={FeatureImportanceBar.classNames.globalChart}>
             <AccessibleChart
                 plotlyProps={plotlyProps}
-                theme={this.props.theme}
+                theme={getTheme() as any}
                 relayoutArg={relayoutArg as any}
                 onClickHandler={this.selectPointFromChart}
             />

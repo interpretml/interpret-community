@@ -34,9 +34,6 @@ export interface IGlobalBarSettings {
 export interface IGlobalExplanationTabProps {
     globalBarSettings: IGlobalBarSettings;
     sortVector: number[];
-    // selectionContext: SelectionContext;
-    theme: any;
-    // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     dependenceProps: IGenericChartProps;
     metadata: IExplanationModelMetadata;
@@ -93,7 +90,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     public render(): React.ReactNode {
-        const classNames = globalTabStyles(this.props.theme);
+        const classNames = globalTabStyles();
         
         const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
         if (this.props.globalBarSettings === undefined) {
@@ -145,7 +142,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     startingK={this.state.startingK}
                     unsortedX={this.props.metadata.featureNamesAbridged}
                     unsortedSeries={this.activeSeries}
-                    theme={this.props.theme}
                     topK={this.props.globalBarSettings.topK}
                     onFeatureSelection={this.handleFeatureSelection}
                 />
@@ -157,7 +153,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         onChange={this.setSortIndex}
                     />
                     <InteractiveLegend
-                        theme={this.props.theme}
                         items={this.cohortSeries.map((row, rowIndex) => {
                             return {
                                 name: row.name,

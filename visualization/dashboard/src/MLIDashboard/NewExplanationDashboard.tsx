@@ -10,13 +10,14 @@ import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office
 import _ from "lodash";
 import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab/GlobalExplanationTab";
-import { mergeStyleSets } from "office-ui-fabric-react/lib/Styling";
+import { mergeStyleSets, loadTheme } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab";
 import { Cohort } from "./Cohort";
 import { CohortControl } from "./Controls/CohortControl";
 import { initializeIcons } from "@uifabric/icons";
 import { ModelPerformanceTab } from "./Controls/ModelPerformaceTab";
+import { defaultTheme } from "./Themes";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -241,6 +242,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
+        const theme = loadTheme(props.theme || defaultTheme);
         this.onModelConfigChanged = this.onModelConfigChanged.bind(this);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
@@ -316,7 +318,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     globalBarSettings={this.state.globalBarConfig}
                                     sortVector={this.state.sortVector}
                                     dependenceProps={this.state.dependenceProps}
-                                    theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
                                     globalImportance={this.state.globalImportance}

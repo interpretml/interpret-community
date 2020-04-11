@@ -1,4 +1,4 @@
-import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme } from "office-ui-fabric-react";
+import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
 
 export interface IGlobalTabStyles {
   page: IStyle;
@@ -10,13 +10,15 @@ export interface IGlobalTabStyles {
   legendAndSort: IStyle;
 }
 
-export const globalTabStyles: (theme: ITheme) => IProcessedStyleSet<IGlobalTabStyles> = () => {
+export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
+    const theme = getTheme();
   return mergeStyleSets<IGlobalTabStyles>({
     page: {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        width: "100%"
+        width: "100%",
+        backgroundColor: theme.semanticColors.bodyStandoutBackground
     },
     globalChartControls: {
         display: "flex",
