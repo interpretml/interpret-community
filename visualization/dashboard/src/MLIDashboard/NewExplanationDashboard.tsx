@@ -18,6 +18,7 @@ import { CohortControl } from "./Controls/CohortControl";
 import { initializeIcons } from "@uifabric/icons";
 import { ModelPerformanceTab } from "./Controls/ModelPerformaceTab";
 import { defaultTheme } from "./Themes";
+import { CohortList } from "./Controls/CohortList/CohortList";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -277,7 +278,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         return (
             <>
                 <div className="explainerDashboard">
-                    <CohortControl 
+                    <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
                         onChange={this.onCohortChange}

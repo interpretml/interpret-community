@@ -1,34 +1,42 @@
 import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
 
-export interface IGlobalTabStyles {
-  page: IStyle;
-  globalChartControls: IStyle;
-  topK: IStyle;
-  startingK: IStyle;
+export interface ICohortListStyles {
+  banner: IStyle;
+  summaryLabel: IStyle;
+  mediumText: IStyle;
+  summaryBox: IStyle;
+  summaryItemText: IStyle;
   chartTypeDropdown: IStyle;
   globalChartWithLegend: IStyle;
   legendAndSort: IStyle;
 }
 
-export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
+export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () => {
     const theme = getTheme();
-    return mergeStyleSets<IGlobalTabStyles>({
-        page: {
-            height: "100%",
+    return mergeStyleSets<ICohortListStyles>({
+        banner: {
+            height: "105px",
+            paddingTop: "5px",
+            paddingLeft: "34px",
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
             width: "100%",
-            backgroundColor: theme.semanticColors.bodyStandoutBackground
+            color: theme.palette.white,
+            backgroundColor: theme.palette.neutralPrimary
         },
-        globalChartControls: {
+        summaryLabel: {
+            fontVariant: "small-caps",
             display: "flex",
             flexDirection: "row"
         },
-        topK: {
+        mediumText: {
             maxWidth: "200px"
         },
-        startingK: {
-            flex: 1
+        summaryBox: {
+            width: "125px",
+        },
+        summaryItemText: {
+
         },
         chartTypeDropdown: {
             margin: "0 5px 0 0"
