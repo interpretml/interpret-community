@@ -6,9 +6,11 @@ export interface ICohortListStyles {
   mediumText: IStyle;
   summaryBox: IStyle;
   summaryItemText: IStyle;
-  chartTypeDropdown: IStyle;
-  globalChartWithLegend: IStyle;
-  legendAndSort: IStyle;
+  cohortList: IStyle;
+  cohortBox: IStyle;
+  cohortLabelWrapper: IStyle;
+  cohortLabel: IStyle;
+  overflowButton: IStyle;
 }
 
 export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () => {
@@ -16,7 +18,7 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
     return mergeStyleSets<ICohortListStyles>({
         banner: {
             height: "105px",
-            paddingTop: "5px",
+            paddingTop: "10px",
             paddingLeft: "34px",
             display: "flex",
             flexDirection: "row",
@@ -26,29 +28,34 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         },
         summaryLabel: {
             fontVariant: "small-caps",
-            display: "flex",
-            flexDirection: "row"
+            marginBottom: "2px"
         },
         mediumText: {
             maxWidth: "200px"
         },
         summaryBox: {
-            width: "125px",
+            width: "141px",
         },
         summaryItemText: {
 
         },
-        chartTypeDropdown: {
-            margin: "0 5px 0 0"
+        cohortList: {
         },
-        globalChartWithLegend: {
-            height: "400px",
-            width: "100%",
+        cohortBox: {
+            width: "120px",
+            display: "inline-block"
+        },
+        cohortLabelWrapper: {
+            maxWidth: "100%",
             display: "flex",
             flexDirection: "row"
         },
-        legendAndSort: {
-            width: "200px"
+        cohortLabel: {
+            flexGrow: 1
+        },
+        overflowButton: {
+            backgroundColor: theme.palette.neutralPrimary,
+            border: "none"
         }
     });
 };

@@ -281,6 +281,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                     <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
+                        metadata={this.state.modelMetadata}
                         onChange={this.onCohortChange}
                         onDelete={this.deleteCohort}
                     />

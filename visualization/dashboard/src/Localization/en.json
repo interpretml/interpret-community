@@ -230,5 +230,17 @@
     },
     "FeatureBar": {
         "sortBy": "Sort by:"
+    },
+    "CohortBanner": {
+        "dataStatistics": "Data Statistics",
+        "datapoints": "{0} datapoints",
+        "features": "{0} features",
+        "filters": "{0} filters",
+        "binaryClassifier": "Binary Classifier",
+        "regressor": "Regressor",
+        "multiclassClassifier": "Multiclass Classifier",
+        "datasetCohorts": "Dataset Cohorts",
+        "editCohort": "Edit Cohort",
+        "duplicateCohort": "Duplicate Cohort"
     }
 }

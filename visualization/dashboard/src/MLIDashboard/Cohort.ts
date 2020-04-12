@@ -6,6 +6,7 @@ export class Cohort {
     public static CohortKey: string = "Cohort";
     private static _cohortIndex: number = 0;
 
+    public rowCount: number = 0;
     private readonly cohortIndex: number;
     private mutateCount: number = 0;
     private _filteredData: Array<{[key: string]: number}>;
@@ -121,5 +122,6 @@ export class Cohort {
                 }
             })
         );
+        this.rowCount = this._filteredData.length;
     }
 }

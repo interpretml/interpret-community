@@ -62,6 +62,7 @@ export class JointDataset {
     public hasPredictedProbabilities: boolean = false;
     public hasTrueY: boolean = false;
     public datasetFeatureCount: number = 0;
+    public datasetRowCount: number = 0;
     public localExplanationFeatureCount: number = 0;
 
     // these properties should only be accessed by Cohort class,
@@ -115,6 +116,7 @@ export class JointDataset {
         this._modelMeta = args.metadata;
         if (args.dataset && args.dataset.length > 0) {
             this.initializeDataDictIfNeeded(args.dataset);
+            this.datasetRowCount = args.dataset.length;
             this.datasetFeatureCount = args.dataset[0].length;
             // first set metadata 
             args.dataset[0].forEach((unused, colIndex) => {

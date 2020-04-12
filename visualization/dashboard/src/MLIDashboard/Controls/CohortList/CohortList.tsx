@@ -1,12 +1,15 @@
 import { Cohort } from "../../Cohort";
 import { JointDataset } from "../../JointDataset";
 import React from "react";
-import { Text, Callout, DefaultButton } from "office-ui-fabric-react";
+import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles } from "office-ui-fabric-react";
 import _ from "lodash";
 import { cohortListStyles } from "./CohortList.styles";
+import { localization } from "../../../Localization/localization";
+import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 
 export interface ICohortListProps {
     cohorts: Cohort[];
+    metadata: IExplanationModelMetadata;
     jointDataset: JointDataset;
     onChange: (newCohort: Cohort, index: number) => void;
     onDelete: (index: number) => void;
@@ -34,12 +37,54 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                 cohortForEdit = _.cloneDeep(this.props.cohorts[this.state.cohortIndex]);
             }
         }
+        let modelType: string;
+        if (this.props.metadata.modelType === ModelTypes.binary) {
+            modelType = localization.CohortBanner.binaryClassifier;
+        } else if (this.props.metadata.modelType === ModelTypes.multiclass) {
+            modelType = localization.CohortBanner.multiclassClassifier;
+        } else if (this.props.metadata.modelType === ModelTypes.regression) {
+            modelType = localization.CohortBanner.regressor
+        }
         return (
             <div className={classNames.banner}>
                 <div className={classNames.summaryBox}>
-                    <Text className={classNames.summaryLabel}>Data Statistics</Text>
-                    <Text className={classNames.summaryItemText}>Binary classifier</Text>
-                    <Text className={classNames.summaryItemText}>Binary classifier</Text>
+                    <Text variant={"smallPlus"} block className={classNames.summaryLabel}>{localization.CohortBanner.dataStatistics.toUpperCase()}</Text>
+                    <Text block className={classNames.summaryItemText}>{modelType}</Text>
+                    {this.props.jointDataset.hasDataset && (
+                        <div>
+                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, this.props.jointDataset.datasetRowCount)}</Text>
+                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.features, this.props.jointDataset.datasetFeatureCount)}</Text>
+                        </div>
+                    )}
+                </div>
+                <div className={classNames.cohortList}>
+                    <Text variant={"smallPlus"} block className={classNames.summaryLabel}>{localization.CohortBanner.datasetCohorts.toUpperCase()}</Text>
+                    {this.props.cohorts.map((cohort, index) => {
+                        return (<div className={classNames.cohortBox}>
+                            <div className={classNames.cohortLabelWrapper}>
+                                <Text variant={"mediumPlus"} nowrap className={classNames.cohortLabel}>{cohort.name}</Text>
+                                <OverflowSet 
+                                    className={classNames.overflowButton}
+                                    overflowItems={[
+                                        {
+                                        key: 'item4',
+                                        name: localization.CohortBanner.editCohort,
+                                        onClick: () => {},
+                                        },
+                                        {
+                                        key: 'item5',
+                                        name: localization.CohortBanner.duplicateCohort,
+                                        onClick: () => {},
+                                        },
+                                    ]}
+                                    onRenderOverflowButton={this._onRenderOverflowButton}
+                                    onRenderItem={this._onRenderItem}
+                                />
+                            </div>
+                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, cohort.rowCount)}</Text>
+                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
+                        </div>);
+                    })} 
                 </div>
                 {cohortForEdit !== undefined && (
                     <Callout
@@ -54,13 +99,45 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                 <div>
                     <DefaultButton onClick={this.openDialog.bind(this, undefined)} text={"Create new cohort"}/>
                 </div>
-                {this.props.cohorts.map((cohort, index) => {
-                    return (<div
-                        onClick={this.openDialog.bind(this, index)}>{cohort.name}</div>)
-                })}
             </div>
         );
     }
+
+    private _onRenderItem = (item: IOverflowSetItemProps): JSX.Element => {
+        return (
+          <CommandBarButton
+            role="menuitem"
+            aria-label={item.name}
+            styles={{ root: { padding: '10px' } }}
+            iconProps={{ iconName: item.icon }}
+            onClick={item.onClick}
+          />
+        );
+      };
+    
+      private _onRenderOverflowButton = (overflowItems: any[] | undefined): JSX.Element => {
+        const buttonStyles: Partial<IOverflowSetStyles> = {
+          root: {
+            width: 20,
+            height: 20,
+            padding: '4px 0',
+            alignSelf: 'stretch',
+            backgroundColor: "transparent"
+          },
+          overflowButton: {
+              color: "white"
+          }
+        };
+        return (
+          <CommandBarButton
+            ariaLabel="More items"
+            role="menuitem"
+            styles={buttonStyles}
+            menuIconProps={{ iconName: 'More' }}
+            menuProps={{ items: overflowItems! }}
+          />
+        );
+      };
 
     private onCancel(): void {
         this.setState({cohortIndex: undefined});
