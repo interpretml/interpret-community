@@ -1,7 +1,7 @@
 import { Cohort } from "../../Cohort";
 import { JointDataset } from "../../JointDataset";
 import React from "react";
-import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles } from "office-ui-fabric-react";
+import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles, PrimaryButton } from "office-ui-fabric-react";
 import _ from "lodash";
 import { cohortListStyles } from "./CohortList.styles";
 import { localization } from "../../../Localization/localization";
@@ -63,28 +63,34 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         return (<div className={classNames.cohortBox}>
                             <div className={classNames.cohortLabelWrapper}>
                                 <Text variant={"mediumPlus"} nowrap className={classNames.cohortLabel}>{cohort.name}</Text>
-                                <OverflowSet 
-                                    className={classNames.overflowButton}
-                                    overflowItems={[
+                                
+                                <CommandBarButton
+                                    ariaLabel="More items"
+                                    role="menuitem"
+                                    styles={{
+                                        root: classNames.commandButton,
+                                        menuIcon: classNames.menuIcon
+                                    }}
+                                    menuIconProps={{ iconName: 'More' }}
+                                    menuProps={{ items: [
                                         {
                                         key: 'item4',
                                         name: localization.CohortBanner.editCohort,
-                                        onClick: () => {},
+                                        onClick: this.openDialog.bind(this, index),
                                         },
                                         {
                                         key: 'item5',
                                         name: localization.CohortBanner.duplicateCohort,
-                                        onClick: () => {},
+                                        onClick: this.cloneAndOpen.bind(this, index),
                                         },
-                                    ]}
-                                    onRenderOverflowButton={this._onRenderOverflowButton}
-                                    onRenderItem={this._onRenderItem}
+                                    ] }}
                                 />
                             </div>
                             <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, cohort.rowCount)}</Text>
                             <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
                         </div>);
-                    })} 
+                    })}
+                    <PrimaryButton onClick={this.openDialog.bind(this, undefined)} text={localization.CohortBanner.addCohort}/> 
                 </div>
                 {cohortForEdit !== undefined && (
                     <Callout
@@ -96,48 +102,9 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         <DefaultButton onClick={this.updateCohort.bind(this, cohortForEdit)}>Accept changes</DefaultButton>
                     </Callout>
                 )}
-                <div>
-                    <DefaultButton onClick={this.openDialog.bind(this, undefined)} text={"Create new cohort"}/>
-                </div>
             </div>
         );
     }
-
-    private _onRenderItem = (item: IOverflowSetItemProps): JSX.Element => {
-        return (
-          <CommandBarButton
-            role="menuitem"
-            aria-label={item.name}
-            styles={{ root: { padding: '10px' } }}
-            iconProps={{ iconName: item.icon }}
-            onClick={item.onClick}
-          />
-        );
-      };
-    
-      private _onRenderOverflowButton = (overflowItems: any[] | undefined): JSX.Element => {
-        const buttonStyles: Partial<IOverflowSetStyles> = {
-          root: {
-            width: 20,
-            height: 20,
-            padding: '4px 0',
-            alignSelf: 'stretch',
-            backgroundColor: "transparent"
-          },
-          overflowButton: {
-              color: "white"
-          }
-        };
-        return (
-          <CommandBarButton
-            ariaLabel="More items"
-            role="menuitem"
-            styles={buttonStyles}
-            menuIconProps={{ iconName: 'More' }}
-            menuProps={{ items: overflowItems! }}
-          />
-        );
-      };
 
     private onCancel(): void {
         this.setState({cohortIndex: undefined});
@@ -154,5 +121,12 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
         } else {
             this.setState({cohortIndex});
         }
+    }
+
+    private cloneAndOpen(cohortIndex: number): void {
+        const newCohort = _.cloneDeep(this.props.cohorts[cohortIndex]);
+        newCohort.name += localization.CohortBanner.copy;
+        this.props.onChange(newCohort, this.props.cohorts.length);
+        this.setState({cohortIndex: this.props.cohorts.length});
     }
 }

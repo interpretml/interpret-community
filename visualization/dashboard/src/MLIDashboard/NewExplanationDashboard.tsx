@@ -19,6 +19,7 @@ import { initializeIcons } from "@uifabric/icons";
 import { ModelPerformanceTab } from "./Controls/ModelPerformaceTab";
 import { defaultTheme } from "./Themes";
 import { CohortList } from "./Controls/CohortList/CohortList";
+import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -274,7 +275,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     render(): React.ReactNode {
         const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID().toString());
-
+        const classNames = explanationDashboardStyles();
         return (
             <>
                 <div className="explainerDashboard">
@@ -293,12 +294,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                 linkSize={PivotLinkSize.normal}
                                 headersOnly={true}
                                 styles={
-                                    {root:{
-                                        "justifyContent": "space-between",
-                                        "display": "flex",
-                                        "flexDirection": "row",
-                                        "padding": "0 30px"
-                                    }}
+                                    {root: classNames.pivotLabelWrapper}
                                 }
                             >
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}

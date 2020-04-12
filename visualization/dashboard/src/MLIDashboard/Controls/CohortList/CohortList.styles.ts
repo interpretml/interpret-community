@@ -11,12 +11,15 @@ export interface ICohortListStyles {
   cohortLabelWrapper: IStyle;
   cohortLabel: IStyle;
   overflowButton: IStyle;
+  commandButton: IStyle;
+  menuIcon: IStyle;
 }
 
 export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () => {
     const theme = getTheme();
     return mergeStyleSets<ICohortListStyles>({
         banner: {
+            boxSizing: "border-box",
             height: "105px",
             paddingTop: "10px",
             paddingLeft: "34px",
@@ -42,7 +45,9 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         cohortList: {
         },
         cohortBox: {
-            width: "120px",
+            width: "150px",
+            boxSizing: "border-box",
+            paddingRight: "10px",
             display: "inline-block"
         },
         cohortLabelWrapper: {
@@ -56,6 +61,17 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         overflowButton: {
             backgroundColor: theme.palette.neutralPrimary,
             border: "none"
+        },
+        commandButton: {
+            width: 20,
+            height: 20,
+            padding: '4px 0',
+            alignSelf: 'stretch',
+            backgroundColor: "transparent"
+        },
+        menuIcon: {
+            color: theme.palette.white,
+            fontSize: "20px"
         }
     });
 };

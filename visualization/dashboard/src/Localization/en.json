@@ -241,6 +241,8 @@
         "multiclassClassifier": "Multiclass Classifier",
         "datasetCohorts": "Dataset Cohorts",
         "editCohort": "Edit Cohort",
-        "duplicateCohort": "Duplicate Cohort"
+        "duplicateCohort": "Duplicate Cohort",
+        "addCohort": "Add Cohort",
+        "copy": " copy"
     }
 }
