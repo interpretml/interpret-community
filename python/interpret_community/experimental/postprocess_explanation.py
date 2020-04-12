@@ -1,6 +1,8 @@
-from interpret_community.common.explanation_utils import _get_raw_feature_importances
-from interpret_community.explanation.explanation import _create_raw_feats_global_explanation
 from interpret.api.base import ExplanationMixin
+
+from interpret_community.common.constants import ExplainType, ExplainParams
+from interpret_community.common.explanation_utils import _get_raw_feature_importances
+from interpret_community.explanation.explanation import _create_raw_feats_global_explanation, BaseExplanation, _create_local_explanation
 from interpret_community._internal.raw_explain.raw_explain_utils import transform_with_datamapper
 
 from interpret_community._internal.raw_explain.data_mapper import DataMapper
@@ -31,7 +33,7 @@ def _data_to_explanation(data):
 def _create_interpret_community_explanation(explanation):
     return _data_to_explanation(explanation.data(-1))
 
-def keep_raw_features(explanation):
+def keep_raw_features(data_mapper, explanation):
     if not isinstance(explanation, BaseExplanation):
         explanation = _create_interpret_community_explanation(explanation)
     kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=explanation)

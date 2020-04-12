@@ -72,7 +72,7 @@ def get_transformer_config_tuples_from_column_transformer(column_transformer):
     :rtype: list[tuple]
     """
     tuples = []
-    for _, transformer, columns in column_transformer.transformers_:
+    for _, transformer, columns in getattr(column_transformer, "transformers_", column_transformer.transformers):
         if transformer == "drop":
             continue
         elif transformer == "passthrough":
