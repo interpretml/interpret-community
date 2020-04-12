@@ -292,6 +292,14 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                 onLinkClick={this.handleGlobalTabClick}
                                 linkSize={PivotLinkSize.normal}
                                 headersOnly={true}
+                                styles={
+                                    {root:{
+                                        "justifyContent": "space-between",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "padding": "0 30px"
+                                    }}
+                                }
                             >
                                 {this.pivotItems.map(props => <PivotItem key={props.itemKey} {...props}/>)}
                             </Pivot>
