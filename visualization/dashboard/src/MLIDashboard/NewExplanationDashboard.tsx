@@ -16,7 +16,7 @@ import { WhatIfTab } from "./Controls/WhatIfTab";
 import { Cohort } from "./Cohort";
 import { CohortControl } from "./Controls/CohortControl";
 import { initializeIcons } from "@uifabric/icons";
-import { ModelPerformanceTab } from "./Controls/ModelPerformaceTab";
+import { ModelPerformanceTab } from "./Controls/ModelPerformanceTab/ModelPerformaceTab";
 import { defaultTheme } from "./Themes";
 import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";

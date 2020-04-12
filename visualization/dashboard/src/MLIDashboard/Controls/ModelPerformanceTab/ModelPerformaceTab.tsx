@@ -1,16 +1,18 @@
 import React from "react";
-import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../NewExplanationDashboard";
-import { JointDataset, ColumnCategories } from "../JointDataset";
-import { IExplanationModelMetadata, ModelTypes } from "../IExplanationContext";
-import { Cohort } from "../Cohort";
+import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplanationDashboard";
+import { JointDataset, ColumnCategories } from "../../JointDataset";
+import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
+import { Cohort } from "../../Cohort";
 import { mergeStyleSets } from "@uifabric/styling";
 import _ from "lodash";
 import { DefaultButton } from "office-ui-fabric-react/lib/Button";
-import { localization } from "../../Localization/localization";
-import { AxisConfigDialog } from "./AxisConfigDialog";
+import { localization } from "../../../Localization/localization";
+import { AxisConfigDialog } from "../AxisConfigDialog";
 import { AccessibleChart, IPlotlyProperty } from "mlchartlib";
 import { Transform } from "plotly.js-dist";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
+import { modelPerformanceTabStyles } from "./ModelPerformanceTab.styles";
+import { Icon, Text } from "office-ui-fabric-react";
 
 export interface IModelPerformanceTabProps {
     chartProps: IGenericChartProps;
@@ -95,6 +97,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
     }
 
     public render(): React.ReactNode {
+        const classNames = modelPerformanceTabStyles();
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
@@ -107,7 +110,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
-            <div className={ModelPerformanceTab.classNames.tab}>
+            <div className={classNames.page}>
+                <div className={classNames.infoWithText}>
+                    <Icon iconName="Info" className={classNames.infoIcon}/>
+                    <Text variant="medium" className={classNames.helperText}>{localization.ModelPerformance.helperText}</Text>
+                </div>
                 {cohortOptions && (<Dropdown 
                     styles={{ dropdown: { width: 150 } }}
                     options={cohortOptions}
