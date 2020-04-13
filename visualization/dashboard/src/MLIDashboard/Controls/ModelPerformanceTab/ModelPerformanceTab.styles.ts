@@ -13,6 +13,7 @@ export interface IModelPerformanceTabStyles {
     rotatedVerticalBox: IStyle;
     chart: IStyle;
     rightPanel: IStyle;
+    statsBox: IStyle;
     horizontalAxisWithPadding: IStyle;
     paddingDiv: IStyle;
     horizontalAxis: IStyle;
@@ -74,7 +75,16 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         rightPanel: {
             width: "195px",
             height: "100%",
-            backgroundColor: theme.palette.neutralLighter
+            backgroundColor: theme.semanticColors.bodyBackgroundHovered,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-evenly",
+            padding: "40px 15px 30px 30px"
+        },
+        statsBox: {
+            padding: "23px 30px 30px 30px",
+            boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+            backgroundColor: theme.semanticColors.bodyBackground
         },
         verticalAxis: {
             position: "relative",

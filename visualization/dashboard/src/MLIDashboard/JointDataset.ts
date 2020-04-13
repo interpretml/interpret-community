@@ -24,6 +24,13 @@ export enum ColumnCategories {
     cohort = 'cohort'
 }
 
+export enum ClassificationEnum {
+    TrueNegative = 0,
+    FalsePositive = 1,
+    FalseNegative = 2,
+    TruePositive = 3
+}
+
 // The object that will store user-facing strings and associated metadata
 // It stores the categorical labels for any numeric bins
 export interface IJointMeta {

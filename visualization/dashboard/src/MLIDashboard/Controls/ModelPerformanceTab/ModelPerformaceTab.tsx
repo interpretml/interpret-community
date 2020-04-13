@@ -14,6 +14,7 @@ import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { modelPerformanceTabStyles } from "./ModelPerformanceTab.styles";
 import { Icon, Text } from "office-ui-fabric-react";
 import { FabricStyles } from "../../FabricStyles";
+import { generateBinaryStats, IBinaryStats } from "../../StatisticsUtils";
 
 export interface IModelPerformanceTabProps {
     chartProps: IGenericChartProps;
@@ -107,6 +108,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             this.props.cohorts,
             this.state.selectedCohortIndex
         );
+        const metricsList = this.generateMetrics() as IBinaryStats[];
         const cohortOptions: IDropdownOption[] = this.props.chartProps.yAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
@@ -166,7 +168,17 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                         theme={undefined}
                                     />
                                 </div>
-                                <div className={classNames.rightPanel}></div>
+                                <div className={classNames.rightPanel}>
+                                    {metricsList.map(stats => {
+                                        return (<div className={classNames.statsBox}>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy)}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision)}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall)}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate)}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate)}</Text>
+                                        </div>)
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -372,4 +384,32 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         }
         return plotlyProps;
     };
+
+    private generateMetrics(): any[] {
+        let yValues: any[];
+        if (this.props.metadata.modelType === ModelTypes.binary) {
+            let binaryOutcomes: number[];
+            if (this.props.chartProps.yAxis.property === Cohort.CohortKey) {
+                return this.props.cohorts.map(cohort => {
+                    binaryOutcomes = cohort.unwrap(JointDataset.ClassificationError);
+                    return generateBinaryStats(binaryOutcomes);
+                })
+            } else {
+                const cohort = this.props.cohorts[this.state.selectedCohortIndex];
+                binaryOutcomes = cohort.unwrap(JointDataset.ClassificationError);
+                yValues = cohort.unwrap(this.props.chartProps.yAxis.property, true);            }
+                const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
+                const treatAsCategorical = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
+                    !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
+                return sortedCategoricalValues.map((label, labelIndex) => {
+                    const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
+                    
+                    const filteredOutcomes = binaryOutcomes.filter((value, index) => {
+                        return yValues[index] === matchingIndex;
+                    });
+                    return generateBinaryStats(filteredOutcomes);
+                })
+        }
+        return [];
+    }
 }
