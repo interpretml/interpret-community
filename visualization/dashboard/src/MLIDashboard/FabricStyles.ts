@@ -81,6 +81,19 @@ export class FabricStyles {
         '#17becf'   // blue-teal
     ];
 
+    public static fabricColorPalette: string[] = [
+        "#0078d4",
+        "#00188f",
+        "#00A2ad",
+        "#4b003f",
+        "#917edb",
+        "#001d3f",
+        "#e3008c",
+        "#022f22",
+        "#ef6950",
+        "#502006"
+    ]
+
     public static verticalTabsStyle: Partial<IPivotStyles> = {
         root: {
             height: "100%",
