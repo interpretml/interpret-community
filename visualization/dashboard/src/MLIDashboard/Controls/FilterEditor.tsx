@@ -39,7 +39,10 @@ const styles = mergeStyleSets({
         margin: "10px",
         display: "inline-flex",
         width: "50%",
-        flexDirection: "column"
+        flexDirection: "column",
+    },
+    rightContainer :{
+        background:"#F4F4F4"
     }
 });
 
@@ -48,6 +51,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     private readonly dataArray: IComboBoxOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
             const key = JointDataset.DataLabelRoot + index.toString();
+            console.log("_leftselectionkey", key);
             return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel}
         });
 
@@ -59,6 +63,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         JointDataset.ClassificationError,
         JointDataset.RegressionError
     ].map(key => {
+        console.log("key::",key);
         const metaVal = this.props.jointDataset.metaDict[key];
         if (key === JointDataset.DataLabelRoot) {
             return {key, title: "Dataset"};
@@ -66,6 +71,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         if  (metaVal === undefined) {
             return undefined;
         }
+        
         return {key, title: metaVal.abbridgedLabel};
     }).filter(obj => obj !== undefined);
 
@@ -87,6 +93,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
 
     constructor(props: IFilterEditorProps) {
         super(props);
+        console.log("_isInitialized", this._isInitialized)
         this.state = _.cloneDeep(this.props.initialFilter);
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
@@ -95,13 +102,19 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         this._leftSelection.setItems(this.leftItems);
         this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
         this._isInitialized = true;
+        console.log("left_selection", this._leftSelection)
+        console.log("set_selection", this._setSelection)
+        
     }
 
     public render(): React.ReactNode {
         const selectedMeta = this.props.jointDataset.metaDict[this.state.column];
+        console.log("selectedMeta", selectedMeta)
         const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
             1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
+        console.log("numericDelta", numericDelta)
         const isDataColumn = this.state.column.indexOf(JointDataset.DataLabelRoot) !== -1;
+        console.log("isDataColumn", isDataColumn)
         let categoricalOptions: IComboBoxOption[] = [];
         if (selectedMeta.treatAsCategorical) {
             // Numerical values treated as categorical are stored with the values in the column,
@@ -110,17 +123,14 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 selectedMeta.sortedCategoricalValues.map((label, index) => {return {key: index, text: label}}) :
                 selectedMeta.sortedCategoricalValues.map((label) => {return {key: label, text: label.toString()}})
         }
+        console.log("categoricalOptions", categoricalOptions)
+        console.log("isCategorical", selectedMeta.isCategorical)
         return (
-            <Callout
-                target={this.props.target ? '#' + this.props.target : undefined}
-                onDismiss={this.props.onCancel}
-                setInitialFocus={true}
-                hidden={false}
-            >
                 <div className={styles.wrapper}>
                     <div className={styles.leftHalf}>
                         <DetailsList
                             items={this.leftItems}
+                            key={this.state.column}
                             ariaLabelForSelectionColumn="Toggle selection"
                             ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                             checkButtonAriaLabel="Row checkbox"
@@ -128,9 +138,10 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                             selection={this._leftSelection}
                             selectionPreservedOnEmptyClick={true}
                             setKey={"set"}
-                            columns={[{key: 'col1', name: 'name', minWidth: 50, fieldName: 'title'}]}
+                            columns={[{key: 'col1', name: 'name', minWidth: 70, fieldName: 'title'}]}
                         />
                     </div>
+                    <div>
                     <div className={styles.rightHalf}>
                         {isDataColumn && (
                             <ComboBox
@@ -198,13 +209,12 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                 />
                             </div>
                         )}
+                            <DefaultButton 
+                            text={"Add filter"}
+                            onClick={this.saveState}/>
+                    </div>
                     </div>
                 </div>
-                <DefaultButton 
-                    text={"Accept"}
-                    onClick={this.saveState}
-                />
-            </Callout>
         );
     }
 

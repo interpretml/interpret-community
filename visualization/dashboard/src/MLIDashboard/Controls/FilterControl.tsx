@@ -37,7 +37,7 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     constructor(props: IFilterControlProps) {
         super(props);
         this.openFilter = this.openFilter.bind(this);
-        this.editNewFilter = this.editNewFilter.bind(this);
+        //this.editNewFilter = this.editNewFilter.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
         this.cancelFilter = this.cancelFilter.bind(this);
         this.state = {openedFilter: undefined};
@@ -53,9 +53,10 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
 
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
-            return (<div className={FilterControl.classNames.existingFilter}>
+            return (<div key={index} className={FilterControl.classNames.existingFilter}>
                 <div
                     className={FilterControl.classNames.filterLabel}
+                    // key={index}
                     onClick={this.openFilter.bind(this, index)}>{this.props.jointDataset.metaDict[filter.column].abbridgedLabel}
                 </div>
                 <IconButton
@@ -66,18 +67,14 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         });
         return(
             <div className={FilterControl.classNames.filterList}>
-                <Button
-                    onClick={this.editNewFilter}
-                    text="Add Filter"
-                />
-                {this.state.openedFilter !== undefined && (<FilterEditor
-                    jointDataset={this.props.jointDataset}
-                    onAccept={this.updateFilter}
-                    onCancel={this.cancelFilter}
-                    initialFilter={this.state.openedFilter}
-                />)}
-                {filterList}
-            </div>
+                    <FilterEditor
+                        jointDataset={this.props.jointDataset}
+                        onAccept={this.updateFilter}
+                        onCancel={this.cancelFilter}
+                        initialFilter={this.state.openedFilter}
+                    />
+        {filterList}
+        </div>
         );
     }
 
@@ -91,9 +88,9 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.setState({openedFilter: undefined, filterIndex: undefined});
     }
 
-    private editNewFilter(): void {
-        this.setState({openedFilter: this.initialFilter, filterIndex: this.props.filterContext.filters.length});
-    }
+    // private editNewFilter(): void {
+    //     this.setState({openedFilter: this.initialFilter, filterIndex: this.props.filterContext.filters.length});
+    // }
 
     private openFilter(index: number): void {
         this.setState({openedFilter: this.props.filterContext.filters[index], filterIndex: index});
