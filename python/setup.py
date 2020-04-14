@@ -60,7 +60,8 @@ EXTRAS = {
     ],
     'visualization': [
         'flask',
-        "gevent>=1.3.6"
+        "gevent>=1.3.6",
+        "jinja2"
     ]
 }
 
@@ -109,6 +110,7 @@ setup(
     package_data={
         '': [
             'interpret_community/widget/templates/dashboard.html',
+            'interpret_community/widget/templates/inlineDashboard.html',
             'interpret_community/widget/static/index.js'
         ]
     },

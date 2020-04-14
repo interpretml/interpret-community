@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
-from IPython.display import display, IFrame
+from jinja2 import Environment, PackageLoader
+from IPython.display import display, IFrame, HTML
 import threading
 import socket
 import requests
@@ -44,6 +45,8 @@ class ExplanationDashboard:
     explanations = {}
     model_count = 0
     _cdn_path = "v0.1.js"
+    env = Environment(loader=PackageLoader(__name__, 'templates'))
+    default_template = env.get_template("inlineDashboard.html")
 
     class DashboardService:
         app = Flask(__name__)
@@ -158,6 +161,12 @@ class ExplanationDashboard:
             dataset = datasetX
         if true_y is None and trueY is not None:
             true_y = trueY
+        explanation_input =\
+            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, None, locale)
+        html = self._generate_inline_html(explanation_input)
+
+        display(HTML(html))
+        return
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
@@ -187,6 +196,16 @@ class ExplanationDashboard:
                 ExplanationDashboard.service.port,
                 ExplanationDashboard.model_count)
             display(IFrame(url, "100%", 1200))
+
+    def _generate_inline_html(self, explanation_input_object):
+        explanation_input = json.dumps(explanation_input_object.dashboard_input)
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        js_path = os.path.join(script_path, "static", "index.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+        return ExplanationDashboard.default_template.render(explanation=explanation_input,
+                                                            main_js=js,
+                                                            app_id='app_123')
 
 
 # NOTE: Code mostly derived from Plotly's databricks render as linked below:

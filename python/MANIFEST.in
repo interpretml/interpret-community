@@ -1,4 +1,5 @@
 include interpret_community/widget/static/extension.js
 include interpret_community/widget/static/index.js
 include interpret_community/widget/templates/dashboard.html
+include interpret_community/widget/templates/inlineDashboard.html
 recursive-include interpret_community/widget/static *.js.map
