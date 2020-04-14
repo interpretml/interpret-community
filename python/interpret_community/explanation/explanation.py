@@ -22,7 +22,6 @@ from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
-from sklearn.utils.sparsefuncs import csc_median_axis_0
 
 
 class BaseExplanation(ChainedIdentity):
@@ -189,10 +188,20 @@ class BaseExplanation(ChainedIdentity):
     @property
     @abstractmethod
     def selector(self):
+        """Get the local or global selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         return None
 
     @property
     def name(self):
+        """Get the name of the explanation.
+
+        :return: The name of the explanation.
+        :rtype: str
+        """
         return gen_name_from_class(self)
 
     @staticmethod
@@ -496,11 +505,11 @@ class LocalExplanation(FeatureImportanceExplanation):
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
             if _DatasetsMixin._does_quack(self):
-                parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
-                if isinstance(self.eval_data, DatasetWrapper):
-                    eval_data = self.eval_data
+                parent_data[InterpretData.PERF] = perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
+                if isinstance(self._eval_data, DatasetWrapper):
+                    eval_data = self._eval_data
                 else:
-                    eval_data = DatasetWrapper(self.eval_data)
+                    eval_data = DatasetWrapper(self._eval_data)
                 parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
         return parent_data
 
@@ -543,7 +552,12 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
-        predicted = self.eval_y_predicted
+        """Get the local selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
+        predicted = self._eval_y_predicted
         dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
 
@@ -560,9 +574,13 @@ class LocalExplanation(FeatureImportanceExplanation):
             return False
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
-        if not isinstance(explanation.local_importance_values, list):
+        is_list = isinstance(explanation.local_importance_values, list)
+        is_sparse = sp.sparse.issparse(explanation.local_importance_values)
+        if not is_list and not is_sparse:
             return False
         if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
+            return False
+        if not hasattr(explanation, ExplainParams.IS_LOCAL_SPARSE):
             return False
         return True
 
@@ -763,6 +781,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
+        """Get the global selector if this is only a global explanation otherwise local.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         if LocalExplanation._does_quack(self):
             return LocalExplanation.selector.__get__(self)
         nan_predicted = np.empty((1, 1))
@@ -1133,36 +1156,52 @@ class _DatasetsMixin(object):
         """Get initialization (background) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | or str
         """
-        return self._init_data
+        return self._convert_to_list(self._init_data)
 
     @property
     def eval_data(self):
         """Get evaluation (testing) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | str
         """
-        return self._eval_data
+        return self._convert_to_list(self._eval_data)
 
     @property
     def eval_y_predicted(self):
         """Get predicted ys for the evaluation data.
 
         :return: The predicted ys for the evaluation data.
-        :rtype: np.array
+        :rtype: list[input data base type] | sparse
         """
-        return self._eval_y_predicted
+        return self._convert_to_list(self._eval_y_predicted)
 
     @property
     def eval_y_predicted_proba(self):
         """Get predicted probability ys for the evaluation data.
 
-        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-        :type eval_ys_predicted_proba: np.array
+        :return: The predicted probability ys for the evaluation data.
+        :rtype: list[list[input data base type]] | sparse
         """
-        return self._eval_y_predicted_proba
+        return self._convert_to_list(self._eval_y_predicted_proba)
+
+    def _convert_to_list(self, data):
+        """Convert data to a Python list.
+
+        :param data: The data to be converted.
+        :type data: np.array, pd.DataFrame, list, scipy.sparse
+        :return: The data converted to a list (except for sparse which is unchanged).
+        :rtype: list | scipy.sparse | list[scipy.sparse]
+        """
+        if isinstance(data, np.ndarray):
+            return data.tolist()
+        elif isinstance(data, pd.DataFrame):
+            return data.values.tolist()
+        else:
+            # doesn't handle sparse right now
+            return data
 
     @staticmethod
     def _does_quack(explanation):
@@ -1403,8 +1442,8 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
         if local_explanation.is_local_sparse:
-            medians = [np.array(csc_median_axis_0(matrix.tocsc())) for matrix in local_importance_values]
-            per_class_values = np.array(medians)
+            means = [(np.array(abs(m).sum(axis=0)) / m.shape[0]).flatten() for m in local_importance_values]
+            per_class_values = np.array(means)
         else:
             per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
         per_class_rank = _order_imp(per_class_values)
@@ -1709,7 +1748,7 @@ def load_explanation(expljson):
         id_value = None
 
     # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES']:
+    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES', 'IS_LOCAL_SPARSE']:
         if getattr(ExplainParams, remove_key) in expldict:
             paramkeys.remove(remove_key)
 

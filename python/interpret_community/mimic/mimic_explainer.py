@@ -330,7 +330,7 @@ class MimicExplainer(BlackBoxExplainer):
         :rtype: dict
         """
         classification = self.predict_proba_flag
-        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
+        kwargs = {ExplainParams.METHOD: self._get_method}
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
@@ -419,6 +419,15 @@ class MimicExplainer(BlackBoxExplainer):
         return explanation if self._datamapper is None else _create_raw_feats_global_explanation(
             explanation, feature_maps=[self._datamapper.feature_map], features=self.features, **raw_kwargs)
 
+    @property
+    def _get_method(self):
+        """Get the method for this explainer, or mimic with surrogate model type.
+
+        :return: The method, or mimic with surrogate model type.
+        :rtype: str
+        """
+        return "{}.{}".format(ExplainType.MIMIC, self._method)
+
     def _get_explain_local_kwargs(self, evaluation_examples):
         """Get the kwargs for explain_local to create a local explanation.
 
@@ -436,6 +445,9 @@ class MimicExplainer(BlackBoxExplainer):
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
             probabilities = self.function(original_evaluation_examples)
+        # if index column should not be set on surrogate model, remove it
+        if self.reset_index == ResetIndex.ResetTeacher:
+            evaluation_examples.set_index()
         if self._timestamp_featurizer:
             evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
@@ -451,7 +463,7 @@ class MimicExplainer(BlackBoxExplainer):
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
         is_sparse = sp.sparse.issparse(local_importance_values) or sp.sparse.issparse(local_importance_values[0])
         expected_values = self.surrogate_model.expected_values
-        kwargs[ExplainParams.METHOD] = ExplainType.MIMIC
+        kwargs[ExplainParams.METHOD] = self._get_method
         self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 

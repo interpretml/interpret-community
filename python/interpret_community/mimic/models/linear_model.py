@@ -203,7 +203,7 @@ class LinearExplainableModel(BaseExplainableModel):
         self._linear = initializer(**initializer_args)
         super(LinearExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing LinearExplainableModel')
-        self._method = 'mimic.linear'
+        self._method = 'linear'
         self._linear_explainer = None
         self._classification = classification
 
@@ -365,7 +365,7 @@ class SGDExplainableModel(BaseExplainableModel):
         self._sgd = initializer(random_state=random_state, **initializer_args)
         super(SGDExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing SGDExplainableModel')
-        self._method = 'mimic.sgd'
+        self._method = 'sgd'
         self._sgd_explainer = None
         self._classification = classification
 

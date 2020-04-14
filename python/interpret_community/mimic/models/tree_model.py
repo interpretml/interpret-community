@@ -66,7 +66,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         self._tree = initializer(**initializer_args)
         super(DecisionTreeExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing DecisionTreeExplainableModel')
-        self._method = 'mimic.tree'
+        self._method = 'tree'
         self._tree_explainer = None
         self._shap_values_output = shap_values_output
         self._classification = classification

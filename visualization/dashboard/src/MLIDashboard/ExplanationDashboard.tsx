@@ -7,7 +7,7 @@ import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps, IPivot } from "office-ui-fabric-react/lib/Pivot";
 import * as React from "react";
 import { localization } from "../Localization/localization";
-import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata } from "mlchartlib";
+import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata, IModelMetadata } from "mlchartlib";
 import { FabricStyles } from "./FabricStyles";
 import {
     FeatureImportanceWrapper,
@@ -103,6 +103,20 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             requestLocalFeatureExplanations: props.requestLocalFeatureExplanations
         };
         const modelMetadata = ExplanationDashboard.buildModelMetadata(props);
+        const errorMessage = ExplanationDashboard.validateInputs(props, modelMetadata);
+        if (errorMessage !== undefined) {
+            return {
+                modelMetadata,
+                explanationGenerators,
+                localExplanation: undefined,
+                testDataset: {},
+                globalExplanation: undefined,
+                isGlobalDerived: false,
+                ebmExplanation: undefined,
+                customVis:undefined,
+                inputError: errorMessage
+            };
+        }
         const testDataset: ITestDataset =  {
                 dataset: props.testData,
                 predictedY: props.predictedY,
@@ -198,6 +212,128 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             ebmExplanation: ebmExplanation,
             customVis: customVis
         };
+    }
+
+    private static validateInputs(props: IExplanationDashboardProps, modelMetadata: IExplanationModelMetadata): string | undefined {
+        const classLength = modelMetadata.classNames.length;
+        const featureLength = modelMetadata.featureNames.length;
+        let rowLength: number;
+        if (props.trueY) {
+            rowLength = props.trueY.length;
+        }
+        if (props.predictedY) {
+            const length = props.predictedY.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Predicted y has dimension [${length}], expected [${rowLength}]`;
+            }
+        }
+        if (props.probabilityY) {
+            if (!Array.isArray(props.probabilityY)) {
+                return `Predicted probability not an array. Expected array of dimension [${rowLength} x ${classLength}]`;
+            }
+            const length = props.probabilityY.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Predicted y has length [${length}], expected [${rowLength}]`;
+            }
+            if (length === 0) {
+                return "Predicted probability input not a non-empty array";
+            }
+            const cLength = props.probabilityY[0].length;
+            if (cLength !== classLength) {
+                return `Inconsistent dimensions. Predicted probability has dimensions [${length} x ${cLength}], expected [${rowLength} x ${classLength}]`;
+            }
+            if (!props.probabilityY.every(row => row.length === classLength)) {
+                return `Inconsistent dimensions. Predicted probability has rows of varying length`;
+            }
+        }
+        if (props.testData) {
+            if (!Array.isArray(props.testData)) {
+                return `Eval dataset not an array. Expected array of dimension [${rowLength} x ${featureLength}]`;
+            }
+            const length = props.testData.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Eval dataset has length [${length}], expected [${rowLength}]`;
+            }
+            if (length === 0) {
+                return "Eval dataset not a non-empty array";
+            }
+            const fLength = props.testData[0].length;
+            if (fLength !== featureLength) {
+                return `Inconsistent dimensions. Eval dataset has dimensions [${length} x ${fLength}], expected [${rowLength} x ${featureLength}]`;
+            }
+            if (!props.testData.every(row => row.length === featureLength)) {
+                return `Inconsistent dimensions. Eval dataset has rows of varying length`;
+            }
+        }
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance && props.precomputedExplanations.localFeatureImportance.scores) {
+            const localExp = props.precomputedExplanations.localFeatureImportance.scores;
+            if (!Array.isArray(localExp)) {
+                return `Local explanation not an array. Expected array of dimension [${classLength} x ${rowLength} x ${featureLength}]`;
+            }
+            // explanation will be 2d in case of regression models. 3 for classifier
+            let expDim: number = 2;
+            if ((localExp as number[][][]).every(dim1 => {
+                return dim1.every(dim2 => Array.isArray(dim2));
+            })) {
+                expDim = 3;
+            }
+            if (expDim === 3) {
+                const cLength = localExp.length;
+                if (classLength !== cLength) {
+                    return `Inconsistent dimensions. Local Explanation has class length [${cLength}], expected [${classLength}]`;
+                }
+                if (cLength === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                const rLength = localExp[0].length;
+                if (rLength === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                if (rowLength === undefined) {
+                    rowLength = rLength;
+                }
+                if (rLength !== rowLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength}], expected [${classLength} x ${rowLength}]`;
+                }
+                if (!localExp.every(classArray => classArray.length === rowLength)) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+                const fLength = (localExp[0][0] as number[]).length;
+                if (fLength !== featureLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength} x ${fLength}], expected [${classLength} x ${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(classArray => classArray.every(rowArray => rowArray.length === featureLength))) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+            } else {
+                const length = localExp.length;
+                if (rowLength === undefined) {
+                    rowLength = length;
+                }
+                if (length !== rowLength) {
+                    return `Inconsistent dimensions. Local Explanation has row length [${length}], expected [${rowLength}]`;
+                }
+                if (length === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                const fLength = (localExp[0] as number[]).length;
+                if (fLength !== featureLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${length} x ${fLength}], expected [${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(rowArray => rowArray.length === featureLength)) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+            }
+        }
     }
 
     private static buildLocalFeatureMatrix(localExplanationRaw: number[][] | number[][][], modelType: ModelTypes): number[][][] {
@@ -330,9 +466,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
-            return props.probabilityY[0].length;
-        }
         if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
             && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
@@ -340,6 +473,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 return dim1.every(dim2 => Array.isArray(dim2));
             })) {
                 return localImportances.length;
+            } else {
+                // 2d is regression (could be a non-scikit convention binary, but that is not supported)
+                return 1;
             }
         }
         if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
@@ -348,6 +484,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 .every(dim1 => Array.isArray(dim1))) {
                 return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
             }
+        }
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
+            return props.probabilityY[0].length;
         }
         // default to regression case
         return 1;
@@ -460,6 +599,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
+        if (this.state.dashboardContext.explanationContext.inputError) {
+            return <div>{this.state.dashboardContext.explanationContext.inputError}</div>
+        }
         if (this.pivotItems.length === 0) {
             return <div>No valid views. Incomplete data.</div>
         }

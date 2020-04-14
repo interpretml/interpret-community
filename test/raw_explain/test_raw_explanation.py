@@ -14,6 +14,8 @@ from datasets import retrieve_dataset
 from sklearn.model_selection import train_test_split
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
 
+LINEAR_METHOD = 'mimic.linear'
+
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
 @pytest.mark.usefixtures('clean_dir')
@@ -114,6 +116,7 @@ class TestRawExplanations:
         explainer = mimic_explainer(model, x_train, LinearExplainableModel,
                                     explainable_model_args={'sparse_data': True})
         global_explanation = explainer.explain_global(x_test)
+        assert global_explanation.method == LINEAR_METHOD
 
         num_engineered_feats = x_train.shape[1]
         feature_map = np.eye(5, num_engineered_feats)
@@ -129,6 +132,7 @@ class TestRawExplanations:
         explainer = mimic_explainer(model, x_train, LinearExplainableModel,
                                     explainable_model_args={'sparse_data': True}, classes=classes)
         global_explanation = explainer.explain_global(x_test)
+        assert global_explanation.method == LINEAR_METHOD
 
         num_engineered_feats = x_train.shape[1]
         feature_map = np.eye(5, num_engineered_feats)
