@@ -297,19 +297,33 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             layout: {
                 dragmode: false,
                 autosize: true,
-                font: {
-                    size: 10
-                },
                 margin: {
-                    t: 10,
-                    l: 0,
+                    l: 10,
+                    t: 25,
                     b: 20,
                 },
                 hovermode: "closest",
                 showlegend: false,
                 yaxis: {
-                    automargin: true
+                    automargin: true,
+                    color: FabricStyles.chartAxisColor,
+                    tickfont: {
+                        size: 11
+                    },
+                    showline: true
                 },
+                xaxis: {
+                    side: "top",
+                    mirror: true,
+                    color: FabricStyles.chartAxisColor,
+                    tickfont: {
+                        family: FabricStyles.fontFamilies,
+                        size: 11
+                    },
+                    showline: true,
+                    showgrid: true,
+                    gridcolor: "#e5e5e5"
+                }
             } as any
         };
         let rawX: number[];

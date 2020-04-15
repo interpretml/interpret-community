@@ -105,6 +105,7 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         },
         horizontalAxisWithPadding: {
             display: "flex",
+            paddingBottom: "30px",
             flexDirection: "row"
         },
         paddingDiv: {

@@ -92,7 +92,10 @@ export class FabricStyles {
         "#022f22",
         "#ef6950",
         "#502006"
-    ]
+    ];
+
+    public static chartAxisColor: string = "#979797";
+    public static fontFamilies = "Segoe UI, Segoe UI Web (West European),  Roboto, Helvetica Neue, sans-serif";
 
     public static verticalTabsStyle: Partial<IPivotStyles> = {
         root: {
