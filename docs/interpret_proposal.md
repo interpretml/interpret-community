@@ -105,4 +105,6 @@ not added as is yet -> glass_box_model.fit(x_train, predict_fn(x_train))
 #### PermutationImportance # Exists in interpret-community
 Uses sklearn classifier/regression paradigm
 
+WIP: https://github.com/interpretml/interpret/pull/120
+
 The idea is to keep interpret-community as is in the short term. Migrate to the experimental functions, and longer term more of the code will be added into modular components within interpret directly(not experimental) with little to no need for interpret-community. azureml-interpret will serve the AzureML specific use cases.
