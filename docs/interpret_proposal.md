@@ -1,8 +1,8 @@
 # Proposed interpret + interpret-community in interpret(.experimental)
 
-All imports would be from interpret.experimental.*. Shap functions would be dropped when SHAP is fully supported except get_shap_explainer(TabularExplainer)
+All imports would be from interpret.experimental.*.
 
-interpret.experimental.shap (should live in shap longer term)
+interpret.experimental.shap (should live in shap longer term?)
 
 ``` code-block:: python
 interpret.experimental.shap.get_shap_explainer(model, data, allow_kernel=False)
