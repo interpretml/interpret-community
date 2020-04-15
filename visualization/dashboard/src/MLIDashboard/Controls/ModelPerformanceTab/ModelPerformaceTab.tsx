@@ -131,20 +131,24 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
                                 {(this.props.chartProps.chartType !== ChartTypes.Bar) && (
-                                    <DefaultButton 
-                                        onClick={this.setYOpen.bind(this, true)}
-                                        id={this._yButtonId}
-                                        text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                        title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
-                                    />
-                                )}
-                                {(this.props.chartProps.chartType === ChartTypes.Bar) && (
-                                    <div>{localization.ExplanationScatter.count}
+                                    <div>
+                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
                                         <DefaultButton 
                                             onClick={this.setYOpen.bind(this, true)}
                                             id={this._yButtonId}
-                                            text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                            title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                            text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                            title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        />
+                                    </div>
+                                )}
+                                {(this.props.chartProps.chartType === ChartTypes.Bar) && (
+                                    <div>
+                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.numberOfDatapoints}</Text>
+                                        <DefaultButton 
+                                            onClick={this.setYOpen.bind(this, true)}
+                                            id={this._yButtonId}
+                                            text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                            title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
                                         />
                                     </div>
                                 )}
@@ -188,12 +192,15 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     <div className={classNames.horizontalAxisWithPadding}>
                         <div className={classNames.paddingDiv}></div>
                         <div className={classNames.horizontalAxis}>
-                            <DefaultButton 
-                                onClick={this.setXOpen.bind(this, true)}
-                                id={this._xButtonId}
-                                text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                            />
+                            <div>
+                            <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <DefaultButton 
+                                    onClick={this.setXOpen.bind(this, true)}
+                                    id={this._xButtonId}
+                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                    title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
+                                />
+                            </div>
                             {(this.state.xDialogOpen) && (
                                 <AxisConfigDialog 
                                     jointDataset={this.props.jointDataset}

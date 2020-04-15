@@ -254,5 +254,10 @@
         "recall": "Recall: {0}",
         "fpr": "fpr: {0}",
         "fnr": "fnr: {0}"
+    },
+    "Charts": {
+        "yValue": "Y-value",
+        "numberOfDatapoints": "Number of datapoints",
+        "xValue": "X-value"
     }
 }

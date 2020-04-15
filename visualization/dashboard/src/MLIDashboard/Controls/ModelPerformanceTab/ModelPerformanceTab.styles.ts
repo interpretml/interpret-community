@@ -19,6 +19,7 @@ export interface IModelPerformanceTabStyles {
     horizontalAxis: IStyle;
     cohortPickerWrapper: IStyle;
     cohortPickerLabel: IStyle;
+    boldText: IStyle;
 }
 
 export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerformanceTabStyles> = () => {
@@ -92,11 +93,11 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
             position: "relative",
             top: "0px",
             height: "auto",
-            width: "50px"
+            width: "64px"
         },
         rotatedVerticalBox: {
             transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
-            marginLeft: "15px",
+            marginLeft: "28px",
             position: "absolute",
             top: "50%",
             textAlign: "center",
@@ -124,6 +125,10 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         cohortPickerLabel: {
             fontWeight: "600",
             paddingRight: "8px"
+        },
+        boldText: {
+            fontWeight: "600",
+            paddingBottom: "5px"
         }
     });
 };
