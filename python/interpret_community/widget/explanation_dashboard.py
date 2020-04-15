@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, request
 from flask_cors import CORS
 from jinja2 import Environment, PackageLoader
-from IPython.display import display, IFrame, HTML
+from IPython.display import display, HTML
 from interpret.utils.environment import EnvironmentDetector, is_cloud_env
 import threading
 import socket
@@ -122,8 +122,6 @@ class ExplanationDashboard:
 
         @app.route('/<id>')
         def explanation_visual(id):
-            # if there is no internet or the static file exists, use that
-            # main_js='http://127.0.0.1:5000/static/index.js'
             if id in ExplanationDashboard.explanations:
                 return generate_inline_html(ExplanationDashboard.explanations[id], None)
             else:
@@ -171,7 +169,7 @@ class ExplanationDashboard:
         explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
         html = generate_inline_html(explanation_input, local_url)
-        
+
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
@@ -201,7 +199,7 @@ class ExplanationDashboard:
         js_path = os.path.join(script_path, "static", "index.js")
         with open(js_path, "r", encoding="utf-8") as f:
             ExplanationDashboard._dashboard_js = f.read()
-        
+
 
 def generate_inline_html(explanation_input_object, local_url):
     explanation_input = json.dumps(explanation_input_object.dashboard_input)
