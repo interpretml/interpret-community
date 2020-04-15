@@ -17,6 +17,8 @@ export interface IModelPerformanceTabStyles {
     horizontalAxisWithPadding: IStyle;
     paddingDiv: IStyle;
     horizontalAxis: IStyle;
+    cohortPickerWrapper: IStyle;
+    cohortPickerLabel: IStyle;
 }
 
 export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerformanceTabStyles> = () => {
@@ -110,6 +112,18 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         horizontalAxis: {
             flex: 1,
             textAlign:"center"
+        },
+        cohortPickerWrapper: {
+            paddingLeft: "63px",
+            paddingTop: "13px",
+            height: "32px",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center"
+        },
+        cohortPickerLabel: {
+            fontWeight: "600",
+            paddingRight: "8px"
         }
     });
 };

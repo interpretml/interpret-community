@@ -117,12 +117,15 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     <Icon iconName="Info" className={classNames.infoIcon}/>
                     <Text variant="medium" className={classNames.helperText}>{localization.ModelPerformance.helperText}</Text>
                 </div>
-                {cohortOptions && (<Dropdown 
-                    styles={{ dropdown: { width: 150 } }}
-                    options={cohortOptions}
-                    selectedKey={this.state.selectedCohortIndex}
-                    onChange={this.setSelectedCohort}
-                />)}
+                {cohortOptions && (<div className={classNames.cohortPickerWrapper}>
+                    <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>{localization.ModelPerformance.cohortPickerLabel}</Text>
+                    <Dropdown 
+                        styles={{ dropdown: { width: 150 } }}
+                        options={cohortOptions}
+                        selectedKey={this.state.selectedCohortIndex}
+                        onChange={this.setSelectedCohort}
+                    />
+                </div>)}
                 <div className={classNames.chartWithAxes}>
                     <div className={classNames.chartWithVertical}>
                         <div className={classNames.verticalAxis}>

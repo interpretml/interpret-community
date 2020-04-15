@@ -248,6 +248,7 @@
     "ModelPerformance": {
         "helperText": "Evaluate the performance of your model by explorinthe distribution of your prediction values and the values of your model performance metrics. You can further investigate your model by looking at a comparative analysis of its performance across different cohorts or subgroups of your dataset. Select filters along y-value and x-value to cut across different dimensions. Select the gear in the graph to change graph type.",
         "modelStatistics": "Model Statistics",
+        "cohortPickerLabel": "Select a dataset cohort to explore",
         "accuracy": "Accuracy: {0}",
         "precision": "Precision: {0}",
         "recall": "Recall: {0}",
