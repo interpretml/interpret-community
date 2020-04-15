@@ -1,5 +1,8 @@
-from flask import Flask, render_template, request
-from IPython.display import display, IFrame
+from flask import Flask, request
+from flask_cors import CORS
+from jinja2 import Environment, PackageLoader
+from IPython.display import display, HTML
+from interpret.utils.environment import EnvironmentDetector, is_cloud_env
 import threading
 import socket
 import requests
@@ -8,6 +11,7 @@ import json
 import atexit
 from .explanation_dashboard_input import ExplanationDashboardInput
 from ._internal.constants import DatabricksInterfaceConstants
+
 try:
     from gevent.pywsgi import WSGIServer
 except ModuleNotFoundError:
@@ -43,14 +47,19 @@ class ExplanationDashboard:
     service = None
     explanations = {}
     model_count = 0
-    _cdn_path = "v0.1.js"
+    using_fallback = False
+    _cdn_path = "v0.2.js"
+    _dashboard_js = None
+    env = Environment(loader=PackageLoader(__name__, 'templates'))
+    default_template = env.get_template("inlineDashboard.html")
 
     class DashboardService:
         app = Flask(__name__)
+        CORS(app)
 
         def __init__(self, port):
             self.port = port
-            self.ip = '127.0.0.1'
+            self.ip = 'localhost'
             self.use_cdn = True
             if self.port is None:
                 # Try 100 different ports
@@ -113,34 +122,8 @@ class ExplanationDashboard:
 
         @app.route('/<id>')
         def explanation_visual(id):
-            # if there is no internet or the static file exists, use that
-            # main_js='http://127.0.0.1:5000/static/index.js'
             if id in ExplanationDashboard.explanations:
-                using_fallback = False
-                if ExplanationDashboard.service.use_cdn:
-                    try:
-                        url = 'https://interpret-cdn.azureedge.net/{0}'.format(ExplanationDashboard._cdn_path)
-                        r = requests.get(url)
-                        if not r.ok:
-                            using_fallback = True
-                            url = "http://{0}:{1}/static/index.js".format(
-                                ExplanationDashboard.service.ip,
-                                ExplanationDashboard.service.port)
-                    except Exception:
-                        using_fallback = True
-                        url = "http://{0}:{1}/static/index.js".format(
-                            ExplanationDashboard.service.ip,
-                            ExplanationDashboard.service.port)
-                else:
-                    url = "http://{0}:{1}/static/index.js".format(
-                        ExplanationDashboard.service.ip,
-                        ExplanationDashboard.service.port)
-                serialized_explanation = json.dumps(ExplanationDashboard.explanations[id].dashboard_input)
-                return render_template('dashboard.html',
-                                       explanation=serialized_explanation,
-                                       main_js=url,
-                                       app_id='app_123',
-                                       using_fallback=using_fallback)
+                return generate_inline_html(ExplanationDashboard.explanations[id], None)
             else:
                 return "Unknown model id."
 
@@ -158,6 +141,12 @@ class ExplanationDashboard:
             dataset = datasetX
         if true_y is None and trueY is not None:
             true_y = trueY
+        self._initialize_js(use_cdn)
+        env = EnvironmentDetector()
+        detected_envs = env.detect()
+        in_cloud_env = is_cloud_env(detected_envs)
+        predict_url = None
+        local_url = None
         if not ExplanationDashboard.service:
             try:
                 ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
@@ -168,25 +157,58 @@ class ExplanationDashboard:
                 raise e
         ExplanationDashboard.service.use_cdn = use_cdn
         ExplanationDashboard.model_count += 1
-        predict_url = "http://{0}:{1}/{2}/predict".format(
-            ExplanationDashboard.service.ip,
-            ExplanationDashboard.service.port,
-            str(ExplanationDashboard.model_count))
-        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] =\
+        if (not in_cloud_env):
+            predict_url = "http://{0}:{1}/{2}/predict".format(
+                ExplanationDashboard.service.ip,
+                ExplanationDashboard.service.port,
+                str(ExplanationDashboard.model_count))
+            local_url = "http://{0}:{1}/{2}".format(
+                ExplanationDashboard.service.ip,
+                ExplanationDashboard.service.port,
+                str(ExplanationDashboard.model_count))
+        explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
+        html = generate_inline_html(explanation_input, local_url)
+
+        ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:
-            html = "<iframe src='http://{0}:{1}/{2}' width='100%' height='1200px' frameBorder='0'></iframe>".format(
-                ExplanationDashboard.service.ip,
-                ExplanationDashboard.service.port,
-                ExplanationDashboard.model_count)
             _render_databricks(html)
         else:
-            url = 'http://{0}:{1}/{2}'.format(
-                ExplanationDashboard.service.ip,
-                ExplanationDashboard.service.port,
-                ExplanationDashboard.model_count)
-            display(IFrame(url, "100%", 1200))
+            display(HTML(html))
+
+    def _initialize_js(self, use_cdn):
+        if (ExplanationDashboard._dashboard_js is None):
+            if (use_cdn):
+                try:
+                    url = 'https://interpret-cdn.azureedge.net/{0}'.format(ExplanationDashboard._cdn_path)
+                    r = requests.get(url)
+                    if not r.ok:
+                        ExplanationDashboard.using_fallback = True
+                        self._load_local_js()
+                    r.encoding = "utf-8"
+                    ExplanationDashboard._dashboard_js = r.text
+                except Exception:
+                    ExplanationDashboard.using_fallback = True
+                    self._load_local_js()
+            else:
+                self._load_local_js()
+
+    def _load_local_js(self):
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        js_path = os.path.join(script_path, "static", "index.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            ExplanationDashboard._dashboard_js = f.read()
+
+
+def generate_inline_html(explanation_input_object, local_url):
+    explanation_input = json.dumps(explanation_input_object.dashboard_input)
+    return ExplanationDashboard.default_template.render(explanation=explanation_input,
+                                                        main_js=ExplanationDashboard._dashboard_js,
+                                                        app_id='app_123',
+                                                        using_fallback=ExplanationDashboard.using_fallback,
+                                                        local_url=local_url,
+                                                        has_local_url=local_url is not None)
 
 
 # NOTE: Code mostly derived from Plotly's databricks render as linked below:

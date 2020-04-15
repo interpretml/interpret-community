@@ -60,7 +60,9 @@ EXTRAS = {
     ],
     'visualization': [
         'flask',
-        "gevent>=1.3.6"
+        "flask-cors",
+        "gevent>=1.3.6",
+        "jinja2"
     ]
 }
 
@@ -108,7 +110,7 @@ setup(
     include_package_data=True,
     package_data={
         '': [
-            'interpret_community/widget/templates/dashboard.html',
+            'interpret_community/widget/templates/inlineDashboard.html',
             'interpret_community/widget/static/index.js'
         ]
     },
