@@ -60,6 +60,7 @@ EXTRAS = {
     ],
     'visualization': [
         'flask',
+        "flask-cors",
         "gevent>=1.3.6",
         "jinja2"
     ]

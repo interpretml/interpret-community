@@ -1,7 +1,13 @@
 <!doctype html>
 <title>Interpret Dashboard</title>
+{% if using_fallback %}
+    <div style="background-color: #fee12b; width: 100%;">Could not use CDN for dashboard javascript. Falling back to local index.js</div>
+{% endif %}
+{% if has_local_url %}
+    <a href="{{local_url}}" target="_blank">Open in new tab</a>
+{% endif %}
 <div style="height: 1000px;" id="{{app_id}}"></div>
-<script type="text/javascript">{{ main_js|safe}}</script>
+<script type="text/javascript">{{ main_js}}</script>
 <script defer type="text/javascript">
 (function universalLoad(root, callback) {
       if(typeof exports === 'object' && typeof module === 'object') {
@@ -23,7 +29,7 @@
       }
     })(this, function(interpretInline) {
         var data = {{explanation|safe}};
-        data.predictionUrl = undefined;
+        data.predictionUrl = data.predictionUrl ? data.predictionUrl : undefined;
         interpretInline.RenderDashboard("{{app_id}}", data);
     });
 
