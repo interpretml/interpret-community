@@ -1,11 +1,12 @@
 import { Cohort } from "../../Cohort";
 import { JointDataset } from "../../JointDataset";
 import React from "react";
-import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles, PrimaryButton } from "office-ui-fabric-react";
+import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles, PrimaryButton, ICalloutContentStyles, IStyle, TextField } from "office-ui-fabric-react";
 import _ from "lodash";
 import { cohortListStyles } from "./CohortList.styles";
 import { localization } from "../../../Localization/localization";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
+import { FilterControl } from "../FilterControl";
 
 export interface ICohortListProps {
     cohorts: Cohort[];
@@ -19,7 +20,28 @@ export interface ICohortListState {
     cohortIndex?: number;
 }
 
+let cohortEditor: IStyle = {
+    position: 'absolute',
+    overflowY: 'visible',
+    width:'560px',
+    height:'455px',
+    left:'300px',
+    top:'200px',
+    background: '#FFFFFF',
+    boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
+    borderRadius: '2px'
+}
+
+let calloutMain: ICalloutContentStyles = {
+    container:{},
+    root: {},
+    beak: {},
+    beakCurtain: {},
+    calloutMain:cohortEditor
+}
+
 export class CohortList extends React.PureComponent<ICohortListProps, ICohortListState> {
+
     constructor(props: ICohortListProps) {
         super(props);
         this.state = {};
@@ -97,9 +119,28 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         onDismiss={this.onCancel}
                         setInitialFocus={true}
                         hidden={false}
+                        styles={calloutMain}
                     >
-                        <Text>Cohort editor control goes here</Text>
-                        <DefaultButton onClick={this.updateCohort.bind(this, cohortForEdit)}>Accept changes</DefaultButton>
+                        <div className={classNames.cohortName}>
+                        {/* <label id={cohortForEdit.getCohortID.toString()}>Dataset cohort name</label> */}
+                        <TextField 
+                        id={cohortForEdit.getCohortID.toString()} 
+                        label="Dataset cohort name"
+                        placeholder="Enter dataset cohort name"></TextField>
+                        </div>
+
+                        {/* <div className={classNames.addFilter}> */}
+                            <FilterControl
+                                    jointDataset={this.props.jointDataset}
+                                    filterContext={{
+                                        filters: cohortForEdit.filters,
+                                        onAdd: (filter) => {cohortForEdit.updateFilter(filter)},
+                                        onDelete: (index) => {cohortForEdit.deleteFilter(index)},
+                                        onUpdate: (filter, index) => {cohortForEdit.updateFilter(filter, index)}
+                                    }}
+                                />
+                        {/* </div> */}
+                        <PrimaryButton className={classNames.saveCohort} onClick={this.updateCohort.bind(this, cohortForEdit)}>Save</PrimaryButton>
                     </Callout>
                 )}
             </div>

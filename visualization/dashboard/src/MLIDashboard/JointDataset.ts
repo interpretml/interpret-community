@@ -176,6 +176,8 @@ export class JointDataset {
                 sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined,
                 category: ColumnCategories.outcome
             };
+            const predictions = args.predictedY
+            const average = predictions.reduce((a, b) => a + b) / predictions.length;
             if (args.metadata.modelType === ModelTypes.regression) {
                 this.metaDict[JointDataset.PredictedYLabel].featureRange = {
                     min: Math.min(...args.predictedY),
@@ -194,6 +196,8 @@ export class JointDataset {
                 });
                 const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, args.metadata.classNames[0]) as string;
                 const projection = args.predictedProbabilities.map(row => row[0]);
+                const average = projection.reduce((a, b) => a + b) / projection.length;
+
                 this.metaDict[key] = {
                     label,
                     abbridgedLabel: label,
