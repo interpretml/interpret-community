@@ -31,6 +31,7 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         },
         summaryLabel: {
             fontVariant: "small-caps",
+            fontWeight: "300",
             marginBottom: "2px"
         },
         mediumText: {
@@ -40,7 +41,8 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
             width: "141px",
         },
         summaryItemText: {
-
+            fontSize: "11px",
+            lineHeight: "19px"
         },
         cohortList: {
         },

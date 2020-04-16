@@ -48,7 +48,7 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
         return (
             <div className={classNames.banner}>
                 <div className={classNames.summaryBox}>
-                    <Text variant={"smallPlus"} block className={classNames.summaryLabel}>{localization.CohortBanner.dataStatistics.toUpperCase()}</Text>
+                    <Text variant={"xSmall"} block className={classNames.summaryLabel}>{localization.CohortBanner.dataStatistics.toUpperCase()}</Text>
                     <Text block className={classNames.summaryItemText}>{modelType}</Text>
                     {this.props.jointDataset.hasDataset && (
                         <div>
@@ -58,7 +58,7 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                     )}
                 </div>
                 <div className={classNames.cohortList}>
-                    <Text variant={"smallPlus"} block className={classNames.summaryLabel}>{localization.CohortBanner.datasetCohorts.toUpperCase()}</Text>
+                    <Text variant={"xSmall"} block className={classNames.summaryLabel}>{localization.CohortBanner.datasetCohorts.toUpperCase()}</Text>
                     {this.props.cohorts.map((cohort, index) => {
                         return (<div className={classNames.cohortBox}>
                             <div className={classNames.cohortLabelWrapper}>
@@ -86,8 +86,8 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                                     ] }}
                                 />
                             </div>
-                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, cohort.rowCount)}</Text>
-                            <Text block className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
+                            <Text block variant={"xSmall"} className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, cohort.rowCount)}</Text>
+                            <Text block variant={"xSmall"} className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
                         </div>);
                     })}
                     <PrimaryButton onClick={this.openDialog.bind(this, undefined)} text={localization.CohortBanner.addCohort}/> 
