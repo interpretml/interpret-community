@@ -4,7 +4,6 @@ import React from "react";
 import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions, PlotlyMode, IPlotlyAnimateProps } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
-import { ScatterUtils } from "./ScatterUtils";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets } from "@uifabric/styling";
@@ -18,6 +17,8 @@ import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigDialog";
 import { Cohort } from "../../Cohort";
+import { dastasetExplorerTabStyles as datasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
+import { Icon, Text } from "office-ui-fabric-react";
 
 export interface IDatasetExplorerTabProps {
     chartProps: IGenericChartProps;
@@ -58,70 +59,24 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 automargin: true,
                 color: FabricStyles.chartAxisColor,
                 tickfont: {
-                    family: FabricStyles.fontFamilies,
+                    family: "Roboto, Helvetica Neue, sans-serif",
                     size: 11
                 },
-                showline: true,
+                zeroline: true,
                 showgrid: true,
                 gridcolor: "#e5e5e5"
             },
             xaxis: {
-                side: "top",
                 mirror: true,
                 color: FabricStyles.chartAxisColor,
                 tickfont: {
                     family: FabricStyles.fontFamilies,
                     size: 11
                 },
-                showline: true
+                zeroline: true
             }
         } as any
     };
-
-    private static readonly classNames = mergeStyleSets({
-        dataTab: {
-            display: "contents"
-        },
-        topConfigArea: {
-            display: "flex",
-            padding: "3px 15px",
-            justifyContent: "space-between"
-        },
-        chartWithAxes: {
-            display: "flex",
-            padding: "5px 20px 0 20px",
-            flexDirection: "column"
-        },
-        chartWithVertical: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        verticalAxis: {
-            position: "relative",
-            top: "0px",
-            height: "auto",
-            width: "50px"
-        },
-        rotatedVerticalBox: {
-            transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
-            marginLeft: "15px",
-            position: "absolute",
-            top: "50%",
-            textAlign: "center",
-            width: "max-content"
-        },
-        horizontalAxisWithPadding: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        paddingDiv: {
-            width: "50px"
-        },
-        horizontalAxis: {
-            flex: 1,
-            textAlign:"center"
-        }
-    });
 
     private chartOptions: IComboBoxOption[] = [
         {
@@ -159,6 +114,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     }
 
     public render(): React.ReactNode {
+        const classNames = datasetExplorerTabStyles();
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
@@ -170,21 +126,21 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
-            <div className={DatasetExplorerTab.classNames.dataTab}>
-                <div className={DatasetExplorerTab.classNames.topConfigArea}>
-                    <ComboBox
-                        options={this.chartOptions}
-                        onChange={this.onChartTypeChange}
-                        selectedKey={this.props.chartProps.chartType}
-                        useComboBoxAsMenuWidth={true}
-                        styles={FabricStyles.smallDropdownStyle}
-                    />
-                    {cohortOptions && (<Dropdown 
+            <div className={classNames.page}>
+                <div className={classNames.infoWithText}>
+                    <Icon iconName="Info" className={classNames.infoIcon}/>
+                    <Text variant="medium" className={classNames.helperText}>{localization.DatasetExplorer.helperText}</Text>
+                </div>
+                <div className={classNames.cohortPickerWrapper}>
+                    <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>{localization.ModelPerformance.cohortPickerLabel}</Text>
+                    <Dropdown 
                         styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
                         selectedKey={this.state.selectedCohortIndex}
                         onChange={this.setSelectedCohort}
-                    />)}
+                    />
+                </div>
+                {/* <div>
                     <DefaultButton 
                         onClick={this.setColorOpen.bind(this, true)}
                         id={this._colorButtonId}
@@ -204,22 +160,20 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             target={this._colorButtonId}
                         />
                     )}
-                </div>
-                <div className={DatasetExplorerTab.classNames.chartWithAxes}>
-                    <div className={DatasetExplorerTab.classNames.chartWithVertical}>
-                        <div className={DatasetExplorerTab.classNames.verticalAxis}>
-                            <div className={DatasetExplorerTab.classNames.rotatedVerticalBox}>
-                                {(this.props.chartProps.chartType === ChartTypes.Scatter) && (
+                </div> */}
+                <div className={classNames.chartWithAxes}>
+                    <div className={classNames.chartWithVertical}>
+                        <div className={classNames.verticalAxis}>
+                            <div className={classNames.rotatedVerticalBox}>
+                                <div>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
                                     <DefaultButton 
                                         onClick={this.setYOpen.bind(this, true)}
                                         id={this._yButtonId}
-                                        text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                        title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                        title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
                                     />
-                                )}
-                                {(this.props.chartProps.chartType !== ChartTypes.Scatter) && (
-                                    <div>{localization.ExplanationScatter.count}</div>
-                                )}
+                                </div>
                                 {(this.state.yDialogOpen) && (
                                     <AxisConfigDialog 
                                         jointDataset={this.props.jointDataset}
@@ -240,15 +194,18 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             theme={undefined}
                         />
                     </div>
-                    <div className={DatasetExplorerTab.classNames.horizontalAxisWithPadding}>
-                        <div className={DatasetExplorerTab.classNames.paddingDiv}></div>
-                        <div className={DatasetExplorerTab.classNames.horizontalAxis}>
-                            <DefaultButton 
-                                onClick={this.setXOpen.bind(this, true)}
-                                id={this._xButtonId}
-                                text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                            />
+                    <div className={classNames.horizontalAxisWithPadding}>
+                        <div className={classNames.paddingDiv}></div>
+                        <div className={classNames.horizontalAxis}>
+                            <div>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <DefaultButton 
+                                    onClick={this.setXOpen.bind(this, true)}
+                                    id={this._xButtonId}
+                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                    title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
+                                />
+                            </div>
                             {(this.state.xDialogOpen) && (
                                 <AxisConfigDialog 
                                     jointDataset={this.props.jointDataset}

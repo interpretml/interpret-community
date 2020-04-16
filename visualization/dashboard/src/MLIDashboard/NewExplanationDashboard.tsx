@@ -8,7 +8,6 @@ import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
 import * as memoize from "memoize-one";
 import { IPivot, IPivotItemProps, PivotItem, Pivot, PivotLinkSize } from "office-ui-fabric-react/lib/Pivot";
 import _ from "lodash";
-import { NewDataExploration } from "./Controls/Scatter/NewDataExploration";
 import { GlobalExplanationTab, IGlobalBarSettings } from "./Controls/GlobalExplanationTab/GlobalExplanationTab";
 import { mergeStyleSets, loadTheme } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
@@ -20,6 +19,7 @@ import { ModelPerformanceTab } from "./Controls/ModelPerformanceTab/ModelPerform
 import { defaultTheme } from "./Themes";
 import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
+import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplorerTab";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -310,7 +310,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.dataExploration && (
-                                <NewDataExploration
+                                <DatasetExplorerTab
                                     jointDataset={this.state.jointDataset}
                                     theme={this.props.theme}
                                     metadata={this.state.modelMetadata}

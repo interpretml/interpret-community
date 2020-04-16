@@ -259,5 +259,9 @@
         "yValue": "Y-value",
         "numberOfDatapoints": "Number of datapoints",
         "xValue": "X-value"
+    },
+    "DatasetExplorer": {
+        "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",
+        "foo": "foo"
     }
 }

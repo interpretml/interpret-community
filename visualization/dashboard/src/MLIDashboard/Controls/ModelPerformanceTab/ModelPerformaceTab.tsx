@@ -130,28 +130,17 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     <div className={classNames.chartWithVertical}>
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
-                                {(this.props.chartProps.chartType !== ChartTypes.Bar) && (
-                                    <div>
-                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
-                                        <DefaultButton 
-                                            onClick={this.setYOpen.bind(this, true)}
-                                            id={this._yButtonId}
-                                            text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                            title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
-                                        />
-                                    </div>
-                                )}
-                                {(this.props.chartProps.chartType === ChartTypes.Bar) && (
-                                    <div>
-                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.numberOfDatapoints}</Text>
-                                        <DefaultButton 
-                                            onClick={this.setYOpen.bind(this, true)}
-                                            id={this._yButtonId}
-                                            text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                            title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
-                                        />
-                                    </div>
-                                )}
+                                <div>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{
+                                        this.props.chartProps.chartType === ChartTypes.Bar ?
+                                        localization.Charts.numberOfDatapoints : localization.Charts.yValue}</Text>
+                                    <DefaultButton 
+                                        onClick={this.setYOpen.bind(this, true)}
+                                        id={this._yButtonId}
+                                        text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                        title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                    />
+                                </div>
                                 {(this.state.yDialogOpen) && (
                                     <AxisConfigDialog 
                                         jointDataset={this.props.jointDataset}
@@ -193,7 +182,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         <div className={classNames.paddingDiv}></div>
                         <div className={classNames.horizontalAxis}>
                             <div>
-                            <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
                                 <DefaultButton 
                                     onClick={this.setXOpen.bind(this, true)}
                                     id={this._xButtonId}
