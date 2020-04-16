@@ -19,7 +19,7 @@ import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplan
 import { AxisConfigDialog } from "../AxisConfigDialog";
 import { Cohort } from "../../Cohort";
 
-export interface INewDataTabProps {
+export interface IDatasetExplorerTabProps {
     chartProps: IGenericChartProps;
     // selectionContext: SelectionContext;
     theme?: string;
@@ -30,14 +30,14 @@ export interface INewDataTabProps {
     onChange: (props: IGenericChartProps) => void;
 }
 
-export interface INewDataTabState {
+export interface IDatasetExplorerTabState {
     xDialogOpen: boolean;
     yDialogOpen: boolean;
     colorDialogOpen: boolean;
     selectedCohortIndex: number;
 }
 
-export class NewDataExploration extends React.PureComponent<INewDataTabProps, INewDataTabState> {
+export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabProps, IDatasetExplorerTabState> {
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],
@@ -55,8 +55,26 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
             hovermode: "closest",
             showlegend: false,
             yaxis: {
-                automargin: true
+                automargin: true,
+                color: FabricStyles.chartAxisColor,
+                tickfont: {
+                    family: FabricStyles.fontFamilies,
+                    size: 11
+                },
+                showline: true,
+                showgrid: true,
+                gridcolor: "#e5e5e5"
             },
+            xaxis: {
+                side: "top",
+                mirror: true,
+                color: FabricStyles.chartAxisColor,
+                tickfont: {
+                    family: FabricStyles.fontFamilies,
+                    size: 11
+                },
+                showline: true
+            }
         } as any
     };
 
@@ -120,7 +138,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
     private readonly _colorButtonId = "color-button-id";
     private readonly _yButtonId = "y-button-id";
 
-    constructor(props: INewDataTabProps) {
+    constructor(props: IDatasetExplorerTabProps) {
         super(props);
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
@@ -144,7 +162,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
-        const plotlyProps = NewDataExploration.generatePlotlyProps(
+        const plotlyProps = DatasetExplorerTab.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
@@ -152,8 +170,8 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
-            <div className={NewDataExploration.classNames.dataTab}>
-                <div className={NewDataExploration.classNames.topConfigArea}>
+            <div className={DatasetExplorerTab.classNames.dataTab}>
+                <div className={DatasetExplorerTab.classNames.topConfigArea}>
                     <ComboBox
                         options={this.chartOptions}
                         onChange={this.onChartTypeChange}
@@ -187,10 +205,10 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                         />
                     )}
                 </div>
-                <div className={NewDataExploration.classNames.chartWithAxes}>
-                    <div className={NewDataExploration.classNames.chartWithVertical}>
-                        <div className={NewDataExploration.classNames.verticalAxis}>
-                            <div className={NewDataExploration.classNames.rotatedVerticalBox}>
+                <div className={DatasetExplorerTab.classNames.chartWithAxes}>
+                    <div className={DatasetExplorerTab.classNames.chartWithVertical}>
+                        <div className={DatasetExplorerTab.classNames.verticalAxis}>
+                            <div className={DatasetExplorerTab.classNames.rotatedVerticalBox}>
                                 {(this.props.chartProps.chartType === ChartTypes.Scatter) && (
                                     <DefaultButton 
                                         onClick={this.setYOpen.bind(this, true)}
@@ -222,9 +240,9 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
                             theme={undefined}
                         />
                     </div>
-                    <div className={NewDataExploration.classNames.horizontalAxisWithPadding}>
-                        <div className={NewDataExploration.classNames.paddingDiv}></div>
-                        <div className={NewDataExploration.classNames.horizontalAxis}>
+                    <div className={DatasetExplorerTab.classNames.horizontalAxisWithPadding}>
+                        <div className={DatasetExplorerTab.classNames.paddingDiv}></div>
+                        <div className={DatasetExplorerTab.classNames.horizontalAxis}>
                             <DefaultButton 
                                 onClick={this.setXOpen.bind(this, true)}
                                 id={this._xButtonId}
@@ -306,7 +324,7 @@ export class NewDataExploration extends React.PureComponent<INewDataTabProps, IN
     }
 
     private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
-        const plotlyProps = _.cloneDeep(NewDataExploration.basePlotlyProperties);
+        const plotlyProps = _.cloneDeep(DatasetExplorerTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
         if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
             jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {

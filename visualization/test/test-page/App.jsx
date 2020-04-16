@@ -21,7 +21,7 @@ import { initializeIcons } from "@uifabric/icons";
     class App extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {value: 3};
+        this.state = {value: 4};
         this.handleChange = this.handleChange.bind(this);
         this.generateRandomScore = this.generateRandomScore.bind(this);
       }
