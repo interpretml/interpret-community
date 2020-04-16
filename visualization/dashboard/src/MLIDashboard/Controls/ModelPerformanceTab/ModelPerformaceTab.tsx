@@ -308,6 +308,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     automargin: true,
                     color: FabricStyles.chartAxisColor,
                     tickfont: {
+                        family: FabricStyles.fontFamilies,
                         size: 11
                     },
                     showline: true
@@ -350,6 +351,16 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
             yLabelIndexes = yLabels.map((unused, index) => index);
         }
+
+        // The buonding box for the labels on y axis are too small, add some white space as buffer
+        yLabels = yLabels.map(val => {
+            const len = val.length;
+            let result = " ";
+            for (let i=0; i < len; i += 5){
+                result += " ";
+            }
+            return result + val
+        });
         plotlyProps.data[0].hoverinfo = "all";
         plotlyProps.data[0].orientation = 'h';
         switch (chartProps.chartType) {
