@@ -18,11 +18,12 @@ import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "../SwarmFeaturePlot";
 import { FilterControl } from "../FilterControl";
 import { Cohort } from "../../Cohort";
-import { FeatureImportanceBar } from "../FeatureImportanceBar";
+import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
 import { GlobalViolinPlot } from "../GlobalViolinPlot";
 import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
+import { Icon, Text } from "office-ui-fabric-react";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -100,8 +101,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
         return (
         <div className={classNames.page}>
+            <div className={classNames.infoWithText}>
+                <Icon iconName="Info" className={classNames.infoIcon}/>
+                <Text variant="medium" className={classNames.helperText}>{localization.GlobalTab.helperText}</Text>
+            </div>
             <div className={classNames.globalChartControls}>
-                <SpinButton
+                {/* <SpinButton
                     className={classNames.topK}
                     styles={{
                         spinButtonWrapper: {maxWidth: "150px"},
@@ -123,7 +128,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     onIncrement={this.setNumericValue.bind(this, 1, this.maxK, this.minK)}
                     onDecrement={this.setNumericValue.bind(this, -1, this.maxK, this.minK)}
                     onValidate={this.setNumericValue.bind(this, 0, this.maxK, this.minK)}
-                />
+                /> */}
+                <Text variant="medium" className={classNames.sliderLabel}>{localization.formatString(localization.GlobalTab.topAtoB, this.state.startingK + 1, this.state.startingK + this.state.topK)}</Text>
                 <Slider
                     className={classNames.startingK}
                     ariaLabel={localization.AggregateImportance.topKFeatures}
@@ -132,7 +138,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     step={1}
                     value={this.state.startingK}
                     onChange={this.setStartingK}
-                    showValue={true}
+                    showValue={false}
                 />
             </div>
             <div className={classNames.globalChartWithLegend}>
@@ -144,23 +150,27 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     unsortedSeries={this.activeSeries}
                     topK={this.props.globalBarSettings.topK}
                     onFeatureSelection={this.handleFeatureSelection}
+                    selectedFeatureIndex={this.state.selectedFeatureIndex}
                 />
                 <div className={classNames.legendAndSort}>
+                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohorts}</Text>
+                    <Text variant={"small"} className={classNames.legendHelpText}>{localization.GlobalTab.legendHelpText}</Text>
+                    <InteractiveLegend
+                        items={this.cohortSeries.map((row, rowIndex) => {
+                            return {
+                                name: row.name,
+                                color: FabricStyles.fabricColorPalette[row.index],
+                                activated: this.state.seriesIsActive[rowIndex],
+                                onClick: this.toggleActivation.bind(this, rowIndex)
+                            }
+                        })}
+                    />
+                    <Text variant={"medium"} className={classNames.cohortLegend}>{localization.GlobalTab.sortBy}</Text>
                     <Dropdown 
                         styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
                         selectedKey={this.state.selectedCohortIndex}
                         onChange={this.setSortIndex}
-                    />
-                    <InteractiveLegend
-                        items={this.cohortSeries.map((row, rowIndex) => {
-                            return {
-                                name: row.name,
-                                color: FabricStyles.plotlyColorHexPalette[row.index],
-                                activated: this.state.seriesIsActive[rowIndex],
-                                onClick: this.toggleActivation.bind(this, rowIndex)
-                            }
-                        })}
                     />
                 </div>
             </div>

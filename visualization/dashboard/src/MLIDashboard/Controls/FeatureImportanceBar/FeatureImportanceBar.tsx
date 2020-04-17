@@ -1,18 +1,20 @@
 import React from "react";
 import _ from "lodash";
-import { localization } from "../../Localization/localization";
+import { localization } from "../../../Localization/localization";
 import { mergeStyleSets, getTheme } from "@uifabric/styling";
-import { ModelExplanationUtils } from "../ModelExplanationUtils";
+import { ModelExplanationUtils } from "../../ModelExplanationUtils";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
 import { Slider } from "office-ui-fabric-react/lib/Slider";
-import { LoadingSpinner } from "../SharedComponents";
+import { LoadingSpinner } from "../../SharedComponents";
 import { isThisExpression } from "@babel/types";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { InteractiveLegend, ILegendItem, SortingState } from "./InteractiveLegend";
-import { FabricStyles } from "../FabricStyles";
-import { JointDataset } from "../JointDataset";
-import { IGlobalSeries } from "./GlobalExplanationTab/IGlobalSeries";
+import { InteractiveLegend, ILegendItem, SortingState } from "../InteractiveLegend";
+import { FabricStyles } from "../../FabricStyles";
+import { JointDataset } from "../../JointDataset";
+import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
+import { featureImportanceBarStyles } from "./FeatureImportanceBar.styles";
+import { Text } from "office-ui-fabric-react";
 
 export interface IFeatureBarProps {
     jointDataset: JointDataset;
@@ -31,30 +33,6 @@ export interface IFeatureBarState {
 }
 
 export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, IFeatureBarState> {
-    private static readonly classNames = mergeStyleSets({
-        wrapper: {
-            display:"flex",
-            flexDirection: "row",
-            width: "100%"
-        },
-        chartAndControls: {
-            flex: "1"
-        },
-        globalChartControls: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        topK: {
-            maxWidth: "200px"
-        },
-        startingK: {
-            flex: 1
-        },
-        globalChart: {
-            height: "400px",
-            width: "100%"
-        }
-    });
 
     constructor(props: IFeatureBarProps) {
         super(props);
@@ -71,18 +49,28 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
     }
 
     public render(): React.ReactNode {
+        const classNames = featureImportanceBarStyles();
         const relayoutArg = {'xaxis.range': [this.props.startingK - 0.5, this.props.startingK + this.props.topK - 0.5]};
         const plotlyProps = this.state.plotlyProps;
         _.set(plotlyProps, 'layout.xaxis.range', [this.props.startingK - 0.5, this.props.startingK + this.props.topK - 0.5]);
 
         if (!this.props.unsortedSeries ||this.props.unsortedSeries.length === 0 || !this.props.sortArray || this.props.sortArray.length === 0) {
-            return (<div>No Data</div>)
+            return (<div className={classNames.noData}>
+                <Text variant={"xxLarge"}>No data</Text>
+            </div>)
         }
         if (this.state.plotlyProps === undefined) {
             this.loadProps();
             return <LoadingSpinner/>;
         };
-        return (<div className={FeatureImportanceBar.classNames.globalChart}>
+        return (<div className={classNames.chartWithVertical}>
+                        <div className={classNames.verticalAxis}>
+                            <div className={classNames.rotatedVerticalBox}>
+                                <div>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.featureImportance}</Text>
+                                </div>
+                            </div>
+                        </div>
             <AccessibleChart
                 plotlyProps={plotlyProps}
                 theme={getTheme() as any}
@@ -111,14 +99,26 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                 font: {
                     size: 10
                 },
-                margin: {t: 10, r: 10, b: 30},
+                margin: {t: 10, r: 10, b: 30, l: 0},
                 hovermode: 'closest',
                 xaxis: {
-                    automargin: true
+                    automargin: true,
+                    color: FabricStyles.chartAxisColor,
+                    font: {
+                        family: FabricStyles.fontFamilies,
+                        size: 14
+                    },
+                    showgrid: false
                 },
                 yaxis: {
                     automargin: true,
-                    title: localization.featureImportance
+                    color: FabricStyles.chartAxisColor,
+                    font: {
+                        family: FabricStyles.fontFamilies
+                    },
+                    zeroline: true,
+                    showgrid: true,
+                    gridcolor: "#e5e5e5"
                 },
                 showlegend: false
             } as any
@@ -135,7 +135,7 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                 y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
                 marker: {
                     color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
-                        FabricStyles.plotlyColorHexPalette[series.index] : FabricStyles.plotlyColorHexPalette[series.index])
+                        FabricStyles.fabricColorPalette[series.index] : FabricStyles.fabricColorPalette[series.index])
                 }
             } as any);
         });

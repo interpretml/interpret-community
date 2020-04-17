@@ -18,7 +18,7 @@ import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Cohort } from "../Cohort";
-import { FeatureImportanceBar } from "./FeatureImportanceBar";
+import { FeatureImportanceBar } from "./FeatureImportanceBar/FeatureImportanceBar";
 import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
 import { MultiICEPlot } from "./MultiICEPlot";
 import { FabricStyles } from "../FabricStyles";

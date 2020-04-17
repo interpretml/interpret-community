@@ -32,49 +32,6 @@ export interface IModelPerformanceTabState {
 }
 
 export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTabProps, IModelPerformanceTabState> {
-    private static readonly classNames = mergeStyleSets({
-        tab: {
-            display: "contents"
-        },
-        topConfigArea: {
-            display: "flex",
-            padding: "3px 15px",
-            justifyContent: "space-between"
-        },
-        chartWithAxes: {
-            display: "flex",
-            padding: "5px 20px 0 20px",
-            flexDirection: "column"
-        },
-        chartWithVertical: {
-            flexDirection: "row"
-        },
-        verticalAxis: {
-            position: "relative",
-            top: "0px",
-            height: "auto",
-            width: "50px"
-        },
-        rotatedVerticalBox: {
-            transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
-            marginLeft: "15px",
-            position: "absolute",
-            top: "50%",
-            textAlign: "center",
-            width: "max-content"
-        },
-        horizontalAxisWithPadding: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        paddingDiv: {
-            width: "50px"
-        },
-        horizontalAxis: {
-            flex: 1,
-            textAlign:"center"
-        }
-    });
 
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";

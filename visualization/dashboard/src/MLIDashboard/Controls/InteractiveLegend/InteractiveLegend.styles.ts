@@ -8,7 +8,7 @@ export interface IInteractiveLegendStyles {
   editButton: IStyle;
   deleteButton: IStyle;
   disabledItem: IStyle;
-  disabledColorBox: IStyle;
+  inactiveColorBox: IStyle;
   inactiveItem: IStyle;
 }
 
@@ -16,35 +16,47 @@ export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegen
     const theme = getTheme();
     return mergeStyleSets<IInteractiveLegendStyles>({
     root: { 
-        width: "250px",
-        height: "100%",
-        overflowY: "auto"
+        paddingTop: "8px",
+        paddingBottom:"8px"
     },
     item: {
-        height: "35px",
-        border: "1px solid black",
+        height: "34px",
         display: "flex",
-        flexDirection: "row"
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: "1px"
     },
     disabledItem: {
-        height: "35px",
+        height: "34px",
         backgroundColor: theme.semanticColors.disabledBackground,
-        border: "1px solid black",
         display: "flex",
-        flexDirection: "row"
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: "1px"
     },
     inactiveItem: {
-        height: "35px",
-        backgroundColor: "#CCCCCC",
-        border: "1px solid black",
+        height: "34px",
+        color: theme.semanticColors.primaryButtonTextDisabled,
         display: "flex",
-        flexDirection: "row"
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: "1px"
     },
     colorBox: {
         margin: "11px 4px 11px 8px",
         width: "12px",
         height: "12px",
         display: "inline-block",
+        borderRadius: "6px",
+        cursor: "pointer"
+    },
+    inactiveColorBox: {
+        margin: "11px 4px 11px 8px",
+        width: "12px",
+        height: "12px",
+        display: "inline-block",
+        borderRadius: "6px",
+        opacity: 0.4,
         cursor: "pointer"
     },
     label: {
@@ -56,9 +68,6 @@ export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegen
         display: "inline-block"
     },
     deleteButton: {
-        display: "inline-block"
-    },
-    disabledColorBox: {
         display: "inline-block"
     }
   });

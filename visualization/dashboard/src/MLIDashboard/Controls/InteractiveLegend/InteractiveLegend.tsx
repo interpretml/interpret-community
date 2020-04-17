@@ -1,6 +1,6 @@
 import React from "react";
 import { interactiveLegendStyles } from "./InteractiveLegend.styles";
-import { IconButton, ITheme } from "office-ui-fabric-react";
+import { IconButton, ITheme, Text } from "office-ui-fabric-react";
 
 export enum SortingState {
     ascending = "ascending",
@@ -17,7 +17,6 @@ export interface ILegendItem {
     name: string; 
     onClick: () => void;
     onDelete?: () => void;
-    onSort?: () => void;
     onEdit?: () => void;
 }
 
@@ -37,17 +36,10 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
     }
 
     private buildRowElement(item: ILegendItem): React.ReactNode {
-        let sortIcon: string = "Remove";
-        if (item.sortingState === SortingState.ascending) {
-            sortIcon = "Up";
-        }
-        if (item.sortingState === SortingState.descending) {
-            sortIcon = "Down";
-        }
         if (item.disabled) {
             return(<div className={this.classes.disabledItem} title={item.disabledMessage || ""}>
-                <div className={this.classes.disabledColorBox}/>
-                <div className={this.classes.label}>{item.name}</div>
+                <div className={this.classes.inactiveColorBox}/>
+                <Text nowrap variant={"medium"} className={this.classes.label}>{item.name}</Text>
                 {item.onEdit !== undefined && (
                     <IconButton 
                         className={this.classes.editButton}
@@ -65,22 +57,13 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
         }
         const rootClass = item.activated === false ? this.classes.inactiveItem : this.classes.item;
         return(
-        <div className={rootClass}>
+        <div className={rootClass} onClick={item.onClick}>
             <div 
-                className={this.classes.colorBox} 
+                className={item.activated === false ? this.classes.inactiveColorBox: this.classes.colorBox} 
                 style={{backgroundColor: item.color}}
                 onClick={item.onClick}
-                />
-            {item.onSort !== undefined && (
-                <IconButton 
-                    className={this.classes.editButton}
-                    iconProps={{iconName: sortIcon}}
-                    onClick={item.onSort} />
-            )}
-            <div 
-                className={this.classes.label}
-                onClick={item.onClick}
-                >{item.name}</div>
+            />
+            <Text nowrap variant={"medium"} className={this.classes.label}>{item.name}</Text>
             {item.onEdit !== undefined && (
                 <IconButton 
                     className={this.classes.editButton}

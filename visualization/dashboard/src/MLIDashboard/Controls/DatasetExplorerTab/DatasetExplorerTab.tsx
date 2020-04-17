@@ -329,7 +329,12 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                             return {
                                 target: index,
-                                value: { name: label}
+                                value: { 
+                                    name: label,
+                                    marker: {
+                                        color: FabricStyles.fabricColorPalette[index]
+                                    }
+                                }
                             };
                         });
                         plotlyProps.data[0].transforms = [{
