@@ -49,7 +49,7 @@ class _FunctionWrapper(object):
         :param dataset: The model evaluation examples.
         :type dataset: np.array
         :return: A wrapped function.
-        :rtype function
+        :rtype: function
         """
         if len(dataset.shape) == 1:
             dataset = dataset.reshape(1, -1)
@@ -61,7 +61,7 @@ class _FunctionWrapper(object):
         :param dataset: The model evaluation examples.
         :type dataset: np.array
         :return: A wrapped function.
-        :rtype function
+        :rtype: function
         """
         return self._function(dataset).flatten()
 
@@ -71,7 +71,7 @@ class _FunctionWrapper(object):
         :param dataset: The model evaluation examples.
         :type dataset: np.array
         :return: A wrapped function.
-        :rtype function
+        :rtype: function
         """
         result = self._function(dataset)[:, 0]
         return np.stack([1 - result, result], axis=-1)
@@ -82,7 +82,7 @@ class _FunctionWrapper(object):
         :param dataset: The model evaluation examples.
         :type dataset: np.array
         :return: A wrapped function.
-        :rtype function
+        :rtype: function
         """
         result = self._function(dataset)
         return np.stack([1 - result, result], axis=-1)
@@ -93,7 +93,7 @@ class _FunctionWrapper(object):
         :param dataset: The model evaluation examples.
         :type dataset: np.array
         :return: A wrapped function.
-        :rtype function
+        :rtype: function
         """
         result = self._function(dataset)
         return result.reshape(result.shape[0], 1)
@@ -107,7 +107,7 @@ def _convert_to_two_cols(function, examples):
     :param examples: The model evaluation examples.
     :type examples: np.array or list
     :return: The function chosen from given model and classification domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # Add wrapper function to convert output to 2D array, check values to decide on whether
     # to throw, or create two columns [1-p, p], or leave just one in multiclass one-class edge-case
@@ -244,7 +244,7 @@ def wrap_model(model, examples, model_task):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The wrapper model.
-    :rtype model
+    :rtype: model
     """
     return _wrap_model(model, examples, model_task, False)
 
@@ -262,7 +262,7 @@ def _wrap_model(model, examples, model_task, is_function):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The function chosen from given model and chosen domain, or model wrapping the function and chosen domain.
-    :rtype (function, str) or (model, str)
+    :rtype: (function, str) or (model, str)
     """
     if is_function:
         return _eval_function(model, examples, model_task)
@@ -294,7 +294,7 @@ def _eval_model(model, examples, model_task):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The function chosen from given model and chosen domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # TODO: Add more model types here
     is_sequential = str(type(model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
@@ -331,7 +331,7 @@ def _eval_function(function, examples, model_task, wrapped=False):
     :param wrapped: Indicates if function has already been wrapped.
     :type wrapped: bool
     :return: The function chosen from given model and chosen domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # Try to run the function on a single example - if it doesn't work wrap
     # it in a function that converts a 1D array to 2D for those functions
