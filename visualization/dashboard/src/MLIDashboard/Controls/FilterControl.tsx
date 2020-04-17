@@ -9,7 +9,6 @@ import { Stack, Label, FontWeights, FontSizes } from "office-ui-fabric-react";
 import { Text } from "office-ui-fabric-react";
 
 
-
 export interface IFilterControlProps {
     jointDataset: JointDataset
     filterContext: IFilterContext;
@@ -18,8 +17,10 @@ export interface IFilterControlProps {
 export interface IFilterControlState {
     openedFilter?: IFilter;
     filterIndex?: number;
+    key?:string;
 }
 
+let id = 1;
 export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
     private static readonly classNames = mergeStyleSets({
         existingFilter: {
@@ -33,7 +34,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
             padding: "3px 8px 2px 4px",
             minWidth: "90px",
             color: "#0078D4"
-            //cursor: "pointer"
         },
         filterList: {
             fontWeight: FontWeights.regular,
@@ -57,36 +57,17 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     });
     constructor(props: IFilterControlProps) {
         super(props);
-        this.openFilter = this.openFilter.bind(this);
-        //this.editNewFilter = this.editNewFilter.bind(this);
         this.editFilter = this.editFilter.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
         this.cancelFilter = this.cancelFilter.bind(this);
-        this.state = {openedFilter: this.initialFilter, filterIndex: this.props.filterContext.filters.length};
+        this.state = {openedFilter: undefined, filterIndex: this.props.filterContext.filters.length};
     }
-
-    private readonly initialFilter: IFilter = {
-        column: JointDataset.IndexLabel,
-        method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-            FilterMethods.includes : FilterMethods.greaterThan,
-        arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-            [] : 0
-    };
-
-    // private readonly initialFilter: IFilter = {
-    //     column: "",
-    //     method: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-    //         FilterMethods.includes : FilterMethods.greaterThan,
-    //     arg: this.props.jointDataset.metaDict[JointDataset.IndexLabel].treatAsCategorical ?
-    //         [] : 0
-    // };
 
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
             return (<div key={index} className={FilterControl.classNames.existingFilter}>
                 <div
                     className={FilterControl.classNames.filterLabel}
-                    //onClick={this.openFilter.bind(this, index)}
                     >
                     {this.props.jointDataset.metaDict[filter.column].abbridgedLabel 
                     + " " + filter.method + " " + filter.arg}
@@ -103,7 +84,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
                 </div>
             </div>);
         });
-        //debugger;
 
         return(<div className={FilterControl.classNames.wrapper}>
                     <FilterEditor
@@ -111,12 +91,9 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
                         onAccept={this.updateFilter}
                         onCancel={this.cancelFilter}
                         initialFilter={this.state.openedFilter}
-                        //key={this.state.filterIndex}
+                        key={this.state.filterIndex}
                     />
 
-                {/* <div className={FilterControl.classNames.addedFilter}>
-                    Added Filters
-                </div> */}
                 <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
                 
                 {filterList.length>0
@@ -130,7 +107,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     private updateFilter(filter: IFilter): void {
         const index = this.state.filterIndex;
         this.setState({openedFilter: undefined, filterIndex: undefined});
-        console.log("**********************update filter 11*****************************")
         this.props.filterContext.onUpdate(filter, index);
         this.forceUpdate();
     }
@@ -139,22 +115,14 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.setState({openedFilter: undefined, filterIndex: undefined});
     }
 
-    // private editNewFilter(): void {
-    //     this.setState({openedFilter: this.initialFilter, filterIndex: this.props.filterContext.filters.length});
-    // }
-
-    private openFilter(index: number): void {
-        this.setState({openedFilter: this.props.filterContext.filters[index], filterIndex: index});
-    }
-
     private removeFilter(index: number): void {
         this.props.filterContext.onDelete(index);
+        //this.setState({filterIndex:undefined});
         this.forceUpdate()
+        
     }
 
-    editFilter(filter:IFilter, index: number): void {
-        
+    private editFilter(filter:IFilter, index: number): void {      
         this.setState({openedFilter: this.props.filterContext.filters[index], filterIndex: index});
-        //this.forceUpdate()
+        this.forceUpdate()
     }
-}

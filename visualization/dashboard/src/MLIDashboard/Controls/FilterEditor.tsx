@@ -9,17 +9,16 @@ import { localization } from "../../Localization/localization";
 import { RangeTypes } from "mlchartlib";
 import { Target} from "office-ui-fabric-react/lib/Callout";
 import _ from "lodash";
-import { mergeStyleSets, FontSizes, fontFace} from "@uifabric/styling";
+import { mergeStyleSets, FontSizes, fontFace, ThemeSettingName} from "@uifabric/styling";
 import { DetailsList, Selection, SelectionMode, IColumn } from "office-ui-fabric-react/lib/DetailsList";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { defaultTheme } from "../Themes";
-import { FontWeights, getTheme, ColorPicker, mergeAriaAttributeValues } from "office-ui-fabric-react";
+import { FontWeights, getTheme, ColorPicker, mergeAriaAttributeValues, resetControlledWarnings } from "office-ui-fabric-react";
 
 export interface IFilterEditorProps {
     jointDataset: JointDataset;
     initialFilter: IFilter;
     target?: Target;
-    //editFilter:IFilter;
     onAccept: (filter: IFilter) => void;
     onCancel: () => void;
 }
@@ -138,163 +137,169 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
             onSelectionChanged: this._setSelection
           });
         this._leftSelection.setItems(this.leftItems);
-        this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
+        if(this.props.initialFilter !=undefined){
+            this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
+        }
         this._isInitialized = true;
     }
 
-    componentDidUpdate(props:IFilterEditorProps) {
-        console.log("******************* prev props ******************************", props.initialFilter);
-        console.log("******************* current props ****************************", this.props.initialFilter);
-        if(this.props.initialFilter != undefined && props.initialFilter!=this.props.initialFilter){
-            console.log("here");
+    componentDidUpdate(props:IFilterEditorProps, prevVal:IFilter) {
+       console.log("update component");
+       debugger;
+        if(this.props.initialFilter != undefined && this.props.initialFilter!=props.initialFilter){
                 this.setState({arg:this.props.initialFilter.arg, 
                                 column:this.props.initialFilter.column, 
-                                method:this.props.initialFilter.method});
+                                method:this.props.initialFilter.method});          
         }
     }
     
     public render(): React.ReactNode {
-        console.log("state filter****************", this.state);
-        console.log("prop filter *****************", this.props.initialFilter);
-        //console.log("onAccept", this.props.onAccept);
-        //const filter = this.props.initialFilter;
-        const filter: IFilter = this.props.initialFilter;
-        const selectedMeta = this.props.jointDataset.metaDict[this.state.column];
-        //const selectedMeta = this.props.jointDataset.metaDict[filter.column];
-        const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
-            1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
-        const isDataColumn = this.state.column.indexOf(JointDataset.DataLabelRoot) !== -1;
-        //const isDataColumn = filter.column.indexOf(JointDataset.DataLabelRoot) !== -1;
-        let categoricalOptions: IComboBoxOption[] = [];
-        if (selectedMeta.treatAsCategorical) {
-            // Numerical values treated as categorical are stored with the values in the column,
-            // true categorical values store indexes to the string values
-            categoricalOptions = selectedMeta.isCategorical ? 
-                selectedMeta.sortedCategoricalValues.map((label, index) => {return {key: index, text: label}}) :
-                selectedMeta.sortedCategoricalValues.map((label) => {return {key: label, text: label.toString()}})
-        }
-        return (
-                <div className={styles.wrapper}>
-                    <div className={styles.leftHalf}>
-                        {/* <Label>Select your filters</Label> */}
-                        <DetailsList
-                            className={styles.detailedList}
-                            items={this.leftItems}
-                            ariaLabelForSelectionColumn="Toggle selection"
-                            ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                            checkButtonAriaLabel="Row checkbox"
-                            onRenderDetailsHeader={this._onRenderDetailsHeader}
-                            selection={this._leftSelection}
-                            selectionPreservedOnEmptyClick={false}
-                            setKey={"set"}
-                            columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
-                        />
+        if(this.state == undefined)
+        {  
+                return(
+                    <div className={styles.wrapper}>
+                            <div className={styles.leftHalf}>
+                                <DetailsList
+                                    className={styles.detailedList}
+                                    items={this.leftItems}
+                                    ariaLabelForSelectionColumn="Toggle selection"
+                                    ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                                    checkButtonAriaLabel="Row checkbox"
+                                    onRenderDetailsHeader={this._onRenderDetailsHeader}
+                                    selection={this._leftSelection}
+                                    selectionPreservedOnEmptyClick={false}
+                                    setKey={"set"}
+                                    columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
+                                />
+                            </div>
+                            <div className={styles.rightHalf}> Select filter</div>
                     </div>
-                    <div className={styles.rightHalf}>
-                       {/* {this._leftSelection.getSelectedCount() == 0
-                       ? 
-                       <div> Select a filter</div>
-                       : */}
-                        <div>
-                       {isDataColumn && (
-                           <ComboBox
-                               options={this.dataArray}
-                               onChange={this.setSelectedProperty}
-                               label={"Feature: "}
-                               ariaLabel="feature picker"
-                               selectedKey={this.state.column}
-                               //selectedKey={filter.column}
-                               useComboBoxAsMenuWidth={true}
-                               styles={FabricStyles.defaultDropdownStyle} />
-                       )}
-                       {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
-                           <Checkbox label="Treat as categorical" checked={selectedMeta.treatAsCategorical} onChange={this.setAsCategorical} />
-                       )}
-                       {/* <div>Data summary</div> */}
-                       {selectedMeta.treatAsCategorical && (
-                           <div className={styles.subDiv}>
-                               <div className={styles.dataSummary}>{`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}</div>
-                               <ComboBox
-                                   multiSelect
-                                   label={localization.Filters.categoricalIncludeValues}
-                                   className="path-selector"
-                                   selectedKey={this.state.arg}
-                                   //selectedKey={filter.arg}
-                                   onChange={this.setCategoricalValues}
-                                   options={categoricalOptions}
-                                   useComboBoxAsMenuWidth={true}
-                                   styles={FabricStyles.smallDropdownStyle}
-                               />
-                           </div>
-                       )}
-                       {!selectedMeta.treatAsCategorical && (
-                               <div>
-                                <div className={styles.subDiv}>{`min: ${selectedMeta.featureRange.min}`} {`avg: ${selectedMeta.featureRange.min}`} {`max: ${selectedMeta.featureRange.max}`}</div>
-                               <ComboBox
-                                   label={localization.Filters.numericalComparison}
-                                   className="path-selector"
-                                   selectedKey={this.state.method}
-                                   //selectedKey={filter.method}
-                                   onChange={this.setComparison}
-                                   options={this.comparisonOptions}
-                                   useComboBoxAsMenuWidth={true}
-                                   styles={FabricStyles.smallDropdownStyle}
-                               />
-                               {this.state.method == FilterMethods.inTheRangeOf ? 
-                                    <div>
-                                        <SpinButton
-                                            className ={styles.minRangeOf}
-                                            label={localization.Filters.minimum}
-                                            min={selectedMeta.featureRange.min}
-                                            max={selectedMeta.featureRange.max}
-                                        />
-                                        <SpinButton
-                                            className = {styles.maxRangeOf}
-                                            label={localization.Filters.maximum}
-                                            min={selectedMeta.featureRange.min}
-                                            max={selectedMeta.featureRange.max}
-                                        />
-                                    </div>
-                                :
-                                    <div>
-                                        <SpinButton
-                                            styles={{
-                                                spinButtonWrapper: {maxWidth: "98px"},
-                                                labelWrapper: { alignSelf: "center"},
-                                                root: {
-                                                    display: "inline-flex",
-                                                    float: "right",
-                                                    selectors: {
-                                                        "> div": {
-                                                            maxWidth: "108px"
+                );
+        }
+        else {
+            const selectedMeta = this.props.jointDataset.metaDict[this.state.column];
+            const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
+                1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
+            const isDataColumn = this.state.column.indexOf(JointDataset.DataLabelRoot) !== -1;
+            let categoricalOptions: IComboBoxOption[] = [];
+            if (selectedMeta.treatAsCategorical) {
+                // Numerical values treated as categorical are stored with the values in the column,
+                // true categorical values store indexes to the string values
+                categoricalOptions = selectedMeta.isCategorical ? 
+                    selectedMeta.sortedCategoricalValues.map((label, index) => {return {key: index, text: label}}) :
+                    selectedMeta.sortedCategoricalValues.map((label) => {return {key: label, text: label.toString()}})
+            }  
+            return (
+                    <div className={styles.wrapper}>
+                        <div className={styles.leftHalf}>
+                            <DetailsList
+                                className={styles.detailedList}
+                                items={this.leftItems}
+                                ariaLabelForSelectionColumn="Toggle selection"
+                                ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                                checkButtonAriaLabel="Row checkbox"
+                                onRenderDetailsHeader={this._onRenderDetailsHeader}
+                                selection={this._leftSelection}
+                                selectionPreservedOnEmptyClick={false}
+                                setKey={"set"}
+                                columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
+                            />
+                        </div>
+                        <div className={styles.rightHalf}>
+                            <div>
+                        {isDataColumn && (
+                            <ComboBox
+                                options={this.dataArray}
+                                onChange={this.setSelectedProperty}
+                                label={"Feature: "}
+                                ariaLabel="feature picker"
+                                selectedKey={this.state.column}
+                                useComboBoxAsMenuWidth={true}
+                                styles={FabricStyles.defaultDropdownStyle} />
+                        )}
+                        {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
+                            <Checkbox label="Treat as categorical" checked={selectedMeta.treatAsCategorical} onChange={this.setAsCategorical} />
+                        )}
+                        {selectedMeta.treatAsCategorical && (
+                            <div className={styles.subDiv}>
+                                <div className={styles.dataSummary}>{`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}</div>
+                                <ComboBox
+                                    multiSelect
+                                    label={localization.Filters.categoricalIncludeValues}
+                                    className="path-selector"
+                                    selectedKey={this.state.arg}
+                                    onChange={this.setCategoricalValues}
+                                    options={categoricalOptions}
+                                    useComboBoxAsMenuWidth={true}
+                                    styles={FabricStyles.smallDropdownStyle}
+                                />
+                            </div>
+                        )}
+                        {!selectedMeta.treatAsCategorical && (
+                                <div>
+                                    <div className={styles.subDiv}>{`min: ${selectedMeta.featureRange.min}`} {`avg: ${selectedMeta.featureRange.min}`} {`max: ${selectedMeta.featureRange.max}`}</div>
+                                <ComboBox
+                                    label={localization.Filters.numericalComparison}
+                                    className="path-selector"
+                                    selectedKey={this.state.method}
+                                    onChange={this.setComparison}
+                                    options={this.comparisonOptions}
+                                    useComboBoxAsMenuWidth={true}
+                                    styles={FabricStyles.smallDropdownStyle}
+                                />
+                                {this.state.method == FilterMethods.inTheRangeOf ? 
+                                        <div>
+                                            <SpinButton
+                                                className ={styles.minRangeOf}
+                                                label={localization.Filters.minimum}
+                                                min={selectedMeta.featureRange.min}
+                                                max={selectedMeta.featureRange.max}
+                                            />
+                                            <SpinButton
+                                                className = {styles.maxRangeOf}
+                                                label={localization.Filters.maximum}
+                                                min={selectedMeta.featureRange.min}
+                                                max={selectedMeta.featureRange.max}
+                                            />
+                                        </div>
+                                    :
+                                        <div>
+                                            <SpinButton
+                                                styles={{
+                                                    spinButtonWrapper: {maxWidth: "98px"},
+                                                    labelWrapper: { alignSelf: "center"},
+                                                    root: {
+                                                        display: "inline-flex",
+                                                        float: "right",
+                                                        selectors: {
+                                                            "> div": {
+                                                                maxWidth: "108px"
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            }}
-                                            label={localization.Filters.numericValue}
-                                            min={selectedMeta.featureRange.min}
-                                            max={selectedMeta.featureRange.max}
-                                            value={this.state.arg.toString()}
-                                            //value={filter.arg.toString()}
-                                            onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
-                                            onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
-                                            onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
-                                        />
-                                    </div>
-                                }
-                           </div>
-                       )}
-                       <DefaultButton 
-                           className = {styles.addFilterButton}
-                           text={"Add Filter"}
-                           onClick={this.saveState}
-                       />
-                       </div>
-                    {/* } */}
-
+                                                }}
+                                                label={localization.Filters.numericValue}
+                                                min={selectedMeta.featureRange.min}
+                                                max={selectedMeta.featureRange.max}
+                                                value={this.state.arg.toString()}
+                                                onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
+                                                onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
+                                                onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                            />
+                                        </div>
+                                    }
+                            </div>
+                        )}
+                        <DefaultButton 
+                            className = {styles.addFilterButton}
+                            text={"Add Filter"}
+                            onClick={this.saveState}
+                        />
+                        </div>
+                        </div>
                     </div>
-                </div>
-        );
+            );
+        }
     }
 
     private extractSelectionKey(key: string): string {
@@ -307,13 +312,11 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
         this.props.jointDataset.setTreatAsCategorical(this.state.column, checked);
-        //this.props.jointDataset.setTreatAsCategorical(filter.column, checked);
         if (checked) {
             this.setState({arg:[], method: FilterMethods.includes});
         } else {
             this.setState({
                 arg:this.props.jointDataset.metaDict[this.state.column].featureRange.max,
-                //arg:this.props.jointDataset.metaDict[filter.column].featureRange.max,
                 method: FilterMethods.lessThan
             });
         }
@@ -333,7 +336,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     private readonly setSelectedProperty = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
         const property = item.key as string;
         this.setDefaultStateForKey(property);
-        //this.setStateForKey(property);
     }
 
     private readonly saveState = (): void => {
@@ -392,31 +394,4 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         }
         this.setState(filter);
     }
-
-    private setStateForKey(key: string): void {
-       // filter.method=
-        // if (meta.isCategorical) {
-        //     filter.method = FilterMethods.includes;
-        //     filter.arg = Array.from(Array(meta.sortedCategoricalValues.length).keys());
-        // } else if(meta.treatAsCategorical) {
-        //     filter.method = FilterMethods.includes;
-        //     filter.arg = meta.sortedCategoricalValues as any[];
-        // } else {
-        //     filter.method = FilterMethods.lessThan;
-        //     filter.arg = meta.featureRange.max;
-        // }
-        //this.setState(filter);
-    }
-
-    // private _getSelectionDetails(): string {
-    //     const selectionCount = this._leftSelection.getSelectedCount();
-    //     switch (selectionCount) {
-    //       case 0:
-    //         return 'No items selected';
-    //       case 1:
-    //         return '1 item selected: ' + (this._selection.getSelection()[0] as IDetailsListBasicExampleItem).name;
-    //       default:
-    //         return `${selectionCount} items selected`;
-    //     }
-    //   }
 }
