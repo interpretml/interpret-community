@@ -17,10 +17,9 @@ export interface IFilterControlProps {
 export interface IFilterControlState {
     openedFilter?: IFilter;
     filterIndex?: number;
-    key?:string;
+    filters?:IFilter[];
 }
 
-let id = 1;
 export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {
     private static readonly classNames = mergeStyleSets({
         existingFilter: {
@@ -63,8 +62,13 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.state = {openedFilter: undefined, filterIndex: this.props.filterContext.filters.length};
     }
 
+    componentDidUpdate(props){
+        console.log("componentDidUpdate");
+    }
+
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
+        //const filterList = this.state.filters.map((filter, index) => {
             return (<div key={index} className={FilterControl.classNames.existingFilter}>
                 <div
                     className={FilterControl.classNames.filterLabel}
@@ -91,7 +95,7 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
                         onAccept={this.updateFilter}
                         onCancel={this.cancelFilter}
                         initialFilter={this.state.openedFilter}
-                        key={this.state.filterIndex}
+                        //key={this.state.openedFilter.method."_".this.state.openedFilter.arg}
                     />
 
                 <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
@@ -109,6 +113,8 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.setState({openedFilter: undefined, filterIndex: undefined});
         this.props.filterContext.onUpdate(filter, index);
         this.forceUpdate();
+        console.log("update filter", this.props.filterContext.filters);
+        console.log("update filter openedFilter state", this.state.openedFilter);
     }
 
     private cancelFilter(): void {
@@ -117,12 +123,14 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
 
     private removeFilter(index: number): void {
         this.props.filterContext.onDelete(index);
-        //this.setState({filterIndex:undefined});
-        this.forceUpdate()
+        this.setState({filterIndex:this.props.filterContext.filters.length});
+        this.forceUpdate();
+        console.log("length", this.state.filterIndex)
         
     }
 
     private editFilter(filter:IFilter, index: number): void {      
         this.setState({openedFilter: this.props.filterContext.filters[index], filterIndex: index});
-        this.forceUpdate()
+        this.forceUpdate();
     }
+}

@@ -83,7 +83,11 @@ const styles = mergeStyleSets({
     }
 });
 
-export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilter> {
+export interface IFilterEditorState {
+    openedFilter?: IFilter;
+}
+
+export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilterEditorState> {
     private _leftSelection: Selection;
     private readonly dataArray: IComboBoxOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
@@ -128,34 +132,54 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         }
     ];
     private _isInitialized = false;
+    //private _initialState:IFilter;
 
     constructor(props: IFilterEditorProps) {
         super(props);
-        this.state = _.cloneDeep(this.props.initialFilter);
+        console.log("constructor component")
+        //this.state = _.cloneDeep(this.props.initialFilter);
+        
+        this.state = {openedFilter: this.props.initialFilter};
+        //this._initialState = this.state;
+        console.log("constructor state", this.state)
+        //console.log("constructor initial state", this._initialState)
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
             onSelectionChanged: this._setSelection
           });
         this._leftSelection.setItems(this.leftItems);
-        if(this.props.initialFilter !=undefined){
-            this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
+        if (this.props.initialFilter!=undefined){
+            this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false); 
         }
+        //this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
         this._isInitialized = true;
     }
 
-    componentDidUpdate(props:IFilterEditorProps, prevVal:IFilter) {
+    componentDidUpdate(props:IFilterEditorProps, prevVal: IFilterEditorState) {
        console.log("update component");
-       debugger;
         if(this.props.initialFilter != undefined && this.props.initialFilter!=props.initialFilter){
-                this.setState({arg:this.props.initialFilter.arg, 
-                                column:this.props.initialFilter.column, 
-                                method:this.props.initialFilter.method});          
+            const newFilter = {
+                arg: this.props.initialFilter.arg,
+                column: this.props.initialFilter.column,
+                method: this.props.initialFilter.method
+            }
+            this.setState({openedFilter: newFilter});  
+            console.log("update component12", this.state.openedFilter);   
+            
+            console.log("update component new ", newFilter);     
+        }
+        else{
+            console.log("this.state component", this.state);
+            console.log("props component", props.initialFilter);
+            console.log("prevVale component", prevVal);
         }
     }
     
     public render(): React.ReactNode {
-        if(this.state == undefined)
-        {  
+        const openedFilter = this.state.openedFilter;
+        console.log("Here render", this.state.openedFilter);
+        if(openedFilter == undefined)
+        {  console.log("undefined state");
                 return(
                     <div className={styles.wrapper}>
                             <div className={styles.leftHalf}>
@@ -177,10 +201,11 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 );
         }
         else {
-            const selectedMeta = this.props.jointDataset.metaDict[this.state.column];
+            console.log("defined state");
+            const selectedMeta = this.props.jointDataset.metaDict[openedFilter.column];
             const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
                 1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
-            const isDataColumn = this.state.column.indexOf(JointDataset.DataLabelRoot) !== -1;
+            const isDataColumn = openedFilter.column.indexOf(JointDataset.DataLabelRoot) !== -1;
             let categoricalOptions: IComboBoxOption[] = [];
             if (selectedMeta.treatAsCategorical) {
                 // Numerical values treated as categorical are stored with the values in the column,
@@ -213,7 +238,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                 onChange={this.setSelectedProperty}
                                 label={"Feature: "}
                                 ariaLabel="feature picker"
-                                selectedKey={this.state.column}
+                                selectedKey={openedFilter.column}
                                 useComboBoxAsMenuWidth={true}
                                 styles={FabricStyles.defaultDropdownStyle} />
                         )}
@@ -227,7 +252,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                     multiSelect
                                     label={localization.Filters.categoricalIncludeValues}
                                     className="path-selector"
-                                    selectedKey={this.state.arg}
+                                    selectedKey={openedFilter.arg}
                                     onChange={this.setCategoricalValues}
                                     options={categoricalOptions}
                                     useComboBoxAsMenuWidth={true}
@@ -241,13 +266,13 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                 <ComboBox
                                     label={localization.Filters.numericalComparison}
                                     className="path-selector"
-                                    selectedKey={this.state.method}
+                                    selectedKey={openedFilter.method}
                                     onChange={this.setComparison}
                                     options={this.comparisonOptions}
                                     useComboBoxAsMenuWidth={true}
                                     styles={FabricStyles.smallDropdownStyle}
                                 />
-                                {this.state.method == FilterMethods.inTheRangeOf ? 
+                                {openedFilter.method == FilterMethods.inTheRangeOf ? 
                                         <div>
                                             <SpinButton
                                                 className ={styles.minRangeOf}
@@ -281,7 +306,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                                 label={localization.Filters.numericValue}
                                                 min={selectedMeta.featureRange.min}
                                                 max={selectedMeta.featureRange.max}
-                                                value={this.state.arg.toString()}
+                                                value={openedFilter.arg.toString()}
                                                 onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
                                                 onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
                                                 onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
@@ -311,14 +336,42 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     }
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
-        this.props.jointDataset.setTreatAsCategorical(this.state.column, checked);
+        const openedFilter = this.state.openedFilter;
+        this.props.jointDataset.setTreatAsCategorical(openedFilter.column, checked);
         if (checked) {
-            this.setState({arg:[], method: FilterMethods.includes});
+           // this.setState({arg:[], method: FilterMethods.includes});
+           //this.setState({openedFilter.arg:[], method: FilterMethods.includes});
+          this.setState(
+              {
+                  openedFilter:{
+                      arg:[],
+                      method:FilterMethods.includes,
+                      column:openedFilter.column
+                  }
+              }
+          )
         } else {
-            this.setState({
-                arg:this.props.jointDataset.metaDict[this.state.column].featureRange.max,
-                method: FilterMethods.lessThan
-            });
+
+            this.setState(
+                {
+                    openedFilter:{
+                        arg:this.props.jointDataset.metaDict[openedFilter.column].featureRange.max,
+                        method:FilterMethods.includes,
+                        column:FilterMethods.lessThan 
+                    }
+                }
+            )
+            // this.setState(prevState => ({
+            //     openedFilter: {                   // object that we want to update
+            //         ...prevState.openedFilter,    // keep all other key-value pairs
+            //         arg: this.props.jointDataset.metaDict[this.state.openedFilter.column].featureRange.max,
+            //         method:FilterMethods.lessThan 
+            //     }
+            // }));
+            // this.setState({
+            //     arg:this.props.jointDataset.metaDict[this.state.column].featureRange.max,
+            //     method: FilterMethods.lessThan
+            // });
         }
     }
 
@@ -338,8 +391,24 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         this.setDefaultStateForKey(property);
     }
 
-    private readonly saveState = (): void => {
-        this.props.onAccept(this.state);
+    // private setInitialState = (): void => {
+    //     console.log("this._initialState", this._initialState);
+    //     this.state = this._initialState;
+    // }
+    private saveState = (): void => {
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        this.props.onAccept(this.state.openedFilter);
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+
+        console.log("Save state", this.state);
+        //this.props.onAccept(this.state);
+        //const state = this.state;// = undefined;
+        //this.setInitialState;
+        //this.setState;
+        this.setState({openedFilter:undefined});
+
+        console.log("set state in save state", this.state);
+        //this.forceUpdate();
     }
 
     private readonly _onRenderDetailsHeader = () => {
@@ -347,40 +416,121 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     }
 
     private readonly setCategoricalValues = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
-        const selectedVals = [...(this.state.arg as number[])];
+        //const selectedVals = [...(this.state.arg as number[])];
+        //const selectedVals = [...(this.state.openedFilter.arg as number[])];
+        const openedFilter = this.state.openedFilter;
+        const selectedVals = [...(openedFilter.arg as number[])];
+
         const index = selectedVals.indexOf(item.key as number);
         if (item.selected && index === -1) {
             selectedVals.push(item.key as number);
         } else {
             selectedVals.splice(index, 1);
         }
-        this.setState({arg: selectedVals});
+
+        // this.setState(prevState => ({
+        //     openedFilter: {                   // object that we want to update
+        //         ...prevState.openedFilter,    // keep all other key-value pairs
+        //         arg: selectedVals      // update the value of specific key
+        //     }
+        // }))
+
+        this.setState(
+            {
+                openedFilter:{
+                    arg:selectedVals,
+                    method:openedFilter.method,
+                    column:openedFilter.column 
+                }
+            }
+        )
+
+       // this.setState({arg: selectedVals});
     }
 
     private readonly setComparison = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
-        this.setState({method: item.key as FilterMethods});
+       const openedFilter = this.state.openedFilter;
+        this.setState(
+            {
+                openedFilter:{
+                    arg:openedFilter.arg,
+                    method:item.key as FilterMethods,
+                    column:openedFilter.column 
+                }
+            }
+        )
+
+        // this.setState(prevState => ({
+        //     openedFilter: {                   // object that we want to update
+        //         ...prevState.openedFilter,    // keep all other key-value pairs
+        //         method: item.key as FilterMethods      // update the value of specific key
+        //     }
+        // }))
+        //this.setState({method: item.key as FilterMethods});
     }
 
     private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
+        const openedFilter = this.state.openedFilter;
         if (delta === 0) {
             const number = +stringVal;
             if ((!Number.isInteger(number) && column.featureRange.rangeType === RangeTypes.integer)
                 || number > column.featureRange.max || number < column.featureRange.min) {
-                return this.state.arg.toString();
+                return this.state.openedFilter.arg.toString();
+                //return this.state.arg.toString();
             }
-            this.setState({arg: number});
+
+            this.setState(
+                {
+                    openedFilter:{
+                        arg:number,
+                        method:openedFilter.method,
+                        column:openedFilter.column 
+                    }
+                }
+            )
+    
+            // this.setState(prevState => ({
+            //     openedFilter: {                   // object that we want to update
+            //         ...prevState.openedFilter,    // keep all other key-value pairs
+            //         arg: number      // update the value of specific key
+            //     }
+            // }))
+            //this.setState({arg: number});
         } else {
-            const prevVal = this.state.arg as number;
+            //const prevVal = this.state.arg as number;
+            //const prevVal = this.state.openedFilter.arg as number;
+            const prevVal = openedFilter.arg as number;
             const newVal = prevVal + delta;
             if (newVal > column.featureRange.max || newVal < column.featureRange.min) {
                 return prevVal.toString();
             }
-            this.setState({arg: newVal});
+
+            this.setState(
+                {
+                    openedFilter:{
+                        arg:newVal,
+                        method:openedFilter.method,
+                        column:openedFilter.column 
+                    }
+                }
+            )
+
+
+            // this.setState(prevState => ({
+            //     openedFilter: {                   // object that we want to update
+            //         ...prevState.openedFilter,    // keep all other key-value pairs
+            //         arg: newVal      // update the value of specific key
+            //     }
+            // }))
+            //this.setState({arg: newVal});
         }
     }
 
     private setDefaultStateForKey(key: string): void {
-        const filter: IFilter = {column: key} as IFilter;
+        const openedFilter = this.state.openedFilter;
+        console.log("filter key", key);
+        let filter: IFilter = {column : key} as IFilter;
+        //debugger;
         const meta = this.props.jointDataset.metaDict[key];
         if (meta.isCategorical) {
             filter.method = FilterMethods.includes;
@@ -392,6 +542,19 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
             filter.method = FilterMethods.lessThan;
             filter.arg = meta.featureRange.max;
         }
-        this.setState(filter);
+        this.setState(
+            {
+                openedFilter:filter
+            }
+        )
+
+
+        // this.setState(prevState => ({
+        //     openedFilter: {                   // object that we want to update
+        //         ...prevState.openedFilter,    // keep all other key-value pairs
+        //         column: key      // update the value of specific key
+        //     }
+        // }))
+        //this.setState(filter);
     }
 }
