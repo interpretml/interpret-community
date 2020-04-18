@@ -84,6 +84,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.handleFeatureSelection = this.handleFeatureSelection.bind(this);
         this.setStartingK = this.setStartingK.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
+        this.setSortIndex = this.setSortIndex.bind(this);
+        this.onXSet = this.onXSet.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -100,7 +102,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             return (<div/>);
         }
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};});
-
+        const featureOptions: IDropdownOption[] = [];
+        for( let i =0; i < this.props.jointDataset.datasetFeatureCount; i++) {
+            const key = JointDataset.DataLabelRoot + i.toString();
+            featureOptions.push({key, text: this.props.jointDataset.metaDict[key].label});
+        }
         return (
         <div className={classNames.page}>
             <div className={classNames.infoWithText}>
@@ -171,7 +177,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     <Dropdown 
                         styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
-                        selectedKey={this.state.selectedCohortIndex}
+                        selectedKey={this.state.sortingSeriesIndex}
                         onChange={this.setSortIndex}
                     />
                 </div>
@@ -186,7 +192,13 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     onChange={this.props.onDependenceChange}
                 />
                 <div className={classNames.legendAndSort}>
-                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohorts}</Text>
+                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.viewDependencePlotFor}</Text>
+                    {featureOptions && (<Dropdown 
+                        styles={{ dropdown: { width: 150 } }}
+                        options={featureOptions}
+                        selectedKey={this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined}
+                        onChange={this.onXSet}
+                    />)}
                     {/* {(this.state.xDialogOpen) && (
                         <AxisConfigDialog 
                             jointDataset={this.props.jointDataset}
@@ -200,6 +212,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                             target={this._xButtonId}
                         />
                     )} */}
+                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohortSelector}</Text>
                     {cohortOptions && (<Dropdown 
                         styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
@@ -297,6 +310,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         const newIndex = item.key as number;
         const sortArray = ModelExplanationUtils.getSortIndices(this.cohortSeries[newIndex].unsortedAggregateY).reverse()
         this.setState({sortingSeriesIndex: newIndex, sortArray});
+    }
+
+    private onXSet(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        const key = item.key as string;
+        const index = this.props.jointDataset.metaDict[key].index;
+        this.handleFeatureSelection(this.state.selectedCohortIndex, index);
     }
 
     private handleFeatureSelection(cohortIndex: number, featureIndex: number): void {
