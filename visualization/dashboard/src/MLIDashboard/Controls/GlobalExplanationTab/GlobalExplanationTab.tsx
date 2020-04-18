@@ -62,6 +62,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
 
+
+
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
         if (this.props.globalBarSettings === undefined) {
@@ -174,19 +176,38 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     />
                 </div>
             </div>
-            {cohortOptions && (<Dropdown 
-                styles={{ dropdown: { width: 150 } }}
-                options={cohortOptions}
-                selectedKey={this.state.selectedCohortIndex}
-                onChange={this.setSelectedCohort}
-            />)}
-            <DependencePlot 
-                chartProps={this.props.dependenceProps}
-                cohort={this.props.cohorts[this.state.selectedCohortIndex]}
-                jointDataset={this.props.jointDataset}
-                metadata={this.props.metadata}
-                onChange={this.props.onDependenceChange}
-            />
+            <div className={classNames.secondaryChartAndLegend}>
+                <DependencePlot 
+                    chartProps={this.props.dependenceProps}
+                    cohortIndex={this.state.selectedCohortIndex}
+                    cohort={this.props.cohorts[this.state.selectedCohortIndex]}
+                    jointDataset={this.props.jointDataset}
+                    metadata={this.props.metadata}
+                    onChange={this.props.onDependenceChange}
+                />
+                <div className={classNames.legendAndSort}>
+                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohorts}</Text>
+                    {/* {(this.state.xDialogOpen) && (
+                        <AxisConfigDialog 
+                            jointDataset={this.props.jointDataset}
+                            orderedGroupTitles={[ColumnCategories.dataset]}
+                            selectedColumn={this.props.chartProps.xAxis}
+                            canBin={false}
+                            mustBin={false}
+                            canDither={true}
+                            onAccept={this.onXSet}
+                            onCancel={this.setXOpen.bind(this, false)}
+                            target={this._xButtonId}
+                        />
+                    )} */}
+                    {cohortOptions && (<Dropdown 
+                        styles={{ dropdown: { width: 150 } }}
+                        options={cohortOptions}
+                        selectedKey={this.state.selectedCohortIndex}
+                        onChange={this.setSelectedCohort}
+                    />)}
+                </div>
+            </div>
             {/* {this.state.secondChart === 'swarm' && (<GlobalViolinPlot
                 jointDataset={this.props.jointDataset}
                 metadata={this.props.metadata}

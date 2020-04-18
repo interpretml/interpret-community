@@ -13,6 +13,8 @@ import { AxisConfigDialog } from "./AxisConfigDialog";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
 import { Cohort } from "../Cohort";
+import { Text } from "office-ui-fabric-react";
+import { FabricStyles } from "../FabricStyles";
 
 export interface INewDataTabProps {
     chartProps: IGenericChartProps;
@@ -21,16 +23,12 @@ export interface INewDataTabProps {
     // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     cohort: Cohort;
+    cohortIndex: number;
     metadata: IExplanationModelMetadata;
     onChange: (props: IGenericChartProps) => void;
 }
 
-export interface INewDataTabState {
-    xDialogOpen: boolean;
-    colorDialogOpen: boolean;
-}
-
-export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDataTabState> {
+export class DependencePlot extends React.PureComponent<INewDataTabProps> {
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],
@@ -48,22 +46,39 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
             hovermode: "closest",
             showlegend: false,
             yaxis: {
-                automargin: true
+                automargin: true,
+                color: FabricStyles.chartAxisColor,
+                tickfont: {
+                    family: "Roboto, Helvetica Neue, sans-serif",
+                    size: 11
+                },
+                zeroline: true,
+                showgrid: true,
+                gridcolor: "#e5e5e5"
             },
+            xaxis: {
+                automargin: true,
+                color: FabricStyles.chartAxisColor,
+                tickfont: {
+                    family: "Roboto, Helvetica Neue, sans-serif",
+                    size: 11
+                },
+                zeroline: true,
+                showgrid: true,
+                gridcolor: "#e5e5e5"
+            }
         } as any
     };
 
     private static readonly classNames = mergeStyleSets({
         DependencePlot: {
-            display: "contents"
-        },
-        topConfigArea: {
             display: "flex",
-            padding: "3px 15px",
-            justifyContent: "space-between"
+            flexGrow: "1",
+            flexDirection: "row"
         },
         chartWithAxes: {
             display: "flex",
+            flex: "1",
             padding: "5px 20px 0 20px",
             flexDirection: "column"
         },
@@ -101,66 +116,29 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
         horizontalAxis: {
             flex: 1,
             textAlign:"center"
+        },
+        placeholderWrapper: {
+            margin: "100px auto 0 auto"
+        },
+        placeholder: {
+            maxWidth: "70%"
         }
     });
 
-    private readonly _xButtonId = "x-button-id";
-    private readonly _colorButtonId = "color-button-id";
-
-    constructor(props: INewDataTabProps) {
-        super(props);
-        if (props.chartProps === undefined) {
-            this.generateDefaultChartAxes();
-        }
-        this.onXSet = this.onXSet.bind(this);
-        this.onColorSet = this.onColorSet.bind(this);
-        this.scatterSelection = this.scatterSelection.bind(this);
-
-        this.state = {
-            xDialogOpen: false,
-            colorDialogOpen: false
-        };
-    }
-
     public render(): React.ReactNode {
         if (this.props.chartProps === undefined) { 
-            return (<div/>);
+            return (<div className={DependencePlot.classNames.placeholderWrapper}>
+                <Text variant={"xLarge"} className={DependencePlot.classNames.placeholder}>{localization.DependencePlot.placeholder}</Text>
+            </div>);
         }
         const plotlyProps = this.generatePlotlyProps();
         return (
             <div className={DependencePlot.classNames.DependencePlot}>
-                <div className={DependencePlot.classNames.topConfigArea}>
-                    <DefaultButton 
-                        onClick={this.setColorOpen.bind(this, true)}
-                        id={this._colorButtonId}
-                        text={this.props.chartProps.colorAxis ? 
-                            localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel :
-                            localization.ExplanationScatter.colorValue + "not set"
-                        }
-                        title={this.props.chartProps.colorAxis ?
-                            localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label :
-                            localization.ExplanationScatter.colorValue + "not set"
-                        }
-                    />
-                    {(this.state.colorDialogOpen) && (
-                        <AxisConfigDialog 
-                            jointDataset={this.props.jointDataset}
-                            orderedGroupTitles={[ColumnCategories.outcome, ColumnCategories.dataset]}
-                            selectedColumn={this.props.chartProps.colorAxis}
-                            canBin={true}
-                            mustBin={false}
-                            canDither={false}
-                            onAccept={this.onColorSet}
-                            onCancel={this.setColorOpen.bind(this, false)}
-                            target={this._colorButtonId}
-                        />
-                    )}
-                </div>
                 <div className={DependencePlot.classNames.chartWithAxes}>
                     <div className={DependencePlot.classNames.chartWithVertical}>
                         <div className={DependencePlot.classNames.verticalAxis}>
                             <div className={DependencePlot.classNames.rotatedVerticalBox}>
-                                <div>{this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}</div>
+                                <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}</Text>
                             </div>
                         </div>
                         <div className={DependencePlot.classNames.chart}>
@@ -173,45 +151,11 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
                     <div className={DependencePlot.classNames.horizontalAxisWithPadding}>
                         <div className={DependencePlot.classNames.paddingDiv}></div>
                         <div className={DependencePlot.classNames.horizontalAxis}>
-                            <DefaultButton 
-                                onClick={this.setXOpen.bind(this, true)}
-                                id={this._xButtonId}
-                                text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                            />
-                            {(this.state.xDialogOpen) && (
-                                <AxisConfigDialog 
-                                    jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.dataset]}
-                                    selectedColumn={this.props.chartProps.xAxis}
-                                    canBin={false}
-                                    mustBin={false}
-                                    canDither={true}
-                                    onAccept={this.onXSet}
-                                    onCancel={this.setXOpen.bind(this, false)}
-                                    target={this._xButtonId}
-                                />
-                            )}
+                            <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}</Text>
                         </div>
                     </div>
                 </div >
         </div>);
-    }
-
-    private readonly setXOpen = (val: boolean): void => {
-        if (val && this.state.xDialogOpen === false) {
-            this.setState({xDialogOpen: true});
-            return;
-        }
-        this.setState({xDialogOpen: false});
-    }
-
-    private readonly setColorOpen = (val: boolean): void => {
-        if (val && this.state.colorDialogOpen === false) {
-            this.setState({colorDialogOpen: true});
-            return;
-        }
-        this.setState({colorDialogOpen: false});
     }
 
     private onXSet(value: ISelectorConfig): void {
@@ -250,6 +194,7 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps, INewDa
         });
         plotlyProps.data[0].type = this.props.chartProps.chartType;
         plotlyProps.data[0].mode = PlotlyMode.markers;
+        plotlyProps.data[0].marker = { color: FabricStyles.fabricColorPalette[this.props.cohortIndex]}
         if (this.props.chartProps.xAxis) {
             if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
                 const xLabels = jointData.metaDict[this.props.chartProps.xAxis.property].sortedCategoricalValues;

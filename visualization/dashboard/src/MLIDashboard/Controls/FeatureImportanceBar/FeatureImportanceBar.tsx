@@ -96,25 +96,25 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                 autosize: true,
                 dragmode: false,
                 barmode: 'group',
-                font: {
-                    size: 10
-                },
                 margin: {t: 10, r: 10, b: 30, l: 0},
                 hovermode: 'closest',
                 xaxis: {
                     automargin: true,
                     color: FabricStyles.chartAxisColor,
-                    font: {
-                        family: FabricStyles.fontFamilies,
-                        size: 14
+                    tickfont: {
+                        family: "Roboto, Helvetica Neue, sans-serif",
+                        size: 11,
+                        color: FabricStyles.chartAxisColor,
                     },
                     showgrid: false
                 },
                 yaxis: {
                     automargin: true,
                     color: FabricStyles.chartAxisColor,
-                    font: {
-                        family: FabricStyles.fontFamilies
+                    tickfont: {
+                        family: "Roboto, Helvetica Neue, sans-serif",
+                        size: 11,
+                        color: FabricStyles.chartAxisColor,
                     },
                     zeroline: true,
                     showgrid: true,

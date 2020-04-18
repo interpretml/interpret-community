@@ -19,6 +19,7 @@
     "_summmaryImportance.comment": "Label showing all importance of feature datapoints in scatter plot",
     "featureImportance": "Feature Importance",
     "_featureImportance.comment": "Label for feature importance ",
+    "featureImportanceOf": "Feature importance of {0}",
     "perturbationExploration": "Perturbation Exploration",
     "_perturbationExploration.comment": "Label for local tab allowing the user to change parameters on a selected point",
     "localFeatureImportance": "Local Feature Importance",
@@ -268,5 +269,8 @@
     "DatasetExplorer": {
         "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",
         "foo": "foo"
+    },
+    "DependencePlot": {
+        "placeholder": "Click on a feature on the bar chart above to show its dependence plot"
     }
 }

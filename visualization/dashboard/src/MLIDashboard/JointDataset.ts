@@ -431,9 +431,10 @@ export class JointDataset {
             }
         }
         this.rawLocalImportance[0].forEach((classArray, featureIndex) => {
+            const featureLabel = this.metaDict[JointDataset.DataLabelRoot + featureIndex.toString()].label;
             this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
-                label: 'Importance '+ featureIndex.toString(),
-                abbridgedLabel: 'Importance '+ featureIndex.toString(),
+                label: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
+                abbridgedLabel: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 isCategorical: false,
                 featureRange: {
                     rangeType: RangeTypes.numeric,

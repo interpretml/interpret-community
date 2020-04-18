@@ -14,6 +14,7 @@ export interface IGlobalTabStyles {
     legendAndSort: IStyle;
     cohortLegend: IStyle;
     legendHelpText: IStyle;
+    secondaryChartAndLegend: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -64,6 +65,12 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         },
         globalChartWithLegend: {
             height: "400px",
+            width: "100%",
+            display: "flex",
+            flexDirection: "row"
+        },
+        secondaryChartAndLegend: {
+            height: "300px",
             width: "100%",
             display: "flex",
             flexDirection: "row"

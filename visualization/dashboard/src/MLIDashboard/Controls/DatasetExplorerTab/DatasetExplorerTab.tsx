@@ -78,19 +78,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         } as any
     };
 
-    private chartOptions: IComboBoxOption[] = [
-        {
-            key: ChartTypes.Scatter,
-            text: "Scatter"
-        },
-        {
-            key: ChartTypes.Bar,
-            text: "Histogram"
-        }
-    ];
-
     private readonly _xButtonId = "x-button-id";
-    private readonly _colorButtonId = "color-button-id";
     private readonly _yButtonId = "y-button-id";
 
     constructor(props: IDatasetExplorerTabProps) {
