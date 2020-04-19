@@ -24,9 +24,9 @@ let cohortEditor: IStyle = {
     position: 'absolute',
     overflowY: 'visible',
     width:'560px',
-    height:'455px',
-    left:'300px',
-    top:'200px',
+    height:'575px',
+    left:'212px',
+    top:'150px',
     background: '#FFFFFF',
     boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
     borderRadius: '2px'
@@ -122,14 +122,11 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         styles={calloutMain}
                     >
                         <div className={classNames.cohortName}>
-                        {/* <label id={cohortForEdit.getCohortID.toString()}>Dataset cohort name</label> */}
                         <TextField 
                         id={cohortForEdit.getCohortID.toString()} 
                         label="Dataset cohort name"
                         placeholder="Enter dataset cohort name"></TextField>
                         </div>
-
-                        {/* <div className={classNames.addFilter}> */}
                             <FilterControl
                                     jointDataset={this.props.jointDataset}
                                     filterContext={{
@@ -139,7 +136,6 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                                         onUpdate: (filter, index) => {cohortForEdit.updateFilter(filter, index)}
                                     }}
                                 />
-                        {/* </div> */}
                         <PrimaryButton className={classNames.saveCohort} onClick={this.updateCohort.bind(this, cohortForEdit)}>Save</PrimaryButton>
                     </Callout>
                 )}

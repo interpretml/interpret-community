@@ -24,37 +24,59 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     private static readonly classNames = mergeStyleSets({
         existingFilter: {
             border: '1px solid #0078D4',
-            borderRadius: '5px',
+            boxSizing: 'border-box',
+            borderRadius: '3px',
             display: 'inline-flex',
-            marginRight: "4px",
-            minWidth:"115px"
+            flexDirection:"row",
+            height:"25px"
+            //marginRight: "4px",
+            //minWidth:"115px"
         },
         filterLabel: {
-            padding: "3px 8px 2px 4px",
-            minWidth: "90px",
-            color: "#0078D4"
+            padding: "1px 9px 6px 11px",
+            minWidth:"75px",
+            maxWidth: "90px",
+            color: "#0078D4",
+            height:"25px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
         },
-        filterList: {
-            fontWeight: FontWeights.regular,
-            fontSize: FontSizes.smallPlus,
+        defaultFilterList: {
             color: "#979797",
             marginLeft:"10px"
         },
         wrapper: {
             display: "flex",
-            flexDirection:"column",
-            //position:"relative",
-            //top:"88px"
+            flexDirection:"column"
         },
         addedFilter:
         {
             fontWeight: FontWeights.semibold,
-            fontSize: FontSizes.medium,
             color: "#000000",
-            marginLeft:"39px",
+            marginLeft:"45px",
             height:"30px",
             width:"178px"
+        },
+        addedFilterDiv:{
+            //display:"inline-flex",
+            //flexDirection:"row",
+            marginRight:"40px",
+            marginLeft:"45px",
+            marginBottom:"18px",
+            maxHeight:"97px",
+            overflowY:"auto"
+        },
+        filterIcon:{
+            height:"25px",
+            width:"25px",
+        //     selectors: {
+        //         ':hover': {
+        //             borderBottom: "1px solid #0078D4"
+        //         }
+        // },
         }
+        
     });
     constructor(props: IFilterControlProps) {
         super(props);
@@ -67,41 +89,20 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
             return (<div key={index} className={FilterControl.classNames.existingFilter}>
-                <div
-                    className={FilterControl.classNames.filterLabel}
-                    >
-                    {this.props.jointDataset.metaDict[filter.column].abbridgedLabel 
-                    + " " + filter.method + " " + filter.arg}
-                </div>
-                <div>
+                    <Text variant={"small"} className={FilterControl.classNames.filterLabel}>{this.props.jointDataset.metaDict[filter.column].abbridgedLabel 
+                    + " " + filter.method + " " + filter.arg}</Text>
                 <IconButton
+                    className={FilterControl.classNames.filterIcon}
                     iconProps={{iconName:"Edit"}}
                     onClick={this.editFilter.bind(this, filter, index)}
                 />
                 <IconButton
+                    className={FilterControl.classNames.filterIcon}
                     iconProps={{iconName:"Clear"}}
                     onClick={this.removeFilter.bind(this, index)}
                 />
-                </div>
             </div>);
         });
-
-        // return(<div className={FilterControl.classNames.wrapper}>
-        //             <FilterEditor
-        //                 jointDataset={this.props.jointDataset}
-        //                 onAccept={this.updateFilter}
-        //                 onCancel={this.cancelFilter}
-        //                 initialFilter={this.state.openedFilter}
-        //             />
-
-        //         <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
-                
-        //         {filterList.length>0
-        //             ? <Stack horizontalAlign="start">{filterList}</Stack>
-        //             : <Stack className={FilterControl.classNames.filterList}> no filters added</Stack>
-        //         }
-        //         </div>
-        // );
 
         return(<div className={FilterControl.classNames.wrapper}>
             <FilterEditor
@@ -111,15 +112,15 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
                 initialFilter={this.state.openedFilter}
             />
 
-        <div>
-        <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
-        
+        <Text variant={"medium"} className={FilterControl.classNames.addedFilter} >Added Filters</Text>
+        <div className={FilterControl.classNames.addedFilterDiv}>
         {filterList.length>0
-            ? <Stack horizontalAlign="start">{filterList}</Stack>
-            : <Stack className={FilterControl.classNames.filterList}> no filters added</Stack>
+            ? <div>{filterList}</div>
+            : <div>
+                <Text variant={"smallPlus"} className={FilterControl.classNames.defaultFilterList}>No filters added yet</Text>
+            </div>
         }
-        </div>
-        
+        </div>     
         </div>
 );
     }
