@@ -25,8 +25,8 @@ let cohortEditor: IStyle = {
     overflowY: 'visible',
     width:'560px',
     height:'575px',
-    left:'212px',
-    top:'150px',
+    left:'250px',
+    top:'80px',
     background: '#FFFFFF',
     boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
     borderRadius: '2px'
