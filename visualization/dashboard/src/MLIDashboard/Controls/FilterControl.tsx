@@ -42,7 +42,9 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         },
         wrapper: {
             display: "flex",
-            flexDirection:"column"
+            flexDirection:"column",
+            //position:"relative",
+            //top:"88px"
         },
         addedFilter:
         {
@@ -62,13 +64,8 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.state = {openedFilter: undefined, filterIndex: this.props.filterContext.filters.length};
     }
 
-    componentDidUpdate(props){
-        console.log("componentDidUpdate");
-    }
-
     public render(): React.ReactNode {
         const filterList = this.props.filterContext.filters.map((filter, index) => {
-        //const filterList = this.state.filters.map((filter, index) => {
             return (<div key={index} className={FilterControl.classNames.existingFilter}>
                 <div
                     className={FilterControl.classNames.filterLabel}
@@ -89,23 +86,42 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
             </div>);
         });
 
-        return(<div className={FilterControl.classNames.wrapper}>
-                    <FilterEditor
-                        jointDataset={this.props.jointDataset}
-                        onAccept={this.updateFilter}
-                        onCancel={this.cancelFilter}
-                        initialFilter={this.state.openedFilter}
-                        //key={this.state.openedFilter.method."_".this.state.openedFilter.arg}
-                    />
+        // return(<div className={FilterControl.classNames.wrapper}>
+        //             <FilterEditor
+        //                 jointDataset={this.props.jointDataset}
+        //                 onAccept={this.updateFilter}
+        //                 onCancel={this.cancelFilter}
+        //                 initialFilter={this.state.openedFilter}
+        //             />
 
-                <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
+        //         <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
                 
-                {filterList.length>0
-                    ? <Stack horizontalAlign="start">{filterList}</Stack>
-                    : <Stack className={FilterControl.classNames.filterList}> no filters added</Stack>
-                }
-                </div>
-        );
+        //         {filterList.length>0
+        //             ? <Stack horizontalAlign="start">{filterList}</Stack>
+        //             : <Stack className={FilterControl.classNames.filterList}> no filters added</Stack>
+        //         }
+        //         </div>
+        // );
+
+        return(<div className={FilterControl.classNames.wrapper}>
+            <FilterEditor
+                jointDataset={this.props.jointDataset}
+                onAccept={this.updateFilter}
+                onCancel={this.cancelFilter}
+                initialFilter={this.state.openedFilter}
+            />
+
+        <div>
+        <Text variant={"medium"} block className={FilterControl.classNames.addedFilter} >Added Filters</Text>
+        
+        {filterList.length>0
+            ? <Stack horizontalAlign="start">{filterList}</Stack>
+            : <Stack className={FilterControl.classNames.filterList}> no filters added</Stack>
+        }
+        </div>
+        
+        </div>
+);
     }
 
     private updateFilter(filter: IFilter): void {
@@ -113,8 +129,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         this.setState({openedFilter: undefined, filterIndex: undefined});
         this.props.filterContext.onUpdate(filter, index);
         this.forceUpdate();
-        console.log("update filter", this.props.filterContext.filters);
-        console.log("update filter openedFilter state", this.state.openedFilter);
     }
 
     private cancelFilter(): void {
@@ -124,9 +138,7 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
     private removeFilter(index: number): void {
         this.props.filterContext.onDelete(index);
         this.setState({filterIndex:this.props.filterContext.filters.length});
-        this.forceUpdate();
-        console.log("length", this.state.filterIndex)
-        
+        this.forceUpdate();        
     }
 
     private editFilter(filter:IFilter, index: number): void {      

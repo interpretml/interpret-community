@@ -87,20 +87,22 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         },
         cohortName: {
             position:"absolute",
-            width:"35%",
-            height:"56px"
+            width:"180px",
+            height:"56px",
+            top:"25px",
+            left:"37px"
         },
         saveCohort: {
-                display: 'flex',
-                flexDirection: 'row',
-                padding: '6px 16px',
+                //display: 'flex',
+                //flexDirection: 'row',
+                //padding: '6px 16px',
                 position: 'absolute',
                 width: '62px',
                 height: '32px',
-                left: '471px',
-                top: '396px',
+                right:'20px',
+                bottom:'27px',
                 background: '#F3F2F1',
-                borderRadius: '2px'
+                //borderRadius: '2px'
         }
     });
 };

@@ -197,7 +197,7 @@
         "lessThanComparison": "Less than",
         "inTheRangeOf": "In the range of",
         "categoricalIncludeValues": "Included values:",
-        "numericValue": "Value:",
+        "numericValue": "Value",
         "numericalComparison": "Operation",
         "minimum":"Minimum",
         "maximum":"Maximum"

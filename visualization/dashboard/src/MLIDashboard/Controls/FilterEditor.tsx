@@ -13,7 +13,8 @@ import { mergeStyleSets, FontSizes, fontFace, ThemeSettingName} from "@uifabric/
 import { DetailsList, Selection, SelectionMode, IColumn } from "office-ui-fabric-react/lib/DetailsList";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { defaultTheme } from "../Themes";
-import { FontWeights, getTheme, ColorPicker, mergeAriaAttributeValues, resetControlledWarnings } from "office-ui-fabric-react";
+import { Text, FontWeights, getTheme, ColorPicker, mergeAriaAttributeValues, resetControlledWarnings } from "office-ui-fabric-react";
+import { Position } from "office-ui-fabric-react/lib/utilities/positioning";
 
 export interface IFilterEditorProps {
     jointDataset: JointDataset;
@@ -27,25 +28,29 @@ const theme = getTheme();
 
 const styles = mergeStyleSets({
     wrapper: {
-        minHeight: "300px",
+        height: "295px",
         display: "flex",
-        marginTop: "60px",
+        marginTop:"88px"
+        //marginTop: "60px",
     },
     leftHalf: {
-        display: "inline-flex",
+        //display: "inline-flex",
         maxWidth: "50%",
         //width: "50%",
         height: "100%",
         //borderRight: "2px solid #CCC",
-        margin:"auto"
+        //margin:"auto"
     },
     rightHalf: {
-        //margin: "auto",
-        display: "inline-flex",
-        minWidth: "50%",
+        display: "flex",
+        width: "255px",
+        height:"295px,",
         flexDirection: "column",
         background: "#F4F4F4",
-        //borderRadius: "5px"
+        marginRight:"27px",
+        marginLeft:"25px",
+        marginTop:"0px",
+        borderRadius: "5px"
     },
     detailedList: {
         margin:"auto"
@@ -55,31 +60,80 @@ const styles = mergeStyleSets({
             fontSize: FontSizes.medium,
             color: "#000000"
         },
-    dataSummary: {
-        fontWeight: FontWeights.semibold,
-        fontSize: FontSizes.medium,
-        color: "#979797"
-    }, 
     addFilterButton: {
+        width:"98px",
+        height:"32px",
+        marginLeft:"32px",
+        marginTop:"53px",
+        background: "#FFFFFF",
+        border: "1px solid #8A8886",
+        boxSizing: "border-box",
+        borderRadius: "2px"
+    },
+    featureTextDiv:{
+        marginTop:"1px",
+    },
+    featureComboBox:{
+        width:"180px",
+        height:"56px",
+        marginTop:"21px",
+        marginLeft:"30px",
+        marginRight:"45px",
+        marginBottom:"1px"
+    }, 
+    operationComboBox:{
+        width:"180px",
+        height:"56px",
+        marginTop:"25px",
+        marginLeft:"30px",
+        marginRight:"45px",
+        marginBottom:"10px"
+    },
+    valueSpinButton:{
+        width:"180px",
+        height:"36px",
+        marginLeft:"30px",
+        marginRight:"45px"
+    },
+    valueSpinButtonDiv:{
+        marginTop:"10px",
+        display:"flex",
+        flexDirection:"row"
+    },
+    minSpinBox:{
+        width:"64px",
+        height:"36px",
+        paddingRight:"26px",
+        marginLeft:"30px"
+    },
+    maxSpinBox:{
+        width:"64px",
+        height:"36px"
+    },
+    featureText:{
+        width:"180px",
+        height:"20px",
+        marginTop:"1px",
+        marginLeft:"30px",
+        color:"#979797",
+        textAlign:"left",
+        position:"absolute"
+    },
+    treatCategorical:{
+        width:"180px",
+        height:"56px",
+        marginTop:"21px",
+        marginLeft:"30px",
+        marginRight:"45px",
+        marginBottom:"1px"
+    },
+    defaultText:{
+        marginTop:"105px",
+        marginRight:"35px",
+        marginLeft:"35px",
+        textAlign:"center",
+        color: "#979797"
         
-    },
-    minRangeOf:{
-        display:"flex",
-        flexDirection: "row",
-        width:"64px",
-        height:"36px",
-        alignSelf:"flex-start"
-    },
-    maxRangeOf:{
-        display:"flex",
-        flexDirection: "row",
-        width:"64px",
-        height:"36px",
-        alignSelf:"flex-end"
-    },
-    subDiv:{
-        marginBottom:"1px",
-        alignSelf:"center"
     }
 });
 
@@ -132,17 +186,12 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         }
     ];
     private _isInitialized = false;
-    //private _initialState:IFilter;
 
     constructor(props: IFilterEditorProps) {
         super(props);
         console.log("constructor component")
-        //this.state = _.cloneDeep(this.props.initialFilter);
-        
         this.state = {openedFilter: this.props.initialFilter};
-        //this._initialState = this.state;
         console.log("constructor state", this.state)
-        //console.log("constructor initial state", this._initialState)
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
             onSelectionChanged: this._setSelection
@@ -164,14 +213,8 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 method: this.props.initialFilter.method
             }
             this.setState({openedFilter: newFilter});  
-            console.log("update component12", this.state.openedFilter);   
-            
-            console.log("update component new ", newFilter);     
-        }
-        else{
-            console.log("this.state component", this.state);
-            console.log("props component", props.initialFilter);
-            console.log("prevVale component", prevVal);
+            console.log("update component12", this.state.openedFilter);
+            console.log("update component new ", newFilter); 
         }
     }
     
@@ -196,7 +239,8 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                     columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
                                 />
                             </div>
-                            <div className={styles.rightHalf}> Select filter</div>
+                            <div className={styles.rightHalf}> 
+                            <Text className={styles.defaultText} variant={"medium"}>Select a filter to add parameters to your dataset cohort.</Text></div>
                     </div>
                 );
         }
@@ -231,96 +275,87 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                             />
                         </div>
                         <div className={styles.rightHalf}>
-                            <div>
-                        {isDataColumn && (
-                            <ComboBox
-                                options={this.dataArray}
-                                onChange={this.setSelectedProperty}
-                                label={"Feature: "}
-                                ariaLabel="feature picker"
-                                selectedKey={openedFilter.column}
-                                useComboBoxAsMenuWidth={true}
-                                styles={FabricStyles.defaultDropdownStyle} />
-                        )}
-                        {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
-                            <Checkbox label="Treat as categorical" checked={selectedMeta.treatAsCategorical} onChange={this.setAsCategorical} />
-                        )}
-                        {selectedMeta.treatAsCategorical && (
-                            <div className={styles.subDiv}>
-                                <div className={styles.dataSummary}>{`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}</div>
-                                <ComboBox
-                                    multiSelect
-                                    label={localization.Filters.categoricalIncludeValues}
-                                    className="path-selector"
-                                    selectedKey={openedFilter.arg}
-                                    onChange={this.setCategoricalValues}
-                                    options={categoricalOptions}
-                                    useComboBoxAsMenuWidth={true}
-                                    styles={FabricStyles.smallDropdownStyle}
-                                />
-                            </div>
-                        )}
-                        {!selectedMeta.treatAsCategorical && (
-                                <div>
-                                    <div className={styles.subDiv}>{`min: ${selectedMeta.featureRange.min}`} {`avg: ${selectedMeta.featureRange.min}`} {`max: ${selectedMeta.featureRange.max}`}</div>
-                                <ComboBox
-                                    label={localization.Filters.numericalComparison}
-                                    className="path-selector"
-                                    selectedKey={openedFilter.method}
-                                    onChange={this.setComparison}
-                                    options={this.comparisonOptions}
-                                    useComboBoxAsMenuWidth={true}
-                                    styles={FabricStyles.smallDropdownStyle}
-                                />
-                                {openedFilter.method == FilterMethods.inTheRangeOf ? 
-                                        <div>
-                                            <SpinButton
-                                                className ={styles.minRangeOf}
-                                                label={localization.Filters.minimum}
-                                                min={selectedMeta.featureRange.min}
-                                                max={selectedMeta.featureRange.max}
-                                            />
-                                            <SpinButton
-                                                className = {styles.maxRangeOf}
-                                                label={localization.Filters.maximum}
-                                                min={selectedMeta.featureRange.min}
-                                                max={selectedMeta.featureRange.max}
-                                            />
-                                        </div>
-                                    :
-                                        <div>
-                                            <SpinButton
-                                                styles={{
-                                                    spinButtonWrapper: {maxWidth: "98px"},
-                                                    labelWrapper: { alignSelf: "center"},
-                                                    root: {
-                                                        display: "inline-flex",
-                                                        float: "right",
-                                                        selectors: {
-                                                            "> div": {
-                                                                maxWidth: "108px"
-                                                            }
-                                                        }
-                                                    }
-                                                }}
-                                                label={localization.Filters.numericValue}
-                                                min={selectedMeta.featureRange.min}
-                                                max={selectedMeta.featureRange.max}
-                                                value={openedFilter.arg.toString()}
-                                                onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
-                                                onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
-                                                onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
-                                            />
-                                        </div>
+                                {isDataColumn && (
+                                    <ComboBox
+                                        className ={styles.featureComboBox}
+                                        options={this.dataArray}
+                                        onChange={this.setSelectedProperty}
+                                        label={"Select Feature"}
+                                        ariaLabel="feature picker"
+                                        selectedKey={openedFilter.column}/>
+                                )}
+                                {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
+                                    <Checkbox className={styles.treatCategorical} label="Treat as categorical" checked={selectedMeta.treatAsCategorical} onChange={this.setAsCategorical} />
+                                )}
+                                {selectedMeta.treatAsCategorical && (
+                                <div className={styles.featureTextDiv}>
+                                    <Text variant={"small"}className={styles.featureText}>
+                                        {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                                    </Text>
+                                    <ComboBox
+                                        multiSelect
+                                        label={localization.Filters.categoricalIncludeValues}
+                                        className={styles.operationComboBox}
+                                        selectedKey={openedFilter.arg}
+                                        onChange={this.setCategoricalValues}
+                                        options={categoricalOptions}
+                                        useComboBoxAsMenuWidth={true}
+                                    />
+                                </div>
+                                )}
+                            {!selectedMeta.treatAsCategorical && (
+                                <div className={styles.featureTextDiv}>
+                                        <Text variant={"small"} className={styles.featureText}>
+                                        {`Min: ${selectedMeta.featureRange.min}`} {`Average: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
+                                        </Text>    
+                                    <ComboBox
+                                        label={localization.Filters.numericalComparison}
+                                        className={styles.operationComboBox}
+                                        //className="path-selector"
+                                        selectedKey={openedFilter.method}
+                                        onChange={this.setComparison}
+                                        options={this.comparisonOptions}
+                                        useComboBoxAsMenuWidth={true}
+                                    />
+                                    {openedFilter.method == FilterMethods.inTheRangeOf ? 
+                                            <div className={styles.valueSpinButtonDiv}>
+                                                <SpinButton
+                                                    labelPosition={Position.top}
+                                                    className ={styles.minSpinBox}
+                                                    label={localization.Filters.minimum}
+                                                    min={selectedMeta.featureRange.min}
+                                                    max={selectedMeta.featureRange.max}
+                                                />
+                                                <SpinButton
+                                                    labelPosition={Position.top}
+                                                    className = {styles.maxSpinBox}
+                                                    label={localization.Filters.maximum}
+                                                    min={selectedMeta.featureRange.min}
+                                                    max={selectedMeta.featureRange.max}
+                                                />
+                                            </div>
+                                        :
+                                            <div className={styles.valueSpinButtonDiv}>
+                                                <SpinButton
+                                                    labelPosition={Position.top}
+                                                    className={styles.valueSpinButton}
+                                                    label={localization.Filters.numericValue}
+                                                    min={selectedMeta.featureRange.min}
+                                                    max={selectedMeta.featureRange.max}
+                                                    value={openedFilter.arg.toString()}
+                                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
+                                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
+                                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                                />
+                                            </div>
                                     }
-                            </div>
-                        )}
-                        <DefaultButton 
-                            className = {styles.addFilterButton}
-                            text={"Add Filter"}
-                            onClick={this.saveState}
-                        />
-                        </div>
+                                </div>
+                            )}
+                            <DefaultButton 
+                                className = {styles.addFilterButton}
+                                text={"Add Filter"}
+                                onClick={this.saveState}
+                            />
                         </div>
                     </div>
             );
@@ -339,8 +374,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         const openedFilter = this.state.openedFilter;
         this.props.jointDataset.setTreatAsCategorical(openedFilter.column, checked);
         if (checked) {
-           // this.setState({arg:[], method: FilterMethods.includes});
-           //this.setState({openedFilter.arg:[], method: FilterMethods.includes});
           this.setState(
               {
                   openedFilter:{
@@ -361,17 +394,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                     }
                 }
             )
-            // this.setState(prevState => ({
-            //     openedFilter: {                   // object that we want to update
-            //         ...prevState.openedFilter,    // keep all other key-value pairs
-            //         arg: this.props.jointDataset.metaDict[this.state.openedFilter.column].featureRange.max,
-            //         method:FilterMethods.lessThan 
-            //     }
-            // }));
-            // this.setState({
-            //     arg:this.props.jointDataset.metaDict[this.state.column].featureRange.max,
-            //     method: FilterMethods.lessThan
-            // });
         }
     }
 
@@ -391,24 +413,9 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         this.setDefaultStateForKey(property);
     }
 
-    // private setInitialState = (): void => {
-    //     console.log("this._initialState", this._initialState);
-    //     this.state = this._initialState;
-    // }
     private saveState = (): void => {
-        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         this.props.onAccept(this.state.openedFilter);
-        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-
-        console.log("Save state", this.state);
-        //this.props.onAccept(this.state);
-        //const state = this.state;// = undefined;
-        //this.setInitialState;
-        //this.setState;
         this.setState({openedFilter:undefined});
-
-        console.log("set state in save state", this.state);
-        //this.forceUpdate();
     }
 
     private readonly _onRenderDetailsHeader = () => {
@@ -416,8 +423,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     }
 
     private readonly setCategoricalValues = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
-        //const selectedVals = [...(this.state.arg as number[])];
-        //const selectedVals = [...(this.state.openedFilter.arg as number[])];
         const openedFilter = this.state.openedFilter;
         const selectedVals = [...(openedFilter.arg as number[])];
 
@@ -427,14 +432,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
         } else {
             selectedVals.splice(index, 1);
         }
-
-        // this.setState(prevState => ({
-        //     openedFilter: {                   // object that we want to update
-        //         ...prevState.openedFilter,    // keep all other key-value pairs
-        //         arg: selectedVals      // update the value of specific key
-        //     }
-        // }))
-
         this.setState(
             {
                 openedFilter:{
@@ -444,8 +441,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 }
             }
         )
-
-       // this.setState({arg: selectedVals});
     }
 
     private readonly setComparison = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
@@ -459,14 +454,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 }
             }
         )
-
-        // this.setState(prevState => ({
-        //     openedFilter: {                   // object that we want to update
-        //         ...prevState.openedFilter,    // keep all other key-value pairs
-        //         method: item.key as FilterMethods      // update the value of specific key
-        //     }
-        // }))
-        //this.setState({method: item.key as FilterMethods});
     }
 
     private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
@@ -476,7 +463,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
             if ((!Number.isInteger(number) && column.featureRange.rangeType === RangeTypes.integer)
                 || number > column.featureRange.max || number < column.featureRange.min) {
                 return this.state.openedFilter.arg.toString();
-                //return this.state.arg.toString();
             }
 
             this.setState(
@@ -488,23 +474,12 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                     }
                 }
             )
-    
-            // this.setState(prevState => ({
-            //     openedFilter: {                   // object that we want to update
-            //         ...prevState.openedFilter,    // keep all other key-value pairs
-            //         arg: number      // update the value of specific key
-            //     }
-            // }))
-            //this.setState({arg: number});
         } else {
-            //const prevVal = this.state.arg as number;
-            //const prevVal = this.state.openedFilter.arg as number;
             const prevVal = openedFilter.arg as number;
             const newVal = prevVal + delta;
             if (newVal > column.featureRange.max || newVal < column.featureRange.min) {
                 return prevVal.toString();
             }
-
             this.setState(
                 {
                     openedFilter:{
@@ -514,23 +489,12 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                     }
                 }
             )
-
-
-            // this.setState(prevState => ({
-            //     openedFilter: {                   // object that we want to update
-            //         ...prevState.openedFilter,    // keep all other key-value pairs
-            //         arg: newVal      // update the value of specific key
-            //     }
-            // }))
-            //this.setState({arg: newVal});
         }
     }
 
     private setDefaultStateForKey(key: string): void {
         const openedFilter = this.state.openedFilter;
-        console.log("filter key", key);
         let filter: IFilter = {column : key} as IFilter;
-        //debugger;
         const meta = this.props.jointDataset.metaDict[key];
         if (meta.isCategorical) {
             filter.method = FilterMethods.includes;
@@ -547,14 +511,5 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                 openedFilter:filter
             }
         )
-
-
-        // this.setState(prevState => ({
-        //     openedFilter: {                   // object that we want to update
-        //         ...prevState.openedFilter,    // keep all other key-value pairs
-        //         column: key      // update the value of specific key
-        //     }
-        // }))
-        //this.setState(filter);
     }
 }
