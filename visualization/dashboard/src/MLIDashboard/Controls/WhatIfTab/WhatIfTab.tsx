@@ -1,28 +1,32 @@
 import React from "react";
 import * as memoize from 'memoize-one';
-import { JointDataset, ColumnCategories } from "../JointDataset";
-import { IExplanationModelMetadata } from "../IExplanationContext";
+import { JointDataset, ColumnCategories } from "../../JointDataset";
+import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { mergeStyleSets } from "@uifabric/styling";
 import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
-import { localization } from "../../Localization/localization";
+import { localization } from "../../../Localization/localization";
 import { IRenderFunction } from "@uifabric/utilities";
 import { IconButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
 import { IconNames } from "@uifabric/icons";
-import { FilterControl } from "./FilterControl";
-import { IFilterContext } from "../Interfaces/IFilter";
-import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../NewExplanationDashboard";
-import { AxisConfigDialog } from "./AxisConfigDialog";
+import { FilterControl } from "../FilterControl";
+import { IFilterContext } from "../../Interfaces/IFilter";
+import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
+import { AxisConfigDialog } from "../AxisConfigDialog";
 import { Transform } from "plotly.js-dist";
 import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
-import { Cohort } from "../Cohort";
-import { FeatureImportanceBar } from "./FeatureImportanceBar/FeatureImportanceBar";
+import { Cohort } from "../../Cohort";
+import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
 import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
-import { MultiICEPlot } from "./MultiICEPlot";
-import { FabricStyles } from "../FabricStyles";
-import { InteractiveLegend, ILegendItem } from "./InteractiveLegend";
+import { MultiICEPlot } from "../MultiICEPlot";
+import { FabricStyles } from "../../FabricStyles";
+import { InteractiveLegend, ILegendItem } from "../InteractiveLegend";
+import { Text, Icon, Slider } from "office-ui-fabric-react";
+import { whatIfTabStyles } from "./WhatIfTab.styles";
+import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
+import { ModelExplanationUtils } from "../../ModelExplanationUtils";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -30,7 +34,7 @@ export interface IWhatIfTabProps {
     metadata: IExplanationModelMetadata;
     cohorts: Cohort[];
     chartProps: IGenericChartProps;
-    onChange: (config: IGenericChartProps) => void; 
+    onChange: (config: IGenericChartProps) => void;
     invokeModel: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
@@ -40,13 +44,19 @@ export interface IWhatIfTabState {
     yDialogOpen: boolean;
     selectedWhatIfRootIndex?: number;
     editingDataCustomIndex?: number;
-    customPoints: Array<{[key: string]: any}>;
+    customPoints: Array<{ [key: string]: any }>;
     indexText: string;
     selectedIndexErrorMessage?: string;
     selectedCohortIndex: number;
-    filteredFeatureList: Array<{key: string, label: string}>;
+    filteredFeatureList: Array<{ key: string, label: string }>;
     requestList: AbortController[];
-    selectedPointsIndexes: number[]; 
+    selectedPointsIndexes: number[];
+    pointIsActive: boolean[];
+    customPointIsActive: boolean[];
+    startingK: number;
+    topK: number;
+    sortArray: number[];
+    sortingSeriesIndex: number;
 }
 
 interface ISelectedRowInfo {
@@ -63,13 +73,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private static readonly defaultIndexString = " - ";
     private static readonly colorPath = "Color";
     private static readonly namePath = "Name";
-    private readonly colorOptions: IDropdownOption[] = [
-        {key: "#FF0000", text: "Red", data: {color: "#FF0000"}}, 
-        {key: "#00FF00", text: "Green", data: {color: "#00FF00"}},
-        {key: "#0000FF", text: "Blue", data: {color: "#0000FF"}}
-    ]; 
+
     public static basePlotlyProperties: IPlotlyProperty = {
-        config: { displaylogo: false, responsive: true, displayModeBar: false},
+        config: { displaylogo: false, responsive: true, displayModeBar: false },
         data: [{}],
         layout: {
             dragmode: false,
@@ -89,97 +95,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             },
         } as any
     };
-    
-    private static readonly classNames = mergeStyleSets({
-        dataTab: {
-            display: "flex",
-            flexDirection: "row",
-            height: "100%"
-        },
-        expandedPanel: {
-            width: "250px",
-            height: "100%",
-            borderRight: "1px solid black",
-            display: "flex",
-            flexDirection: "column"
-        },
-        parameterList: {
-            display: "flex",
-            flexGrow: 1,
-            flexDirection: "column"
-        },
-        featureList: {
-            display: "flex",
-            flexGrow: 1,
-            flexDirection: "column",
-            maxHeight: "400px",
-            overflowY: "auto"
-        },
-        customPointsList: {
-            borderTop: "2px solid black",
-            height: "250px",
-        },
-        collapsedPanel: {
-            width: "40px",
-            height: "100%",
-            borderRight: "1px solid black"
-        },
-        mainArea: {
-            flex: 1
-        },
-        chartWithAxes: {
-            display: "flex",
-            padding: "5px 20px 0 20px",
-            flexDirection: "column"
-        },
-        chartWithVertical: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        verticalAxis: {
-            position: "relative",
-            top: "0px",
-            height: "auto",
-            width: "50px"
-        },
-        rotatedVerticalBox: {
-            transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
-            marginLeft: "15px",
-            position: "absolute",
-            top: "50%",
-            textAlign: "center",
-            width: "max-content"
-        },
-        horizontalAxisWithPadding: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        paddingDiv: {
-            width: "50px"
-        },
-        horizontalAxis: {
-            flex: 1,
-            textAlign:"center"
-        },
-        customPointItem: {
-            padding: "2px 5px",
-            borderBottom: "1px solid black",
-            cursor: "pointer"
-        },
-        colorBox: {
-            width: "10px",
-            height: "10px",
-            paddingLeft: "3px",
-            display: "inline-block"
-        },
-        secondaryTab: {
-            display: "inline-flex",
-            flexDirection: "row",
-            width: "100%"
-        }
-    });
 
-    private buildCustomRowSeries(customRows: Array<{[key: string]: any}>): any[] {
+    private buildCustomRowSeries(customRows: Array<{ [key: string]: any }>): any[] {
         return customRows.map((row, i) => {
             return {
                 name: row[WhatIfTab.namePath],
@@ -202,7 +119,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 unsortedY: JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[],
                 disabled: false,
                 color: FabricStyles.plotlyColorHexPalette[seriesIndex],
-                onDelete: this.toggleSelectionOfPoint.bind(this,rowIndex)
+                onDelete: this.toggleSelectionOfPoint.bind(this, rowIndex)
             });
         });
         return result;
@@ -211,17 +128,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
-    private readonly featureList: Array<{key: string, label: string}> = new Array(this.props.jointDataset.datasetFeatureCount)
+    private readonly featureList: Array<{ key: string, label: string }> = new Array(this.props.jointDataset.datasetFeatureCount)
         .fill(0).map((unused, colIndex) => {
             const key = JointDataset.DataLabelRoot + colIndex.toString();
             const meta = this.props.jointDataset.metaDict[key];
-            return {key, label: meta.label.toLowerCase()};
+            return { key, label: meta.label.toLowerCase() };
         });
 
-    private selectedRowSeries: any[];
+    private includedFeatureImportance: IGlobalSeries[] = [];
+    private selectedFeatureImportance: IGlobalSeries[] = [];
     private customRowSeries: any[];
-    private temporaryPoint: {[key: string]: any};
-    private customPoints: Array< {[key: string]: any}> = [];
+    private temporaryPoint: { [key: string]: any };
+    private customPoints: Array<{ [key: string]: any }> = [];
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -239,7 +157,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             selectedCohortIndex: 0,
             requestList: [],
             filteredFeatureList: this.featureList,
-            selectedPointsIndexes: this.getDefaultSelectedPointIndexes(props.cohorts[0])
+            selectedPointsIndexes: [],
+            pointIsActive: [],
+            customPointIsActive: [],
+            startingK: 0,
+            topK: 4,
+            sortArray: [],
+            sortingSeriesIndex: undefined
         };
         this.temporaryPoint = this.createCopyOfFirstRow();
         //this.seriesOfRows = this.buildJoinedSelectedRows(this.state.selectedPointsIndexes, this.state.customPoints);
@@ -255,19 +179,54 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.selectPointFromChart = this.selectPointFromChart.bind(this);
         this.filterFeatures = this.filterFeatures.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
+        this.setStartingK = this.setStartingK.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
+    }
+
+    public componentDidUpdate(prevProps: IWhatIfTabProps, prevState: IWhatIfTabState): void {
+        let sortingSeriesIndex = this.state.sortingSeriesIndex;
+        let sortArray = this.state.sortArray;
+        const selectionsAreEqual = _.isEqual(this.state.selectedPointsIndexes, prevState.selectedPointsIndexes);
+        const activePointsAreEqual = _.isEqual(this.state.pointIsActive, prevState.pointIsActive);
+        if (!selectionsAreEqual) {
+            this.selectedFeatureImportance = this.state.selectedPointsIndexes.map((rowIndex, colorIndex) => {
+                const row = this.props.jointDataset.getRow(rowIndex);
+                return {
+                    index: colorIndex,
+                    name: "Row " + rowIndex.toString(),
+                    unsortedFeatureValues: JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount),
+                    unsortedAggregateY: JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[],
+                }
+            });
+            if (!this.state.selectedPointsIndexes.includes(this.state.sortingSeriesIndex)) {
+                if (this.state.selectedPointsIndexes.length !== 0) {
+                    sortingSeriesIndex = 0;
+                    sortArray = ModelExplanationUtils.getSortIndices(this.selectedFeatureImportance[0].unsortedAggregateY).reverse();
+                } else {
+                    sortingSeriesIndex = undefined;
+                }
+            }
+        }
+        if (!selectionsAreEqual || !activePointsAreEqual) {
+            this.includedFeatureImportance = this.state.pointIsActive.map((isActive, i) => {
+                if (isActive) {
+                    return this.selectedFeatureImportance[i];
+                }
+            }).filter(item => !!item);
+        }
+        this.setState({ sortingSeriesIndex, sortArray })
     }
 
     public render(): React.ReactNode {
         if (this.props.chartProps === undefined) {
-            return (<div/>);
+            return (<div />);
         }
         const plotlyProps = this.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
-        //const selectedRows = WhatIfTab.buildJoinedSelectedRows(this.props.jointDataset, this.state.selectedPointsIndexes, this.state.customPoints);
+        // const selectedRows = WhatIfTab.buildJoinedSelectedRows(this.props.jointDataset, this.state.selectedPointsIndexes, this.state.customPoints);
         // const unsortedYsImportance = selectedRows.map(row => {
         //     return row.rowImportances;
         // }).filter(x => !!x);
@@ -280,17 +239,22 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         // const datasets = selectedRows.map(row => {
         //     return row.rowData;
         // }).filter(x => !!x);
-        const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};});
-        return (<div className={WhatIfTab.classNames.dataTab}>
+        const classNames = whatIfTabStyles();
+        const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
+        const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
+        return (<div className={classNames.page}>
             <div className={this.state.isPanelOpen ?
-                WhatIfTab.classNames.expandedPanel :
-                WhatIfTab.classNames.collapsedPanel}>
-                {this.state.isPanelOpen && (<div>
-                    <IconButton 
-                        iconProps={{iconName: "ChevronLeft"}}
+                classNames.expandedPanel :
+                classNames.collapsedPanel}>
+                {this.state.isPanelOpen && this.props.invokeModel === undefined && (
+                    <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
+                )}
+                {this.state.isPanelOpen && this.props.invokeModel !== undefined && (<div>
+                    <IconButton
+                        iconProps={{ iconName: "ChevronLeft" }}
                         onClick={this.dismissPanel}
                     />
-                    <div className={WhatIfTab.classNames.parameterList}>
+                    <div className={classNames.parameterList}>
                         <TextField
                             label={localization.WhatIf.indexLabel}
                             value={this.state.indexText}
@@ -303,28 +267,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
                             styles={{ fieldGroup: { width: 200 } }}
                         />
-                        <Dropdown
-                            label={localization.WhatIf.colorLabel}
-                            selectedKey={this.temporaryPoint[WhatIfTab.colorPath]}
-                            onChange={this.setCustomRowPropertyDropdown.bind(this, WhatIfTab.colorPath)}
-                            onRenderTitle={this._onRenderTitle}
-                            onRenderOption={this._onRenderOption}
-                            styles={{ dropdown: { width: 200 } }}
-                            options={this.colorOptions}
-                        />
                         <div>Features: </div>
                         <SearchBox
                             placeholder={localization.WhatIf.filterFeaturePlaceholder}
                             onChange={this.filterFeatures}
                         />
-                        <div className={WhatIfTab.classNames.featureList}>
+                        <div className={classNames.featureList}>
                             {this.state.filteredFeatureList.map(item => {
                                 return <TextField
                                     label={this.props.jointDataset.metaDict[item.key].abbridgedLabel}
                                     value={this.temporaryPoint[item.key].toString()}
                                     onChange={this.setCustomRowProperty.bind(this, item.key, this.props.jointDataset.metaDict[item.key].treatAsCategorical)}
                                     styles={{ fieldGroup: { width: 100 } }}
-                                />  
+                                />
                             })}
                         </div>
                     </div>
@@ -340,59 +295,39 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             onClick={this.saveCopyOfPoint}
                         />
                     )}
-                    <div className={WhatIfTab.classNames.customPointsList}>
-                        {this.state.customPoints.length !== 0 &&
-                            this.state.customPoints.map((row, index) => {
-                                return <div className={WhatIfTab.classNames.customPointItem}
-                                            onClick={this.setTemporaryPointToCustomPoint.bind(this, index)}>
-                                            <div className={WhatIfTab.classNames.colorBox} 
-                                                style={{backgroundColor: row[WhatIfTab.colorPath]}} />
-                                            <span>{row[WhatIfTab.namePath]}</span>
-                                            <span>{row[JointDataset.PredictedYLabel] || "loading"}</span>
-                                            <IconButton iconProps={{iconName: "Cancel"}}
-                                                onClick={this.removeCustomPoint.bind(this, index)}
-                                            />
-                                    </div>
-                            })
-                        }
-                        {this.state.customPoints.length === 0 && (
-                            <div>{localization.WhatIf.noCustomPoints}</div>
-                        )}
-                    </div>
                 </div>)}
-                {!this.state.isPanelOpen && (<IconButton 
-                    iconProps={{iconName: "ChevronRight"}}
+                {!this.state.isPanelOpen && (<IconButton
+                    iconProps={{ iconName: "ChevronRight" }}
                     onClick={this.openPanel}
                 />)}
             </div>
-            <div className={WhatIfTab.classNames.mainArea}>
-                {/* <FilterControl 
-                    jointDataset={this.props.jointDataset}
-                    filterContext={this.props.filterContext}
-                /> */}
-                {cohortOptions && (<Dropdown 
-                    styles={{ dropdown: { width: 150 } }}
-                    options={cohortOptions}
-                    selectedKey={this.state.selectedCohortIndex}
-                    onChange={this.setSelectedCohort}
-                />)}
-                <div className={WhatIfTab.classNames.chartWithAxes}>
-                    <div className={WhatIfTab.classNames.chartWithVertical}>
-                        <div className={WhatIfTab.classNames.verticalAxis}>
-                            <div className={WhatIfTab.classNames.rotatedVerticalBox}>
-                                {(this.props.chartProps.chartType === ChartTypes.Scatter) && (
-                                    <DefaultButton 
-                                        onClick={this.setYOpen.bind(this, true)}
-                                        id={this._yButtonId}
-                                        text={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                        title={localization.ExplanationScatter.yValue + this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
-                                    />
-                                )}
-                                {(this.props.chartProps.chartType !== ChartTypes.Scatter) && (
-                                    <div>{localization.ExplanationScatter.count}</div>
-                                )}
+            <div className={classNames.mainArea}>
+                <div className={classNames.infoWithText}>
+                    <Icon iconName="Info" className={classNames.infoIcon} />
+                    <Text variant="medium" className={classNames.helperText}>{localization.WhatIfTab.helperText}</Text>
+                </div>
+                {cohortOptions && (<div className={classNames.cohortPickerWrapper}>
+                    <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>{localization.WhatIfTab.cohortPickerLabel}</Text>
+                    <Dropdown
+                        styles={{ dropdown: { width: 150 } }}
+                        options={cohortOptions}
+                        selectedKey={this.state.selectedCohortIndex}
+                        onChange={this.setSelectedCohort}
+                    />
+                </div>)}
+                <div className={classNames.chartWithAxes}>
+                    <div className={classNames.chartWithVertical}>
+                        <div className={classNames.verticalAxis}>
+                            <div className={classNames.rotatedVerticalBox}>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
+                                <DefaultButton
+                                    onClick={this.setYOpen.bind(this, true)}
+                                    id={this._yButtonId}
+                                    text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                    title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                />
                                 {(this.state.yDialogOpen) && (
-                                    <AxisConfigDialog 
+                                    <AxisConfigDialog
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                         selectedColumn={this.props.chartProps.yAxis}
@@ -412,17 +347,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             onClickHandler={this.selectPointFromChart}
                         />
                     </div>
-                    <div className={WhatIfTab.classNames.horizontalAxisWithPadding}>
-                        <div className={WhatIfTab.classNames.paddingDiv}></div>
-                        <div className={WhatIfTab.classNames.horizontalAxis}>
-                            <DefaultButton 
-                                onClick={this.setXOpen.bind(this, true)}
-                                id={this._xButtonId}
-                                text={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                title={localization.ExplanationScatter.xValue + this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                            />
+                    <div className={classNames.horizontalAxisWithPadding}>
+                        <div className={classNames.paddingDiv}></div>
+                        <div className={classNames.horizontalAxis}>
+                            <div>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <DefaultButton
+                                    onClick={this.setXOpen.bind(this, true)}
+                                    id={this._xButtonId}
+                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                    title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
+                                />
+                            </div>
                             {(this.state.xDialogOpen) && (
-                                <AxisConfigDialog 
+                                <AxisConfigDialog
                                     jointDataset={this.props.jointDataset}
                                     orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                     selectedColumn={this.props.chartProps.xAxis}
@@ -437,15 +375,40 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         </div>
                     </div>
                 </div >
-                <Pivot>
-                    <PivotItem headerText={"Feature Importance"} className={WhatIfTab.classNames.secondaryTab}>
-                        {/* <FeatureImportanceBar
+                {this.selectedFeatureImportance.length > 0 && (
+                    <div className={classNames.featureImportanceArea}>
+                        <div className={classNames.featureImportanceControls}>
+                            <Text variant="medium" className={classNames.sliderLabel}>{localization.formatString(localization.GlobalTab.topAtoB, this.state.startingK + 1, this.state.startingK + this.state.topK)}</Text>
+                            <Slider
+                                className={classNames.startingK}
+                                ariaLabel={localization.AggregateImportance.topKFeatures}
+                                max={maxStartingK}
+                                min={0}
+                                step={1}
+                                value={this.state.startingK}
+                                onChange={this.setStartingK}
+                                showValue={false}
+                            />
+                        </div>
+                        <FeatureImportanceBar
+                            jointDataset={this.props.jointDataset}
+                            sortArray={this.state.sortArray}
+                            startingK={this.state.startingK}
                             unsortedX={this.props.metadata.featureNamesAbridged}
-                            unsortedYs={unsortedYsImportance}
-                            theme={this.props.theme}
-                            topK={8}
-                            seriesNames={names}
+                            unsortedSeries={this.includedFeatureImportance}
+                            topK={this.state.topK}
                         />
+                        <InteractiveLegend
+                            items={this.selectedFeatureImportance.map((row, rowIndex) => {
+                                return {
+                                    name: row.name,
+                                    color: FabricStyles.fabricColorPalette[rowIndex],
+                                    activated: this.state.pointIsActive[rowIndex],
+                                    onClick: this.toggleActivation.bind(this, rowIndex)
+                                }
+                            })}
+                        />
+                        {/*
                         <InteractiveLegend
                             onClick={() => {}}
                             items={selectedRows.map(row => {
@@ -456,8 +419,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 }
                             })}
                         /> */}
-                    </PivotItem>
-                    <PivotItem headerText={"ICE"} className={WhatIfTab.classNames.secondaryTab}>
                         {/* <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
                             datapoints={datasets}
@@ -475,10 +436,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 }
                             })}
                         /> */}
-                    </PivotItem>
-                </Pivot>
+                    </div>)}
+                {this.selectedFeatureImportance.length === 0 && (
+                    <div>Select a point to view feature importance and ICE</div>
+                )}
             </div>
         </div>);
+    }
+
+    private setStartingK(newValue: number): void {
+        this.setState({ startingK: newValue });
     }
 
     private getDefaultSelectedPointIndexes(cohort: Cohort): number[] {
@@ -490,32 +457,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        this.setState({selectedCohortIndex: item.key as number, selectedPointsIndexes: []});
+        this.setState({ selectedCohortIndex: item.key as number, selectedPointsIndexes: [] });
     }
 
-    private _onRenderOption = (option: IDropdownOption): JSX.Element => {
-        return (
-          <div>
-            {option.data && option.data.color && (
-              <div style={{ marginRight: '8px', backgroundColor: option.data.color }} className={WhatIfTab.classNames.colorBox} aria-hidden="true" title={option.data.color} />
-            )}
-            <span>{option.text}</span>
-          </div>
-        );
-      };
-    
-      private _onRenderTitle = (options: IDropdownOption[]): JSX.Element => {
-        const option = options[0];
-    
-        return (
-          <div>
-            {option.data && option.data.color && (
-              <div style={{ marginRight: '8px', backgroundColor: option.data.color}} className={WhatIfTab.classNames.colorBox} aria-hidden="true" title={option.data.color} />
-            )}
-            <span>{option.text}</span>
-          </div>
-        );
-      };
+    private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        const newIndex = item.key as number;
+        const sortArray = ModelExplanationUtils.getSortIndices(this.selectedFeatureImportance[newIndex].unsortedAggregateY).reverse()
+        this.setState({ sortingSeriesIndex: newIndex, sortArray });
+    }
 
     private setIndexText(event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
         const asNumber = +newValue;
@@ -524,14 +473,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.setTemporaryPointToCopyOfDatasetPoint(asNumber);
         } else {
             const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
-            this.setState({indexText: newValue, selectedWhatIfRootIndex: undefined, selectedIndexErrorMessage: error});
+            this.setState({ indexText: newValue, selectedWhatIfRootIndex: undefined, selectedIndexErrorMessage: error });
         }
     }
 
     private setTemporaryPointToCopyOfDatasetPoint(index: number): void {
         this.temporaryPoint = this.props.jointDataset.getRow(index);
         this.temporaryPoint[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, index) as string;
-        this.temporaryPoint[WhatIfTab.colorPath] = this.colorOptions[0].key;
+        this.temporaryPoint[WhatIfTab.colorPath] = FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + this.state.customPoints.length];
 
         this.setState({
             selectedWhatIfRootIndex: index,
@@ -555,7 +504,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState(prevState => {
             const customPoints = [...prevState.customPoints];
             customPoints.splice(index, 1);
-            return {customPoints};
+            return { customPoints };
         });
     }
 
@@ -587,37 +536,43 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         }
         else {
             this.customPoints.push(this.temporaryPoint);
-            
+
         }
         this.temporaryPoint = _.cloneDeep(this.temporaryPoint);
-        this.setState({editingDataCustomIndex});
+        this.setState({ editingDataCustomIndex });
     }
 
     private saveCopyOfPoint(): void {
         let editingDataCustomIndex = this.customPoints.length;
         this.customPoints.push(this.temporaryPoint);
         this.temporaryPoint = _.cloneDeep(this.temporaryPoint);
-        this.setState({editingDataCustomIndex});
+        this.setState({ editingDataCustomIndex });
     }
 
-    private createCopyOfFirstRow(): {[key: string]: any} {
+    private createCopyOfFirstRow(): { [key: string]: any } {
         const indexes = this.getDefaultSelectedPointIndexes(this.props.cohorts[this.state.selectedCohortIndex]);
         if (indexes.length === 0) {
             return undefined;
         }
         const customData = this.props.jointDataset.getRow(indexes[0]) as any;
         customData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, indexes[0]) as string;
-        customData[WhatIfTab.colorPath] = this.colorOptions[0].key;
+        customData[WhatIfTab.colorPath] = FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + this.state.customPoints.length];
         return customData;
     }
 
+    private toggleActivation(index: number): void {
+        const pointIsActive = [...this.state.pointIsActive];
+        pointIsActive[index] = !pointIsActive[index];
+        this.setState({ pointIsActive });
+    }
+
     private dismissPanel(): void {
-        this.setState({isPanelOpen: false});
+        this.setState({ isPanelOpen: false });
         window.dispatchEvent(new Event('resize'));
     }
 
     private openPanel(): void {
-        this.setState({isPanelOpen: true});
+        this.setState({ isPanelOpen: true });
         window.dispatchEvent(new Event('resize'));
     }
 
@@ -625,40 +580,40 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.xAxis = value;
         this.props.onChange(newProps);
-        this.setState({xDialogOpen: false})
+        this.setState({ xDialogOpen: false })
     }
 
     private onYSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.yAxis = value;
         this.props.onChange(newProps);
-        this.setState({yDialogOpen: false})
+        this.setState({ yDialogOpen: false })
     }
 
     private filterFeatures(event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void {
         if (newValue === undefined || newValue === null || !/\S/.test(newValue)) {
-            this.setState({filteredFeatureList: this.featureList});
+            this.setState({ filteredFeatureList: this.featureList });
         }
         const filteredFeatureList = this.featureList.filter(item => {
             return item.label.includes(newValue.toLowerCase());
         });
-        this.setState({filteredFeatureList});
+        this.setState({ filteredFeatureList });
     }
 
     private readonly setXOpen = (val: boolean): void => {
         if (val && this.state.xDialogOpen === false) {
-            this.setState({xDialogOpen: true});
+            this.setState({ xDialogOpen: true });
             return;
         }
-        this.setState({xDialogOpen: false});
+        this.setState({ xDialogOpen: false });
     }
 
     private readonly setYOpen = (val: boolean): void => {
         if (val && this.state.yDialogOpen === false) {
-            this.setState({yDialogOpen: true});
+            this.setState({ yDialogOpen: true });
             return;
         }
-        this.setState({yDialogOpen: false});
+        this.setState({ yDialogOpen: false });
     }
 
     private selectPointFromChart(data: any): void {
@@ -675,19 +630,25 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private toggleSelectionOfPoint(index: number): void {
         const indexOf = this.state.selectedPointsIndexes.indexOf(index);
-        let newSelections = [];
+        let newSelections = [...this.state.selectedPointsIndexes];
+        let pointIsActive = [...this.state.pointIsActive];
         if (indexOf === -1) {
-            const startingIdex = this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION ? 1 : 0;
-            newSelections = this.state.selectedPointsIndexes.slice(startingIdex);
+            if (this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION) {
+                return;
+            }
+            // const startingIdex = this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION ? 1 : 0;
+            // newSelections = this.state.selectedPointsIndexes.slice(startingIdex);
             newSelections.push(index);
+            pointIsActive.push(true);
         } else {
             newSelections = [...this.state.selectedPointsIndexes]
-            newSelections.splice(indexOf,1);
+            newSelections.splice(indexOf, 1);
+            pointIsActive.splice(indexOf, 1);
         }
-        this.setState({selectedPointsIndexes: newSelections});
+        this.setState({ selectedPointsIndexes: newSelections, pointIsActive });
     }
 
-    private fetchData(fetchingReference: {[key: string]: any}): void {
+    private fetchData(fetchingReference: { [key: string]: any }): void {
         if (this.state.requestList[this.state.editingDataCustomIndex] !== undefined) {
             this.state.requestList[this.state.editingDataCustomIndex].abort();
         }
@@ -697,9 +658,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const rawData = JointDataset.datasetSlice(fetchingReference, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
         fetchingReference[JointDataset.PredictedYLabel] = undefined;
         const promise = this.props.invokeModel([rawData], abortController.signal);
-        
 
-        this.setState({requestList}, async () => {
+
+        this.setState({ requestList }, async () => {
             try {
                 const fetchedData = await promise;
                 if (Array.isArray(fetchedData)) {
@@ -707,7 +668,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     delete this.state.requestList[this.state.editingDataCustomIndex];
                     this.forceUpdate();
                 }
-            } catch(err) {
+            } catch (err) {
                 if (err.name === 'AbortError') {
                     return;
                 }
@@ -726,9 +687,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         plotlyProps.data[0].mode = PlotlyMode.markers;
         plotlyProps.data[0].marker = {
             symbol: indexes.map(i => this.state.selectedPointsIndexes.includes(i) ? "square" : "circle") as any,
-            color: indexes.map((rowIndex, i) => {
+            color: indexes.map((rowIndex) => {
                 const selectionIndex = this.state.selectedPointsIndexes.indexOf(rowIndex);
-                return selectionIndex !== -1 ? FabricStyles.plotlyColorHexPalette[selectionIndex] : "#0c297e"
+                if (selectionIndex === -1) {
+                    return FabricStyles.fabricColorInactiveSeries;
+                }
+                return FabricStyles.fabricColorPalette[selectionIndex];
             }) as any
         }
 
@@ -752,8 +716,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             if (chartProps.xAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
-                plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
-                plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither;});
+                plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither; });
+                plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither; });
             } else {
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[1].x = customX;
@@ -771,15 +735,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             if (chartProps.yAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
-                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
-                plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither;});
+                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither; });
+                plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither; });
             } else {
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[1].y = customY;
             }
         }
 
-            
+
         plotlyProps.data[0].customdata = WhatIfTab.buildCustomData(jointData, chartProps, cohort);
         plotlyProps.data[0].hovertemplate = WhatIfTab.buildHoverTemplate(chartProps);
         return plotlyProps;

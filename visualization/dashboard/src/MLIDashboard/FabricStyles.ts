@@ -94,6 +94,8 @@ export class FabricStyles {
         "#502006"
     ];
 
+    public static fabricColorInactiveSeries: string = "#949494";
+
     public static chartAxisColor: string = "#979797";
     public static fontFamilies = "Segoe UI, Segoe UI Web (West European),  Roboto, Helvetica Neue, sans-serif";
 
