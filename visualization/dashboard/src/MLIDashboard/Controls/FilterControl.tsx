@@ -29,8 +29,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
             display: 'inline-flex',
             flexDirection:"row",
             height:"25px"
-            //marginRight: "4px",
-            //minWidth:"115px"
         },
         filterLabel: {
             padding: "1px 9px 6px 11px",
@@ -59,8 +57,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
             width:"178px"
         },
         addedFilterDiv:{
-            //display:"inline-flex",
-            //flexDirection:"row",
             marginRight:"40px",
             marginLeft:"45px",
             marginBottom:"18px",
@@ -70,11 +66,6 @@ export class FilterControl extends React.PureComponent<IFilterControlProps, IFil
         filterIcon:{
             height:"25px",
             width:"25px",
-        //     selectors: {
-        //         ':hover': {
-        //             borderBottom: "1px solid #0078D4"
-        //         }
-        // },
         }
         
     });

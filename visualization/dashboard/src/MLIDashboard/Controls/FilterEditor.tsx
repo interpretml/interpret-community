@@ -1,19 +1,17 @@
 import React from "react";
 import { IJointMeta, JointDataset } from "../JointDataset";
-import { Button, PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
+import { DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { SpinButton } from 'office-ui-fabric-react/lib/SpinButton';
 import { FilterMethods, IFilter } from "../Interfaces/IFilter";
 import { IComboBoxOption, IComboBox, ComboBox } from "office-ui-fabric-react/lib/ComboBox";
-import { FabricStyles } from "../FabricStyles";
 import { localization } from "../../Localization/localization";
 import { RangeTypes } from "mlchartlib";
 import { Target} from "office-ui-fabric-react/lib/Callout";
 import _ from "lodash";
-import { mergeStyleSets, FontSizes, fontFace, ThemeSettingName} from "@uifabric/styling";
-import { DetailsList, Selection, SelectionMode, IColumn } from "office-ui-fabric-react/lib/DetailsList";
+import { mergeStyleSets, FontSizes } from "@uifabric/styling";
+import { DetailsList, Selection, SelectionMode, IColumn, CheckboxVisibility } from "office-ui-fabric-react/lib/DetailsList";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
-import { defaultTheme } from "../Themes";
-import { Text, FontWeights, getTheme, ColorPicker, mergeAriaAttributeValues, resetControlledWarnings } from "office-ui-fabric-react";
+import { Text, FontWeights, getTheme } from "office-ui-fabric-react";
 import { Position } from "office-ui-fabric-react/lib/utilities/positioning";
 
 export interface IFilterEditorProps {
@@ -24,22 +22,14 @@ export interface IFilterEditorProps {
     onCancel: () => void;
 }
 
-const theme = getTheme();
-
 const styles = mergeStyleSets({
     wrapper: {
         height: "295px",
         display: "flex",
         marginTop:"88px"
-        //marginTop: "60px",
     },
     leftHalf: {
-        //display: "inline-flex",
-        maxWidth: "50%",
-        //width: "50%",
-        height: "100%",
-        //borderRight: "2px solid #CCC",
-        //margin:"auto"
+        height: "295px",
     },
     rightHalf: {
         display: "flex",
@@ -53,7 +43,16 @@ const styles = mergeStyleSets({
         borderRadius: "5px"
     },
     detailedList: {
-        margin:"auto"
+        marginTop:"28px",
+        marginLeft:"40px",
+        height:"160px",
+        width:"213px"
+    },
+    selectfilterNav:{
+        marginTop:"28px",
+        marginLeft:"40px",
+        height:"160px",
+        width:"213px"
     },
     filterHeader:{
             fontWeight: FontWeights.semibold,
@@ -189,32 +188,23 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
 
     constructor(props: IFilterEditorProps) {
         super(props);
-        console.log("constructor component")
         this.state = {openedFilter: this.props.initialFilter};
-        console.log("constructor state", this.state)
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
             onSelectionChanged: this._setSelection
           });
         this._leftSelection.setItems(this.leftItems);
-        if (this.props.initialFilter!=undefined){
-            this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false); 
-        }
-        //this._leftSelection.setKeySelected(this.extractSelectionKey(this.props.initialFilter.column), true, false);
         this._isInitialized = true;
     }
 
     componentDidUpdate(props:IFilterEditorProps, prevVal: IFilterEditorState) {
-       console.log("update component");
         if(this.props.initialFilter != undefined && this.props.initialFilter!=props.initialFilter){
             const newFilter = {
                 arg: this.props.initialFilter.arg,
                 column: this.props.initialFilter.column,
                 method: this.props.initialFilter.method
             }
-            this.setState({openedFilter: newFilter});  
-            console.log("update component12", this.state.openedFilter);
-            console.log("update component new ", newFilter); 
+            this.setState({openedFilter: newFilter});
         }
     }
     
@@ -232,6 +222,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                     ariaLabelForSelectionColumn="Toggle selection"
                                     ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                                     checkButtonAriaLabel="Row checkbox"
+                                    checkboxVisibility={CheckboxVisibility.hidden}
                                     onRenderDetailsHeader={this._onRenderDetailsHeader}
                                     selection={this._leftSelection}
                                     selectionPreservedOnEmptyClick={false}
@@ -267,6 +258,7 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                 ariaLabelForSelectionColumn="Toggle selection"
                                 ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                                 checkButtonAriaLabel="Row checkbox"
+                                checkboxVisibility={CheckboxVisibility.hidden}
                                 onRenderDetailsHeader={this._onRenderDetailsHeader}
                                 selection={this._leftSelection}
                                 selectionPreservedOnEmptyClick={false}
@@ -311,7 +303,6 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
                                     <ComboBox
                                         label={localization.Filters.numericalComparison}
                                         className={styles.operationComboBox}
-                                        //className="path-selector"
                                         selectedKey={openedFilter.method}
                                         onChange={this.setComparison}
                                         options={this.comparisonOptions}
