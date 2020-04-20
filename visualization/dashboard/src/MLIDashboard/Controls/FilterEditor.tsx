@@ -74,7 +74,7 @@ const styles = mergeStyleSets({
     operationComboBox:{
         width:"180px",
         height:"56px",
-        margin:"25px 30px 45px 10px"
+        margin:"25px 45px 45px 30px"
     },
     valueSpinButton:{
         width:"180px",
