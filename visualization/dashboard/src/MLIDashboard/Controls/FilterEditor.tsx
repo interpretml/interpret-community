@@ -48,12 +48,6 @@ const styles = mergeStyleSets({
         height:"160px",
         width:"213px"
     },
-    selectfilterNav:{
-        marginTop:"28px",
-        marginLeft:"40px",
-        height:"160px",
-        width:"213px"
-    },
     filterHeader:{
             fontWeight: FontWeights.semibold,
             fontSize: FontSizes.medium,
@@ -75,18 +69,12 @@ const styles = mergeStyleSets({
     featureComboBox:{
         width:"180px",
         height:"56px",
-        marginTop:"21px",
-        marginLeft:"30px",
-        marginRight:"45px",
-        marginBottom:"1px"
+        margin:"21px 45px 1px 30px"
     }, 
     operationComboBox:{
         width:"180px",
         height:"56px",
-        marginTop:"25px",
-        marginLeft:"30px",
-        marginRight:"45px",
-        marginBottom:"10px"
+        margin:"25px 30px 45px 10px"
     },
     valueSpinButton:{
         width:"180px",
@@ -121,10 +109,7 @@ const styles = mergeStyleSets({
     treatCategorical:{
         width:"180px",
         height:"56px",
-        marginTop:"21px",
-        marginLeft:"30px",
-        marginRight:"45px",
-        marginBottom:"1px"
+        margin:"21px 45px 1px 30px"
     },
     defaultText:{
         marginTop:"105px",
@@ -210,33 +195,30 @@ export class FilterEditor extends React.PureComponent<IFilterEditorProps, IFilte
     
     public render(): React.ReactNode {
         const openedFilter = this.state.openedFilter;
-        console.log("Here render", this.state.openedFilter);
         if(openedFilter == undefined)
-        {  console.log("undefined state");
-                return(
-                    <div className={styles.wrapper}>
-                            <div className={styles.leftHalf}>
-                                <DetailsList
-                                    className={styles.detailedList}
-                                    items={this.leftItems}
-                                    ariaLabelForSelectionColumn="Toggle selection"
-                                    ariaLabelForSelectAllCheckbox="Toggle selection for all items"
-                                    checkButtonAriaLabel="Row checkbox"
-                                    checkboxVisibility={CheckboxVisibility.hidden}
-                                    onRenderDetailsHeader={this._onRenderDetailsHeader}
-                                    selection={this._leftSelection}
-                                    selectionPreservedOnEmptyClick={false}
-                                    setKey={"set"}
-                                    columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
-                                />
-                            </div>
-                            <div className={styles.rightHalf}> 
-                            <Text className={styles.defaultText} variant={"medium"}>Select a filter to add parameters to your dataset cohort.</Text></div>
-                    </div>
-                );
+        {   return(
+                <div className={styles.wrapper}>
+                        <div className={styles.leftHalf}>
+                            <DetailsList
+                                className={styles.detailedList}
+                                items={this.leftItems}
+                                ariaLabelForSelectionColumn="Toggle selection"
+                                ariaLabelForSelectAllCheckbox="Toggle selection for all items"
+                                checkButtonAriaLabel="Row checkbox"
+                                checkboxVisibility={CheckboxVisibility.hidden}
+                                onRenderDetailsHeader={this._onRenderDetailsHeader}
+                                selection={this._leftSelection}
+                                selectionPreservedOnEmptyClick={false}
+                                setKey={"set"}
+                                columns={[{key: 'col1', name: 'name', minWidth: 150, fieldName: 'title'}]}
+                            />
+                        </div>
+                        <div className={styles.rightHalf}> 
+                        <Text className={styles.defaultText} variant={"medium"}>Select a filter to add parameters to your dataset cohort.</Text></div>
+                </div>
+            );
         }
         else {
-            console.log("defined state");
             const selectedMeta = this.props.jointDataset.metaDict[openedFilter.column];
             const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
                 1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min)/10;
