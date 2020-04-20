@@ -144,11 +144,13 @@ class TestRawExplanations:
 
     def validate_global_raw_explanation_regression(self, global_explanation, global_raw_explanation, feature_map):
         assert not global_explanation.is_raw
+        assert hasattr(global_explanation, 'eval_data')
         assert global_explanation.is_engineered
 
         assert np.array(global_raw_explanation.local_importance_values).shape[-1] == feature_map.shape[0]
 
         assert global_raw_explanation.is_raw
+        assert not hasattr(global_raw_explanation, 'eval_data')
         assert not global_raw_explanation.is_engineered
         assert np.array(global_raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
 
@@ -158,11 +160,10 @@ class TestRawExplanations:
         assert global_explanation.is_engineered
 
         assert global_raw_explanation.expected_values == global_explanation.expected_values
-        assert global_raw_explanation.init_data == global_explanation.init_data
-        if is_sparse:
-            assert np.all(global_raw_explanation.eval_data.data == global_explanation.eval_data.data)
-        else:
-            assert np.all(global_raw_explanation.eval_data == global_explanation.eval_data)
+        # if is_sparse:
+        #     assert np.all(global_raw_explanation.eval_data.data == global_explanation.eval_data.data)
+        # else:
+        #     assert np.all(global_raw_explanation.eval_data == global_explanation.eval_data)
 
         per_class_values = global_raw_explanation.get_ranked_per_class_values()
         assert len(per_class_values) == len(classes)
@@ -172,6 +173,7 @@ class TestRawExplanations:
         assert feat_imps_global_local.shape[-1] == feature_map.shape[0]
 
         assert global_raw_explanation.is_raw
+        assert not hasattr(global_raw_explanation, 'eval_data')
         assert not global_raw_explanation.is_engineered
         assert len(global_raw_explanation.get_ranked_global_values()) == feature_map.shape[0]
         assert len(global_raw_explanation.get_ranked_global_names()) == feature_map.shape[0]
