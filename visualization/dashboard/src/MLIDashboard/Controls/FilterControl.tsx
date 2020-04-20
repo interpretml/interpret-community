@@ -8,7 +8,6 @@ import { mergeStyleSets } from "@uifabric/styling";
 import { Stack, Label, FontWeights, FontSizes } from "office-ui-fabric-react";
 import { Text } from "office-ui-fabric-react";
 
-
 export interface IFilterControlProps {
     jointDataset: JointDataset
     filterContext: IFilterContext;
@@ -17,7 +16,6 @@ export interface IFilterControlProps {
 export interface IFilterControlState {
     openedFilter?: IFilter;
     filterIndex?: number;
-    filters?:IFilter[];
 }
 
 export class FilterControl extends React.PureComponent<IFilterControlProps, IFilterControlState> {

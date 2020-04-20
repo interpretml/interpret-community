@@ -196,8 +196,6 @@ export class JointDataset {
                 });
                 const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, args.metadata.classNames[0]) as string;
                 const projection = args.predictedProbabilities.map(row => row[0]);
-                const average = projection.reduce((a, b) => a + b) / projection.length;
-
                 this.metaDict[key] = {
                     label,
                     abbridgedLabel: label,

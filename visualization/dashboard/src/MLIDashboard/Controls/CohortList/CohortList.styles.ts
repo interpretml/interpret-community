@@ -93,16 +93,12 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
             left:"37px"
         },
         saveCohort: {
-                //display: 'flex',
-                //flexDirection: 'row',
-                //padding: '6px 16px',
                 position: 'absolute',
                 width: '62px',
                 height: '32px',
                 right:'20px',
                 bottom:'27px',
-                background: '#F3F2F1',
-                //borderRadius: '2px'
+                background: '#F3F2F1'
         }
     });
 };

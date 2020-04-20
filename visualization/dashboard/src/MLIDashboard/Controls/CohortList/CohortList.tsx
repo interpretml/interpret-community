@@ -27,8 +27,6 @@ let cohortEditor: IStyle = {
     height:'575px',
     left:'250px',
     top:'80px',
-    //background: '#FFFFFF',
-    //borderColor:'#FFFFFF',
     boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
     borderRadius: '2px'
 }
@@ -42,7 +40,6 @@ let calloutMain: ICalloutContentStyles = {
 }
 
 export class CohortList extends React.PureComponent<ICohortListProps, ICohortListState> {
-
     constructor(props: ICohortListProps) {
         super(props);
         this.state = {};
