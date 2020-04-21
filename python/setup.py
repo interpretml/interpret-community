@@ -8,7 +8,7 @@ import os
 import shutil
 
 _major = '0'
-_minor = '5'
+_minor = '10'
 _patch = '1'
 
 README_FILE = 'README.md'
@@ -42,8 +42,8 @@ DEPENDENCIES = [
     'scipy',
     'scikit-learn',
     'packaging',
-    'interpret-core[required]==0.1.19',
-    'shap>=0.20.0, <=0.33.0'
+    'interpret-core[required]>=0.1.20, <=0.1.21',
+    'shap>=0.20.0, <=0.34.0'
 ]
 
 EXTRAS = {
@@ -60,7 +60,9 @@ EXTRAS = {
     ],
     'visualization': [
         'flask',
-        "gevent>=1.3.6"
+        "flask-cors",
+        "gevent>=1.3.6",
+        "jinja2"
     ]
 }
 
@@ -108,7 +110,7 @@ setup(
     include_package_data=True,
     package_data={
         '': [
-            'interpret_community/widget/templates/dashboard.html',
+            'interpret_community/widget/templates/inlineDashboard.html',
             'interpret_community/widget/static/index.js'
         ]
     },

@@ -8,6 +8,7 @@ import pytest
 import json
 import logging
 import numpy as np
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
@@ -15,6 +16,8 @@ from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_re
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data
 from models import retrieve_model, DataFrameTestModel
 from datasets import retrieve_dataset
+from sklearn import datasets
+import uuid
 
 from constants import owner_email_tools_and_ux
 
@@ -23,6 +26,7 @@ test_logger.setLevel(logging.DEBUG)
 
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
+LIGHTGBM_METHOD = 'mimic.lightgbm'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -218,6 +222,7 @@ class TestMimicExplainer(object):
         de_global_explanation = deserialized_explainer.explain_global(x_test, include_local=False)
         np.testing.assert_array_equal(global_explanation.global_importance_values,
                                       de_global_explanation.global_importance_values)
+        assert global_explanation.method == LIGHTGBM_METHOD
 
     def test_explain_model_serialization_multiclass(self, mimic_explainer):
         x_train, x_test, y_train, _, _, _ = create_iris_data()
@@ -255,6 +260,65 @@ class TestMimicExplainer(object):
             kwargs['categorical_features'] = ['fruit']
         mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
 
+    def _timeseries_generated_data(self):
+        # Load diabetes data and convert to data frame
+        x, y = datasets.load_diabetes(return_X_y=True)
+        nrows, ncols = x.shape
+        column_names = [str(i) for i in range(ncols)]
+        X = pd.DataFrame(x, columns=column_names)
+
+        # Add an arbitrary time axis
+        time_column_name = "Date" + str(uuid.uuid4())
+        dates = pd.date_range('1980-01-01', periods=nrows, freq='MS')
+        X[time_column_name] = dates
+        index_keys = [time_column_name]
+        X.set_index(index_keys, inplace=True)
+
+        # Split into train and test sets
+        test_frac = 0.2
+        cutoff_index = int(np.floor((1.0 - test_frac) * nrows))
+
+        X_train = X.iloc[:cutoff_index]
+        y_train = y[:cutoff_index]
+        X_test = X.iloc[cutoff_index:]
+        y_test = y[cutoff_index:]
+
+        return X_train, X_test, y_train, y_test, time_column_name
+
+    def test_datetime_features(self, mimic_explainer):
+        X_train, x_test, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'reset'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values) + list(X_train.index.names)
+        mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+        # Note: need to fix column names after featurization as more columns are added to surrogate model
+
+    def test_datetime_features_ignore(self, mimic_explainer):
+        # Validate we throw when reset_index is set to ignore
+        X_train, x_test, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'ignore'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values)
+        # Validate we hit the assertion error on the DataFrameTestModel for checking the presence of index column
+        with pytest.raises(AssertionError):
+            mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+        # Validate we don't hit error if we disable the index column asserts
+        model = DataFrameTestModel(X_train.copy(), assert_index_present=False)
+        explainer = mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+        explanation = explainer.explain_global(x_test)
+        assert explanation.method == LIGHTGBM_METHOD
+
+    def test_datetime_features_already_featurized(self, mimic_explainer):
+        # Validate we still passthrough underlying index to teacher model
+        # even if we don't use it for surrogate model
+        X_train, x_test, _, _, _ = self._timeseries_generated_data()
+        kwargs = {'reset_index': 'reset_teacher'}
+        model = DataFrameTestModel(X_train.copy())
+        features = list(X_train.columns.values)
+        explainer = mimic_explainer(model, X_train, LGBMExplainableModel, features=features, **kwargs)
+        explanation = explainer.explain_global(x_test)
+        assert explanation.method == LIGHTGBM_METHOD
+
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
         model = retrieve_model('unbalanced_model.pkl')
         x_train = retrieve_dataset('unbalanced_dataset.npz')
@@ -273,11 +337,12 @@ class TestMimicExplainer(object):
         assert len(np.unique(surrogate_predictions)) == 2
         assert len(np.unique(model_predictions)) == 2
         assert np.isclose(surrogate_predictions, model_predictions).all()
+        assert global_explanation.method == LIGHTGBM_METHOD
 
     @property
     def iris_overall_expected_features(self):
         return [['petal length', 'petal width', 'sepal length', 'sepal width'],
-                ['petal length', 'petal width', 'sepal width', 'sepal length'],
+                ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal width', 'sepal length']]
 

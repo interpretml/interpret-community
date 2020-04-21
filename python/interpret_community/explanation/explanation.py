@@ -9,6 +9,7 @@ import uuid
 import json
 import pandas as pd
 import gc
+import scipy as sp
 
 from abc import ABCMeta, abstractmethod
 
@@ -27,12 +28,12 @@ class BaseExplanation(ChainedIdentity):
 
     """The common explanation returned by explainers.
 
-    :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
+    :param method: The explanation method used to explain the model (e.g., SHAP, LIME).
     :type method: str
-    :param model_task: The task of the original model i.e. classification or regression.
+    :param model_task: The task of the original model i.e., classification or regression.
     :type model_task: str
     :param model_type: The type of the original model that was explained,
-        e.g. sklearn.linear_model.LinearRegression.
+        e.g., sklearn.linear_model.LinearRegression.
     :type model_type: str
     :param explanation_id: The unique identifier for the explanation.
     :type explanation_id: str
@@ -45,10 +46,10 @@ class BaseExplanation(ChainedIdentity):
 
         :param method: The explanation method used to explain the model (e.g. SHAP, LIME).
         :type method: str
-        :param model_task: The task of the original model i.e. classification or regression.
+        :param model_task: The task of the original model i.e., classification or regression.
         :type model_task: str
         :param model_type: The type of the original model that was explained,
-            e.g. sklearn.linear_model.LinearRegression.
+            e.g., sklearn.linear_model.LinearRegression.
         :type model_type: str
         :param explanation_id: The unique identifier for the explanation.
         :type explanation_id: str
@@ -80,7 +81,7 @@ class BaseExplanation(ChainedIdentity):
 
     @property
     def model_task(self):
-        """Get the task of the original model, i.e. classification or regression (others possibly in the future).
+        """Get the task of the original model, i.e., classification or regression (others possibly in the future).
 
         :return: The task of the original model.
         :rtype: str
@@ -89,9 +90,9 @@ class BaseExplanation(ChainedIdentity):
 
     @property
     def id(self):
-        """Get the explanation id.
+        """Get the explanation ID.
 
-        :return: The explanation id.
+        :return: The explanation ID.
         :rtype: str
         """
         return self._id
@@ -187,10 +188,20 @@ class BaseExplanation(ChainedIdentity):
     @property
     @abstractmethod
     def selector(self):
+        """Get the local or global selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         return None
 
     @property
     def name(self):
+        """Get the name of the explanation.
+
+        :return: The name of the explanation.
+        :rtype: str
+        """
         return gen_name_from_class(self)
 
     @staticmethod
@@ -199,7 +210,7 @@ class BaseExplanation(ChainedIdentity):
 
         :param explanation: The explanation to be validated.
         :type explanation: object
-        :return: True if valid, else False
+        :return: True if valid, else False.
         :rtype: bool
         """
         if not hasattr(explanation, ExplainParams.METHOD) or not isinstance(explanation.method, str):
@@ -268,7 +279,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     def is_raw(self):
         """Get the raw explanation flag.
 
-        :return: A boolean, True if it's a raw explanation. False if engineered or unknown.
+        :return: True if it's a raw explanation. False if engineered or unknown.
         :rtype: bool
         """
         return self._is_raw
@@ -277,7 +288,7 @@ class FeatureImportanceExplanation(BaseExplanation):
     def is_engineered(self):
         """Get the engineered explanation flag.
 
-        :return: A boolean, True if it's an engineered explanation (specifically not raw). False if raw or unknown.
+        :return: True if it's an engineered explanation (specifically not raw). False if raw or unknown.
         :rtype: bool
         """
         return self._is_eng
@@ -308,14 +319,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     """The common local explanation returned by explainers.
 
     :param local_importance_values: The feature importance values.
-    :type local_importance_values: numpy.array
+    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
     """
 
     def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array
+        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -335,9 +346,13 @@ class LocalExplanation(FeatureImportanceExplanation):
             2 is "fish", the first 2d matrix of importance values will be for "dog", the second will be for "cat", and
             the last will be for "fish". If you choose to pass in a classes array to the explainer, the names should
             be passed in using this same order.
-        :rtype: list[list[float]] or list[list[list[float]]]
+        :rtype: list[list[float]] or list[list[list[float]]] or scipy.sparse.csr_matrix
+            or list[scipy.sparse.csr_matrix]
         """
-        return self._local_importance_values.tolist()
+        if self.is_local_sparse:
+            return self._local_importance_values
+        else:
+            return self._local_importance_values.tolist()
 
     @property
     def num_examples(self):
@@ -347,9 +362,19 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: int
         """
         if ClassesMixin._does_quack(self):
-            return len(self.local_importance_values[0])
+            return self._local_importance_values[0].shape[0]
         else:
-            return len(self.local_importance_values)
+            return self._local_importance_values.shape[0]
+
+    @property
+    def is_local_sparse(self):
+        """Determines whether the local importance values are sparse.
+
+        :return: True if the local importance values are sparse.
+        :rtype: bool
+        """
+        local_vals = self._local_importance_values
+        return sp.sparse.issparse(local_vals) or (isinstance(local_vals, list) and sp.sparse.issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -453,7 +478,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: Raw feature importance.
         :rtype: list[list] or list[list[list]]
         """
-        return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
+        if self.is_local_sparse:
+            return _get_raw_feature_importances(self.local_importance_values, raw_to_output_maps).tolist()
+        else:
+            return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
 
     def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
@@ -477,11 +505,11 @@ class LocalExplanation(FeatureImportanceExplanation):
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
             if _DatasetsMixin._does_quack(self):
-                parent_data[InterpretData.PERF] = perf_dict(self.eval_y_predicted, self.eval_y_predicted, key)
-                if isinstance(self.eval_data, DatasetWrapper):
-                    eval_data = self.eval_data
+                parent_data[InterpretData.PERF] = perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
+                if isinstance(self._eval_data, DatasetWrapper):
+                    eval_data = self._eval_data
                 else:
-                    eval_data = DatasetWrapper(self.eval_data)
+                    eval_data = DatasetWrapper(self._eval_data)
                 parent_data[InterpretData.VALUES] = eval_data.dataset[key, :]
         return parent_data
 
@@ -524,7 +552,12 @@ class LocalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
-        predicted = self.eval_y_predicted
+        """Get the local selector.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
+        predicted = self._eval_y_predicted
         dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
 
@@ -541,9 +574,13 @@ class LocalExplanation(FeatureImportanceExplanation):
             return False
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
-        if not isinstance(explanation.local_importance_values, list):
+        is_list = isinstance(explanation.local_importance_values, list)
+        is_sparse = sp.sparse.issparse(explanation.local_importance_values)
+        if not is_list and not is_sparse:
             return False
         if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
+            return False
+        if not hasattr(explanation, ExplainParams.IS_LOCAL_SPARSE):
             return False
         return True
 
@@ -744,6 +781,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
 
     @property
     def selector(self):
+        """Get the global selector if this is only a global explanation otherwise local.
+
+        :return: The selector as a pandas dataframe of records.
+        :rtype: pd.DataFrame
+        """
         if LocalExplanation._does_quack(self):
             return LocalExplanation.selector.__get__(self)
         nan_predicted = np.empty((1, 1))
@@ -880,9 +922,9 @@ class ExpectedValuesMixin(object):
 class ClassesMixin(object):
     """The explanation mixin for classes.
 
-    This mixin is added when the user specifies classes in the classification
-    scenario when creating a global or local explanation.
-    This is activated when the user specifies the classes parameter for global
+    This mixin is added when you specify classes in the classification
+    scenario for creating a global or local explanation.
+    This is activated when you specify the classes parameter for global
     or local explanations.
 
     :param classes: Class names as a list of strings. The order of
@@ -1114,36 +1156,52 @@ class _DatasetsMixin(object):
         """Get initialization (background) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | or str
         """
-        return self._init_data
+        return self._convert_to_list(self._init_data)
 
     @property
     def eval_data(self):
         """Get evaluation (testing) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list or str
+        :rtype: list[input data base type] | sparse | str
         """
-        return self._eval_data
+        return self._convert_to_list(self._eval_data)
 
     @property
     def eval_y_predicted(self):
         """Get predicted ys for the evaluation data.
 
         :return: The predicted ys for the evaluation data.
-        :rtype: np.array
+        :rtype: list[input data base type] | sparse
         """
-        return self._eval_y_predicted
+        return self._convert_to_list(self._eval_y_predicted)
 
     @property
     def eval_y_predicted_proba(self):
         """Get predicted probability ys for the evaluation data.
 
-        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-        :type eval_ys_predicted_proba: np.array
+        :return: The predicted probability ys for the evaluation data.
+        :rtype: list[list[input data base type]] | sparse
         """
-        return self._eval_y_predicted_proba
+        return self._convert_to_list(self._eval_y_predicted_proba)
+
+    def _convert_to_list(self, data):
+        """Convert data to a Python list.
+
+        :param data: The data to be converted.
+        :type data: np.array, pd.DataFrame, list, scipy.sparse
+        :return: The data converted to a list (except for sparse which is unchanged).
+        :rtype: list | scipy.sparse | list[scipy.sparse]
+        """
+        if isinstance(data, np.ndarray):
+            return data.tolist()
+        elif isinstance(data, pd.DataFrame):
+            return data.values.tolist()
+        else:
+            # doesn't handle sparse right now
+            return data
 
     @staticmethod
     def _does_quack(explanation):
@@ -1383,7 +1441,11 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
     local_importance_values = local_explanation._local_importance_values
     classification = ClassesMixin._does_quack(local_explanation)
     if classification:
-        per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
+        if local_explanation.is_local_sparse:
+            means = [(np.array(abs(m).sum(axis=0)) / m.shape[0]).flatten() for m in local_importance_values]
+            per_class_values = np.array(means)
+        else:
+            per_class_values = np.mean(np.absolute(local_importance_values), axis=1)
         per_class_rank = _order_imp(per_class_values)
         global_importance_values = np.mean(per_class_values, axis=0)
         global_importance_rank = _order_imp(global_importance_values)
@@ -1391,6 +1453,8 @@ def _get_aggregate_kwargs(local_explanation=None, include_local=True,
         kwargs[ExplainParams.PER_CLASS_RANK] = per_class_rank
     else:
         global_importance_values = np.mean(np.absolute(local_importance_values), axis=0)
+        if local_explanation.is_local_sparse:
+            global_importance_values = np.array(global_importance_values).flatten()
         global_importance_rank = _order_imp(global_importance_values)
 
     kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = global_importance_rank
@@ -1437,7 +1501,10 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
     new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
     if hasattr(engineered_feats_explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
-        local_explanation = LocalExplanation(np.array(engineered_feats_explanation.local_importance_values),
+        engineered_local_importance_values = engineered_feats_explanation.local_importance_values
+        if not engineered_feats_explanation.is_local_sparse:
+            engineered_local_importance_values = np.array(engineered_local_importance_values)
+        local_explanation = LocalExplanation(engineered_local_importance_values,
                                              model_task=kwargs[ExplainParams.MODEL_TASK], method=None, features=None)
         raw_local_importances = local_explanation.get_raw_feature_importances(feature_maps)
         raw_local_explanation = LocalExplanation(
@@ -1513,7 +1580,10 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
         local_importance_values = local_explanation_row._local_importance_values
         # in-place abs
-        np.abs(local_importance_values, out=local_importance_values)
+        if sp.sparse.issparse(local_importance_values):
+            local_importance_values = abs(local_importance_values)
+        else:
+            np.abs(local_importance_values, out=local_importance_values)
         reduction_axis = len(local_importance_values.shape) - 2
         if importance_values is None:
             importance_values = np.sum(local_importance_values, axis=reduction_axis)
@@ -1563,10 +1633,8 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     if explanation is not None and kwargs is not None:
         raise ValueError("Both explanation and kwargs cannot be set")
 
-    keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
-            ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
-            ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
-            ExplainParams.EVAL_Y_PRED_PROBA, ExplainParams.NUM_FEATURES]
+    keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK, ExplainParams.CLASSIFICATION,
+            ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.NUM_FEATURES]
 
     def has_value(x):
         if explanation is None:
@@ -1625,9 +1693,9 @@ def _transform_value_for_load(paramkey, expldict, _metadata):
 def save_explanation(explanation):
     """Serialize the explanation.
 
-    :param explanation: the Explanation to be serialized
+    :param explanation: The Explanation to be serialized.
     :type explanation: Explanation
-    :return: JSON-formatted explanation data
+    :return: JSON-formatted explanation data.
     :rtype: str
     """
     paramkeys = list(ExplainParams.get_serializable())
@@ -1660,9 +1728,9 @@ def save_explanation(explanation):
 def load_explanation(expljson):
     """De-serialize the explanation.
 
-    :param expljson: JSON-formatted explanation data
+    :param expljson: JSON-formatted explanation data.
     :type expljson: str
-    :return: the original Explanation
+    :return: The original Explanation.
     :rtype: Explanation
     """
     expl = json.loads(expljson)
@@ -1678,7 +1746,7 @@ def load_explanation(expljson):
         id_value = None
 
     # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES']:
+    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES', 'IS_LOCAL_SPARSE']:
         if getattr(ExplainParams, remove_key) in expldict:
             paramkeys.remove(remove_key)
 

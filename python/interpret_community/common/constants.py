@@ -61,6 +61,7 @@ class ExplainParams(object):
     INCLUDE_LOCAL = 'include_local'
     INIT_DATA = 'init_data'
     IS_ENG = 'is_engineered'
+    IS_LOCAL_SPARSE = 'is_local_sparse'
     IS_RAW = 'is_raw'
     LOCAL_EXPLANATION = 'local_explanation'
     LOCAL_IMPORTANCE_VALUES = 'local_importance_values'
@@ -82,7 +83,7 @@ class ExplainParams(object):
     def get_serializable(cls):
         """Return only the ExplainParams properties that have meaningful data values for serialization.
 
-        :return: set of property names - e.g. 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
+        :return: A set of property names, e.g., 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
         :rtype: set{str}
         """
         return (set(filter(lambda x: not x.startswith('__') and not callable(getattr(cls, x)),
@@ -114,7 +115,7 @@ class Dynamic(object):
 
 
 class Tensorflow(object):
-    """Provide TensorFlow and Tensorboard related constants."""
+    """Provide TensorFlow and TensorBoard related constants."""
 
     CPU0 = '/CPU:0'
     TFLOG = 'tflog'
@@ -129,7 +130,7 @@ class SKLearn(object):
 
 
 class Spacy(object):
-    """Provide spacy related constants."""
+    """Provide spaCy related constants."""
 
     EN = 'en'
     NER = 'ner'
@@ -137,10 +138,10 @@ class Spacy(object):
 
 
 class ModelTask(str, Enum):
-    """Provide model task constants.  Can be classification, regression or unknown.
+    """Provide model task constants. Can be 'classification', 'regression', or 'unknown'.
 
-    By default we infer the model domain if Unknown, but this can be overridden by the user if they
-    specify classification or regression.
+    By default the model domain is inferred if 'unknown', but this can be overridden if you specify
+    'classification' or 'regression'.
     """
 
     Classification = 'classification'
@@ -155,9 +156,9 @@ class LightGBMParams(object):
 
 
 class ShapValuesOutput(str, Enum):
-    """Provide constants for the shap values output from the explainer.
+    """Provide constants for the SHAP values output from the explainer.
 
-    Can be default, probability or teacher_probability. If teacher probability is specified,
+    Can be 'default', 'probability' or 'teacher_probability'. If 'teacher_probability' is specified,
     we use the probabilities from the teacher model.
     """
 
@@ -252,6 +253,19 @@ class Extension(object):
 
 
 class SHAPDefaults(object):
-    """Provide constants for default values to shap."""
+    """Provide constants for default values to SHAP."""
 
     INDEPENDENT = 'independent'
+
+
+class ResetIndex(str, Enum):
+    """Provide index column handling constants. Can be 'ignore', 'reset' or 'reset_teacher'.
+
+    By default the index column is ignored, but you can override to reset it and make it a
+    feature column that is then featurized to numeric, or reset it and ignore it during
+    featurization but set it as the index when calling predict on the original model.
+    """
+
+    Ignore = 'ignore'
+    Reset = 'reset'
+    ResetTeacher = 'reset_teacher'

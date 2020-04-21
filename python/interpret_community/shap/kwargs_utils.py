@@ -10,10 +10,10 @@ from interpret_community.common.constants import ExplainParams
 def _get_explain_global_kwargs(sampling_policy, method, include_local, batch_size):
     """Get the kwargs for explain_global.
 
-    :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
+    :param sampling_policy: Optional policy for sampling the evaluation examples. See documentation on
         SamplingPolicy for more information.
-    :type sampling_policy: SamplingPolicy
-    :param method: The explanation method used, e.g. shap_kernel, mimic
+    :type sampling_policy: interpret_community.common.SamplingPolicy
+    :param method: The explanation method used, e.g., shap_kernel, mimic, etc.
     :type method: str
     :param include_local: Whether a local explanation should be generated or only global
     :type include_local: bool

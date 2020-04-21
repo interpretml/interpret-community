@@ -136,7 +136,7 @@ def verify_mimic_regressor():
 @pytest.fixture(scope='session')
 def verify_sparse_mimic():
     verify_sparse_mimic = []
-    # Note: linear explainers don't work on sparse data yet
+    # Note: simple decision tree explainer doesn't support sparse data
     sparse_explainers = [LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel]
     for sparse_explainer in sparse_explainers:
         generated_sparse_create_explainer = generate_create_method(sparse_explainer, is_sparse=True)

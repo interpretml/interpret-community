@@ -27,7 +27,7 @@ def _get_initializer_args(surrogate_init_args):
 
 
 def _clean_doc(doc):
-    return doc.replace('-', '').replace(':term:', '')
+    return doc.replace('-', '').replace(':term:', '').replace('**', '')
 
 
 class BaseExplainableModel(ChainedIdentity):

@@ -17,7 +17,7 @@ class SamplingPolicy(ChainedIdentity):
     :param allow_eval_sampling: Default to 'False'. Specify whether to allow sampling of evaluation data.
         If 'True', cluster the evaluation data and determine the optimal number
         of points for sampling. Set to 'True' to speed up the process when the
-        evaluation data set is large and the user only wants to generate model
+        evaluation data set is large and you only want to generate model
         summary info.
     :type allow_eval_sampling: bool
     :param max_dim_clustering: Default to 50 and only take effect when 'allow_eval_sampling' is
@@ -32,7 +32,7 @@ class SamplingPolicy(ChainedIdentity):
     :param sampling_method: The sampling method for determining how much to downsample the evaluation data by.
         If allow_eval_sampling is True, the evaluation data is downsampled to a max_threshold, and then this
         heuristic is used to determine how much more to downsample the evaluation data without losing accuracy
-        on the calculated feature importance values.  By default, this is set to hdbscan, but the user can
+        on the calculated feature importance values.  By default, this is set to hdbscan, but you can
         also specify kmeans.  With hdbscan the number of clusters is automatically determined and multiplied by
         a threshold.  With kmeans, the optimal number of clusters is found by running KMeans until the maximum
         silhouette score is calculated, with k halved each time.
@@ -48,7 +48,7 @@ class SamplingPolicy(ChainedIdentity):
         :param allow_eval_sampling: Default to 'False'. Specify whether to allow sampling of evaluation data.
             If 'True', cluster the evaluation data and determine the optimal number
             of points for sampling. Set to 'True' to speed up the process when the
-            evaluation data set is large and the user only wants to generate model
+            evaluation data set is large and you only want to generate model
             summary info.
         :type allow_eval_sampling: bool
         :param max_dim_clustering: Default to 50 and only take effect when 'allow_eval_sampling' is
@@ -64,9 +64,10 @@ class SamplingPolicy(ChainedIdentity):
             If allow_eval_sampling is True, the evaluation data is downsampled to a max_threshold, and then this
             heuristic is used to determine how much more to downsample the evaluation data without losing accuracy
             on the calculated feature importance values.  By default, this is set to hdbscan, but the user can
-            also specify kmeans.  With hdbscan the number of clusters is automatically determined and multiplied by
-            a threshold.  With kmeans, the optimal number of clusters is found by running KMeans until the maximum
-            silhouette score is calculated, with k halved each time.
+            also specify kmeans. With hdbscan the number of clusters is automatically determined and multiplied by
+            a threshold. With kmeans, the optimal number of clusters is found by running KMeans until the maximum
+            silhouette score is calculated, with k halved each time. For more information about hbdscan, see
+            https://github.com/scikit-learn-contrib/hdbscan.
         :type sampling_method: str
         :rtype: dict
         :return: The arguments for the sampling policy

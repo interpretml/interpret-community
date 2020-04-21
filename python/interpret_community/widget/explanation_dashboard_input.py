@@ -12,7 +12,7 @@ import pandas as pd
 
 
 class ExplanationDashboardInput:
-    """Represents an explanation as all the pieces that can be serialized and passed to javascript"""
+    """Represents an explanation as all the pieces that can be serialized and passed to JavaScript."""
 
     def __init__(
             self,
@@ -22,7 +22,8 @@ class ExplanationDashboardInput:
             true_y=None,
             classes=None,
             features=None,
-            predict_url=None):
+            predict_url=None,
+            locale=None):
         """Initialize the Explanation Dashboard Input.
 
         :param explanation: An object that represents an explanation.
@@ -31,15 +32,15 @@ class ExplanationDashboardInput:
             it has a method of predict_proba() returning the prediction probabilities for each
             class and for the regression case a method of predict() returning the prediction value.
         :type model: object
-        :param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
+        :param dataset: A matrix of feature vector examples (# examples x # features), the same samples
             used to build the explanation. Will overwrite any set on explanation object already
         :type dataset: numpy.array or list[][]
         :param true_y: The true labels for the provided dataset. Will overwrite any set on
-            explanation object already
+            explanation object already.
         :type true_y: numpy.array or list[]
-        :param classes: The class names
+        :param classes: The class names.
         :type classes: numpy.array or list[]
-        :param features: Feature names
+        :param features: Feature names.
         :type features: numpy.array or list[]
         """
         self._model = model
@@ -164,6 +165,8 @@ class ExplanationDashboardInput:
             self.dashboard_input[ExplanationDashboardInterface.PROBABILITY_Y] = probability_y
         if model is not None:
             self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = predict_url
+        if locale is not None:
+            self.dashboard_input[ExplanationDashboardInterface.LOCALE] = locale
 
     def on_predict(self, data):
         try:

@@ -6,9 +6,8 @@
 import numpy as np
 import pandas as pd
 from sklearn import svm, ensemble, linear_model
-from sklearn.datasets import load_iris, load_boston
+from sklearn.datasets import load_iris, load_boston, load_breast_cancer, fetch_20newsgroups
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
@@ -36,6 +35,22 @@ def create_binary_newsgroups_data():
     newsgroups_test = fetch_20newsgroups(subset='test', categories=categories)
     class_names = ['atheism', 'christian']
     return newsgroups_train, newsgroups_test, class_names
+
+
+def create_multiclass_sparse_newsgroups_data():
+    remove = ('headers', 'footers', 'quotes')
+    categories = ['alt.atheism', 'talk.religion.misc', 'comp.graphics', 'sci.space']
+    from sklearn.datasets import fetch_20newsgroups
+    ngroups = fetch_20newsgroups(subset='train', categories=categories,
+                                 shuffle=True, random_state=42, remove=remove)
+    x_train, x_test, y_train, y_validation = train_test_split(ngroups.data, ngroups.target,
+                                                              test_size=0.02, random_state=42)
+    from sklearn.feature_extraction.text import HashingVectorizer
+    vectorizer = HashingVectorizer(stop_words='english', alternate_sign=False,
+                                   n_features=2**16)
+    x_train = vectorizer.transform(x_train)
+    x_test = vectorizer.transform(x_test)
+    return x_train, x_test, y_train, y_validation, categories, vectorizer
 
 
 def create_random_forest_tfidf():
@@ -317,6 +332,20 @@ def create_cancer_data():
     x_train, x_test, y_train, y_validation = train_test_split(cancer_data, cancer_target,
                                                               test_size=0.2, random_state=0)
     return x_train, x_test, y_train, y_validation, feature_names, target_names
+
+
+def create_scikit_cancer_data():
+    breast_cancer_data = load_breast_cancer()
+    classes = breast_cancer_data.target_names.tolist()
+
+    # Split data into train and test
+    x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,
+                                                        breast_cancer_data.target,
+                                                        test_size=0.2,
+                                                        random_state=0)
+    feature_names = breast_cancer_data.feature_names
+    classes = breast_cancer_data.target_names.tolist()
+    return x_train, x_test, y_train, y_test, feature_names, classes
 
 
 def create_reviews_data(test_size):
