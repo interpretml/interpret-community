@@ -278,6 +278,11 @@
     "WhatIfTab": {
         "helperText": "Select an individual datapoint by cllicking on a datapoint in the scatterplot or by entering the datapoint index or feature values on the left panel to view its local feature importance values below",
         "panelPlaceholder": "A model is required to make predictions for new data points.",
-        "cohortPickerLabel": "Select a dataset cohort to explore"
+        "cohortPickerLabel": "Select a dataset cohort to explore",
+        "scatterLegendText": "Toggle datapoints on and off in the plot by clicking on the legend items. Double click to isolate one point.",
+        "realPoint": "Real datapoints",
+        "noneSelectedYet": "None selected yet",
+        "whatIfDatapoints": "What-If datapoints",
+        "noneCreatedYet": "None created yet"
     }
 }

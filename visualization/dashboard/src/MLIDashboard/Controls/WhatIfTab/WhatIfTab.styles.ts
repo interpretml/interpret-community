@@ -5,12 +5,13 @@ export interface IWhatIfTabStyles {
     expandedPanel: IStyle;
     parameterList: IStyle;
     featureList: IStyle;
-    customPointsList: IStyle;
     collapsedPanel: IStyle;
     mainArea: IStyle;
     infoIcon: IStyle;
     helperText: IStyle;
     infoWithText: IStyle;
+    topArea: IStyle;
+    legendAndText: IStyle;
     cohortPickerWrapper: IStyle;
     cohortPickerLabel: IStyle;
     boldText: IStyle;
@@ -25,9 +26,16 @@ export interface IWhatIfTabStyles {
     sliderLabel: IStyle;
     startingK: IStyle;
     featureImportanceControls: IStyle;
+    featureImportanceLegend: IStyle;
+    featureImportanceChartAndLegend: IStyle;
+    legendHelpText: IStyle;
+    legendLabel: IStyle;
+    smallItalic: IStyle;
+    legendHlepWrapper: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
+    const legendWidth = "150px";
     const theme = getTheme();
     return mergeStyleSets<IWhatIfTabStyles>({
         page: {
@@ -36,7 +44,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             padding: "16px 40px 0 14px",
             boxSizing: "border-box",
             display: "flex",
-            flexDirection: "row"
+            flexDirection: "row-reverse"
         },
         expandedPanel: {
             width: "250px",
@@ -56,10 +64,6 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             flexDirection: "column",
             maxHeight: "400px",
             overflowY: "auto"
-        },
-        customPointsList: {
-            borderTop: "2px solid black",
-            height: "250px",
         },
         collapsedPanel: {
             width: "40px",
@@ -86,6 +90,18 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         helperText: {
             paddingRight: "120px",
             paddingLeft: "15px"
+        },
+        topArea: {
+            width: "100%",
+            height: "400px",
+            display: "flex",
+            flexDirection: "row"
+        },
+        legendAndText: {
+            height: "100%",
+            width: legendWidth,
+            boxSizing: "border-box",
+            paddingLeft: "10px"
         },
         chartWithAxes: {
             display: "flex",
@@ -142,9 +158,18 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             paddingBottom: "5px"
         },
         featureImportanceArea: {
-            height: "400px",
+            height: "350px",
+            width: "100%"
+        },
+        featureImportanceChartAndLegend: {
+            flex: "1",
             width: "100%",
-
+            display: "flex",
+            flexDirection: "row"
+        },
+        featureImportanceLegend: {
+            height: "100%",
+            width: legendWidth
         },
         sliderLabel: {
             fontWeight: "600",
@@ -156,8 +181,26 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         featureImportanceControls: {
             display: "flex",
             flexDirection: "row",
-            padding: "18px 300px 4px 67px",
+            padding: "18px 30px 4px 67px",
 
         },
+        legendHlepWrapper: {
+            width: "120px"
+        },
+        legendHelpText: {
+            fontWeight: "300",
+            lineHeight: "14px",
+            width: "120px"
+        },
+        legendLabel: {
+            fontWeight: "600",
+            paddingBottom: "5px",
+            paddingTop: "10px"
+        },
+        smallItalic: {
+            fontStyle: "italic",
+            padding: "0 0 5px 5px",
+            color: theme.semanticColors.disabledBodyText
+        }
     });
 }

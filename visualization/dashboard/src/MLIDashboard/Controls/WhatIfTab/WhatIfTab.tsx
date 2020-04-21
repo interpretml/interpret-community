@@ -85,8 +85,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             },
             margin: {
                 t: 10,
-                l: 0,
+                l: 10,
                 b: 20,
+                r:0
             },
             hovermode: "closest",
             showlegend: false,
@@ -213,6 +214,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     return this.selectedFeatureImportance[i];
                 }
             }).filter(item => !!item);
+            this.forceUpdate();
         }
         this.setState({ sortingSeriesIndex, sortArray })
     }
@@ -226,19 +228,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
-        // const selectedRows = WhatIfTab.buildJoinedSelectedRows(this.props.jointDataset, this.state.selectedPointsIndexes, this.state.customPoints);
-        // const unsortedYsImportance = selectedRows.map(row => {
-        //     return row.rowImportances;
-        // }).filter(x => !!x);
-        // const names = selectedRows.map(row => {
-        //     if (row.rowImportances) {
-        //         return row.name
-        //     }
-        //     return undefined;
-        // }).filter(x => !!x);
-        // const datasets = selectedRows.map(row => {
-        //     return row.rowData;
-        // }).filter(x => !!x);
+
         const classNames = whatIfTabStyles();
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
         const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
@@ -315,66 +305,102 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         onChange={this.setSelectedCohort}
                     />
                 </div>)}
-                <div className={classNames.chartWithAxes}>
-                    <div className={classNames.chartWithVertical}>
-                        <div className={classNames.verticalAxis}>
-                            <div className={classNames.rotatedVerticalBox}>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
-                                <DefaultButton
-                                    onClick={this.setYOpen.bind(this, true)}
-                                    id={this._yButtonId}
-                                    text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                    title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
-                                />
-                                {(this.state.yDialogOpen) && (
+                <div className={classNames.topArea}>
+                    <div className={classNames.chartWithAxes}>
+                        <div className={classNames.chartWithVertical}>
+                            <div className={classNames.verticalAxis}>
+                                <div className={classNames.rotatedVerticalBox}>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
+                                    <DefaultButton
+                                        onClick={this.setYOpen.bind(this, true)}
+                                        id={this._yButtonId}
+                                        text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                        title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                    />
+                                    {(this.state.yDialogOpen) && (
+                                        <AxisConfigDialog
+                                            jointDataset={this.props.jointDataset}
+                                            orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
+                                            selectedColumn={this.props.chartProps.yAxis}
+                                            canBin={false}
+                                            mustBin={false}
+                                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                            onAccept={this.onYSet}
+                                            onCancel={this.setYOpen.bind(this, false)}
+                                            target={this._yButtonId}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            <AccessibleChart
+                                plotlyProps={plotlyProps}
+                                theme={undefined}
+                                onClickHandler={this.selectPointFromChart}
+                            />
+                        </div>
+                        <div className={classNames.horizontalAxisWithPadding}>
+                            <div className={classNames.paddingDiv}></div>
+                            <div className={classNames.horizontalAxis}>
+                                <div>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                    <DefaultButton
+                                        onClick={this.setXOpen.bind(this, true)}
+                                        id={this._xButtonId}
+                                        text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                        title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
+                                    />
+                                </div>
+                                {(this.state.xDialogOpen) && (
                                     <AxisConfigDialog
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
-                                        selectedColumn={this.props.chartProps.yAxis}
-                                        canBin={false}
-                                        mustBin={false}
+                                        selectedColumn={this.props.chartProps.xAxis}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                        onAccept={this.onYSet}
-                                        onCancel={this.setYOpen.bind(this, false)}
-                                        target={this._yButtonId}
+                                        onAccept={this.onXSet}
+                                        onCancel={this.setXOpen.bind(this, false)}
+                                        target={this._xButtonId}
                                     />
                                 )}
                             </div>
                         </div>
-                        <AccessibleChart
-                            plotlyProps={plotlyProps}
-                            theme={undefined}
-                            onClickHandler={this.selectPointFromChart}
-                        />
-                    </div>
-                    <div className={classNames.horizontalAxisWithPadding}>
-                        <div className={classNames.paddingDiv}></div>
-                        <div className={classNames.horizontalAxis}>
-                            <div>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
-                                <DefaultButton
-                                    onClick={this.setXOpen.bind(this, true)}
-                                    id={this._xButtonId}
-                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                    title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                                />
-                            </div>
-                            {(this.state.xDialogOpen) && (
-                                <AxisConfigDialog
-                                    jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
-                                    selectedColumn={this.props.chartProps.xAxis}
-                                    canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                    mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                    canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                    onAccept={this.onXSet}
-                                    onCancel={this.setXOpen.bind(this, false)}
-                                    target={this._xButtonId}
-                                />
-                            )}
+                    </div >
+                    <div className={classNames.legendAndText}>
+                        <div className={classNames.legendHlepWrapper}>
+                            <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.scatterLegendText}</Text>
                         </div>
+                        <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.realPoint}</Text>
+                        {this.selectedFeatureImportance.length > 0 &&
+                        <InteractiveLegend
+                            items={this.selectedFeatureImportance.map((row, rowIndex) => {
+                                return {
+                                    name: row.name,
+                                    color: FabricStyles.fabricColorPalette[rowIndex],
+                                    activated: this.state.pointIsActive[rowIndex],
+                                    onClick: this.toggleActivation.bind(this, rowIndex)
+                                }
+                            })}
+                        />}
+                        {this.selectedFeatureImportance.length === 0 && 
+                        <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.WhatIfTab.noneSelectedYet}</Text>}
+                        <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.whatIfDatapoints}</Text>
+                        {this.selectedFeatureImportance.length > 0 &&
+                        <InteractiveLegend
+                            items={this.selectedFeatureImportance.map((row, rowIndex) => {
+                                return {
+                                    name: row.name,
+                                    color: FabricStyles.fabricColorPalette[rowIndex],
+                                    activated: this.state.pointIsActive[rowIndex],
+                                    onClick: this.toggleActivation.bind(this, rowIndex)
+                                }
+                            })}
+                        />}
+                        {this.selectedFeatureImportance.length === 0 && 
+                        <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.WhatIfTab.noneCreatedYet}</Text>}
+
                     </div>
-                </div >
+                </div>
                 {this.selectedFeatureImportance.length > 0 && (
                     <div className={classNames.featureImportanceArea}>
                         <div className={classNames.featureImportanceControls}>
@@ -390,35 +416,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 showValue={false}
                             />
                         </div>
-                        <FeatureImportanceBar
-                            jointDataset={this.props.jointDataset}
-                            sortArray={this.state.sortArray}
-                            startingK={this.state.startingK}
-                            unsortedX={this.props.metadata.featureNamesAbridged}
-                            unsortedSeries={this.includedFeatureImportance}
-                            topK={this.state.topK}
-                        />
-                        <InteractiveLegend
-                            items={this.selectedFeatureImportance.map((row, rowIndex) => {
-                                return {
-                                    name: row.name,
-                                    color: FabricStyles.fabricColorPalette[rowIndex],
-                                    activated: this.state.pointIsActive[rowIndex],
-                                    onClick: this.toggleActivation.bind(this, rowIndex)
-                                }
-                            })}
-                        />
-                        {/*
-                        <InteractiveLegend
-                            onClick={() => {}}
-                            items={selectedRows.map(row => {
-                                return {
-                                    name: row.name,
-                                    color: row.color,
-                                    editable: row.isCustom
-                                }
-                            })}
-                        /> */}
+                        <div className={classNames.featureImportanceChartAndLegend}>
+                            <FeatureImportanceBar
+                                jointDataset={this.props.jointDataset}
+                                sortArray={this.state.sortArray}
+                                startingK={this.state.startingK}
+                                unsortedX={this.props.metadata.featureNamesAbridged}
+                                unsortedSeries={this.includedFeatureImportance}
+                                topK={this.state.topK}
+                            />
+                            <div className={classNames.featureImportanceLegend}> </div>
+                        </div>
                         {/* <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
                             datapoints={datasets}
