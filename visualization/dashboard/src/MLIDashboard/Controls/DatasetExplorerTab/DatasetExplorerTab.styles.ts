@@ -5,21 +5,23 @@ export interface IDatasetExplorerTabStyles {
     infoIcon: IStyle;
     helperText: IStyle;
     infoWithText: IStyle;
-    scrollableWrapper: IStyle;
-    scrollContent: IStyle;
+    mainArea: IStyle;
     chartWithAxes: IStyle;
     chartWithVertical: IStyle;
     verticalAxis: IStyle;
     rotatedVerticalBox: IStyle;
     chart: IStyle;
-    rightPanel: IStyle;
-    statsBox: IStyle;
+    legendAndText: IStyle;
     horizontalAxisWithPadding: IStyle;
     paddingDiv: IStyle;
     horizontalAxis: IStyle;
     cohortPickerWrapper: IStyle;
     cohortPickerLabel: IStyle;
     boldText: IStyle;
+    colorBox: IStyle;
+    legendLabel: IStyle;
+    legendItem: IStyle;
+    legend: IStyle;
 }
 
 export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplorerTabStyles> = () => {
@@ -61,33 +63,18 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
             flexGrow: "1",
             flexDirection: "row"
         },
-        scrollableWrapper: {
-            flexGrow: "1",
-            overflowY: "auto"
-        },
-        scrollContent: {
-            width: "100%",
-            display: "flex",
-            flexDirection:"row",
-            alignItems: "stretch",
-            height: "500px"
-        },
         chart: {
             flexGrow: "1"
         },
-        rightPanel: {
+        mainArea: {
+            width: "100%",
+            height: "600px",
+            display: "flex",
+            flexDirection: "row"
+        },
+        legendAndText: {
             width: "195px",
             height: "100%",
-            backgroundColor: theme.semanticColors.bodyBackgroundHovered,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-evenly",
-            padding: "40px 15px 30px 30px"
-        },
-        statsBox: {
-            padding: "23px 30px 30px 30px",
-            boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
-            backgroundColor: theme.semanticColors.bodyBackground
         },
         verticalAxis: {
             position: "relative",
@@ -130,6 +117,27 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
         boldText: {
             fontWeight: "600",
             paddingBottom: "5px"
+        },
+        colorBox: {
+            margin: "11px 4px 11px 8px",
+            width: "12px",
+            height: "12px",
+            display: "inline-block",
+            borderRadius: "6px",
+            cursor: "pointer"
+        },
+        legendLabel: {
+            display: "inline-block",
+            flex: "1"
+        },
+        legendItem: {
+            height: "28px",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center"
+        },
+        legend: {
+
         }
     });
 };

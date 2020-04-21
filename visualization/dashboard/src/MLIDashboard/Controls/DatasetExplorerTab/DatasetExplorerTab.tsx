@@ -6,7 +6,7 @@ import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
@@ -17,7 +17,7 @@ import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigDialog";
 import { Cohort } from "../../Cohort";
-import { dastasetExplorerTabStyles as datasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
+import { dastasetExplorerTabStyles as datasetExplorerTabStyles, IDatasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
 import { Icon, Text } from "office-ui-fabric-react";
 
 export interface IDatasetExplorerTabProps {
@@ -80,6 +80,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
 
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
+    private readonly _colorButtonId = "color-button-id";
 
     constructor(props: IDatasetExplorerTabProps) {
         super(props);
@@ -113,6 +114,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         );
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
+        const legend = this.buildColorLegend(classNames);
         return (
             <div className={classNames.page}>
                 <div className={classNames.infoWithText}>
@@ -128,86 +130,90 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         onChange={this.setSelectedCohort}
                     />
                 </div>
-                {/* <div>
-                    <DefaultButton 
-                        onClick={this.setColorOpen.bind(this, true)}
-                        id={this._colorButtonId}
-                        text={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
-                        title={localization.ExplanationScatter.colorValue + this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
-                    />
-                    {(this.state.colorDialogOpen) && (
-                        <AxisConfigDialog 
-                            jointDataset={this.props.jointDataset}
-                            orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
-                            selectedColumn={this.props.chartProps.colorAxis}
-                            canBin={true}
-                            mustBin={false}
-                            canDither={false}
-                            onAccept={this.onColorSet}
-                            onCancel={this.setColorOpen.bind(this, false)}
-                            target={this._colorButtonId}
-                        />
-                    )}
-                </div> */}
-                <div className={classNames.chartWithAxes}>
-                    <div className={classNames.chartWithVertical}>
-                        <div className={classNames.verticalAxis}>
-                            <div className={classNames.rotatedVerticalBox}>
+                <div className={classNames.mainArea}>
+                    <div className={classNames.chartWithAxes}>
+                        <div className={classNames.chartWithVertical}>
+                            <div className={classNames.verticalAxis}>
+                                <div className={classNames.rotatedVerticalBox}>
+                                    <div>
+                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
+                                        <DefaultButton 
+                                            onClick={this.setYOpen.bind(this, true)}
+                                            id={this._yButtonId}
+                                            text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
+                                            title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        />
+                                    </div>
+                                    {(this.state.yDialogOpen) && (
+                                        <AxisConfigDialog 
+                                            jointDataset={this.props.jointDataset}
+                                            orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
+                                            selectedColumn={this.props.chartProps.yAxis}
+                                            canBin={false}
+                                            mustBin={false}
+                                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                            onAccept={this.onYSet}
+                                            onCancel={this.setYOpen.bind(this, false)}
+                                            target={this._yButtonId}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            <AccessibleChart
+                                plotlyProps={plotlyProps}
+                                theme={undefined}
+                            />
+                        </div>
+                        <div className={classNames.horizontalAxisWithPadding}>
+                            <div className={classNames.paddingDiv}></div>
+                            <div className={classNames.horizontalAxis}>
                                 <div>
-                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
                                     <DefaultButton 
-                                        onClick={this.setYOpen.bind(this, true)}
-                                        id={this._yButtonId}
-                                        text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                        title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        onClick={this.setXOpen.bind(this, true)}
+                                        id={this._xButtonId}
+                                        text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                        title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
                                     />
                                 </div>
-                                {(this.state.yDialogOpen) && (
+                                {(this.state.xDialogOpen) && (
                                     <AxisConfigDialog 
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
-                                        selectedColumn={this.props.chartProps.yAxis}
-                                        canBin={false}
-                                        mustBin={false}
+                                        selectedColumn={this.props.chartProps.xAxis}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                        onAccept={this.onYSet}
-                                        onCancel={this.setYOpen.bind(this, false)}
-                                        target={this._yButtonId}
+                                        onAccept={this.onXSet}
+                                        onCancel={this.setXOpen.bind(this, false)}
+                                        target={this._xButtonId}
                                     />
                                 )}
                             </div>
                         </div>
-                        <AccessibleChart
-                            plotlyProps={plotlyProps}
-                            theme={undefined}
-                        />
                     </div>
-                    <div className={classNames.horizontalAxisWithPadding}>
-                        <div className={classNames.paddingDiv}></div>
-                        <div className={classNames.horizontalAxis}>
-                            <div>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
-                                <DefaultButton 
-                                    onClick={this.setXOpen.bind(this, true)}
-                                    id={this._xButtonId}
-                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
-                                    title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
-                                />
-                            </div>
-                            {(this.state.xDialogOpen) && (
-                                <AxisConfigDialog 
-                                    jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
-                                    selectedColumn={this.props.chartProps.xAxis}
-                                    canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                    mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                    canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                    onAccept={this.onXSet}
-                                    onCancel={this.setXOpen.bind(this, false)}
-                                    target={this._xButtonId}
-                                />
-                            )}
-                        </div>
+                    <div className={classNames.legendAndText}>
+                        <Text variant={"mediumPlus"} block className={classNames.boldText}>{localization.DatasetExplorer.colorValue}</Text>
+                        <DefaultButton 
+                            onClick={this.setColorOpen.bind(this, true)}
+                            id={this._colorButtonId}
+                            text={this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
+                            title={this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
+                        />
+                        {legend}
+                        {(this.state.colorDialogOpen) && (
+                            <AxisConfigDialog 
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
+                                selectedColumn={this.props.chartProps.colorAxis}
+                                canBin={true}
+                                mustBin={false}
+                                canDither={false}
+                                onAccept={this.onColorSet}
+                                onCancel={this.setColorOpen.bind(this, false)}
+                                target={this._colorButtonId}
+                            />
+                        )}
                     </div>
                 </div>
         </div>);
@@ -268,11 +274,34 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setState({colorDialogOpen: false})
     }
 
+    private buildColorLegend(classNames: IProcessedStyleSet<IDatasetExplorerTabStyles>): React.ReactNode {
+        let colorSeries = []
+        const colorAxis = this.props.chartProps && this.props.chartProps.colorAxis;
+        if (this.props.chartProps && this.props.chartProps.chartType !== ChartTypes.Scatter || 
+            (colorAxis && (
+            colorAxis.options.bin || this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical))) {
+                this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
+                const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property, true));
+                colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
+            }
+        return (<div className={classNames.legend}>
+            {colorSeries.map((name, i) => {
+                return (<div className={classNames.legendItem}>
+                    <div 
+                        className={classNames.colorBox} 
+                        style={{backgroundColor: FabricStyles.fabricColorPalette[i]}}
+                    />
+                    <Text nowrap variant={"medium"} className={classNames.legendLabel}>{name}</Text>
+                </div>)
+            })}
+        </div>)
+    }
+
     private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(DatasetExplorerTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
         if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
-            jointData.metaDict[chartProps.colorAxis.property].isCategorical)) {
+            jointData.metaDict[chartProps.colorAxis.property].treatAsCategorical)) {
                 cohort.sort(chartProps.colorAxis.property);
         }
         switch(chartProps.chartType) {
@@ -312,8 +341,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 if (chartProps.colorAxis) {
                     const isBinned = chartProps.colorAxis.options && chartProps.colorAxis.options.bin;
                     const rawColor = cohort.unwrap(chartProps.colorAxis.property, isBinned);
-                    // handle binning to categories later
-                    if (jointData.metaDict[chartProps.colorAxis.property].isCategorical || isBinned) {
+
+                    if (jointData.metaDict[chartProps.colorAxis.property].treatAsCategorical || isBinned) {
                         const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
                             return {
                                 target: index,
@@ -330,14 +359,14 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             groups: rawColor,
                             styles
                         }];
-                        plotlyProps.layout.showlegend = true;
+                        plotlyProps.layout.showlegend = false;
                     } else {
                         plotlyProps.data[0].marker = {
                             color: rawColor,
                             colorbar: {
                                 title: {
                                     side: "right",
-                                    text: "placeholder"
+                                    text: jointData.metaDict[chartProps.colorAxis.property].label
                                 } as any
                             },
                             colorscale: "Bluered"
@@ -382,7 +411,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         groups: rawColor,
                         styles
                     });
-                    plotlyProps.layout.showlegend = true;
                 }
                 plotlyProps.data[0].transforms = transforms;
                 break;
