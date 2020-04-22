@@ -14,9 +14,6 @@ export interface ICohortListStyles {
   overflowButton: IStyle;
   commandButton: IStyle;
   menuIcon: IStyle;
-  addFilter: IStyle;
-  saveCohort:IStyle;
-  cohortName:IStyle;
 }
 
 export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () => {
@@ -78,27 +75,6 @@ export const cohortListStyles: () => IProcessedStyleSet<ICohortListStyles> = () 
         menuIcon: {
             color: theme.palette.white,
             fontSize: "20px"
-        },
-        addFilter: {
-            position:'absolute',
-            width:'100%',
-            top: '65px',
-            left:'50px'
-        },
-        cohortName: {
-            position:"absolute",
-            width:"180px",
-            height:"56px",
-            top:"25px",
-            left:"37px"
-        },
-        saveCohort: {
-                position: 'absolute',
-                width: '62px',
-                height: '32px',
-                right:'20px',
-                bottom:'27px',
-                background: '#F3F2F1'
         }
     });
 };

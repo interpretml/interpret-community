@@ -290,5 +290,17 @@
         "noneSelectedYet": "None selected yet",
         "whatIfDatapoints": "What-If datapoints",
         "noneCreatedYet": "None created yet"
+    },
+    "CohortEditor": {
+        "selectFilter": "Select Filter",
+        "TreatAsCategorical": "Treat as categorical",
+        "addFilter":"Add Filter",
+        "addedFilters":"Added Filters",
+        "noAddedFilters":"No filters added yet",
+        "defaultFilterState":"Select a filter to add parameters to your dataset cohort.",
+        "cohortNameLabel":"Dataset cohort name",
+        "cohortNamePlaceholder":"Name your cohort",
+        "save":"Save",
+        "cancel":"Cancel"
     }
 }

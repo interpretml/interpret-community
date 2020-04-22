@@ -1,12 +1,12 @@
-import { Cohort } from "../../Cohort";
-import { JointDataset } from "../../JointDataset";
-import React from "react";
-import { Text, Callout, DefaultButton, OverflowSet, IOverflowSetItemProps, CommandBarButton, IButtonStyles, IOverflowSetStyles, PrimaryButton, ICalloutContentStyles, IStyle, TextField } from "office-ui-fabric-react";
 import _ from "lodash";
-import { cohortListStyles } from "./CohortList.styles";
+import { CommandBarButton, PrimaryButton, Text } from "office-ui-fabric-react";
+import React from "react";
 import { localization } from "../../../Localization/localization";
+import { Cohort } from "../../Cohort";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
-import { FilterControl } from "../FilterControl";
+import { JointDataset } from "../../JointDataset";
+import { CohortEditor } from "../CohortEditor/CohortEditor";
+import { cohortListStyles } from "./CohortList.styles";
 
 export interface ICohortListProps {
     cohorts: Cohort[];
@@ -18,25 +18,6 @@ export interface ICohortListProps {
 
 export interface ICohortListState {
     cohortIndex?: number;
-}
-
-let cohortEditor: IStyle = {
-    position: 'absolute',
-    overflowY: 'visible',
-    width:'560px',
-    height:'575px',
-    left:'250px',
-    top:'80px',
-    boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
-    borderRadius: '2px'
-}
-
-let calloutMain: ICalloutContentStyles = {
-    container:{},
-    root: {},
-    beak: {},
-    beakCurtain: {},
-    calloutMain:cohortEditor
 }
 
 export class CohortList extends React.PureComponent<ICohortListProps, ICohortListState> {
@@ -83,7 +64,7 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         return (<div className={classNames.cohortBox}>
                             <div className={classNames.cohortLabelWrapper}>
                                 <Text variant={"mediumPlus"} nowrap className={classNames.cohortLabel}>{cohort.name}</Text>
-                                
+
                                 <CommandBarButton
                                     ariaLabel="More items"
                                     role="menuitem"
@@ -92,69 +73,56 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                                         menuIcon: classNames.menuIcon
                                     }}
                                     menuIconProps={{ iconName: 'More' }}
-                                    menuProps={{ items: [
-                                        {
-                                        key: 'item4',
-                                        name: localization.CohortBanner.editCohort,
-                                        onClick: this.openDialog.bind(this, index),
-                                        },
-                                        {
-                                        key: 'item5',
-                                        name: localization.CohortBanner.duplicateCohort,
-                                        onClick: this.cloneAndOpen.bind(this, index),
-                                        },
-                                    ] }}
+                                    menuProps={{
+                                        items: [
+                                            {
+                                                key: 'item4',
+                                                name: localization.CohortBanner.editCohort,
+                                                onClick: this.openDialog.bind(this, index),
+                                            },
+                                            {
+                                                key: 'item5',
+                                                name: localization.CohortBanner.duplicateCohort,
+                                                onClick: this.cloneAndOpen.bind(this, index),
+                                            },
+                                        ]
+                                    }}
                                 />
                             </div>
                             <Text block variant={"xSmall"} className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.datapoints, cohort.rowCount)}</Text>
                             <Text block variant={"xSmall"} className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
                         </div>);
                     })}
-                    <PrimaryButton onClick={this.openDialog.bind(this, undefined)} text={localization.CohortBanner.addCohort}/> 
+                    <PrimaryButton onClick={this.openDialog.bind(this, undefined)} text={localization.CohortBanner.addCohort} />
                 </div>
                 {cohortForEdit !== undefined && (
-                    <Callout
-                        onDismiss={this.onCancel}
-                        setInitialFocus={true}
-                        hidden={false}
-                        styles={calloutMain}
-                    >
-                        <div className={classNames.cohortName}>
-                        <TextField 
-                        id={cohortForEdit.getCohortID.toString()} 
-                        label="Dataset cohort name"
-                        placeholder="Enter dataset cohort name"></TextField>
-                        </div>
-                            <FilterControl
-                                    jointDataset={this.props.jointDataset}
-                                    filterContext={{
-                                        filters: cohortForEdit.filters,
-                                        onAdd: (filter) => {cohortForEdit.updateFilter(filter)},
-                                        onDelete: (index) => {cohortForEdit.deleteFilter(index)},
-                                        onUpdate: (filter, index) => {cohortForEdit.updateFilter(filter, index)}
-                                    }}
-                                />
-                        <PrimaryButton className={classNames.saveCohort} onClick={this.updateCohort.bind(this, cohortForEdit)}>Save</PrimaryButton>
-                    </Callout>
+                    <CohortEditor
+                        jointDataset={this.props.jointDataset}
+                        filterList={cohortForEdit.filters}
+                        cohortName={cohortForEdit.name}
+                        onSave={this.updateCohort.bind(this)}
+                        onCancel={this.onCancel.bind(this)}
+                    />
+
                 )}
             </div>
         );
     }
 
     private onCancel(): void {
-        this.setState({cohortIndex: undefined});
+        this.setState({ cohortIndex: undefined });
     }
 
     private updateCohort(newCohort: Cohort): void {
         this.props.onChange(newCohort, this.state.cohortIndex);
-        this.setState({cohortIndex: undefined});
+        this.setState({ cohortIndex: undefined });
     }
 
     private openDialog(cohortIndex?: number): void {
         if (cohortIndex === undefined) {
-            this.setState({cohortIndex: this.props.cohorts.length});
+            this.setState({ cohortIndex: this.props.cohorts.length });
         } else {
-            this.setState({cohortIndex});
+            this.setState({ cohortIndex });
         }
     }
 
@@ -162,6 +130,6 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
         const newCohort = _.cloneDeep(this.props.cohorts[cohortIndex]);
         newCohort.name += localization.CohortBanner.copy;
         this.props.onChange(newCohort, this.props.cohorts.length);
-        this.setState({cohortIndex: this.props.cohorts.length});
+        this.setState({ cohortIndex: this.props.cohorts.length });
     }
 }
