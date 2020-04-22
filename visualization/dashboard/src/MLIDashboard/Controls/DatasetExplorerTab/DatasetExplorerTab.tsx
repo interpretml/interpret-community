@@ -554,27 +554,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private generateDefaultChartAxes(): void {
         let maxIndex: number = 0;
         let maxVal: number = Number.MIN_SAFE_INTEGER;
-        // const exp = this.props.dashboardContext.explanationContext;
-
-        // if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
-        //     // Find the top metric
-        //     exp.globalExplanation.perClassFeatureImportances
-        //         .map(classArray => classArray.reduce((a, b) => a + b), 0)
-        //         .forEach((val, index) => {
-        //             if (val >= maxVal) {
-        //                 maxIndex = index;
-        //                 maxVal = val;
-        //             }
-        //         });
-        // } else if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
-        //     exp.globalExplanation.flattenedFeatureImportances
-        //         .forEach((val, index) => {
-        //             if (val >= maxVal) {
-        //                 maxIndex = index;
-        //                 maxVal = val;
-        //             }
-        //         });
-        // }
         const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
         const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {

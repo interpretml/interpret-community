@@ -2,7 +2,7 @@ import React from "react";
 import * as memoize from 'memoize-one';
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
 import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import { IRenderFunction } from "@uifabric/utilities";
@@ -23,7 +23,7 @@ import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
 import { MultiICEPlot } from "../MultiICEPlot";
 import { FabricStyles } from "../../FabricStyles";
 import { InteractiveLegend, ILegendItem } from "../InteractiveLegend";
-import { Text, Icon, Slider } from "office-ui-fabric-react";
+import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
 import { whatIfTabStyles } from "./WhatIfTab.styles";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
@@ -57,6 +57,7 @@ export interface IWhatIfTabState {
     topK: number;
     sortArray: number[];
     sortingSeriesIndex: number;
+    secondaryChartChoice: string;
 }
 
 interface ISelectedRowInfo {
@@ -70,9 +71,14 @@ interface ISelectedRowInfo {
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
     private static readonly MAX_SELECTION = 2;
-    private static readonly defaultIndexString = " - ";
     private static readonly colorPath = "Color";
     private static readonly namePath = "Name";
+    private static readonly IceKey = "ice";
+    private static readonly featureImportanceKey = "feature-importance";
+    private static readonly secondaryPlotChoices: IChoiceGroupOption[] = [
+        {key: WhatIfTab.featureImportanceKey, text: localization.WhatIfTab.featureImportancePlot},
+        {key: WhatIfTab.IceKey, text: localization.WhatIfTab.icePlot}
+    ];
 
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false },
@@ -148,7 +154,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.generateDefaultChartAxes();
         }
         this.state = {
-            isPanelOpen: true,
+            isPanelOpen: false,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
@@ -164,7 +170,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             startingK: 0,
             topK: 4,
             sortArray: [],
-            sortingSeriesIndex: undefined
+            sortingSeriesIndex: undefined,
+            secondaryChartChoice: WhatIfTab.featureImportanceKey
         };
         this.temporaryPoint = this.createCopyOfFirstRow();
         //this.seriesOfRows = this.buildJoinedSelectedRows(this.state.selectedPointsIndexes, this.state.customPoints);
@@ -181,6 +188,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.filterFeatures = this.filterFeatures.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.setStartingK = this.setStartingK.bind(this);
+        this.setSecondaryChart = this.setSecondaryChart.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -241,7 +249,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 )}
                 {this.state.isPanelOpen && this.props.invokeModel !== undefined && (<div>
                     <IconButton
-                        iconProps={{ iconName: "ChevronLeft" }}
+                        iconProps={{ iconName: "ChevronRight" }}
                         onClick={this.dismissPanel}
                     />
                     <div className={classNames.parameterList}>
@@ -287,7 +295,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     )}
                 </div>)}
                 {!this.state.isPanelOpen && (<IconButton
-                    iconProps={{ iconName: "ChevronRight" }}
+                    iconProps={{ iconName: "ChevronLeft" }}
                     onClick={this.openPanel}
                 />)}
             </div>
@@ -401,6 +409,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
                     </div>
                 </div>
+                {this.buildSecondaryArea(classNames)}
                 {this.selectedFeatureImportance.length > 0 && (
                     <div className={classNames.featureImportanceArea}>
                         <div className={classNames.featureImportanceControls}>
@@ -446,10 +455,31 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         /> */}
                     </div>)}
                 {this.selectedFeatureImportance.length === 0 && (
-                    <div>Select a point to view feature importance and ICE</div>
+                   
                 )}
             </div>
         </div>);
+    }
+
+    private buildSecondaryArea(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
+        let secondaryPlot: React.ReactNode;
+        if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
+            if (this.selectedFeatureImportance.length === 0){
+                secondaryPlot =  <div>
+                    <Text>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
+                </div>
+            } else {
+                
+            }
+        }
+
+        return(<div className={classNames.choiceBoxArea}>
+            <Text >{localization.WhatIfTab.showLabel}</Text>
+            <ChoiceGroup 
+                options={WhatIfTab.secondaryPlotChoices}
+                selectedKey={this.state.secondaryChartChoice}
+                onChange={this.setSecondaryChart}/>
+        </div>)
     }
 
     private setStartingK(newValue: number): void {
@@ -472,6 +502,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const newIndex = item.key as number;
         const sortArray = ModelExplanationUtils.getSortIndices(this.selectedFeatureImportance[newIndex].unsortedAggregateY).reverse()
         this.setState({ sortingSeriesIndex: newIndex, sortArray });
+    }
+
+    private setSecondaryChart(event: React.SyntheticEvent<HTMLElement>, item: IChoiceGroupOption): void {
+        this.setState({secondaryChartChoice: item.key});
     }
 
     private setIndexText(event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {

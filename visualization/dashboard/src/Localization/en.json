@@ -286,6 +286,11 @@
         "realPoint": "Real datapoints",
         "noneSelectedYet": "None selected yet",
         "whatIfDatapoints": "What-If datapoints",
-        "noneCreatedYet": "None created yet"
+        "noneCreatedYet": "None created yet",
+        "showLabel": "Show:",
+        "featureImportancePlot": "Feature importance plot",
+        "icePlot": "ICE plot",
+        "featureImportanceGetStartedText":"Select a point to view feature importance",
+        "IceGetStartedText": "Select a point or create a what-if point to view ICE plots"
     }
 }
