@@ -45,7 +45,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         page: {
             width: "100%",
             height: "100%",
-            padding: "16px 40px 0 14px",
+            padding: "16px 0 0 14px",
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "row-reverse"
@@ -53,7 +53,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         expandedPanel: {
             width: "250px",
             height: "100%",
-            borderRight: "1px solid black",
+            boxShadow: "0px 4.8px 14.4px rgba(0, 0, 0, 0.18), 0px 25.6px 57.6px rgba(0, 0, 0, 0.22)",
             display: "flex",
             flexDirection: "column"
         },
@@ -72,7 +72,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         collapsedPanel: {
             width: "40px",
             height: "100%",
-            borderRight: "1px solid black"
+            boxShadow: "0px 4.8px 14.4px rgba(0, 0, 0, 0.18), 0px 25.6px 57.6px rgba(0, 0, 0, 0.22)"
         },
         mainArea: {
             flex: 1,

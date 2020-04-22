@@ -42,7 +42,7 @@ interface IGlobalExplanationProps {
 }
 
 export enum ChartTypes {
-    Scatter = "scattergl",
+    Scatter = "scatter",
     Bar = "histogram",
     Box = "box"
 }
@@ -276,7 +276,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const classNames = explanationDashboardStyles();
         return (
             <>
-                <div className="explainerDashboard">
+                <div style={{maxHeight: "1000px"}}>
                     <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}

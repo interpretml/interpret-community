@@ -22,6 +22,7 @@ import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption } from "office-ui-f
 import { whatIfTabStyles, IWhatIfTabStyles } from "./WhatIfTab.styles";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
+import { throwStatement } from "@babel/types";
 
 export interface IWhatIfTabProps {
     theme: any;
@@ -194,6 +195,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const selectionsAreEqual = _.isEqual(this.state.selectedPointsIndexes, prevState.selectedPointsIndexes);
         const activePointsAreEqual = _.isEqual(this.state.pointIsActive, prevState.pointIsActive);
         const customPointsAreEqual = this.state.customPoints === prevState.customPoints;
+        const customActivePointsAreEqual = _.isEqual(this.state.customPointIsActive, prevState.customPointIsActive);
         if (!selectionsAreEqual) {
             this.selectedFeatureImportance = this.state.selectedPointsIndexes.map((rowIndex, colorIndex) => {
                 const row = this.props.jointDataset.getRow(rowIndex);
@@ -222,13 +224,23 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
             });
         }
-        if (!selectionsAreEqual || !activePointsAreEqual || !customPointsAreEqual) {
+        if (!selectionsAreEqual || !activePointsAreEqual || !customPointsAreEqual || !customActivePointsAreEqual) {
             this.includedFeatureImportance = this.state.pointIsActive.map((isActive, i) => {
                 if (isActive) {
                     return this.selectedFeatureImportance[i];
                 }
             }).filter(item => !!item);
-            this.testableDatapoints = [...this.selectedDatapoints, ...this.customDatapoints];
+            const includedRows = this.state.pointIsActive.map((isActive, i) => {
+                if (isActive) {
+                    return this.selectedDatapoints[i];
+                }
+            }).filter(item => !!item);
+            const includedCustomRows = this.state.customPointIsActive.map((isActive, i) => {
+                if (isActive) {
+                    return this.customDatapoints[i];
+                }
+            }).filter(item => !!item);
+            this.testableDatapoints = [...includedRows, ...includedCustomRows];
             this.forceUpdate();
         }
         this.setState({ sortingSeriesIndex, sortArray })
@@ -399,18 +411,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         {this.selectedFeatureImportance.length === 0 && 
                         <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.WhatIfTab.noneSelectedYet}</Text>}
                         <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.whatIfDatapoints}</Text>
-                        {this.selectedFeatureImportance.length > 0 &&
+                        {this.state.customPoints.length > 0 &&
                         <InteractiveLegend
-                            items={this.selectedFeatureImportance.map((row, rowIndex) => {
+                            items={this.state.customPoints.map((row, rowIndex) => {
                                 return {
-                                    name: row.name,
-                                    color: FabricStyles.fabricColorPalette[rowIndex],
-                                    activated: this.state.pointIsActive[rowIndex],
-                                    onClick: this.toggleActivation.bind(this, rowIndex)
+                                    name: row[WhatIfTab.namePath],
+                                    color: FabricStyles.fabricColorPalette[rowIndex + WhatIfTab.MAX_SELECTION + 1],
+                                    activated: this.state.customPointIsActive[rowIndex],
+                                    onClick: this.toggleCustomActivation.bind(this, rowIndex),
+                                    onDelete: this.removeCustomPoint.bind(this, rowIndex),
+                                    onEdit: this.setTemporaryPointToCustomPoint.bind(this, rowIndex)
                                 }
                             })}
                         />}
-                        {this.selectedFeatureImportance.length === 0 && 
+                        {this.state.customPoints.length === 0 && 
                         <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.WhatIfTab.noneCreatedYet}</Text>}
 
                     </div>
@@ -549,6 +563,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             selectedIndexErrorMessage: undefined,
             editingDataCustomIndex: index
         });
+        this.openPanel();
     }
 
     private removeCustomPoint(index: number): void {
@@ -617,6 +632,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const pointIsActive = [...this.state.pointIsActive];
         pointIsActive[index] = !pointIsActive[index];
         this.setState({ pointIsActive });
+    }
+
+    private toggleCustomActivation(index: number): void {
+        const customPointIsActive = [...this.state.customPointIsActive];
+        customPointIsActive[index] = !customPointIsActive[index];
+        this.setState({ customPointIsActive });
     }
 
     private dismissPanel(): void {
