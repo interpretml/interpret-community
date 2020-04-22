@@ -190,7 +190,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
     private onXSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.xAxis = value;
-        newProps.chartType = this.props.jointDataset.metaDict[value.property].isCategorical ? ChartTypes.Bar : ChartTypes.Box;
+        newProps.chartType = this.props.jointDataset.metaDict[value.property].treatAsCategorical ? ChartTypes.Bar : ChartTypes.Box;
 
         this.props.onChange(newProps);
         this.setState({xDialogOpen: false})

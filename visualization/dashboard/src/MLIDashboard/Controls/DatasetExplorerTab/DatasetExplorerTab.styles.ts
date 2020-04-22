@@ -22,6 +22,8 @@ export interface IDatasetExplorerTabStyles {
     legendLabel: IStyle;
     legendItem: IStyle;
     legend: IStyle;
+    callout: IStyle;
+    chartEditorButton: IStyle;
 }
 
 export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplorerTabStyles> = () => {
@@ -56,12 +58,14 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
             flexGrow: "1",
             boxSizing: "border-box",
             paddingTop: "30px",
-            flexDirection: "column"
+            flexDirection: "column",
+            paddingRight: "10px"
         },
         chartWithVertical: {
             display: "flex",
             flexGrow: "1",
-            flexDirection: "row"
+            flexDirection: "row",
+            position: "relative"
         },
         chart: {
             flexGrow: "1"
@@ -138,6 +142,18 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
         },
         legend: {
 
+        },
+        callout: {
+            width: "200px",
+            boxSizing:"border-box",
+            padding: "10px 20px",
+            backgroundColor: theme.semanticColors.bodyBackground
+        },
+        chartEditorButton: {
+            color: theme.semanticColors.buttonText,
+            position: "absolute",
+            right: "10px",
+            zIndex: 10
         }
     });
 };

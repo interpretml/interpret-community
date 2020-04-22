@@ -18,7 +18,7 @@ import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplan
 import { AxisConfigDialog } from "../AxisConfigDialog";
 import { Cohort } from "../../Cohort";
 import { dastasetExplorerTabStyles as datasetExplorerTabStyles, IDatasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
-import { Icon, Text } from "office-ui-fabric-react";
+import { Icon, Text, Callout, DirectionalHint, ChoiceGroup, IChoiceGroupOption, IChoiceGroup } from "office-ui-fabric-react";
 
 export interface IDatasetExplorerTabProps {
     chartProps: IGenericChartProps;
@@ -36,6 +36,7 @@ export interface IDatasetExplorerTabState {
     yDialogOpen: boolean;
     colorDialogOpen: boolean;
     selectedCohortIndex: number;
+    calloutVisible: boolean;
 }
 
 export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabProps, IDatasetExplorerTabState> {
@@ -49,9 +50,10 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 size: 10
             },
             margin: {
-                t: 10,
-                l: 0,
+                t: 0,
+                l: 20,
                 b: 20,
+                r: 0
             },
             hovermode: "closest",
             showlegend: false,
@@ -81,6 +83,11 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
     private readonly _colorButtonId = "color-button-id";
+    private readonly _chartConfigId = "chart-connfig-button";
+    private readonly chartOptions: IChoiceGroupOption[] = [
+        {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}, 
+        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots}
+    ];
 
     constructor(props: IDatasetExplorerTabProps) {
         super(props);
@@ -93,11 +100,14 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.scatterSelection = this.scatterSelection.bind(this);
         this.onChartTypeChange = this.onChartTypeChange.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
+        this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
+        this.closeCallout = this.closeCallout.bind(this);
 
         this.state = {
             xDialogOpen: false,
             yDialogOpen: false,
             colorDialogOpen: false,
+            calloutVisible: false,
             selectedCohortIndex: 0
         };
     }
@@ -115,6 +125,9 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         const legend = this.buildColorLegend(classNames);
+        const isHistogram = this.props.chartProps.chartType !== ChartTypes.Scatter && (
+            this.props.chartProps.yAxis === undefined ||
+            this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical);
         return (
             <div className={classNames.page}>
                 <div className={classNames.infoWithText}>
@@ -136,7 +149,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             <div className={classNames.verticalAxis}>
                                 <div className={classNames.rotatedVerticalBox}>
                                     <div>
-                                        <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.yValue}</Text>
+                                        <Text block variant="mediumPlus" className={classNames.boldText}>{
+                                            isHistogram ? localization.Charts.numberOfDatapoints : localization.Charts.yValue}</Text>
                                         <DefaultButton 
                                             onClick={this.setYOpen.bind(this, true)}
                                             id={this._yButtonId}
@@ -159,6 +173,23 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                     )}
                                 </div>
                             </div>
+                            <IconButton
+                                className={classNames.chartEditorButton}
+                                onClick={this.toggleCalloutOpen} 
+                                iconProps={{iconName: "AreaChart"}}
+                                id={this._chartConfigId}/>
+                            {(this.state.calloutVisible) && <Callout
+                                className={classNames.callout}
+                                gapSpace={0}
+                                target={"#" + this._chartConfigId}
+                                isBeakVisible={false}
+                                onDismiss={this.closeCallout}
+                                directionalHint={ DirectionalHint.bottomRightEdge}
+                                setInitialFocus={true}
+                            >
+                                <Text variant="medium" className={classNames.boldText}>{localization.DatasetExplorer.chartType}</Text>
+                                <ChoiceGroup selectedKey={this.props.chartProps.chartType} options={this.chartOptions} onChange={this.onChartTypeChange}/>
+                            </Callout>}
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
                                 theme={undefined}
@@ -194,12 +225,12 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     </div>
                     <div className={classNames.legendAndText}>
                         <Text variant={"mediumPlus"} block className={classNames.boldText}>{localization.DatasetExplorer.colorValue}</Text>
-                        <DefaultButton 
+                        {this.props.chartProps.chartType === ChartTypes.Scatter && <DefaultButton 
                             onClick={this.setColorOpen.bind(this, true)}
                             id={this._colorButtonId}
                             text={this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].abbridgedLabel}
                             title={this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property].label}
-                        />
+                        />}
                         {legend}
                         {(this.state.colorDialogOpen) && (
                             <AxisConfigDialog 
@@ -223,7 +254,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setState({selectedCohortIndex: item.key as number});
     }
 
-    private onChartTypeChange(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
+    private onChartTypeChange(event: React.SyntheticEvent<HTMLElement>, item: IChoiceGroupOption): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.chartType = item.key as ChartTypes;
         this.props.onChange(newProps);
@@ -274,16 +305,32 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setState({colorDialogOpen: false})
     }
 
+    private toggleCalloutOpen(): void {
+        this.setState({calloutVisible: !this.state.calloutVisible});
+    }
+
+    private closeCallout(): void {
+        this.setState({calloutVisible: false});
+    }
+
     private buildColorLegend(classNames: IProcessedStyleSet<IDatasetExplorerTabStyles>): React.ReactNode {
         let colorSeries = []
-        const colorAxis = this.props.chartProps && this.props.chartProps.colorAxis;
-        if (this.props.chartProps && this.props.chartProps.chartType !== ChartTypes.Scatter || 
-            (colorAxis && (
-            colorAxis.options.bin || this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical))) {
+        if (this.props.chartProps.chartType === ChartTypes.Scatter) {
+            const colorAxis = this.props.chartProps.colorAxis;
+            if (colorAxis && (
+                colorAxis.options.bin || this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical)) {
+                    this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
+                    const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property, true));
+                    colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
+            }
+        } else {
+            const colorAxis = this.props.chartProps.yAxis;
+            if (this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical) {
                 this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
-                const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property, true));
+                const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property));
                 colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
             }
+        }
         return (<div className={classNames.legend}>
             {colorSeries.map((name, i) => {
                 return (<div className={classNames.legendItem}>
@@ -300,12 +347,13 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): IPlotlyProperty {
         const plotlyProps = _.cloneDeep(DatasetExplorerTab.basePlotlyProperties);
         plotlyProps.data[0].hoverinfo = "all";
-        if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
-            jointData.metaDict[chartProps.colorAxis.property].treatAsCategorical)) {
-                cohort.sort(chartProps.colorAxis.property);
-        }
+        
         switch(chartProps.chartType) {
             case ChartTypes.Scatter: {
+                if (chartProps.colorAxis && (chartProps.colorAxis.options.bin ||
+                    jointData.metaDict[chartProps.colorAxis.property].treatAsCategorical)) {
+                        cohort.sort(chartProps.colorAxis.property);
+                }
                 plotlyProps.data[0].type = chartProps.chartType;
                 plotlyProps.data[0].mode = PlotlyMode.markers;
                 if (chartProps.xAxis) {
@@ -376,14 +424,25 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 break;
             }
             case ChartTypes.Bar: {
-                // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
-                // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
-                plotlyProps.data[0].type = "bar";
+                cohort.sort(chartProps.yAxis.property);
                 const rawX = cohort.unwrap(chartProps.xAxis.property, true);
-                
                 const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
-                const y = new Array(rawX.length).fill(1);
                 const xLabelIndexes = xLabels.map((unused, index) => index);
+                // color series will be set by the y axis if it is categorical, otherwise no color for aggregate charts
+                if (!jointData.metaDict[chartProps.yAxis.property].treatAsCategorical) {
+                    plotlyProps.data[0].type = "box" as any;
+                    plotlyProps.data[0].x = rawX;
+                    plotlyProps.data[0].y = cohort.unwrap(chartProps.yAxis.property, false);
+                    plotlyProps.data[0].marker = {
+                        color: FabricStyles.fabricColorPalette[0]
+                    }
+                    _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
+                    _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
+                    break;
+                }
+                plotlyProps.data[0].type = "bar";
+                
+                const y = new Array(rawX.length).fill(1);
                 plotlyProps.data[0].text = rawX.map(index => xLabels[index]);
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = y;
@@ -398,12 +457,17 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         ]
                     }
                 ];
-                if (chartProps.colorAxis) {
-                    const rawColor = cohort.unwrap(chartProps.colorAxis.property, true);
-                    const styles = jointData.metaDict[chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
+                if (chartProps.yAxis) {
+                    const rawColor = cohort.unwrap(chartProps.yAxis.property, true);
+                    const styles = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues.map((label, index) => {
                         return {
                             target: index,
-                            value: { name: label}
+                            value: { 
+                                name: label,
+                                marker: {
+                                    color: FabricStyles.fabricColorPalette[index]
+                                }
+                            }
                         };
                     });
                     transforms.push({
