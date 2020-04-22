@@ -2,29 +2,24 @@ import React from "react";
 import * as memoize from 'memoize-one';
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
-import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
+import { IProcessedStyleSet } from "@uifabric/styling";
 import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
-import { IRenderFunction } from "@uifabric/utilities";
 import { IconButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
 import { IconNames } from "@uifabric/icons";
-import { FilterControl } from "../FilterControl";
-import { IFilterContext } from "../../Interfaces/IFilter";
 import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigDialog";
-import { Transform } from "plotly.js-dist";
 import _ from "lodash";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Cohort } from "../../Cohort";
 import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
-import { Pivot, PivotItem } from "office-ui-fabric-react/lib/Pivot";
 import { MultiICEPlot } from "../MultiICEPlot";
 import { FabricStyles } from "../../FabricStyles";
 import { InteractiveLegend, ILegendItem } from "../InteractiveLegend";
 import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
-import { whatIfTabStyles } from "./WhatIfTab.styles";
+import { whatIfTabStyles, IWhatIfTabStyles } from "./WhatIfTab.styles";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
 
@@ -144,9 +139,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private includedFeatureImportance: IGlobalSeries[] = [];
     private selectedFeatureImportance: IGlobalSeries[] = [];
-    private customRowSeries: any[];
+    private selectedDatapoints: any[][] = [];
+    private customDatapoints: any[][] = [];
+    private testableDatapoints: any[][] = [];
     private temporaryPoint: { [key: string]: any };
-    private customPoints: Array<{ [key: string]: any }> = [];
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -197,6 +193,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         let sortArray = this.state.sortArray;
         const selectionsAreEqual = _.isEqual(this.state.selectedPointsIndexes, prevState.selectedPointsIndexes);
         const activePointsAreEqual = _.isEqual(this.state.pointIsActive, prevState.pointIsActive);
+        const customPointsAreEqual = this.state.customPoints === prevState.customPoints;
         if (!selectionsAreEqual) {
             this.selectedFeatureImportance = this.state.selectedPointsIndexes.map((rowIndex, colorIndex) => {
                 const row = this.props.jointDataset.getRow(rowIndex);
@@ -207,6 +204,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     unsortedAggregateY: JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[],
                 }
             });
+            this.selectedDatapoints = this.state.selectedPointsIndexes.map(rowIndex => {
+                const row = this.props.jointDataset.getRow(rowIndex);
+                return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
+            });
             if (!this.state.selectedPointsIndexes.includes(this.state.sortingSeriesIndex)) {
                 if (this.state.selectedPointsIndexes.length !== 0) {
                     sortingSeriesIndex = 0;
@@ -216,12 +217,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 }
             }
         }
-        if (!selectionsAreEqual || !activePointsAreEqual) {
+        if (!customPointsAreEqual) {
+            this.customDatapoints = this.state.customPoints.map(row => {
+                return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
+            });
+        }
+        if (!selectionsAreEqual || !activePointsAreEqual || !customPointsAreEqual) {
             this.includedFeatureImportance = this.state.pointIsActive.map((isActive, i) => {
                 if (isActive) {
                     return this.selectedFeatureImportance[i];
                 }
             }).filter(item => !!item);
+            this.testableDatapoints = [...this.selectedDatapoints, ...this.customDatapoints];
             this.forceUpdate();
         }
         this.setState({ sortingSeriesIndex, sortArray })
@@ -239,7 +246,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
         const classNames = whatIfTabStyles();
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
-        const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
         return (<div className={classNames.page}>
             <div className={this.state.isPanelOpen ?
                 classNames.expandedPanel :
@@ -410,53 +416,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div>
                 </div>
                 {this.buildSecondaryArea(classNames)}
-                {this.selectedFeatureImportance.length > 0 && (
-                    <div className={classNames.featureImportanceArea}>
-                        <div className={classNames.featureImportanceControls}>
-                            <Text variant="medium" className={classNames.sliderLabel}>{localization.formatString(localization.GlobalTab.topAtoB, this.state.startingK + 1, this.state.startingK + this.state.topK)}</Text>
-                            <Slider
-                                className={classNames.startingK}
-                                ariaLabel={localization.AggregateImportance.topKFeatures}
-                                max={maxStartingK}
-                                min={0}
-                                step={1}
-                                value={this.state.startingK}
-                                onChange={this.setStartingK}
-                                showValue={false}
-                            />
-                        </div>
-                        <div className={classNames.featureImportanceChartAndLegend}>
-                            <FeatureImportanceBar
-                                jointDataset={this.props.jointDataset}
-                                sortArray={this.state.sortArray}
-                                startingK={this.state.startingK}
-                                unsortedX={this.props.metadata.featureNamesAbridged}
-                                unsortedSeries={this.includedFeatureImportance}
-                                topK={this.state.topK}
-                            />
-                            <div className={classNames.featureImportanceLegend}> </div>
-                        </div>
-                        {/* <MultiICEPlot 
-                            invokeModel={this.props.invokeModel}
-                            datapoints={datasets}
-                            jointDataset={this.props.jointDataset}
-                            metadata={this.props.metadata}
-                            theme={this.props.theme}
-                        /> */}
-                        {/* <InteractiveLegend
-                            onClick={() => {}}
-                            items={selectedRows.map(row => {
-                                return {
-                                    name: row.name,
-                                    color: row.color,
-                                    editable: row.isCustom
-                                }
-                            })}
-                        /> */}
-                    </div>)}
-                {this.selectedFeatureImportance.length === 0 && (
-                   
-                )}
             </div>
         </div>);
     }
@@ -469,16 +428,66 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <Text>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
                 </div>
             } else {
-                
+                const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
+                secondaryPlot = (<div className={classNames.featureImportanceArea}>
+                    <div className={classNames.featureImportanceControls}>
+                        <Text variant="medium" className={classNames.sliderLabel}>{localization.formatString(localization.GlobalTab.topAtoB, this.state.startingK + 1, this.state.startingK + this.state.topK)}</Text>
+                        <Slider
+                            className={classNames.startingK}
+                            ariaLabel={localization.AggregateImportance.topKFeatures}
+                            max={maxStartingK}
+                            min={0}
+                            step={1}
+                            value={this.state.startingK}
+                            onChange={this.setStartingK}
+                            showValue={false}
+                        />
+                    </div>
+                    <div className={classNames.featureImportanceChartAndLegend}>
+                        <FeatureImportanceBar
+                            jointDataset={this.props.jointDataset}
+                            sortArray={this.state.sortArray}
+                            startingK={this.state.startingK}
+                            unsortedX={this.props.metadata.featureNamesAbridged}
+                            unsortedSeries={this.includedFeatureImportance}
+                            topK={this.state.topK}
+                        />
+                        <div className={classNames.featureImportanceLegend}> </div>
+                    </div>
+                </div>);
             }
+        } else {
+            if (this.testableDatapoints.length === 0){
+                secondaryPlot =  <div>
+                    <Text>{localization.WhatIfTab.IceGetStartedText}</Text>
+                </div>;
+            } else { 
+                secondaryPlot = (<div className={classNames.featureImportanceArea}>
+                <MultiICEPlot 
+                        invokeModel={this.props.invokeModel}
+                        datapoints={this.testableDatapoints}
+                        jointDataset={this.props.jointDataset}
+                        metadata={this.props.metadata}
+                        theme={this.props.theme}
+                    />
+                </div>);
+            }
+            
         }
 
-        return(<div className={classNames.choiceBoxArea}>
-            <Text >{localization.WhatIfTab.showLabel}</Text>
-            <ChoiceGroup 
-                options={WhatIfTab.secondaryPlotChoices}
-                selectedKey={this.state.secondaryChartChoice}
-                onChange={this.setSecondaryChart}/>
+        return( <div>
+            <div className={classNames.choiceBoxArea}>
+                <Text >{localization.WhatIfTab.showLabel}</Text>
+                <ChoiceGroup
+                    className={classNames.choiceGroup}
+                    styles={{
+                        flexContainer: classNames.choiceGroupFlexContainer
+                    }}
+                    options={WhatIfTab.secondaryPlotChoices}
+                    selectedKey={this.state.secondaryChartChoice}
+                    onChange={this.setSecondaryChart}/>
+            </div>
+            {secondaryPlot}
         </div>)
     }
 
@@ -571,24 +580,26 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private savePoint(): void {
-        let editingDataCustomIndex = this.customPoints.length;
+        let editingDataCustomIndex = this.state.customPoints.length;
+        const customPoints = [...this.state.customPoints];
         if (this.state.editingDataCustomIndex !== undefined) {
-            this.customPoints[this.state.editingDataCustomIndex] = this.temporaryPoint;
+            customPoints[this.state.editingDataCustomIndex] = this.temporaryPoint;
             editingDataCustomIndex = this.state.editingDataCustomIndex
         }
         else {
-            this.customPoints.push(this.temporaryPoint);
+            customPoints.push(this.temporaryPoint);
 
         }
         this.temporaryPoint = _.cloneDeep(this.temporaryPoint);
-        this.setState({ editingDataCustomIndex });
+        this.setState({ editingDataCustomIndex, customPoints });
     }
 
     private saveCopyOfPoint(): void {
-        let editingDataCustomIndex = this.customPoints.length;
-        this.customPoints.push(this.temporaryPoint);
+        let editingDataCustomIndex = this.state.customPoints.length;
+        const customPoints = [...this.state.customPoints];
+        customPoints.push(this.temporaryPoint);
         this.temporaryPoint = _.cloneDeep(this.temporaryPoint);
-        this.setState({ editingDataCustomIndex });
+        this.setState({ editingDataCustomIndex, customPoints});
     }
 
     private createCopyOfFirstRow(): { [key: string]: any } {

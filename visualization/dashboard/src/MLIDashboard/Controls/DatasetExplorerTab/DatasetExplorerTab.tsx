@@ -10,8 +10,6 @@ import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
-import { IFilter, IFilterContext } from "../../Interfaces/IFilter";
-import { FilterControl } from "../FilterControl";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";

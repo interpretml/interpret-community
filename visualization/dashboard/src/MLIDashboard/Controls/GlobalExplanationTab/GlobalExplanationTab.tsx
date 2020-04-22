@@ -1,7 +1,6 @@
 import React from "react";
 import { JointDataset } from "../../JointDataset";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
-import { IFilterContext } from "../../Interfaces/IFilter";
 import { BarChart, LoadingSpinner } from "../../SharedComponents";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
@@ -16,7 +15,6 @@ import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib
 import { FabricStyles } from "../../FabricStyles";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { SwarmFeaturePlot } from "../SwarmFeaturePlot";
-import { FilterControl } from "../FilterControl";
 import { Cohort } from "../../Cohort";
 import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
 import { GlobalViolinPlot } from "../GlobalViolinPlot";

@@ -32,6 +32,10 @@ export interface IWhatIfTabStyles {
     legendLabel: IStyle;
     smallItalic: IStyle;
     legendHlepWrapper: IStyle;
+    secondaryChartChoiceLabel: IStyle;
+    choiceBoxArea: IStyle;
+    choiceGroup: IStyle;
+    choiceGroupFlexContainer: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -201,6 +205,22 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             fontStyle: "italic",
             padding: "0 0 5px 5px",
             color: theme.semanticColors.disabledBodyText
+        },
+        choiceBoxArea: {
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "baseline"
+        },
+        secondaryChartChoiceLabel: {
+            padding: "20px"
+        },
+        choiceGroup: {
+            width: "400px"
+        },
+        choiceGroupFlexContainer: {
+            display: "inline-flex",
+            width: "400px",
+            justifyContent: "space-between"
         }
     });
 }

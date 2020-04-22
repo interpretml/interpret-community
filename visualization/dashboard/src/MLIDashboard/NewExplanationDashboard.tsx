@@ -1,6 +1,5 @@
 import React from "react";
 import { IExplanationDashboardProps, IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
-import { IFilter, IFilterContext } from "./Interfaces/IFilter";
 import { JointDataset } from "./JointDataset";
 import { ModelMetadata } from "mlchartlib";
 import { localization } from "../Localization/localization";
@@ -13,7 +12,6 @@ import { mergeStyleSets, loadTheme } from "office-ui-fabric-react/lib/Styling";
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { WhatIfTab } from "./Controls/WhatIfTab/WhatIfTab";
 import { Cohort } from "./Cohort";
-import { CohortControl } from "./Controls/CohortControl";
 import { initializeIcons } from "@uifabric/icons";
 import { ModelPerformanceTab } from "./Controls/ModelPerformanceTab/ModelPerformanceTab";
 import { defaultTheme } from "./Themes";
