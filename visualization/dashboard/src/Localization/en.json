@@ -217,14 +217,11 @@
     "WhatIf": {
         "closeAriaLabel": "Close",
         "panelHeader": "What if Panel",
-        "indexLabel": "Datapoint index: ",
         "indexErrorMessage": "Error: index must be an integer between 0 and {0}",
         "noCustomPoints": "No custom points",
         "defaultCustomRootName": "Copy of row {0}",
-        "namePropLabel": "Name :",
         "colorLabel": "Select color:",
-        "filterFeaturePlaceholder": "Search features",
-        "rowLabel": "Row "
+        "filterFeaturePlaceholder": "Search features"
     },
     "Cohort": {
         "cohort": "Cohort"
@@ -294,7 +291,13 @@
         "featureImportancePlot": "Feature importance plot",
         "icePlot": "ICE plot",
         "featureImportanceGetStartedText":"Select a point to view feature importance",
-        "IceGetStartedText": "Select a point or create a what-if point to view ICE plots"
+        "IceGetStartedText": "Select a point or create a what-if point to view ICE plots",
+        "whatIfDatapoint": "What-If datapoint",
+        "whatIfHelpText": "Select a point on the plot or manually enter in a known datapoint index to perturb and save as a new What-If point from",
+        "indexLabel": "Data index to perturb",
+        "rowLabel": "Row {0}",
+        "whatIfNameLabel": "What-If datapoint name",
+        "featureValues": "Feature values"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",

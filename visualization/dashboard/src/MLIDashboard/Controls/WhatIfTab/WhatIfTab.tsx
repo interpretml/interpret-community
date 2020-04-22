@@ -38,11 +38,9 @@ export interface IWhatIfTabState {
     isPanelOpen: boolean;
     xDialogOpen: boolean;
     yDialogOpen: boolean;
-    selectedWhatIfRootIndex?: number;
+    selectedWhatIfRootIndex: number;
     editingDataCustomIndex?: number;
     customPoints: Array<{ [key: string]: any }>;
-    indexText: string;
-    selectedIndexErrorMessage?: string;
     selectedCohortIndex: number;
     filteredFeatureList: Array<{ key: string, label: string }>;
     requestList: AbortController[];
@@ -112,22 +110,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         });
     }
 
-    private buildSelectedRowSeriess(rowIndices: number[]): any[] {
-        const result: any[] = [];
-        rowIndices.forEach((rowIndex, seriesIndex) => {
-            const row = this.props.jointDataset.getRow(rowIndex);
-            result.push({
-                name: localization.WhatIf.rowLabel + rowIndex,
-                unsortedFeatureValues: JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount),
-                unsortedY: JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[],
-                disabled: false,
-                color: FabricStyles.plotlyColorHexPalette[seriesIndex],
-                onDelete: this.toggleSelectionOfPoint.bind(this, rowIndex)
-            });
-        });
-        return result;
-    }
-
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
@@ -155,7 +137,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
-            indexText: "0",
             editingDataCustomIndex: undefined,
             customPoints: [],
             selectedCohortIndex: 0,
@@ -176,7 +157,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
         this.onYSet = this.onYSet.bind(this);
-        this.setIndexText = this.setIndexText.bind(this);
         this.setCustomRowProperty = this.setCustomRowProperty.bind(this);
         this.setCustomRowPropertyDropdown = this.setCustomRowPropertyDropdown.bind(this);
         this.savePoint = this.savePoint.bind(this);
@@ -186,6 +166,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.setStartingK = this.setStartingK.bind(this);
         this.setSecondaryChart = this.setSecondaryChart.bind(this);
+        this.setSelectedIndex = this.setSelectedIndex.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -201,7 +182,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 const row = this.props.jointDataset.getRow(rowIndex);
                 return {
                     index: colorIndex,
-                    name: "Row " + rowIndex.toString(),
+                    name: localization.formatString(localization.WhatIfTab.rowLabel, rowIndex.toString()) as string,
                     unsortedFeatureValues: JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount),
                     unsortedAggregateY: JointDataset.localExplanationSlice(row, this.props.jointDataset.localExplanationFeatureCount) as number[],
                 }
@@ -255,7 +236,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
-
+        const rowOptions: IDropdownOption[ ]= this.props.cohorts[this.state.selectedCohortIndex].unwrap(JointDataset.IndexLabel).map(index => {
+            return {key: index, text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string};
+        });
         const classNames = whatIfTabStyles();
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
         return (<div className={classNames.page}>
@@ -266,24 +249,29 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
                 )}
                 {this.state.isPanelOpen && this.props.invokeModel !== undefined && (<div>
-                    <IconButton
-                        iconProps={{ iconName: "ChevronRight" }}
-                        onClick={this.dismissPanel}
+                    <div className={classNames.panelIconAndLabel}>
+                        <IconButton
+                            iconProps={{ iconName: "ChevronRight" }}
+                            onClick={this.dismissPanel}
+                            className={classNames.blackIcon}
+                        />
+                        <Text variant={"medium"} className={classNames.boldText}>{localization.WhatIfTab.whatIfDatapoint}</Text>
+                    </div>
+                    <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.whatIfHelpText}</Text>
+                    <Dropdown 
+                        label={localization.WhatIfTab.indexLabel}
+                        options={rowOptions}
+                        selectedKey={this.state.selectedWhatIfRootIndex}
+                        onChange={this.setSelectedIndex}
+                    />
+                    <TextField
+                        label={localization.WhatIfTab.whatIfNameLabel}
+                        value={this.temporaryPoint[WhatIfTab.namePath]}
+                        onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
+                        styles={{ fieldGroup: { width: 200 } }}
                     />
                     <div className={classNames.parameterList}>
-                        <TextField
-                            label={localization.WhatIf.indexLabel}
-                            value={this.state.indexText}
-                            onChange={this.setIndexText}
-                            styles={{ fieldGroup: { width: 100 } }}
-                        />
-                        <TextField
-                            label={localization.WhatIf.namePropLabel}
-                            value={this.temporaryPoint[WhatIfTab.namePath]}
-                            onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
-                            styles={{ fieldGroup: { width: 200 } }}
-                        />
-                        <div>Features: </div>
+                        <Text variant="medium" className={classNames.boldText}>{localization.WhatIfTab.featureValues}</Text>
                         <SearchBox
                             placeholder={localization.WhatIf.filterFeaturePlaceholder}
                             onChange={this.filterFeatures}
@@ -531,15 +519,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState({secondaryChartChoice: item.key});
     }
 
-    private setIndexText(event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
-        const asNumber = +newValue;
-        const maxIndex = this.props.jointDataset.metaDict[JointDataset.IndexLabel].featureRange.max;
-        if (Number.isInteger(asNumber) && asNumber >= 0 && asNumber <= maxIndex) {
-            this.setTemporaryPointToCopyOfDatasetPoint(asNumber);
-        } else {
-            const error = localization.formatString(localization.WhatIf.indexErrorMessage, maxIndex) as string;
-            this.setState({ indexText: newValue, selectedWhatIfRootIndex: undefined, selectedIndexErrorMessage: error });
-        }
+    private setSelectedIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.setTemporaryPointToCopyOfDatasetPoint(item.key as number);
     }
 
     private setTemporaryPointToCopyOfDatasetPoint(index: number): void {
@@ -549,8 +530,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
         this.setState({
             selectedWhatIfRootIndex: index,
-            indexText: index.toString(),
-            selectedIndexErrorMessage: undefined,
             editingDataCustomIndex: undefined
         });
     }
@@ -559,8 +538,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.temporaryPoint = _.cloneDeep(this.state.customPoints[index]);
         this.setState({
             selectedWhatIfRootIndex: this.temporaryPoint[JointDataset.IndexLabel],
-            indexText: this.temporaryPoint[JointDataset.IndexLabel].toString(),
-            selectedIndexErrorMessage: undefined,
             editingDataCustomIndex: index
         });
         this.openPanel();

@@ -2,6 +2,7 @@ import { IProcessedStyleSet, getTheme, mergeStyleSets, IStyle } from "@uifabric/
 
 export interface IWhatIfTabStyles {
     page: IStyle;
+    blackIcon: IStyle;
     expandedPanel: IStyle;
     parameterList: IStyle;
     featureList: IStyle;
@@ -36,6 +37,7 @@ export interface IWhatIfTabStyles {
     choiceBoxArea: IStyle;
     choiceGroup: IStyle;
     choiceGroupFlexContainer: IStyle;
+    panelIconAndLabel: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -50,6 +52,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             display: "flex",
             flexDirection: "row-reverse"
         },
+        blackIcon: {
+            color: theme.semanticColors.bodyText
+        },
         expandedPanel: {
             width: "250px",
             height: "100%",
@@ -60,6 +65,8 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         parameterList: {
             display: "flex",
             flexGrow: 1,
+            backgroundColor: theme.palette.neutralLighter,
+            padding: "6px",
             flexDirection: "column"
         },
         featureList: {
@@ -221,6 +228,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             display: "inline-flex",
             width: "400px",
             justifyContent: "space-between"
+        },
+        panelIconAndLabel: {
+
         }
     });
 }
