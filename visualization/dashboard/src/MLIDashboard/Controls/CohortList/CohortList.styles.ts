@@ -1,4 +1,4 @@
-import { IStyle, mergeStyleSets, IProcessedStyleSet, getTheme } from "office-ui-fabric-react";
+import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
 
 export interface ICohortListStyles {
   banner: IStyle;
