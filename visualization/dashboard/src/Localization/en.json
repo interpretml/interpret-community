@@ -192,12 +192,15 @@
         "_multiclassImportanceAddendum.comment": "explains how global importance is calculated for each class in a multiclass case."
     },
     "Filters": {
-        "equalComparison": "==",
-        "greaterThanComparison": ">",
-        "lessThanComparison": "<",
+        "equalComparison": "Equal to",
+        "greaterThanComparison": "Greater than",
+        "lessThanComparison": "Less than",
+        "inTheRangeOf": "In the range of",
         "categoricalIncludeValues": "Included values:",
-        "numericValue": "Value:",
-        "numericalComparison": "Operation"
+        "numericValue": "Value",
+        "numericalComparison": "Operation",
+        "minimum":"Minimum",
+        "maximum":"Maximum"
     },
     "Columns": {
         "regressionError": "Regression error",
@@ -292,5 +295,17 @@
         "icePlot": "ICE plot",
         "featureImportanceGetStartedText":"Select a point to view feature importance",
         "IceGetStartedText": "Select a point or create a what-if point to view ICE plots"
+    },
+    "CohortEditor": {
+        "selectFilter": "Select Filter",
+        "TreatAsCategorical": "Treat as categorical",
+        "addFilter":"Add Filter",
+        "addedFilters":"Added Filters",
+        "noAddedFilters":"No filters added yet",
+        "defaultFilterState":"Select a filter to add parameters to your dataset cohort.",
+        "cohortNameLabel":"Dataset cohort name",
+        "cohortNamePlaceholder":"Name your cohort",
+        "save":"Save",
+        "cancel":"Cancel"
     }
 }

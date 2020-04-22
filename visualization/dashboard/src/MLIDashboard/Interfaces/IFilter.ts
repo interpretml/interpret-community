@@ -2,7 +2,8 @@ export const enum FilterMethods {
     greaterThan = 'greater',
     lessThan = 'less',
     equal = 'equal',
-    includes = 'includes'
+    includes = 'includes',
+    inTheRangeOf ='inTheRangeOf'
 }
 
 export interface IFilter {
