@@ -16,6 +16,7 @@ export class Cohort {
     private currentSortReversed: boolean = false;
     constructor(public name: string, private jointDataset: JointDataset, public filters: IFilter[] = []) {
         this.cohortIndex = Cohort._cohortIndex;
+        this.name = name;
         Cohort._cohortIndex += 1;
         this.applyFilters();
     }
