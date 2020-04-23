@@ -16,6 +16,7 @@ import { ModelExplanationUtils } from "../ModelExplanationUtils";
 export interface IMultiICEPlotProps {
     invokeModel?: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
     datapoints: Array<string | number>[];
+    colors: string[];
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     theme?: string;
@@ -31,7 +32,7 @@ export interface IMultiICEPlotState {
 }
 
 export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMultiICEPlotState> {
-    private static buildPlotlyProps(modelType: ModelTypes, featureName: string, rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
+    private static buildPlotlyProps(modelType: ModelTypes, featureName: string, colors: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
         if (yData === undefined || xData === undefined || yData.length === 0 || yData.some(row => row === undefined)) {
             return undefined;
         }
@@ -44,6 +45,9 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                 type: 'scatter',
                 x: xData,
                 y: transposedY[0],
+                marker: {
+                    color: colors[rowIndex]
+                },
                 name: "row"
             }
         }) as any;
@@ -127,6 +131,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             const plotlyProps = MultiICEPlot.buildPlotlyProps(
                 this.props.metadata.modelType, 
                 this.props.jointDataset.metaDict[this.state.requestFeatureKey].label,
+                this.props.colors,
                 this.state.rangeView.type,
                 this.state.xAxisArray, 
                 this.state.yAxes);

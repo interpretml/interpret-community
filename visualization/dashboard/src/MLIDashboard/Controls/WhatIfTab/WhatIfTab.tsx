@@ -126,6 +126,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private customDatapoints: any[][] = [];
     private testableDatapoints: any[][] = [];
     private temporaryPoint: { [key: string]: any };
+    private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -212,6 +213,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     return this.selectedFeatureImportance[i];
                 }
             }).filter(item => !!item);
+            const includedColors = this.includedFeatureImportance.map(item => FabricStyles.fabricColorPalette[item.colorIndex]);
             const includedRows = this.state.pointIsActive.map((isActive, i) => {
                 if (isActive) {
                     return this.selectedDatapoints[i];
@@ -219,10 +221,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }).filter(item => !!item);
             const includedCustomRows = this.state.customPointIsActive.map((isActive, i) => {
                 if (isActive) {
+                    includedColors.push(FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + i + 1])
                     return this.customDatapoints[i];
                 }
             }).filter(item => !!item);
             this.testableDatapoints = [...includedRows, ...includedCustomRows];
+            this.testableDatapointColors = includedColors;
             this.forceUpdate();
         }
         this.setState({ sortingSeriesIndex, sortArray })
@@ -483,6 +487,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <MultiICEPlot 
                             invokeModel={this.props.invokeModel}
                             datapoints={this.testableDatapoints}
+                            colors={this.testableDatapointColors}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
                             theme={this.props.theme}
