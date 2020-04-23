@@ -8,7 +8,7 @@ import numpy as np
 
 from common_utils import create_sklearn_svm_classifier, create_sklearn_random_forest_regressor, \
     create_sklearn_linear_regressor, create_multiclass_sparse_newsgroups_data, \
-    create_sklearn_logistic_regressor
+    create_sklearn_logistic_regressor, create_binary_sparse_newsgroups_data
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from sklearn.model_selection import train_test_split
@@ -126,6 +126,24 @@ class TestRawExplanations:
 
     def test_get_local_raw_explanations_sparse_classification(self, mimic_explainer):
         x_train, x_test, y_train, _, classes, _ = create_multiclass_sparse_newsgroups_data()
+        # Fit a linear regression model
+        model = create_sklearn_logistic_regressor(x_train, y_train)
+
+        explainer = mimic_explainer(model, x_train, LinearExplainableModel,
+                                    explainable_model_args={'sparse_data': True}, classes=classes)
+        global_explanation = explainer.explain_global(x_test)
+        assert global_explanation.method == LINEAR_METHOD
+
+        num_engineered_feats = x_train.shape[1]
+        feature_map = np.eye(5, num_engineered_feats)
+        feature_names = [str(i) for i in range(feature_map.shape[0])]
+        raw_names = feature_names[:feature_map.shape[0]]
+        global_raw_explanation = global_explanation.get_raw_explanation([feature_map], raw_feature_names=raw_names)
+        self.validate_global_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                            classes, feature_names, is_sparse=True)
+
+    def test_get_local_raw_explanations_sparse_binary_classification(self, mimic_explainer):
+        x_train, x_test, y_train, _, classes, _ = create_binary_sparse_newsgroups_data()
         # Fit a linear regression model
         model = create_sklearn_logistic_regressor(x_train, y_train)
 

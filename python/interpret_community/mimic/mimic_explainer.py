@@ -467,15 +467,21 @@ class MimicExplainer(BlackBoxExplainer):
         self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 
-        if self.predict_proba_flag and not is_sparse:
-            if self.surrogate_model.multiclass:
-                # For multiclass case, convert to array, but only if not sparse
-                local_importance_values = np.array(local_importance_values)
-            else:
-                # TODO: Eventually move this back inside the surrogate model
-                # If binary case, we need to reformat the data to have importances per class
-                # and convert the expected values back to the original domain
-                local_importance_values = np.stack((-local_importance_values, local_importance_values))
+        if self.predict_proba_flag:
+            if not is_sparse:
+                if self.surrogate_model.multiclass:
+                    # For multiclass case, convert to array, but only if not sparse
+                    local_importance_values = np.array(local_importance_values)
+                else:
+                    # TODO: Eventually move this back inside the surrogate model
+                    # If binary case, we need to reformat the data to have importances per class
+                    # and convert the expected values back to the original domain
+                    local_importance_values = np.stack((-local_importance_values, local_importance_values))
+            elif not self.surrogate_model.multiclass:
+                # For binary classification sparse case we need to reformat the data
+                # to have importance values per class
+                local_importance_values = [-local_importance_values, local_importance_values]
+
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         # Reformat local_importance_values result if explain_subset specified
