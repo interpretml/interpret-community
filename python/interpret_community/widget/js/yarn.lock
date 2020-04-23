@@ -3128,10 +3128,10 @@ internal-ip@^4.2.0:
     default-gateway "^4.2.0"
     ipaddr.js "^1.9.0"
 
-interpret-dashboard@0.1.7-beta4:
-  version "0.1.7-beta4"
-  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.7-beta4.tgz#b72739567cef4dc478f12ad7c9e4628edc3d91b3"
-  integrity sha512-JPW4bdgm28um0ieBctF2h6mZOk5FP2FE7dqNee200+Xq9Loa0mKAwqdrza8q6LuZDJBse2ipWNCvBKH+1v+/qg==
+interpret-dashboard@0.1.7-beta5:
+  version "0.1.7-beta5"
+  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.7-beta5.tgz#1d6fc625d67d835f23755da693011e8df74aec87"
+  integrity sha512-d0d3DhqlXQouw7/UA0LBxe7deR9/ADTHFmkls2lNapw/v9uIibJ5ifdRvwFKf0jfk6X8mh7GjcD142FhF+Vv3Q==
   dependencies:
     jmespath "^0.15.0"
     localized-strings "^0.2.2"
