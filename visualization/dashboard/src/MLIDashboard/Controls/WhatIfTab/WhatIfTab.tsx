@@ -242,6 +242,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const classNames = whatIfTabStyles();
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
         return (<div className={classNames.page}>
+            <div className={classNames.infoWithText}>
+                <Icon iconName="Info" className={classNames.infoIcon} />
+                <Text variant="medium" className={classNames.helperText}>{localization.WhatIfTab.helperText}</Text>
+            </div>
+            <div className={classNames.mainArea}>
             <div className={this.state.isPanelOpen ?
                 classNames.expandedPanel :
                 classNames.collapsedPanel}>
@@ -305,11 +310,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     onClick={this.openPanel}
                 />)}
             </div>
-            <div className={classNames.mainArea}>
-                <div className={classNames.infoWithText}>
-                    <Icon iconName="Info" className={classNames.infoIcon} />
-                    <Text variant="medium" className={classNames.helperText}>{localization.WhatIfTab.helperText}</Text>
-                </div>
+            <div className={classNames.chartsArea}>
                 {cohortOptions && (<div className={classNames.cohortPickerWrapper}>
                     <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>{localization.WhatIfTab.cohortPickerLabel}</Text>
                     <Dropdown
@@ -419,6 +420,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 </div>
                 {this.buildSecondaryArea(classNames)}
             </div>
+            </div>
         </div>);
     }
 
@@ -426,8 +428,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         let secondaryPlot: React.ReactNode;
         if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
             if (this.selectedFeatureImportance.length === 0){
-                secondaryPlot =  <div>
-                    <Text>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
+                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
+                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
+                    </div>
                 </div>
             } else {
                 const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
@@ -460,9 +464,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
         } else {
             if (this.testableDatapoints.length === 0){
-                secondaryPlot =  <div>
-                    <Text>{localization.WhatIfTab.IceGetStartedText}</Text>
-                </div>;
+                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
+                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.IceGetStartedText}</Text>
+                    </div>
+            </div>;
             } else { 
                 secondaryPlot = (<div className={classNames.featureImportanceArea}>
                 <MultiICEPlot 
@@ -479,7 +485,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
         return( <div>
             <div className={classNames.choiceBoxArea}>
-                <Text >{localization.WhatIfTab.showLabel}</Text>
+                <Text variant="medium" className={classNames.boldText}>{localization.WhatIfTab.showLabel}</Text>
                 <ChoiceGroup
                     className={classNames.choiceGroup}
                     styles={{

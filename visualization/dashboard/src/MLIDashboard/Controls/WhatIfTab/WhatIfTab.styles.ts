@@ -11,6 +11,7 @@ export interface IWhatIfTabStyles {
     infoIcon: IStyle;
     helperText: IStyle;
     infoWithText: IStyle;
+    chartsArea: IStyle;
     topArea: IStyle;
     legendAndText: IStyle;
     cohortPickerWrapper: IStyle;
@@ -33,11 +34,13 @@ export interface IWhatIfTabStyles {
     legendLabel: IStyle;
     smallItalic: IStyle;
     legendHlepWrapper: IStyle;
-    secondaryChartChoiceLabel: IStyle;
     choiceBoxArea: IStyle;
     choiceGroup: IStyle;
     choiceGroupFlexContainer: IStyle;
     panelIconAndLabel: IStyle;
+    secondaryChartPlacolderBox: IStyle;
+    secondaryChartPlacolderSpacer: IStyle;
+    faintText: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -46,18 +49,15 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
     return mergeStyleSets<IWhatIfTabStyles>({
         page: {
             width: "100%",
-            height: "100%",
             padding: "16px 0 0 14px",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "row-reverse"
+            boxSizing: "border-box"
         },
         blackIcon: {
             color: theme.semanticColors.bodyText
         },
         expandedPanel: {
+            marginTop: "10px",
             width: "250px",
-            height: "100%",
             boxShadow: "0px 4.8px 14.4px rgba(0, 0, 0, 0.18), 0px 25.6px 57.6px rgba(0, 0, 0, 0.22)",
             display: "flex",
             flexDirection: "column"
@@ -78,13 +78,17 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         collapsedPanel: {
             width: "40px",
-            height: "100%",
             boxShadow: "0px 4.8px 14.4px rgba(0, 0, 0, 0.18), 0px 25.6px 57.6px rgba(0, 0, 0, 0.22)"
         },
         mainArea: {
             flex: 1,
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "row-reverse",
+            alignItems: "stretch",
+            minHeight: "800px"
+        },
+        chartsArea: {
+            flex: 1
         },
         infoWithText: {
             display: "flex",
@@ -169,11 +173,10 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             paddingBottom: "5px"
         },
         featureImportanceArea: {
-            height: "350px",
             width: "100%"
         },
         featureImportanceChartAndLegend: {
-            flex: "1",
+            height: "300px",
             width: "100%",
             display: "flex",
             flexDirection: "row"
@@ -187,7 +190,8 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             paddingRight: "10px"
         },
         startingK: {
-            flex: 1
+            flex: 1,
+            paddingRight: legendWidth
         },
         featureImportanceControls: {
             display: "flex",
@@ -214,23 +218,37 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             color: theme.semanticColors.disabledBodyText
         },
         choiceBoxArea: {
+            paddingLeft: "67px",
             display: "flex",
             flexDirection: "row",
             alignItems: "baseline"
         },
-        secondaryChartChoiceLabel: {
-            padding: "20px"
-        },
         choiceGroup: {
-            width: "400px"
+            fontSize: "14px",
+            paddingLeft: "30px",
+            width: "230px",
+
         },
         choiceGroupFlexContainer: {
             display: "inline-flex",
-            width: "400px",
+            width: "300px",
             justifyContent: "space-between"
         },
         panelIconAndLabel: {
 
+        },
+        secondaryChartPlacolderBox: {
+            height: "300px",
+            width: "100%"
+        },
+        secondaryChartPlacolderSpacer: {
+            margin: "25px auto 0 auto",
+            padding: "23px",
+            width:"fit-content",
+            boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
+        },
+        faintText: {
+            fontWeight: "350" as any,
         }
     });
 }
