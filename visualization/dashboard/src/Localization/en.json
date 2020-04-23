@@ -297,7 +297,11 @@
         "indexLabel": "Data index to perturb",
         "rowLabel": "Row {0}",
         "whatIfNameLabel": "What-If datapoint name",
-        "featureValues": "Feature values"
+        "featureValues": "Feature values",
+        "predictedClass": "Predicted class: {0}",
+        "probability": "Probability: {0}",
+        "saveAsNewPoint": "Save as new point",
+        "saveChanges": "Save changes"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",

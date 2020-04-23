@@ -65,10 +65,14 @@ export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegen
         cursor: "pointer"
     },
     editButton: {
-        display: "inline-block"
+        width: "16px",
+        display: "inline-block",
+        color: theme.semanticColors.buttonText
     },
     deleteButton: {
-        display: "inline-block"
+        width: "16px",
+        display: "inline-block",
+        color: theme.semanticColors.errorText
     }
   });
 };

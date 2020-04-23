@@ -41,10 +41,12 @@ export interface IWhatIfTabStyles {
     secondaryChartPlacolderBox: IStyle;
     secondaryChartPlacolderSpacer: IStyle;
     faintText: IStyle;
+    predictedBlock: IStyle;
+    upperWhatIfPanel: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
-    const legendWidth = "150px";
+    const legendWidth = "160px";
     const theme = getTheme();
     return mergeStyleSets<IWhatIfTabStyles>({
         page: {
@@ -63,6 +65,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             flexDirection: "column"
         },
         parameterList: {
+            margin: "8px 18px 30px 22px",
             display: "flex",
             flexGrow: 1,
             backgroundColor: theme.palette.neutralLighter,
@@ -71,6 +74,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         featureList: {
             display: "flex",
+            paddingLeft: "10px",
             flexGrow: 1,
             flexDirection: "column",
             maxHeight: "400px",
@@ -116,7 +120,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             height: "100%",
             width: legendWidth,
             boxSizing: "border-box",
-            paddingLeft: "10px"
+            paddingLeft: "10px",
+            paddingRight: "10px"
+
         },
         chartWithAxes: {
             display: "flex",
@@ -235,7 +241,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             justifyContent: "space-between"
         },
         panelIconAndLabel: {
-
+            paddingTop: "10px",
+            alignItems: "center",
+            display: "flex"
         },
         secondaryChartPlacolderBox: {
             height: "300px",
@@ -249,6 +257,14 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         faintText: {
             fontWeight: "350" as any,
+        },
+        predictedBlock: {
+            paddingLeft: "6px",
+            paddingTop: "5px"
+        },
+        upperWhatIfPanel: {
+            paddingLeft: "32px",
+            paddingRight: "32px"
         }
     });
 }

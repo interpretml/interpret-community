@@ -135,9 +135,10 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                 y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
                 marker: {
                     color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
-                        FabricStyles.fabricColorPalette[series.index] : FabricStyles.fabricColorPalette[series.index])
+                        FabricStyles.fabricColorPalette[series.colorIndex] : FabricStyles.fabricColorPalette[series.colorIndex])
                 }
             } as any);
+            
         });
 
         const ticktext = sortedIndexVector.map(i =>this.props.unsortedX[i]);

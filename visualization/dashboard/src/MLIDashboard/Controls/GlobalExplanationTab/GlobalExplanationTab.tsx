@@ -165,7 +165,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         items={this.cohortSeries.map((row, rowIndex) => {
                             return {
                                 name: row.name,
-                                color: FabricStyles.fabricColorPalette[row.index],
+                                color: FabricStyles.fabricColorPalette[row.colorIndex],
                                 activated: this.state.seriesIsActive[rowIndex],
                                 onClick: this.toggleActivation.bind(this, rowIndex)
                             }
@@ -269,7 +269,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 name: cohort.name,
                 unsortedIndividualY: cohort.transposedLocalFeatureImportances(),
                 unsortedAggregateY: cohort.calculateAverageImportance(),
-                index: i
+                colorIndex: i
             }
         });
     }

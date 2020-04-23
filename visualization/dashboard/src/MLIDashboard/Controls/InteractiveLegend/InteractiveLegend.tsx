@@ -67,13 +67,13 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
             {item.onEdit !== undefined && (
                 <IconButton 
                     className={this.classes.editButton}
-                    iconProps={{iconName:"Edit"}}
+                    iconProps={{iconName:"Edit", style: {fontSize: "10px"}}}
                     onClick={item.onEdit} />
             )}
             {item.onDelete !== undefined && (
                 <IconButton
                     className={this.classes.deleteButton}
-                    iconProps={{iconName:"Clear"}}
+                    iconProps={{iconName:"Clear", style: {fontSize: "10px"}}}
                     onClick={item.onDelete}
                 />
             )}

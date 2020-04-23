@@ -6,5 +6,6 @@ export interface IGlobalSeries {
     unsortedIndividualY?: number[][];
     unsortedFeatureValues?: number[];
     name: string;
-    index: number;
+    colorIndex: number;
+    id?: number;
 }
