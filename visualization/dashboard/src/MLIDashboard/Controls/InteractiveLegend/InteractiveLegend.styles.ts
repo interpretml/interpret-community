@@ -10,6 +10,7 @@ export interface IInteractiveLegendStyles {
   disabledItem: IStyle;
   inactiveColorBox: IStyle;
   inactiveItem: IStyle;
+  clickTarget: IStyle;
 }
 
 export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegendStyles> = () => {
@@ -73,6 +74,13 @@ export const interactiveLegendStyles: () => IProcessedStyleSet<IInteractiveLegen
         width: "16px",
         display: "inline-block",
         color: theme.semanticColors.errorText
+    },
+    clickTarget: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        cursor: "pointer",
+        flex: "1"
     }
   });
 };

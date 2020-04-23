@@ -435,7 +435,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private buildSecondaryArea(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
         let secondaryPlot: React.ReactNode;
         if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
-            if (this.selectedFeatureImportance.length === 0){
+            if (this.includedFeatureImportance.length === 0){
                 secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
                     <div className={classNames.secondaryChartPlacolderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
@@ -642,9 +642,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const editingDataCustomIndex = this.state.editingDataCustomIndex !== undefined ?
             this.state.editingDataCustomIndex : this.state.customPoints.length;
         const customPoints = [...this.state.customPoints];
+        const customPointIsActive = [...this.state.customPointIsActive];
         customPoints.push(this.temporaryPoint);
+        customPointIsActive.push(true);
         this.temporaryPoint = _.cloneDeep(this.temporaryPoint);
-        this.setState({ editingDataCustomIndex, customPoints});
+        this.setState({ editingDataCustomIndex, customPoints, customPointIsActive});
     }
 
     private createCopyOfFirstRow(): { [key: string]: any } {
@@ -745,7 +747,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             newSelections.push(index);
             pointIsActive.push(true);
         } else {
-            newSelections = [...this.state.selectedPointsIndexes]
             newSelections.splice(indexOf, 1);
             pointIsActive.splice(indexOf, 1);
         }

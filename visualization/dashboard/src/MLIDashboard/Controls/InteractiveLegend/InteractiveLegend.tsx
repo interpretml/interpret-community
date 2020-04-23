@@ -57,13 +57,16 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
         }
         const rootClass = item.activated === false ? this.classes.inactiveItem : this.classes.item;
         return(
-        <div className={rootClass} onClick={item.onClick}>
+        <div className={rootClass}>
             <div 
-                className={item.activated === false ? this.classes.inactiveColorBox: this.classes.colorBox} 
-                style={{backgroundColor: item.color}}
-                onClick={item.onClick}
-            />
-            <Text nowrap variant={"medium"} className={this.classes.label}>{item.name}</Text>
+                className={this.classes.clickTarget}
+                onClick={item.onClick}>
+                <div 
+                    className={item.activated === false ? this.classes.inactiveColorBox: this.classes.colorBox} 
+                    style={{backgroundColor: item.color}}
+                />
+                <Text nowrap variant={"medium"} className={this.classes.label}>{item.name}</Text>
+            </div>
             {item.onEdit !== undefined && (
                 <IconButton 
                     className={this.classes.editButton}
