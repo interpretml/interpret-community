@@ -41,7 +41,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         },
         leftHalf: {
             height: "344px",
-            marginLeft:"40px"
+            marginLeft:"40px",
+            width:"213px"
         },
         rightHalf: {
             display: "flex",
@@ -57,7 +58,11 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         detailedList: {
             marginTop:"28px",
             height:"160px",
-            width:"213px"
+            width:"197px",
+            overflowX:"visible",
+            //overflowY:"scroll"
+            //width:"213px",
+            //paddingRight:"15px"
         },
         filterHeader:{
                 fontWeight: FontWeights.semibold,
@@ -116,7 +121,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             width:"180px",
             height:"20px",
             marginLeft:"30px",
-            color:theme.palette.neutralPrimary,
+            color:theme.palette.neutralSecondaryAlt,
             //color:"#979797",
             textAlign:"left",
         },
@@ -130,7 +135,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             marginRight:"35px",
             marginLeft:"35px",
             textAlign:"center",
-            color:theme.palette.neutralPrimary
+            color:theme.palette.neutralSecondaryAlt
             //color: "#979797" 
         },
         existingFilter: {
@@ -150,7 +155,11 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             height:"25px",
             whiteSpace: "nowrap",
             overflow: "hidden",
-            textOverflow: "ellipsis"
+            textOverflow: "ellipsis",
+            // selectors:{
+            //     hover:
+
+            // }
         },
         defaultFilterList: {
             //color: "#979797",
@@ -161,7 +170,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             display: "flex",
             flexDirection:"column",
             width:"560px",
-            height:"575px"
+            height:"624px",
+            overflowY:"visible"
         },
         addedFilter:
         {
@@ -174,7 +184,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         addedFilterDiv:{
             marginRight:"40px",
             marginLeft:"45px",
-            marginBottom:"18px",
+            marginTop:"5px",
+            //marginBottom:"18px",
             height:"97px",
             overflowY:"auto"
         },
@@ -189,9 +200,13 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             marginLeft:"37px"
         },
         saveCohort: {
+            //marginRight:"27px",
+            //marginBottom:"27px",
+            //marginLeft:"471px",
+            marginTop:"18px",
+            alignSelf:"flex-end",
             marginRight:"27px",
-            marginBottom:"27px",
-            marginLeft:"471px",
+            //marginBottom:"20px",
             width: '62px',
             height: '32px',
         },

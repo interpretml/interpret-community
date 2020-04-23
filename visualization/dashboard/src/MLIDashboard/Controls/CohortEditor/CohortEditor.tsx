@@ -29,6 +29,7 @@ export interface ICohortEditorState {
     filters?: IFilter[];
     isEditingFilter?: boolean;
     cohortName: string;
+    cohortErrorName: string;
 }
 
 //TODO: move this to style file
@@ -36,9 +37,11 @@ let cohortEditor: IStyle = {
     position: 'absolute',
     overflowY: 'visible',
     width: '560px',
-    height: '575px',
-    left: '250px',
-    top: '80px',
+    height: '624px',
+    //alignSelf:"center",
+    left: '500px',
+    top: '100px',
+    //TODO: fix rgba here
     boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
     borderRadius: '2px'
 }
@@ -108,7 +111,8 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             filterIndex: this.props.filterList.length,
             filters: this.props.filterList,
             isEditingFilter: false,
-            cohortName: this.props.cohortName
+            cohortName: this.props.cohortName,
+            cohortErrorName: ""
         };
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
@@ -152,6 +156,8 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             value={this.state.cohortName}
                             label={localization.CohortEditor.cohortNameLabel}
                             placeholder={localization.CohortEditor.cohortNamePlaceholder}
+                            onGetErrorMessage= {this._getErrorMessage}
+                            validateOnLoad={false}
                             onChange={this.setCohortName} />
                     </div>
 
@@ -222,6 +228,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 }
             )
         }
+    }
+
+    private _getErrorMessage = (): string => {
+       if (this.state.cohortName.length<=0){
+           return localization.CohortEditor.cohortNameError;
+       }
     }
 
     private readonly _setSelection = (): void => {
@@ -369,12 +381,17 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     private saveCohort(): void {
-        let newCohort = new Cohort(this.state.cohortName, this.props.jointDataset, this.state.filters);
-        this.props.onSave(newCohort);
+        if (this.state.cohortName.length > 0){
+            let newCohort = new Cohort(this.state.cohortName, this.props.jointDataset, this.state.filters);
+            this.props.onSave(newCohort);
+        }
+        else {
+            this._getErrorMessage
+        }
     }
 
     private setCohortName(event): void {
-        this.setState({ cohortName: event.target.value });
+        this.setState({ cohortName: event.target.value });   
     }
 
     private setFilterLabel(filter: IFilter): React.ReactNode {
