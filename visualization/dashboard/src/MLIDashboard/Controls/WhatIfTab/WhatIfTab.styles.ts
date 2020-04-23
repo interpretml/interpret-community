@@ -43,6 +43,8 @@ export interface IWhatIfTabStyles {
     faintText: IStyle;
     predictedBlock: IStyle;
     upperWhatIfPanel: IStyle;
+    saveButton: IStyle;
+    customPredictBlock: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -265,6 +267,13 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         upperWhatIfPanel: {
             paddingLeft: "32px",
             paddingRight: "32px"
+        },
+        customPredictBlock: {
+            paddingLeft: "24px",
+            paddingBottom: "10px"
+        },
+        saveButton: {
+            margin: "0 0 10px 24px"
         }
     });
 }

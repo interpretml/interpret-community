@@ -5,7 +5,7 @@ import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext
 import { IProcessedStyleSet } from "@uifabric/styling";
 import { IPlotlyProperty, AccessibleChart, PlotlyMode, RangeTypes } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
-import { IconButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
+import { IconButton, DefaultButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
 import { IconNames } from "@uifabric/icons";
 import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
@@ -43,7 +43,7 @@ export interface IWhatIfTabState {
     customPoints: Array<{ [key: string]: any }>;
     selectedCohortIndex: number;
     filteredFeatureList: Array<{ key: string, label: string }>;
-    requestList: AbortController[];
+    request?: AbortController;
     selectedPointsIndexes: number[];
     pointIsActive: boolean[];
     customPointIsActive: boolean[];
@@ -140,7 +140,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             editingDataCustomIndex: undefined,
             customPoints: [],
             selectedCohortIndex: 0,
-            requestList: [],
+            request: undefined,
             filteredFeatureList: this.featureList,
             selectedPointsIndexes: [],
             pointIsActive: [],
@@ -296,14 +296,17 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             })}
                         </div>
                     </div>
+                    {this.buildCustomPredictionLabels(classNames)}
                     {this.state.editingDataCustomIndex !== undefined && (
-                        <DefaultButton
+                        <PrimaryButton
+                            className={classNames.saveButton}
                             disabled={this.temporaryPoint[JointDataset.PredictedYLabel] === undefined}
                             text={localization.WhatIfTab.saveChanges}
-                            onClick={this.saveAsPoint}
+                            onClick={this.savePoint}
                         />
                     )}
-                    <DefaultButton
+                    <PrimaryButton
+                        className={classNames.saveButton}
                         disabled={this.temporaryPoint[JointDataset.PredictedYLabel] === undefined}
                         text={localization.WhatIfTab.saveAsNewPoint}
                         onClick={this.saveAsPoint}
@@ -511,16 +514,39 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (this.props.metadata.modelType === ModelTypes.binary) {
             const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);
             const predictedClass = this.props.jointDataset.hasPredictedY ?
-                this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[row[JointDataset.PredictedYLabel]] :
+                row[JointDataset.PredictedYLabel] : undefined;
+            const predictedClassName = predictedClass !== undefined ?
+                this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[predictedClass] :
                 undefined;
             const predictedProb = this.props.jointDataset.hasPredictedProbabilities ?
-                row[JointDataset.ProbabilityYRoot + "0"].toPrecision(5) :
+                row[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
                 undefined;
             return (<div className={classNames.predictedBlock}>
                     {predictedClass !== undefined &&
-                    (<Text block variant="xSmall">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClass)}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
-                    (<Text block variant="xSmall">{localization.formatString(localization.WhatIfTab.probability, predictedProb)}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
+                </div>);
+        } else {
+            return <div></div>
+        }
+    }
+
+    private buildCustomPredictionLabels(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
+        if (this.props.metadata.modelType === ModelTypes.binary) {
+            const predictedClass = this.props.jointDataset.hasPredictedY ?
+                this.temporaryPoint[JointDataset.PredictedYLabel] : undefined;
+            const predictedClassName = predictedClass !== undefined ?
+                this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[predictedClass] :
+                undefined;
+            const predictedProb = this.props.jointDataset.hasPredictedProbabilities && predictedClass !== undefined ?
+                this.temporaryPoint[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
+                undefined;
+            return (<div className={classNames.customPredictBlock}>
+                    {predictedClass !== undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
+                    {predictedProb !== undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
                 </div>);
         } else {
             return <div></div>
@@ -726,25 +752,37 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState({ selectedPointsIndexes: newSelections, pointIsActive });
     }
 
+    // fetch prediction for temporary point
     private fetchData(fetchingReference: { [key: string]: any }): void {
-        if (this.state.requestList[this.state.editingDataCustomIndex] !== undefined) {
-            this.state.requestList[this.state.editingDataCustomIndex].abort();
+        if (this.state.request !== undefined) {
+            this.state.request.abort();
         }
-        const requestList = [...this.state.requestList];
         const abortController = new AbortController();
-        requestList[this.state.editingDataCustomIndex] = abortController;
         const rawData = JointDataset.datasetSlice(fetchingReference, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
         fetchingReference[JointDataset.PredictedYLabel] = undefined;
         const promise = this.props.invokeModel([rawData], abortController.signal);
 
 
-        this.setState({ requestList }, async () => {
+        this.setState({ request: abortController }, async () => {
             try {
                 const fetchedData = await promise;
-                if (Array.isArray(fetchedData)) {
-                    fetchingReference[JointDataset.PredictedYLabel] = fetchedData[0];
-                    delete this.state.requestList[this.state.editingDataCustomIndex];
-                    this.forceUpdate();
+                // returns predicted probabilities
+                if (Array.isArray(fetchedData[0])) {
+                    const predictionVector = fetchedData[0];
+                    let predictedClass = 0;
+                    let maxProb = Number.MIN_SAFE_INTEGER;
+                    for (let i = 0; i < predictionVector.length; i++) {
+                        fetchingReference[JointDataset.ProbabilityYRoot + i.toString()] = predictionVector[i];
+                        if (predictionVector[i] > maxProb) {
+                            predictedClass = i;
+                            maxProb = predictionVector[i];
+                        }
+                    }
+                    fetchingReference[JointDataset.PredictedYLabel] = predictedClass;
+                    this.setState({request: undefined});
+                } else {
+                    // prediction is a scalar, no probabilities
+                    fetchingReference[JointDataset.PredictedYLabel] = fetchedData[0]
                 }
             } catch (err) {
                 if (err.name === 'AbortError') {

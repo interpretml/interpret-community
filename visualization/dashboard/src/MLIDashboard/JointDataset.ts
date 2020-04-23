@@ -188,13 +188,14 @@ export class JointDataset {
         if (args.predictedProbabilities) {
             if (args.metadata.modelType === ModelTypes.binary) {
                 this.initializeDataDictIfNeeded(args.predictedY);
-                const key = JointDataset.ProbabilityYRoot + "0";
-                args.predictedProbabilities.forEach((val, index) => {
-                        this.dataDict[index][key] = val[0];
+                args.predictedProbabilities.forEach((predictionArray, index) => {
+                    predictionArray.forEach((val, classIndex) => {
+                        this.dataDict[index][JointDataset.ProbabilityYRoot + classIndex.toString()] = val;
+                    });
                 });
                 const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, args.metadata.classNames[0]) as string;
                 const projection = args.predictedProbabilities.map(row => row[0]);
-                this.metaDict[key] = {
+                this.metaDict[JointDataset.ProbabilityYRoot + "0"] = {
                     label,
                     abbridgedLabel: label,
                     isCategorical: false,
