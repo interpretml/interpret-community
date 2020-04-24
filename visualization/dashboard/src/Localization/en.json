@@ -276,6 +276,7 @@
         "chartType": "Chart type"
     },
     "DependencePlot": {
+        "featureImportanceOf": "Feature importance of",
         "placeholder": "Click on a feature on the bar chart above to show its dependence plot"
     },
     "WhatIfTab": {

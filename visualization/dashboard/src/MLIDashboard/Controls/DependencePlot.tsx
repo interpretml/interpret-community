@@ -40,8 +40,9 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps> {
             },
             margin: {
                 t: 10,
-                l: 0,
+                l: 10,
                 b: 20,
+                r: 10
             },
             hovermode: "closest",
             showlegend: false,
@@ -122,13 +123,28 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps> {
         },
         placeholder: {
             maxWidth: "70%"
+        },
+        secondaryChartPlacolderBox: {
+            height: "400px",
+            width: "100%"
+        },
+        secondaryChartPlacolderSpacer: {
+            margin: "25px auto 0 auto",
+            padding: "23px",
+            width:"fit-content",
+            boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
+        },
+        faintText: {
+            fontWeight: "350" as any,
         }
     });
 
     public render(): React.ReactNode {
         if (this.props.chartProps === undefined) { 
-            return (<div className={DependencePlot.classNames.placeholderWrapper}>
-                <Text variant={"xLarge"} className={DependencePlot.classNames.placeholder}>{localization.DependencePlot.placeholder}</Text>
+            return (<div className={DependencePlot.classNames.secondaryChartPlacolderBox}>
+                <div className={DependencePlot.classNames.secondaryChartPlacolderSpacer}>
+                    <Text variant="large" className={DependencePlot.classNames.faintText}>{localization.DependencePlot.placeholder}</Text>
+                </div>
             </div>);
         }
         const plotlyProps = this.generatePlotlyProps();
@@ -138,7 +154,8 @@ export class DependencePlot extends React.PureComponent<INewDataTabProps> {
                     <div className={DependencePlot.classNames.chartWithVertical}>
                         <div className={DependencePlot.classNames.verticalAxis}>
                             <div className={DependencePlot.classNames.rotatedVerticalBox}>
-                                <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}</Text>
+                                <Text variant={"medium"} block>{localization.DependencePlot.featureImportanceOf}</Text>
+                                <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label + " : " + this.props.metadata.classNames[0]}</Text>
                             </div>
                         </div>
                         <div className={DependencePlot.classNames.chart}>

@@ -32,7 +32,14 @@ export interface IMultiICEPlotState {
 }
 
 export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMultiICEPlotState> {
-    private static buildPlotlyProps(modelType: ModelTypes, featureName: string, colors: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
+    private static buildYAxis(metadata: IExplanationModelMetadata): string {
+        if (metadata.modelType === ModelTypes.regression) {
+            return localization.IcePlot.prediction;
+        } if (metadata.modelType === ModelTypes.binary) {
+            return localization.IcePlot.predictedProbability + ":<br>" + metadata.classNames[0];
+        }
+    }
+    private static buildPlotlyProps(metadata: IExplanationModelMetadata, featureName: string, colors: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
         if (yData === undefined || xData === undefined || yData.length === 0 || yData.some(row => row === undefined)) {
             return undefined;
         }
@@ -61,13 +68,15 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                     size: 10
                 },
                 margin: {
-                    t: 10, b: 30
+                    t: 10,
+                    b: 30,
+                    r: 10
                 },
                 hovermode: 'closest',
                 showlegend: false,
                 yaxis: {
                     automargin: true,
-                    title: modelType === ModelTypes.regression ?  localization.IcePlot.prediction : localization.IcePlot.predictedProbability
+                    title: MultiICEPlot.buildYAxis(metadata)
                 },
                 xaxis: {
                     title: featureName,
@@ -129,7 +138,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         else {
             const hasOutgoingRequest = this.state.abortControllers.some(x => x !== undefined);
             const plotlyProps = MultiICEPlot.buildPlotlyProps(
-                this.props.metadata.modelType, 
+                this.props.metadata, 
                 this.props.jointDataset.metaDict[this.state.requestFeatureKey].label,
                 this.props.colors,
                 this.state.rangeView.type,
