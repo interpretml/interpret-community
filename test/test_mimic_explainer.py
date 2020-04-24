@@ -4,7 +4,7 @@
 
 import pytest
 
-# Tests for LIME Explainer
+# Tests for MIMIC Explainer
 import json
 import logging
 import numpy as np
