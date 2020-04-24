@@ -18,7 +18,7 @@ import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceB
 import { MultiICEPlot } from "../MultiICEPlot";
 import { FabricStyles } from "../../FabricStyles";
 import { InteractiveLegend, ILegendItem } from "../InteractiveLegend";
-import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
+import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption, FabricSlots } from "office-ui-fabric-react";
 import { whatIfTabStyles, IWhatIfTabStyles } from "./WhatIfTab.styles";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
@@ -291,8 +291,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         />
                         <div className={classNames.featureList}>
                             {this.state.filteredFeatureList.map(item => {
+                                const metaInfo = this.props.jointDataset.metaDict[item.key];
+                                if (metaInfo.isCategorical) {
+                                    const options: IDropdownOption[] = metaInfo.sortedCategoricalValues.map((text, key) => {
+                                        return {key, text};
+                                    })
+                                    return <Dropdown 
+                                        label={metaInfo.abbridgedLabel}
+                                        selectedKey={this.temporaryPoint[item.key]}
+                                        options={options}
+                                        onChange={this.setCustomRowPropertyDropdown.bind(this, item.key)}
+                                    />
+                                }
                                 return <TextField
-                                    label={this.props.jointDataset.metaDict[item.key].abbridgedLabel}
+                                    label={metaInfo.abbridgedLabel}
                                     value={this.temporaryPoint[item.key].toString()}
                                     onChange={this.setCustomRowProperty.bind(this, item.key, this.props.jointDataset.metaDict[item.key].treatAsCategorical)}
                                     styles={{ fieldGroup: { width: 100 } }}
@@ -627,12 +639,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
             editingData[key] = asNumber;
         }
+        this.forceUpdate();
         this.fetchData(editingData);
     }
 
     private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         const editingData = this.temporaryPoint;
         editingData[key] = item.key;
+        this.forceUpdate();
         this.fetchData(editingData);
     }
 
@@ -815,14 +829,34 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     return FabricStyles.fabricColorInactiveSeries;
                 }
                 return FabricStyles.fabricColorPalette[selectionIndex];
-            }) as any
+            }) as any,
+            size: 8
         }
 
         plotlyProps.data[1] = {
-            type: "scattergl",
+            type: "scatter",
             mode: PlotlyMode.markers,
             marker: {
-                color: JointDataset.unwrap(this.state.customPoints, WhatIfTab.colorPath)
+                symbol: "star",
+                size: 12,
+                color: this.state.customPoints.map((unused, i) => FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + 1 + i])
+            }
+        }
+
+        plotlyProps.data[2] = {
+            type: "scatter",
+            mode: PlotlyMode.markers,
+            text: "Editable What-If point",
+            hoverinfo: "text",
+            marker: {
+                opacity: 0.5,
+                symbol: "star",
+                size: 12,
+                color: 'rgba(0,0,0,0)',
+                line: {
+                    color: FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + 1 + this.state.customPoints.length],
+                    width: 2
+                }
             }
         }
 
@@ -835,14 +869,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
             const rawX = cohort.unwrap(chartProps.xAxis.property);
             const customX = JointDataset.unwrap(this.state.customPoints, chartProps.xAxis.property);
+            const tempX = JointDataset.unwrap([this.temporaryPoint], chartProps.xAxis.property);
             if (chartProps.xAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
+                const tempDithered = JointDataset.unwrap([this.temporaryPoint], JointDataset.DitherLabel);
                 plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither; });
                 plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither; });
+                plotlyProps.data[2].x = tempDithered.map((dither, index) => { return tempX[index] + dither; })
             } else {
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[1].x = customX;
+                plotlyProps.data[2].x = tempX;
             }
         }
         if (chartProps.yAxis) {
@@ -854,14 +892,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
             const rawY = cohort.unwrap(chartProps.yAxis.property);
             const customY = JointDataset.unwrap(this.state.customPoints, chartProps.yAxis.property);
+            const tempY = JointDataset.unwrap([this.temporaryPoint], chartProps.yAxis.property);
             if (chartProps.yAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
+                const tempDithered = JointDataset.unwrap([this.temporaryPoint], JointDataset.DitherLabel);
                 plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither; });
                 plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither; });
+                plotlyProps.data[2].y = tempDithered.map((dither, index) => { return tempY[index] + dither; })
             } else {
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[1].y = customY;
+                plotlyProps.data[2].y = tempY;
             }
         }
 
