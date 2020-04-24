@@ -508,7 +508,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     private pivotItems: IPivotItemProps[];
-    private pivotRef: IPivot;
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
@@ -609,9 +608,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             <>
                 <div className="explainerDashboard">
                     <div className="charts-wrapper">
-                        <div className="global-charts-wrapper">
+                        <div className="global-charts-wrapper" >
                             <Pivot
-                                componentRef={ref => {this.pivotRef = ref;}}
+                                id={"globalPivot"}
                                 selectedKey={ExplanationDashboard.globalTabKeys[this.state.activeGlobalTab]}
                                 onLinkClick={this.handleGlobalTabClick}
                                 linkFormat={PivotLinkFormat.tabs}
@@ -845,7 +844,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClearSelection(): void {
         this.selectionContext.onSelect([]);
-        this.pivotRef.focus();
         this.setState({activeLocalTab: 0});
+        (document.querySelector("#globalPivot button")as any).focus();
     }
 }
