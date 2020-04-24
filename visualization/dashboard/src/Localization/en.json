@@ -314,6 +314,7 @@
         "cohortNameLabel":"Dataset cohort name",
         "cohortNamePlaceholder":"Name your cohort",
         "save":"Save",
-        "cancel":"Cancel"
+        "cancel":"Cancel",
+        "cohortNameError":"Missing cohort name"
     }
 }

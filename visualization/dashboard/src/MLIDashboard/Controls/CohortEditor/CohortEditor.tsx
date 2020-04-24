@@ -1,8 +1,8 @@
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
-import { IStyle, Text, TextField } from "office-ui-fabric-react";
+import { Text, TextField } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
-import { Callout, ICalloutContentStyles } from "office-ui-fabric-react/lib/Callout";
+import { Callout } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { CheckboxVisibility, DetailsList, Selection, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
@@ -13,7 +13,10 @@ import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
-import { cohortEditorStyles } from "./CohortEditor.styles";
+import { cohortEditorCallout, cohortEditorStyles } from "./CohortEditor.styles";
+import { initializeIcons } from '@uifabric/icons';
+
+initializeIcons();
 
 export interface ICohortEditorProps {
     jointDataset: JointDataset;
@@ -31,29 +34,8 @@ export interface ICohortEditorState {
     cohortName: string;
 }
 
-//TODO: move this to style file
-let cohortEditor: IStyle = {
-    position: 'absolute',
-    overflowY: 'visible',
-    width: '560px',
-    height: '575px',
-    left: '250px',
-    top: '80px',
-    boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
-    borderRadius: '2px'
-}
-
-let calloutMain: ICalloutContentStyles = {
-    container: {},
-    root: {},
-    beak: {},
-    beakCurtain: {},
-    calloutMain: cohortEditor
-}
-
-
 const styles = cohortEditorStyles();
-
+const cohortEditor = cohortEditorCallout();
 
 export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohortEditorState> {
     private _leftSelection: Selection;
@@ -144,16 +126,18 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
-                styles={calloutMain}
+                styles={cohortEditor}
             >
                 <div className={styles.container}>
-                    <div className={styles.cohortName}>
-                        <TextField
+                <IconButton className={styles.closeIcon} iconProps={{iconName:"ChromeClose"}} onClick={ this.closeCallout.bind(this)}/>
+                    <TextField
+                            className={styles.cohortName}
                             value={this.state.cohortName}
                             label={localization.CohortEditor.cohortNameLabel}
                             placeholder={localization.CohortEditor.cohortNamePlaceholder}
+                            onGetErrorMessage={this._getErrorMessage}
+                            validateOnLoad={false}
                             onChange={this.setCohortName} />
-                    </div>
 
                     <div className={styles.wrapper}>
                         <div className={styles.leftHalf}>
@@ -166,7 +150,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 checkboxVisibility={CheckboxVisibility.hidden}
                                 onRenderDetailsHeader={this._onRenderDetailsHeader}
                                 selection={this._leftSelection}
-                                selectionPreservedOnEmptyClick={false}
+                                selectionPreservedOnEmptyClick={true}
                                 setKey={"set"}
                                 columns={[{ key: 'col1', name: 'name', minWidth: 150, fieldName: 'title' }]}
                             />
@@ -198,6 +182,10 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         );
     }
 
+    private closeCallout = (): void => {
+        this.props.onCancel();
+    };
+
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
         const openedFilter = this.state.openedFilter;
         this.props.jointDataset.setTreatAsCategorical(openedFilter.column, checked);
@@ -221,6 +209,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                     }
                 }
             )
+        }
+    }
+
+    private _getErrorMessage = (): string => {
+        if (this.state.cohortName.length <= 0) {
+            return localization.CohortEditor.cohortNameError;
         }
     }
 
@@ -369,8 +363,13 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     private saveCohort(): void {
-        let newCohort = new Cohort(this.state.cohortName, this.props.jointDataset, this.state.filters);
-        this.props.onSave(newCohort);
+        if (this.state.cohortName.length > 0) {
+            let newCohort = new Cohort(this.state.cohortName, this.props.jointDataset, this.state.filters);
+            this.props.onSave(newCohort);
+        }
+        else {
+            this._getErrorMessage
+        }
     }
 
     private setCohortName(event): void {
