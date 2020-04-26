@@ -1,39 +1,22 @@
-import React from "react";
-import { JointDataset, ColumnCategories, IJointMeta } from "../JointDataset";
-import { Target, Callout } from "office-ui-fabric-react/lib/Callout";
-import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
-import { DetailsList, SelectionMode, Selection } from "office-ui-fabric-react/lib/DetailsList";
-import { getTheme, mergeStyleSets } from "@uifabric/styling";
-import { DefaultButton } from "office-ui-fabric-react/lib/Button";
 import _ from "lodash";
-import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
-import { localization } from "../../Localization/localization";
-import { ComboBox, IComboBoxOption, IComboBox } from "office-ui-fabric-react/lib/ComboBox";
-import { IComboBoxClassNames } from "office-ui-fabric-react/lib/components/ComboBox/ComboBox.classNames";
-import { FabricStyles } from "../FabricStyles";
 import { RangeTypes } from "mlchartlib";
-import { ISelectorConfig } from "../NewExplanationDashboard";
-import { Cohort } from "../Cohort";
+import { Text } from "office-ui-fabric-react";
+import { PrimaryButton } from "office-ui-fabric-react/lib/Button";
+import { Callout, Target, DirectionalHint } from "office-ui-fabric-react/lib/Callout";
+import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
+import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
+import { DetailsList, Selection, SelectionMode, CheckboxVisibility } from "office-ui-fabric-react/lib/DetailsList";
+import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
+import { Position } from "office-ui-fabric-react/lib/utilities/positioning";
+import React from "react";
+import { localization } from "../../../Localization/localization";
+import { Cohort } from "../../Cohort";
+import { FabricStyles } from "../../FabricStyles";
+import { ColumnCategories, IJointMeta, JointDataset } from "../../JointDataset";
+import { ISelectorConfig } from "../../NewExplanationDashboard";
+import { axisControlCallout, axisControlDialogStyles } from "./AxisConfigDialog.styles";
 
-const theme = getTheme();
-const styles = mergeStyleSets({
-    wrapper: {
-        minHeight: "300px",
-        width: "400px",
-        display: "flex"
-    },
-    leftHalf: {
-        display: "inline-flex",
-        width: "50%",
-        height: "100%",
-        borderRight: "2px solid #CCC"
-    },
-    rightHalf: {
-        display: "inline-flex",
-        width: "50%",
-        flexDirection: "column"
-    }
-});
+const styles = axisControlDialogStyles();
 
 export interface IAxisConfigProps {
     jointDataset: JointDataset;
@@ -106,19 +89,24 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         const isDataColumn = this.state.selectedColumn.property.indexOf(JointDataset.DataLabelRoot) !== -1;
         return (
             <Callout
-                target={this.props.target ? '#' + this.props.target : undefined}
+                //target={this.props.target ? '#' + this.props.target : undefined}
                 onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
+                styles = {axisControlCallout}
+                //directionalHint={DirectionalHint.leftTopEdge}
+                //gapSpace
             >
                 <div className={styles.wrapper}>
                     <div className={styles.leftHalf}>
                         <DetailsList
+                            className={styles.detailedList}
                             items={this.leftItems}
                             ariaLabelForSelectionColumn="Toggle selection"
                             ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                             checkButtonAriaLabel="Row checkbox"
                             onRenderDetailsHeader={this._onRenderDetailsHeader}
+                            checkboxVisibility={CheckboxVisibility.hidden}
                             selection={this._leftSelection}
                             selectionPreservedOnEmptyClick={true}
                             setKey={"set"}
@@ -134,22 +122,28 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                             <ComboBox
                                 options={this.dataArray}
                                 onChange={this.setSelectedProperty}
-                                label={"Feature: "}
-                                ariaLabel="feature picker"
+                                label={localization.AxisConfigDialog.selectFeature}
+                                className={styles.featureComboBox}
                                 selectedKey={this.state.selectedColumn.property}
-                                useComboBoxAsMenuWidth={true}
-                                styles={FabricStyles.defaultDropdownStyle} />
+                                //useComboBoxAsMenuWidth={true}
+                                //styles={FabricStyles.defaultDropdownStyle} 
+                            />
                         )}
                         {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
-                            <Checkbox label="Treat as categorical" checked={selectedMeta.treatAsCategorical} onChange={this.setAsCategorical} />
+                            <Checkbox  
+                            className = {styles.treatCategorical}
+                            label={localization.AxisConfigDialog.TreatAsCategorical} 
+                            checked={selectedMeta.treatAsCategorical} 
+                            onChange={this.setAsCategorical} />
                         )}
-                        <div>Data summary</div>
                         {selectedMeta.treatAsCategorical && (
                             <div>
-                                <div>{`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}</div>
+                                <Text variant={"small"} className={styles.featureText}>
+                                {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                                </Text>
                                 {this.props.canDither && (
                                     <Checkbox 
-                                        label={"Should dither"}
+                                        label ={localization.AxisConfigDialog.ditherLabel}
                                         checked={this.state.selectedColumn.options.dither}
                                         onChange={this.ditherChecked}
                                     />
@@ -158,31 +152,21 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                         {!selectedMeta.treatAsCategorical && (
                             <div>
-                                <div>{`min: ${selectedMeta.featureRange.min}`}</div>
-                                <div>{`max: ${selectedMeta.featureRange.max}`}</div>
+                                <Text variant={"small"} className={styles.featureText}>
+                                {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
+                                </Text>
                                 {this.props.canBin && !this.props.mustBin && (
                                     <Checkbox
-                                        label={"Apply binning to data"}
+                                        label={localization.AxisConfigDialog.binLabel}
                                         checked={this.state.selectedColumn.options.bin}
                                         onChange={this.shouldBinClicked}
                                     />
                                 )}
                                 {(this.props.mustBin || this.state.selectedColumn.options.bin) && this.state.binCount !== undefined && (
                                 <SpinButton
-                                    styles={{
-                                        spinButtonWrapper: {maxWidth: "98px"},
-                                        labelWrapper: { alignSelf: "center"},
-                                        root: {
-                                            display: "inline-flex",
-                                            float: "right",
-                                            selectors: {
-                                                "> div": {
-                                                    maxWidth: "108px"
-                                                }
-                                            }
-                                        }
-                                    }}
-                                    label={localization.Filters.numericValue}
+                                    className={styles.spinButton}
+                                    labelPosition={Position.top}
+                                    label={localization.AxisConfigDialog.numOfBins}
                                     min={this.MIN_HIST_COLS}
                                     max={this.MAX_HIST_COLS}
                                     value={this.state.binCount.toString()}
@@ -195,10 +179,12 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                     </div>)}
                 </div>
-                <DefaultButton 
-                    text={"Accept"}
+                <PrimaryButton 
+                    text={localization.AxisConfigDialog.select}
                     onClick={this.saveState}
-                />
+                    className ={styles.selectButton}
+                >Select</PrimaryButton>
+                
             </Callout>
         );
     }
@@ -244,7 +230,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     }
 
     private readonly _onRenderDetailsHeader = () => {
-        return <div></div>
+        return <div className={styles.filterHeader}>{localization.AxisConfigDialog.selectFilter}</div>
     }
 
     private readonly ditherChecked = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {

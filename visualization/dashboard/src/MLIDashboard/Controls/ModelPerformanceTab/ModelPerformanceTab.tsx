@@ -7,7 +7,7 @@ import { mergeStyleSets } from "@uifabric/styling";
 import _ from "lodash";
 import { DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { localization } from "../../../Localization/localization";
-import { AxisConfigDialog } from "../AxisConfigDialog";
+import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { AccessibleChart, IPlotlyProperty } from "mlchartlib";
 import { Transform } from "plotly.js-dist";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";

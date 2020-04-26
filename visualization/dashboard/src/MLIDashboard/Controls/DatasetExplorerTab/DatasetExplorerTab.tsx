@@ -13,7 +13,7 @@ import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Bu
 import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
 import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
-import { AxisConfigDialog } from "../AxisConfigDialog";
+import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { Cohort } from "../../Cohort";
 import { dastasetExplorerTabStyles as datasetExplorerTabStyles, IDatasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
 import { Icon, Text, Callout, DirectionalHint, ChoiceGroup, IChoiceGroupOption, IChoiceGroup } from "office-ui-fabric-react";
