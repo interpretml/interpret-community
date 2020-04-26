@@ -316,5 +316,14 @@
         "save":"Save",
         "cancel":"Cancel",
         "cohortNameError":"Missing cohort name"
+    },
+    "AxisConfigDialog": {
+        "select" : "Select",
+        "ditherLabel": "Should dither",
+        "selectFilter":"Select your axis value",
+        "selectFeature": "Select Feature",
+        "binLabel": "Apply binning to data",
+        "TreatAsCategorical": "Treat as categorical",
+        "numOfBins":"Number of bins"
     }
 }
