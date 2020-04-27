@@ -976,7 +976,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
             xAxis: {
-                property: JointDataset.IndexLabel,
+                property: this.props.jointDataset.hasPredictedProbabilities ?
+                    JointDataset.ProbabilityYRoot + "0" :
+                    JointDataset.IndexLabel,
                 options: {}
             },
             yAxis: {
@@ -985,11 +987,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     dither: yIsDithered,
                     bin: false
                 }
-            },
-            colorAxis: {
-                property: this.props.jointDataset.hasPredictedY ?
-                    JointDataset.PredictedYLabel : JointDataset.IndexLabel,
-                options: {}
             }
         }
         this.props.onChange(chartProps);
