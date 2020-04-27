@@ -199,10 +199,10 @@ class ExplanationDashboard:
         explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
         # Due to auth, predict is only available in separate tab in cloud after login
-        if ExplanationDashboard.service.env is "local":
+        if ExplanationDashboard.service.env == "local":
             explanation_input.enable_predict_url()
         html = generate_inline_html(explanation_input, local_url)
-        if ExplanationDashboard.service.env is "azure":
+        if ExplanationDashboard.service.env == "azure":
             explanation_input.enable_predict_url()
 
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
