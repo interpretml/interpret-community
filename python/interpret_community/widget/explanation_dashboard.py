@@ -95,15 +95,17 @@ class ExplanationDashboard:
             env = EnvironmentDetector()
             detected_envs = env.detect()
             in_cloud_env = is_cloud_env(detected_envs)
-            # First handle known clous environments
+            # First handle known cloud environments
             nbvm_file_path = "/mnt/azmnt/.nbvm"
             if not (os.path.exists(nbvm_file_path) and os.path.isfile(nbvm_file_path)):
-                if not in_cloud_env: 
+                if not in_cloud_env:
                     return "http://{0}:{1}".format(
                         self.ip,
                         self.port)
                 # all non-specified cloud environments are not handled
                 return None
+            # regex to find items of the form key=value where value will be part of a url
+            # the keys of interest to us are "instance" and domainsuffix"
             envre = re.compile(r'''^([^\s=]+)=(?:[\s"']*)(.+?)(?:[\s"']*)$''')
             result = {}
             with open(nbvm_file_path) as nbvm_variables:
@@ -184,7 +186,7 @@ class ExplanationDashboard:
         ExplanationDashboard.service.use_cdn = use_cdn
         ExplanationDashboard.model_count += 1
         base_url = ExplanationDashboard.service.get_base_url()
-        if (base_url is not None):
+        if base_url is not None:
             predict_url = "{0}/{1}/predict".format(
                 base_url,
                 str(ExplanationDashboard.model_count))
