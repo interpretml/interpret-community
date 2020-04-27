@@ -63,6 +63,7 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         },
         scrollableWrapper: {
             flexGrow: "1",
+            maxHeight:"700px",
             overflowY: "auto"
         },
         scrollContent: {
@@ -82,10 +83,16 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-evenly",
-            padding: "40px 15px 30px 30px"
+            padding: "10px 15px 11px 30px",
+            boxSizing: "border-box"
         },
         statsBox: {
-            padding: "23px 30px 30px 30px",
+            height: "120px",
+            boxSizing:  "border-box",
+            padding: "0 10px 0 20px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
             boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
             backgroundColor: theme.semanticColors.bodyBackground
         },
