@@ -48,6 +48,7 @@ class ExplanationDashboardInput:
             model.predict_proba is not None
         self._dataframeColumns = None
         self.dashboard_input = {}
+        self._predict_url = predict_url
         # List of explanations, key of explanation type is "explanation_type"
         self._mli_explanations = explanation.data(-1)["mli"]
         local_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_LOCAL_EXPLANATION_KEY)
@@ -163,10 +164,12 @@ class ExplanationDashboardInput:
                 ex_str = _format_exception(ex)
                 raise ValueError("Model predict_proba output of unsupported type, inner error: {}".format(ex_str))
             self.dashboard_input[ExplanationDashboardInterface.PROBABILITY_Y] = probability_y
-        if model is not None:
-            self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = predict_url
         if locale is not None:
             self.dashboard_input[ExplanationDashboardInterface.LOCALE] = locale
+
+    def enable_predict_url(self):
+        if self._model is not None:
+            self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = self._predict_url
 
     def on_predict(self, data):
         try:
