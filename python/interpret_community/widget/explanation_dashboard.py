@@ -6,6 +6,7 @@ from interpret.utils.environment import EnvironmentDetector, is_cloud_env
 import threading
 import socket
 import requests
+import re
 import os
 import json
 import atexit
@@ -90,6 +91,34 @@ class ExplanationDashboard:
 
             atexit.register(closeserver)
 
+        def get_base_url(self):
+            env = EnvironmentDetector()
+            detected_envs = env.detect()
+            in_cloud_env = is_cloud_env(detected_envs)
+            # First handle known clous environments
+            nbvm_file_path = "/mnt/azmnt/.nbvm"
+            if not (os.path.exists(nbvm_file_path) and os.path.isfile(nbvm_file_path)):
+                if not in_cloud_env: 
+                    return "http://{0}:{1}".format(
+                        self.ip,
+                        self.port)
+                # all non-specified cloud environments are not handled
+                return None
+            envre = re.compile(r'''^([^\s=]+)=(?:[\s"']*)(.+?)(?:[\s"']*)$''')
+            result = {}
+            with open(nbvm_file_path) as nbvm_variables:
+                for line in nbvm_variables:
+                    match = envre.match(line)
+                    if match is not None:
+                        result[match.group(1)] = match.group(2)
+
+            if "instance" not in result or "domainsuffix" not in result:
+                return None
+
+            instance_name = result["instance"]
+            domain_suffix = result["domainsuffix"]
+            return "https://{}-{}.{}".format(instance_name, self.port, domain_suffix)
+
         def _local_port_available(ip, port, rais=True):
             """
             Borrowed from:
@@ -142,9 +171,6 @@ class ExplanationDashboard:
         if true_y is None and trueY is not None:
             true_y = trueY
         self._initialize_js(use_cdn)
-        env = EnvironmentDetector()
-        detected_envs = env.detect()
-        in_cloud_env = is_cloud_env(detected_envs)
         predict_url = None
         local_url = None
         if not ExplanationDashboard.service:
@@ -157,14 +183,13 @@ class ExplanationDashboard:
                 raise e
         ExplanationDashboard.service.use_cdn = use_cdn
         ExplanationDashboard.model_count += 1
-        if (not in_cloud_env):
-            predict_url = "http://{0}:{1}/{2}/predict".format(
-                ExplanationDashboard.service.ip,
-                ExplanationDashboard.service.port,
+        base_url = ExplanationDashboard.service.get_base_url()
+        if (base_url is not None):
+            predict_url = "{0}/{1}/predict".format(
+                base_url,
                 str(ExplanationDashboard.model_count))
-            local_url = "http://{0}:{1}/{2}".format(
-                ExplanationDashboard.service.ip,
-                ExplanationDashboard.service.port,
+            local_url = "{0}/{1}".format(
+                base_url,
                 str(ExplanationDashboard.model_count))
         explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
