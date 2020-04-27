@@ -312,6 +312,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         plotlyProps.data[0].orientation = 'h';
         switch (chartProps.chartType) {
             case ChartTypes.Box: {
+                plotlyProps.layout.hovermode = false;
                 plotlyProps.data[0].type = "box" as any;
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
