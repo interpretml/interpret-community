@@ -97,7 +97,7 @@ class ExplanationDashboardInput:
         local_dim = None
 
         if true_y is not None and len(true_y) == row_length:
-            self.dashboard_input[ExplanationDashboardInterface.TRUE_Y] = true_y
+            self.dashboard_input[ExplanationDashboardInterface.TRUE_Y] = self._convert_to_list(true_y)
 
         if local_explanation is not None:
             try:
