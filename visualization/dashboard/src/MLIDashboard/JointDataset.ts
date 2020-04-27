@@ -216,6 +216,21 @@ export class JointDataset {
             args.trueY.forEach((val, index) => {
                 this.dataDict[index][JointDataset.TrueYLabel] = val;
             });
+            this.metaDict[JointDataset.TrueYLabel] = {
+                label: localization.ExplanationScatter.trueY,
+                abbridgedLabel: localization.ExplanationScatter.trueY,
+                isCategorical: args.metadata.modelType !== ModelTypes.regression,
+                treatAsCategorical: args.metadata.modelType !== ModelTypes.regression,
+                sortedCategoricalValues: args.metadata.modelType !== ModelTypes.regression ? args.metadata.classNames : undefined,
+                category: ColumnCategories.outcome
+            };
+            if (args.metadata.modelType === ModelTypes.regression) {
+                this.metaDict[JointDataset.TrueYLabel].featureRange = {
+                    min: Math.min(...args.trueY),
+                    max: Math.max(...args.trueY),
+                    rangeType: RangeTypes.numeric
+                }
+            }
             this.hasTrueY = true;
         }
         // include error columns if applicable

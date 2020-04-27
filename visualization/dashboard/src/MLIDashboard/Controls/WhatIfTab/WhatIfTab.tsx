@@ -134,7 +134,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.generateDefaultChartAxes();
         }
         this.state = {
-            isPanelOpen: false,
+            isPanelOpen: true,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
@@ -283,6 +283,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             styles={{ fieldGroup: { width: 200 } }}
                         />
                     </div>
+                    {this.buildCustomPredictionLabels(classNames)}
                     <div className={classNames.parameterList}>
                         <Text variant="medium" className={classNames.boldText}>{localization.WhatIfTab.featureValues}</Text>
                         <SearchBox
@@ -312,7 +313,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             })}
                         </div>
                     </div>
-                    {this.buildCustomPredictionLabels(classNames)}
                     {this.state.editingDataCustomIndex !== undefined && (
                         <PrimaryButton
                             className={classNames.saveButton}
