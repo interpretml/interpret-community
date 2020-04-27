@@ -18,7 +18,7 @@ steps:
 
   - bash: |
       source activate interp
-      pip install -e ./python
+      pip install -e ./python[visualization]
     displayName: Install interpret-community
 
   - bash: |

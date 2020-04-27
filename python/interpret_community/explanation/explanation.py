@@ -1633,10 +1633,8 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     if explanation is not None and kwargs is not None:
         raise ValueError("Both explanation and kwargs cannot be set")
 
-    keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK,
-            ExplainParams.CLASSIFICATION, ExplainParams.INIT_DATA, ExplainParams.EVAL_DATA,
-            ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.EVAL_Y_PRED,
-            ExplainParams.EVAL_Y_PRED_PROBA, ExplainParams.NUM_FEATURES]
+    keys = [ExplainParams.METHOD, ExplainParams.CLASSES, ExplainParams.MODEL_TASK, ExplainParams.CLASSIFICATION,
+            ExplainParams.EXPECTED_VALUES, ExplainParams.MODEL_ID, ExplainParams.NUM_FEATURES]
 
     def has_value(x):
         if explanation is None:
