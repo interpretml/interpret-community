@@ -265,7 +265,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <Text variant={"medium"} className={classNames.boldText}>{localization.WhatIfTab.whatIfDatapoint}</Text>
                     </div>
                     <div className={classNames.upperWhatIfPanel}>
-                        <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.whatIfHelpText}</Text>
+                        <Text variant={"small"} className={classNames.legendHelpText}>{localization.WhatIfTab.whatIfHelpText}</Text>
                         <Dropdown 
                             label={localization.WhatIfTab.indexLabel}
                             options={rowOptions}
@@ -558,9 +558,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 undefined;
             return (<div className={classNames.customPredictBlock}>
                     {predictedClass !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toPrecision(5))}</Text>)}
                 </div>);
         } else {
             return <div></div>

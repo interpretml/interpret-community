@@ -142,7 +142,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             position: "relative",
             top: "0px",
             height: "auto",
-            width: "64px"
+            width: "67px"
         },
         rotatedVerticalBox: {
             transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
