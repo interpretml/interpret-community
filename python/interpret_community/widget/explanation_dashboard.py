@@ -61,6 +61,7 @@ class ExplanationDashboard:
         def __init__(self, port):
             self.port = port
             self.ip = 'localhost'
+            self.env = "local"
             self.use_cdn = True
             if self.port is None:
                 # Try 100 different ports
@@ -103,7 +104,9 @@ class ExplanationDashboard:
                         self.ip,
                         self.port)
                 # all non-specified cloud environments are not handled
+                self.env = "cloud"
                 return None
+            self.env = "cloud"
             # regex to find items of the form key=value where value will be part of a url
             # the keys of interest to us are "instance" and domainsuffix"
             envre = re.compile(r'''^([^\s=]+)=(?:[\s"']*)(.+?)(?:[\s"']*)$''')
@@ -116,7 +119,7 @@ class ExplanationDashboard:
 
             if "instance" not in result or "domainsuffix" not in result:
                 return None
-
+            self.env = "azure"
             instance_name = result["instance"]
             domain_suffix = result["domainsuffix"]
             return "https://{}-{}.{}".format(instance_name, self.port, domain_suffix)
@@ -195,7 +198,12 @@ class ExplanationDashboard:
                 str(ExplanationDashboard.model_count))
         explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
+        # Due to auth, predict is only available in separate tab in cloud after login
+        if ExplanationDashboard.service.env is "local":
+            explanation_input.enable_predict_url()
         html = generate_inline_html(explanation_input, local_url)
+        if ExplanationDashboard.service.env is "azure":
+            explanation_input.enable_predict_url()
 
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
 
