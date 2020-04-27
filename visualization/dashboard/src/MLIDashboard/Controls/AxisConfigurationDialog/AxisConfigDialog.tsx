@@ -89,13 +89,10 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         const isDataColumn = this.state.selectedColumn.property.indexOf(JointDataset.DataLabelRoot) !== -1;
         return (
             <Callout
-                //target={this.props.target ? '#' + this.props.target : undefined}
                 onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
                 styles = {axisControlCallout}
-                //directionalHint={DirectionalHint.leftTopEdge}
-                //gapSpace
             >
                 <div className={styles.wrapper}>
                     <div className={styles.leftHalf}>
@@ -125,8 +122,6 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 label={localization.AxisConfigDialog.selectFeature}
                                 className={styles.featureComboBox}
                                 selectedKey={this.state.selectedColumn.property}
-                                //useComboBoxAsMenuWidth={true}
-                                //styles={FabricStyles.defaultDropdownStyle} 
                             />
                         )}
                         {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
