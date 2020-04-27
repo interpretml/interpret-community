@@ -224,13 +224,14 @@
         "filterFeaturePlaceholder": "Search features"
     },
     "Cohort": {
-        "cohort": "Cohort"
+        "cohort": "Cohort",
+        "defaultLabel": "All data"
     },
     "GlobalTab": {
         "secondaryChart": "Select chart type:",
         "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances . Select up to three cohorts to see their feature importances side by side. Click on any of the features in the graph to see a density plot below of how values of the selected feature affect prediction.",
         "topAtoB": "Top {0}-{1} features",
-        "datasetCohorts": "Dataset Cohorts",
+        "datasetCohorts": "Dataset cohorts",
         "legendHelpText": "Toggle cohorts on and off in the plot by clicking on the legend items.",
         "sortBy": "Sort by",
         "viewDependencePlotFor": "View dependence plot for:",
@@ -283,7 +284,7 @@
         "helperText": "Select an individual datapoint by cllicking on a datapoint in the scatterplot or by entering the datapoint index or feature values on the left panel to view its local feature importance values below",
         "panelPlaceholder": "A model is required to make predictions for new data points.",
         "cohortPickerLabel": "Select a dataset cohort to explore",
-        "scatterLegendText": "Toggle datapoints on and off in the plot by clicking on the legend items. Double click to isolate one point.",
+        "scatterLegendText": "Toggle datapoints on and off in the plot by clicking on the legend items.",
         "realPoint": "Real datapoints",
         "noneSelectedYet": "None selected yet",
         "whatIfDatapoints": "What-If datapoints",

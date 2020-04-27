@@ -406,7 +406,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div >
                     <div className={classNames.legendAndText}>
                         <div className={classNames.legendHlepWrapper}>
-                            <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.scatterLegendText}</Text>
+                            <Text variant={"small"} className={classNames.legendHelpText}>{localization.WhatIfTab.scatterLegendText}</Text>
                         </div>
                         <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.realPoint}</Text>
                         {this.selectedFeatureImportance.length > 0 &&
