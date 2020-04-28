@@ -1,7 +1,7 @@
 import { IProcessedStyleSet } from "@uifabric/styling";
 import _ from "lodash";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode } from "mlchartlib";
-import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text } from "office-ui-fabric-react";
+import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox  } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
@@ -16,9 +16,7 @@ import { ModelExplanationUtils } from "../../ModelExplanationUtils";
 import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
-import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
-import { MultiICEPlot } from "../MultiICEPlot";
 import { IWhatIfTabStyles, whatIfTabStyles } from "./WhatIfTab.styles";
 
 export interface IWhatIfTabProps {
