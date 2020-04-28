@@ -46,6 +46,8 @@ export interface IWhatIfTabStyles {
     saveButton: IStyle;
     customPredictBlock: IStyle;
     featureSearch: IStyle;
+    iceFeatureSelection: IStyle;
+    disclaimerWrapper: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -277,6 +279,12 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         featureSearch: {
             marginRight: "10px",
             marginBottom: "8px"
+        },
+        iceFeatureSelection: {
+            margin: "43px 10px 10px 0",
+        },
+        disclaimerWrapper: {
+            padding: "5px 15px 10px 26px"
         }
     });
 }

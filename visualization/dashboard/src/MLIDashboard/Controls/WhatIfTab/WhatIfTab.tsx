@@ -49,6 +49,7 @@ export interface IWhatIfTabState {
     sortArray: number[];
     sortingSeriesIndex: number;
     secondaryChartChoice: string;
+    selectedFeatureKey: string;
 }
 
 interface ISelectedRowInfo {
@@ -124,6 +125,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private testableDatapoints: any[][] = [];
     private temporaryPoint: { [key: string]: any };
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
+    private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
+        .map((unused, index) => {
+        const key = JointDataset.DataLabelRoot + index.toString();
+        return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
+    });
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -147,7 +153,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             topK: 4,
             sortArray: [],
             sortingSeriesIndex: undefined,
-            secondaryChartChoice: WhatIfTab.featureImportanceKey
+            secondaryChartChoice: WhatIfTab.featureImportanceKey,
+            selectedFeatureKey: JointDataset.DataLabelRoot + "0"
         };
         this.temporaryPoint = this.createCopyOfFirstRow();
         //this.seriesOfRows = this.buildJoinedSelectedRows(this.state.selectedPointsIndexes, this.state.customPoints);
@@ -165,6 +172,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setStartingK = this.setStartingK.bind(this);
         this.setSecondaryChart = this.setSecondaryChart.bind(this);
         this.setSelectedIndex = this.setSelectedIndex.bind(this);
+        this.onFeatureSelected = this.onFeatureSelected.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -325,6 +333,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         text={localization.WhatIfTab.saveAsNewPoint}
                         onClick={this.saveAsPoint}
                     />
+                    <div className={classNames.disclaimerWrapper}>
+                        <Text variant={"xSmall"}>{localization.WhatIfTab.disclaimer}</Text>
+                    </div>
                 </div>)}
                 {!this.state.isPanelOpen && (<IconButton
                     iconProps={{ iconName: "ChevronLeft" }}
@@ -504,9 +515,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             colors={this.testableDatapointColors}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
-                            theme={this.props.theme}
+                            feature={this.state.selectedFeatureKey}
                         />
-                        <div className={classNames.featureImportanceLegend}> </div>
+                        <div className={classNames.featureImportanceLegend}>
+                            <ComboBox
+                                autoComplete={"on"}
+                                className={classNames.iceFeatureSelection}
+                                options={this.featuresOption}
+                                onChange={this.onFeatureSelected}
+                                label={localization.IcePlot.featurePickerLabel}
+                                ariaLabel="feature picker"
+                                selectedKey={this.state.selectedFeatureKey }
+                                useComboBoxAsMenuWidth={true}
+                            />
+                        </div>
                     </div>
                 </div>);
             }
@@ -590,6 +612,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         this.setState({ selectedCohortIndex: item.key as number, selectedPointsIndexes: [] });
+    }
+
+    private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
+        this.setState({ selectedFeatureKey: item.key as string});
     }
 
     private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
