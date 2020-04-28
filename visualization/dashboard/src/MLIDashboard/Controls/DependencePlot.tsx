@@ -9,7 +9,7 @@ import { Transform } from "plotly.js-dist";
 import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../NewExplanationDashboard";
 import { JointDataset, ColumnCategories } from "../JointDataset";
 import { IExplanationModelMetadata } from "../IExplanationContext";
-import { AxisConfigDialog } from "./AxisConfigDialog";
+import { AxisConfigDialog } from "./AxisConfigurationDialog/AxisConfigDialog";
 import { localization } from "../../Localization/localization";
 import _ from "lodash";
 import { Cohort } from "../Cohort";
