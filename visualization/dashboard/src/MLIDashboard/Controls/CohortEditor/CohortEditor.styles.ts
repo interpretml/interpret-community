@@ -37,12 +37,9 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
     const theme = getTheme();
     return mergeStyleSets<ICohortEditorStyles>({
         cohortEditor: {
-            position: 'absolute',
             overflowY: 'visible',
             width: '560px',
             height: '624px',
-            left: '500px',
-            top: '100px',
             //TODO: fix rgba here
             boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
             borderRadius: '2px'
@@ -246,7 +243,7 @@ const cohortEditor = cohortEditorStyles();
 export const cohortEditorCallout: () => ICalloutContentStyles = () => {
     return {
         container: {},
-        root: {},
+        root: {marginLeft:"212px"},
         beak: {},
         beakCurtain: {},
         calloutMain: cohortEditor.cohortEditor

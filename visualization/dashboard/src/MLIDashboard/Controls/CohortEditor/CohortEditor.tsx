@@ -127,6 +127,8 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 setInitialFocus={true}
                 hidden={false}
                 styles={cohortEditor}
+                gapSpace={170}
+                directionalHintFixed={true}
             >
                 <div className={styles.container}>
                 <IconButton className={styles.closeIcon} iconProps={{iconName:"ChromeClose"}} onClick={ this.closeCallout.bind(this)}/>
