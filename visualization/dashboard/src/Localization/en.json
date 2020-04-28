@@ -224,17 +224,19 @@
         "filterFeaturePlaceholder": "Search features"
     },
     "Cohort": {
-        "cohort": "Cohort"
+        "cohort": "Cohort",
+        "defaultLabel": "All data"
     },
     "GlobalTab": {
         "secondaryChart": "Select chart type:",
         "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances . Select up to three cohorts to see their feature importances side by side. Click on any of the features in the graph to see a density plot below of how values of the selected feature affect prediction.",
         "topAtoB": "Top {0}-{1} features",
-        "datasetCohorts": "Dataset Cohorts",
+        "datasetCohorts": "Dataset cohorts",
         "legendHelpText": "Toggle cohorts on and off in the plot by clicking on the legend items.",
         "sortBy": "Sort by",
         "viewDependencePlotFor": "View dependence plot for:",
-        "datasetCohortSelector": "Select a dataset cohort"
+        "datasetCohortSelector": "Select a dataset cohort",
+        "aggregateFeatureImportance": "Aggregate Feature Importance"
     },
     "FeatureBar": {
         "sortBy": "Sort by:"
@@ -283,7 +285,7 @@
         "helperText": "Select an individual datapoint by cllicking on a datapoint in the scatterplot or by entering the datapoint index or feature values on the left panel to view its local feature importance values below",
         "panelPlaceholder": "A model is required to make predictions for new data points.",
         "cohortPickerLabel": "Select a dataset cohort to explore",
-        "scatterLegendText": "Toggle datapoints on and off in the plot by clicking on the legend items. Double click to isolate one point.",
+        "scatterLegendText": "Toggle datapoints on and off in the plot by clicking on the legend items.",
         "realPoint": "Real datapoints",
         "noneSelectedYet": "None selected yet",
         "whatIfDatapoints": "What-If datapoints",
@@ -294,15 +296,23 @@
         "featureImportanceGetStartedText":"Select a point to view feature importance",
         "IceGetStartedText": "Select a point or create a what-if point to view ICE plots",
         "whatIfDatapoint": "What-If datapoint",
-        "whatIfHelpText": "Select a point on the plot or manually enter in a known datapoint index to perturb and save as a new What-If point from",
+        "whatIfHelpText": "Select a point on the plot or manually enter in a known datapoint index to perturb and save as a new What-If point.",
         "indexLabel": "Data index to perturb",
         "rowLabel": "Row {0}",
         "whatIfNameLabel": "What-If datapoint name",
         "featureValues": "Feature values",
         "predictedClass": "Predicted class: {0}",
         "probability": "Probability: {0}",
+        "newPredictedClass": "New predicted class: {0}",
+        "newProbability": "New probability: {0}",
         "saveAsNewPoint": "Save as new point",
-        "saveChanges": "Save changes"
+        "saveChanges": "Save changes",
+        "loading": "loading...",
+        "classLabel": "Class: {0}",
+        "minLabel": "Min",
+        "maxLabel": "Max",
+        "stepsLabel": "Steps",
+        "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool."
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",

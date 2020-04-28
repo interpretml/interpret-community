@@ -45,6 +45,9 @@ export interface IWhatIfTabStyles {
     upperWhatIfPanel: IStyle;
     saveButton: IStyle;
     customPredictBlock: IStyle;
+    featureSearch: IStyle;
+    iceFeatureSelection: IStyle;
+    disclaimerWrapper: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -71,7 +74,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             display: "flex",
             flexGrow: 1,
             backgroundColor: theme.palette.neutralLighter,
-            padding: "6px",
+            padding: "6px 0 6px 12px",
             flexDirection: "column"
         },
         featureList: {
@@ -142,7 +145,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             position: "relative",
             top: "0px",
             height: "auto",
-            width: "64px"
+            width: "67px"
         },
         rotatedVerticalBox: {
             transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
@@ -261,7 +264,6 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             fontWeight: "350" as any,
         },
         predictedBlock: {
-            paddingLeft: "6px",
             paddingTop: "5px"
         },
         upperWhatIfPanel: {
@@ -269,11 +271,20 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             paddingRight: "32px"
         },
         customPredictBlock: {
-            paddingLeft: "24px",
-            paddingBottom: "10px"
+            paddingTop: "5px",
         },
         saveButton: {
             margin: "0 0 10px 24px"
+        },
+        featureSearch: {
+            marginRight: "10px",
+            marginBottom: "8px"
+        },
+        iceFeatureSelection: {
+            margin: "43px 10px 10px 0",
+        },
+        disclaimerWrapper: {
+            padding: "5px 15px 10px 26px"
         }
     });
 }

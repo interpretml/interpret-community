@@ -66,6 +66,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             this.state.selectedCohortIndex
         );
         const metricsList = this.generateMetrics() as IBinaryStats[];
+        const height = Math.max(400, 160 *  metricsList.length) + "px";
         const cohortOptions: IDropdownOption[] = this.props.chartProps.yAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         return (
@@ -114,7 +115,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             </div>
                         </div>
                         <div className={classNames.scrollableWrapper}>
-                            <div className={classNames.scrollContent}>
+                            <div className={classNames.scrollContent} style={{height}}>
                                 <div className={classNames.chart}>
                                     <AccessibleChart
                                         plotlyProps={plotlyProps}
@@ -124,11 +125,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                 <div className={classNames.rightPanel}>
                                     {metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy)}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision)}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall)}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate)}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate)}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy.toPrecision(3))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision.toPrecision(3))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(5))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate.toPrecision(3))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate.toPrecision(3 ))}</Text>
                                         </div>)
                                     })}
                                 </div>
@@ -260,7 +261,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     showline: true
                 },
                 xaxis: {
-                    side: "top",
+                    side: "bottom",
                     mirror: true,
                     color: FabricStyles.chartAxisColor,
                     tickfont: {
@@ -311,6 +312,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         plotlyProps.data[0].orientation = 'h';
         switch (chartProps.chartType) {
             case ChartTypes.Box: {
+                plotlyProps.layout.hovermode = false;
                 plotlyProps.data[0].type = "box" as any;
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;

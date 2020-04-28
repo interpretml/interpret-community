@@ -1,17 +1,18 @@
 import React from "react";
-import { JointDataset } from "../JointDataset";
-import { IRangeView } from "./ICEPlot";
+import { JointDataset } from "../../JointDataset";
+import { IRangeView } from "../ICEPlot";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import _ from "lodash";
 import { IPlotlyProperty, RangeTypes, AccessibleChart, PlotlyMode } from "mlchartlib";
 import { IComboBox, IComboBoxOption, ComboBox } from "office-ui-fabric-react/lib/ComboBox";
-import { localization } from "../../Localization/localization";
-import { NoDataMessage } from "../SharedComponents";
-import { ModelTypes, IExplanationModelMetadata } from "../IExplanationContext";
-import { FabricStyles } from "../FabricStyles";
-import { TextField } from "office-ui-fabric-react/lib/TextField";
+import { localization } from "../../../Localization/localization";
+import { NoDataMessage } from "../../SharedComponents";
+import { ModelTypes, IExplanationModelMetadata } from "../../IExplanationContext";
+import { FabricStyles } from "../../FabricStyles";
 import { Data } from "plotly.js-dist";
-import { ModelExplanationUtils } from "../ModelExplanationUtils";
+import { ModelExplanationUtils } from "../../ModelExplanationUtils";
+import { SpinButton, Text } from "office-ui-fabric-react";
+import { multiIcePlotStyles } from "./MultiICEPlot.styles";
 
 export interface IMultiICEPlotProps {
     invokeModel?: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
@@ -19,11 +20,10 @@ export interface IMultiICEPlotProps {
     colors: string[];
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
-    theme?: string;
+    feature: string;
 } 
 
 export interface IMultiICEPlotState {
-    requestFeatureKey: string | undefined;
     yAxes: number[][] | number[][][];
     xAxisArray: string[] | number[];
     abortControllers: AbortController[];
@@ -44,7 +44,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             return undefined;
         }
         const data: Data[] = (yData as number[][][]).map((singleRow, rowIndex) => {
-            const transposedY: number[][] = Array.isArray(yData[0]) ?
+            const transposedY: number[][] = Array.isArray(singleRow[0]) ?
                 ModelExplanationUtils.transpose2DArray((singleRow)) :
                 [singleRow] as any;
             return {
@@ -85,27 +85,18 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             } as any
         }
     }
-    
-    private featuresOption: IDropdownOption[];
+
     private debounceFetchData: () => void;
     constructor(props: IMultiICEPlotProps) {
         super(props);
-        this.featuresOption =  new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
-            .map((unused, index) => {
-                const key = JointDataset.DataLabelRoot + index.toString();
-                return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
-            });
-        const requestFeatureKey = this.featuresOption[0].key as string;
-        const rangeView = this.buildRangeView(requestFeatureKey);
+        const rangeView = this.buildRangeView(this.props.feature);
         const xAxisArray = this.buildRange(rangeView);
         this.state = {
             yAxes:[],
             abortControllers: [],
             rangeView,
-            requestFeatureKey,
             xAxisArray
         };
-        this.onFeatureSelected = this.onFeatureSelected.bind(this);
         this.onCategoricalRangeChanged = this.onCategoricalRangeChanged.bind(this);
         this.onMinRangeChanged = this.onMinRangeChanged.bind(this);
         this.onMaxRangeChanged = this.onMaxRangeChanged.bind(this);
@@ -120,6 +111,9 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
     public componentDidUpdate(prevProps: IMultiICEPlotProps): void {
         if (this.props.datapoints !== prevProps.datapoints) {
             this.fetchData();
+        }
+        if (this.props.feature !== prevProps.feature) {
+            this.onFeatureSelected();
         }
     }
 
@@ -136,10 +130,11 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             return <NoDataMessage />;
         } 
         else {
+            const classNames = multiIcePlotStyles();
             const hasOutgoingRequest = this.state.abortControllers.some(x => x !== undefined);
             const plotlyProps = MultiICEPlot.buildPlotlyProps(
                 this.props.metadata, 
-                this.props.jointDataset.metaDict[this.state.requestFeatureKey].label,
+                this.props.jointDataset.metaDict[this.props.feature].label,
                 this.props.colors,
                 this.state.rangeView.type,
                 this.state.xAxisArray, 
@@ -148,132 +143,174 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                 this.state.rangeView.maxErrorMessage !== undefined ||
                 this.state.rangeView.minErrorMessage !== undefined || 
                 this.state.rangeView.stepsErrorMessage !== undefined);
-            return (<div className="ICE-wrapper">
-                <div className="feature-pickers">
-                    <div className="feature-picker">
-                        <div className="path-selector">
+            return (
+                <div className={classNames.iceWrapper}>
+                    {this.state.rangeView !== undefined &&
+                    <div className={classNames.controlArea}> 
+                        {this.state.rangeView.type === RangeTypes.categorical &&
                             <ComboBox
-                                options={this.featuresOption}
-                                onChange={this.onFeatureSelected}
-                                label={localization.IcePlot.featurePickerLabel}
-                                ariaLabel="feature picker"
-                                selectedKey={this.state.requestFeatureKey }
-                                useComboBoxAsMenuWidth={true}
+                                multiSelect
+                                selectedKey={this.state.rangeView.selectedOptionKeys as string[]}
+                                allowFreeform={true}
+                                autoComplete="on"
+                                options={this.state.rangeView.categoricalOptions}
+                                onChange={this.onCategoricalRangeChanged}
                                 styles={FabricStyles.defaultDropdownStyle}
                             />
-                        </div>
-                        {this.state.rangeView !== undefined && 
-                        <div className="rangeview">
-                            {this.state.rangeView.type === RangeTypes.categorical &&
-                                <ComboBox
-                                    multiSelect
-                                    selectedKey={this.state.rangeView.selectedOptionKeys as string[]}
-                                    allowFreeform={true}
-                                    autoComplete="on"
-                                    options={this.state.rangeView.categoricalOptions}
-                                    onChange={this.onCategoricalRangeChanged}
-                                    styles={FabricStyles.defaultDropdownStyle}
+                        }
+                        {this.state.rangeView.type !== RangeTypes.categorical && 
+                            <div className={classNames.parameterList}>
+                                <SpinButton
+                                    styles={{
+                                        spinButtonWrapper: {maxWidth: "68px"},
+                                        labelWrapper: { alignSelf: "center"},
+                                        root: {
+                                            display: "inline-flex",
+                                            float: "right",
+                                            selectors: {
+                                                "> div": {
+                                                    maxWidth: "78px"
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    label={localization.WhatIfTab.minLabel}
+                                    value={this.state.rangeView.min.toString()}
+                                    onIncrement={this.onMinRangeChanged.bind(this, 1)}
+                                    onDecrement={this.onMinRangeChanged.bind(this, -1)}
+                                    onValidate={this.onMinRangeChanged.bind(this, 0)}
                                 />
-                            }
-                            {this.state.rangeView.type !== RangeTypes.categorical && 
-                                <div className="parameter-set">
-                                    <TextField 
-                                        label={localization.IcePlot.minimumInputLabel}
-                                        styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.min}
-                                        onChange={this.onMinRangeChanged}
-                                        errorMessage={this.state.rangeView.minErrorMessage}/>
-                                    <TextField 
-                                        label={localization.IcePlot.maximumInputLabel}
-                                        styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.max}
-                                        onChange={this.onMaxRangeChanged}
-                                        errorMessage={this.state.rangeView.maxErrorMessage}/>
-                                    <TextField 
-                                        label={localization.IcePlot.stepInputLabel}
-                                        styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.steps}
-                                        onChange={this.onStepsRangeChanged}
-                                        errorMessage={this.state.rangeView.stepsErrorMessage}/>
-                                </div>
-                            }
-                        </div>}
+                                <SpinButton
+                                    styles={{
+                                        spinButtonWrapper: {maxWidth: "68px"},
+                                        labelWrapper: { alignSelf: "center"},
+                                        root: {
+                                            display: "inline-flex",
+                                            float: "right",
+                                            selectors: {
+                                                "> div": {
+                                                    maxWidth: "78px"
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    label={localization.WhatIfTab.maxLabel}
+                                    value={this.state.rangeView.max.toString()}
+                                    onIncrement={this.onMaxRangeChanged.bind(this, 1)}
+                                    onDecrement={this.onMaxRangeChanged.bind(this, -1)}
+                                    onValidate={this.onMaxRangeChanged.bind(this, 0)}
+                                />
+                                <SpinButton
+                                    styles={{
+                                        spinButtonWrapper: {maxWidth: "68px"},
+                                        labelWrapper: { alignSelf: "center"},
+                                        root: {
+                                            display: "inline-flex",
+                                            float: "right",
+                                            selectors: {
+                                                "> div": {
+                                                    maxWidth: "78px"
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    label={localization.WhatIfTab.stepsLabel}
+                                    value={this.state.rangeView.steps.toString()}
+                                    onIncrement={this.onStepsRangeChanged.bind(this, 1)}
+                                    onDecrement={this.onStepsRangeChanged.bind(this, -1)}
+                                    onValidate={this.onStepsRangeChanged.bind(this, 0)}
+                                />
+                            </div>
+                        }
                     </div>
-                </div>
+                }
                 {hasOutgoingRequest &&
-                <div className="loading">{localization.IcePlot.loadingMessage}</div>}
+                <div className={classNames.placeholder}>
+                    <Text>{localization.IcePlot.loadingMessage}</Text>
+                </div>}
                 {this.state.errorMessage &&
-                <div className="loading">
-                    {this.state.errorMessage}
+                <div className={classNames.placeholder}>>
+                    <Text>{this.state.errorMessage}</Text>
                 </div>}
                 {(plotlyProps === undefined && !hasOutgoingRequest) && 
-                <div className="charting-prompt">{localization.IcePlot.submitPrompt}</div>}
+                <div className={classNames.placeholder}>
+                    <Text>{localization.IcePlot.submitPrompt}</Text>
+                </div>}
                 {hasError && 
-                <div className="charting-prompt">{localization.IcePlot.topLevelErrorMessage}</div>}
+                <div className={classNames.placeholder}>
+                    <Text>{localization.IcePlot.topLevelErrorMessage}</Text>
+                </div>}
                 {(plotlyProps !== undefined && !hasOutgoingRequest && !hasError) &&
-                <div className="second-wrapper">
-                    <div className="chart-wrapper">
-                        <AccessibleChart
-                            plotlyProps={plotlyProps}
-                            theme={this.props.theme}
-                        />
-                    </div>
+                <div className={classNames.chartWrapper}>
+                    <AccessibleChart
+                        plotlyProps={plotlyProps}
+                        theme={undefined}
+                    />
                 </div>}
             </div>);
         }
     }
 
-    private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
-        const rangeView = this.buildRangeView(item.key as string);
+    private onFeatureSelected(): void {
+        const rangeView = this.buildRangeView(this.props.feature);
         const xAxisArray = this.buildRange(rangeView);
-        this.setState({rangeView, xAxisArray, requestFeatureKey: item.key as string }, ()=> {
+        this.setState({rangeView, xAxisArray }, ()=> {
             this.debounceFetchData();
         });
     }
 
-    private onMinRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
-        const val = + newValue;
+    private onMinRangeChanged(delta: number, stringVal: string): string | void {
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.min = newValue;
-        if (Number.isNaN(val) || (this.state.rangeView.type === RangeTypes.integer && !Number.isInteger(val))) {
-            rangeView.minErrorMessage = this.state.rangeView.type === RangeTypes.integer ? localization.IcePlot.integerError : localization.IcePlot.numericError;
-            this.setState({rangeView});
+        if (delta === 0) {
+            const numberVal = +stringVal;
+            if (Number.isNaN(numberVal)) {
+                return rangeView.min.toString();
+            }
+            rangeView.min = numberVal
+        } else {
+            rangeView.min += delta;
         }
-        else {
-            const xAxisArray = this.buildRange(rangeView);
-            rangeView.minErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
+        if (+rangeView.max <= rangeView.min) {
+            return this.state.rangeView.min.toString();
         }
+        const xAxisArray = this.buildRange(rangeView);
+        this.setState({rangeView, xAxisArray, yAxes: undefined, abortControllers: [new AbortController()]}, () => {this.debounceFetchData()});
     }
 
-    private onMaxRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
-        const val = + newValue;
+    private onMaxRangeChanged(delta: number, stringVal: string): string | void {
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.max = newValue;
-        if (Number.isNaN(val) || (this.state.rangeView.type === RangeTypes.integer && !Number.isInteger(val))) {
-            rangeView.maxErrorMessage = this.state.rangeView.type === RangeTypes.integer ? localization.IcePlot.integerError : localization.IcePlot.numericError;
-            this.setState({rangeView});
+        if (delta === 0) {
+            const numberVal = +stringVal;
+            if (Number.isNaN(numberVal)) {
+                return rangeView.max.toString();
+            }
+            rangeView.max = numberVal
+        } else {
+            rangeView.max += delta;
         }
-        else {
-            const xAxisArray = this.buildRange(rangeView);
-            rangeView.maxErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
+        if (rangeView.max <= rangeView.min) {
+            return this.state.rangeView.max.toString();
         }
+        const xAxisArray = this.buildRange(rangeView);
+        this.setState({rangeView, xAxisArray, yAxes: undefined, abortControllers: [new AbortController()]}, () => {this.debounceFetchData()});
     }
 
-    private onStepsRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
-        const val = + newValue;
+    private onStepsRangeChanged(delta: number, stringVal: string): string | void {
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.steps = newValue;
-        if (!Number.isInteger(val)) {
-            rangeView.stepsErrorMessage = localization.IcePlot.integerError;
-            this.setState({rangeView});
+        if (delta === 0) {
+            const numberVal = +stringVal;
+            if (!Number.isInteger(numberVal)) {
+                return rangeView.steps.toString();
+            }
+            rangeView.steps = numberVal
+        } else {
+            rangeView.steps += delta;
         }
-        else {
-            const xAxisArray = this.buildRange(rangeView);
-            rangeView.stepsErrorMessage = undefined;
-            this.setState({rangeView, xAxisArray}, () => {this.debounceFetchData()});
+        if (rangeView.steps <= 0) {
+            return this.state.rangeView.steps.toString();
         }
+        const xAxisArray = this.buildRange(rangeView);
+        this.setState({rangeView, xAxisArray, yAxes: undefined, abortControllers: [new AbortController()]}, () => {this.debounceFetchData()});
     }
 
     private onCategoricalRangeChanged(event: React.FormEvent<IComboBox>, option?: IComboBoxOption, index?: number, value?: string): void {
@@ -349,6 +386,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             // Columns that are passed in as categorical strings should be strings when passed to predict
             if (summary.isCategorical) {
                 return {
+                    key: featureKey,
                     featureIndex: summary.index,
                     selectedOptionKeys: summary.sortedCategoricalValues,
                     categoricalOptions: summary.sortedCategoricalValues.map(text => {return {key: text, text}}),
@@ -358,6 +396,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             // Columns that were integers that are flagged in the UX as categorical should still be integers when
             // calling predict on the model.
             return {
+                key: featureKey,
                 featureIndex: summary.index,
                 selectedOptionKeys: summary.sortedCategoricalValues.map(x => +x),
                 categoricalOptions: summary.sortedCategoricalValues.map(text => {return {key: +text, text: text.toString()}}),
@@ -366,10 +405,11 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         }
         else {
             return {
+                key: featureKey,
                 featureIndex: summary.index,
-                min: summary.featureRange.min.toString(),
-                max: summary.featureRange.max.toString(),
-                steps: '20',
+                min: summary.featureRange.min,
+                max: summary.featureRange.max,
+                steps: 20,
                 type: summary.featureRange.rangeType
             };
         }
@@ -382,9 +422,9 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             rangeView.stepsErrorMessage !== undefined) {
             return [];
         }
-        const min = +rangeView.min;
-        const max = +rangeView.max;
-        const steps = +rangeView.steps;
+        const min = rangeView.min;
+        const max = rangeView.max;
+        const steps = rangeView.steps;
 
         if (rangeView.type === RangeTypes.categorical && Array.isArray(rangeView.selectedOptionKeys)) {
             return rangeView.selectedOptionKeys as string[];

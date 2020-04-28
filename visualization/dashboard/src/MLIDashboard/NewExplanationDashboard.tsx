@@ -219,7 +219,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         });
         const globalProps = NewExplanationDashboard.buildGlobalProperties(props);
         // consider taking filters in as param arg for programatic users
-        const cohorts = [new Cohort(localization.Cohort.cohort + " 0", jointDataset, [])];
+        const cohorts = [new Cohort(localization.Cohort.defaultLabel, jointDataset, [])];
         return {
             cohorts,
             activeGlobalTab: globalTabKeys.modelPerformance,

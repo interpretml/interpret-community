@@ -12,6 +12,12 @@ import { Cohort } from "../../Cohort";
 import { FabricStyles } from "../../FabricStyles";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { ColumnCategories, JointDataset } from "../../JointDataset";
+import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
+import { MultiICEPlot } from "../MultiICEPlot/MultiICEPlot";
+import { InteractiveLegend, ILegendItem } from "../InteractiveLegend";
+import { Text, Icon, Slider, ChoiceGroup, IChoiceGroupOption, FabricSlots, ComboBox, IComboBox } from "office-ui-fabric-react";
+import { whatIfTabStyles, IWhatIfTabStyles } from "./WhatIfTab.styles";
+import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
 import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
@@ -49,6 +55,7 @@ export interface IWhatIfTabState {
     sortArray: number[];
     sortingSeriesIndex: number;
     secondaryChartChoice: string;
+    selectedFeatureKey: string;
 }
 
 interface ISelectedRowInfo {
@@ -124,6 +131,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private testableDatapoints: any[][] = [];
     private temporaryPoint: { [key: string]: any };
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
+    private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
+        .map((unused, index) => {
+        const key = JointDataset.DataLabelRoot + index.toString();
+        return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
+    });
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -131,7 +143,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.generateDefaultChartAxes();
         }
         this.state = {
-            isPanelOpen: false,
+            isPanelOpen: true,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
@@ -147,7 +159,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             topK: 4,
             sortArray: [],
             sortingSeriesIndex: undefined,
-            secondaryChartChoice: WhatIfTab.featureImportanceKey
+            secondaryChartChoice: WhatIfTab.featureImportanceKey,
+            selectedFeatureKey: JointDataset.DataLabelRoot + "0"
         };
         this.temporaryPoint = this.createCopyOfFirstRow();
         //this.seriesOfRows = this.buildJoinedSelectedRows(this.state.selectedPointsIndexes, this.state.customPoints);
@@ -165,6 +178,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setStartingK = this.setStartingK.bind(this);
         this.setSecondaryChart = this.setSecondaryChart.bind(this);
         this.setSelectedIndex = this.setSelectedIndex.bind(this);
+        this.onFeatureSelected = this.onFeatureSelected.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -265,7 +279,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <Text variant={"medium"} className={classNames.boldText}>{localization.WhatIfTab.whatIfDatapoint}</Text>
                     </div>
                     <div className={classNames.upperWhatIfPanel}>
-                        <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.whatIfHelpText}</Text>
+                        <Text variant={"small"} className={classNames.legendHelpText}>{localization.WhatIfTab.whatIfHelpText}</Text>
                         <Dropdown 
                             label={localization.WhatIfTab.indexLabel}
                             options={rowOptions}
@@ -279,10 +293,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
                             styles={{ fieldGroup: { width: 200 } }}
                         />
+                        {this.buildCustomPredictionLabels(classNames)}
                     </div>
                     <div className={classNames.parameterList}>
                         <Text variant="medium" className={classNames.boldText}>{localization.WhatIfTab.featureValues}</Text>
                         <SearchBox
+                            className={classNames.featureSearch}
                             placeholder={localization.WhatIf.filterFeaturePlaceholder}
                             onChange={this.filterFeatures}
                         />
@@ -309,7 +325,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             })}
                         </div>
                     </div>
-                    {this.buildCustomPredictionLabels(classNames)}
                     {this.state.editingDataCustomIndex !== undefined && (
                         <PrimaryButton
                             className={classNames.saveButton}
@@ -324,6 +339,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         text={localization.WhatIfTab.saveAsNewPoint}
                         onClick={this.saveAsPoint}
                     />
+                    <div className={classNames.disclaimerWrapper}>
+                        <Text variant={"xSmall"}>{localization.WhatIfTab.disclaimer}</Text>
+                    </div>
                 </div>)}
                 {!this.state.isPanelOpen && (<IconButton
                     iconProps={{ iconName: "ChevronLeft" }}
@@ -403,7 +421,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div >
                     <div className={classNames.legendAndText}>
                         <div className={classNames.legendHlepWrapper}>
-                            <Text variant={"xSmall"} className={classNames.legendHelpText}>{localization.WhatIfTab.scatterLegendText}</Text>
+                            <Text variant={"small"} className={classNames.legendHelpText}>{localization.WhatIfTab.scatterLegendText}</Text>
                         </div>
                         <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.realPoint}</Text>
                         {this.selectedFeatureImportance.length > 0 &&
@@ -473,6 +491,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <div className={classNames.featureImportanceChartAndLegend}>
                         <FeatureImportanceBar
                             jointDataset={this.props.jointDataset}
+                            yAxisLabels={[
+                                localization.featureImportance,
+                                localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string
+                            ]}
                             sortArray={this.state.sortArray}
                             startingK={this.state.startingK}
                             unsortedX={this.props.metadata.featureNamesAbridged}
@@ -499,9 +521,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             colors={this.testableDatapointColors}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
-                            theme={this.props.theme}
+                            feature={this.state.selectedFeatureKey}
                         />
-                        <div className={classNames.featureImportanceLegend}> </div>
+                        <div className={classNames.featureImportanceLegend}>
+                            <ComboBox
+                                autoComplete={"on"}
+                                className={classNames.iceFeatureSelection}
+                                options={this.featuresOption}
+                                onChange={this.onFeatureSelected}
+                                label={localization.IcePlot.featurePickerLabel}
+                                ariaLabel="feature picker"
+                                selectedKey={this.state.selectedFeatureKey }
+                                useComboBoxAsMenuWidth={true}
+                            />
+                        </div>
                     </div>
                 </div>);
             }
@@ -539,7 +572,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     {predictedClass !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(3))}</Text>)}
                 </div>);
         } else {
             return <div></div>
@@ -557,10 +590,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 this.temporaryPoint[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
                 undefined;
             return (<div className={classNames.customPredictBlock}>
-                    {predictedClass !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
-                    {predictedProb !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
+                    {this.props.jointDataset.hasPredictedY && predictedClass !== undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, predictedClassName)}</Text>)}
+                    {this.props.jointDataset.hasPredictedY && predictedClass === undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, localization.WhatIfTab.loading)}</Text>)}
+                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb !== undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toPrecision(3))}</Text>)}
+                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb === undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, localization.WhatIfTab.loading)}</Text>)}
                 </div>);
         } else {
             return <div></div>
@@ -581,6 +618,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         this.setState({ selectedCohortIndex: item.key as number, selectedPointsIndexes: [] });
+    }
+
+    private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
+        this.setState({ selectedFeatureKey: item.key as string});
     }
 
     private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
@@ -973,7 +1014,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
             xAxis: {
-                property: JointDataset.IndexLabel,
+                property: this.props.jointDataset.hasPredictedProbabilities ?
+                    JointDataset.ProbabilityYRoot + "0" :
+                    JointDataset.IndexLabel,
                 options: {}
             },
             yAxis: {
@@ -982,11 +1025,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     dither: yIsDithered,
                     bin: false
                 }
-            },
-            colorAxis: {
-                property: this.props.jointDataset.hasPredictedY ?
-                    JointDataset.PredictedYLabel : JointDataset.IndexLabel,
-                options: {}
             }
         }
         this.props.onChange(chartProps);
