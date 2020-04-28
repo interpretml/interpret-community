@@ -261,7 +261,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     showline: true
                 },
                 xaxis: {
-                    side: "top",
+                    side: "bottom",
                     mirror: true,
                     color: FabricStyles.chartAxisColor,
                     tickfont: {

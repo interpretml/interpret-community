@@ -308,7 +308,11 @@
         "saveAsNewPoint": "Save as new point",
         "saveChanges": "Save changes",
         "loading": "loading...",
-        "classLabel": "Class: {0}"
+        "classLabel": "Class: {0}",
+        "minLabel": "Min",
+        "maxLabel": "Max",
+        "stepsLabel": "Steps",
+        "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool."
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
