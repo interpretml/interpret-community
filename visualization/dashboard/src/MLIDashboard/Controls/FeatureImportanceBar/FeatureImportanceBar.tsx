@@ -18,6 +18,7 @@ import { Text } from "office-ui-fabric-react";
 
 export interface IFeatureBarProps {
     jointDataset: JointDataset;
+    yAxisLabels: string[];
     sortArray: number[];
     selectedFeatureIndex?: number;
     selectedSeriesIndex?: number;
@@ -66,8 +67,9 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         return (<div className={classNames.chartWithVertical}>
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
-                                <div>
-                                    <Text block variant="mediumPlus" className={classNames.boldText}>{localization.featureImportance}</Text>
+                                <div>{this.props.yAxisLabels.map(label => 
+                                    <Text block variant="medium" className={classNames.boldText}>{label}</Text>
+                                    )}
                                 </div>
                             </div>
                         </div>

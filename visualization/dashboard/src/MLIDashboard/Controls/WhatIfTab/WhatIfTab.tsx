@@ -279,11 +279,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             onChange={this.setCustomRowProperty.bind(this, WhatIfTab.namePath, true)}
                             styles={{ fieldGroup: { width: 200 } }}
                         />
+                        {this.buildCustomPredictionLabels(classNames)}
                     </div>
-                    {this.buildCustomPredictionLabels(classNames)}
                     <div className={classNames.parameterList}>
                         <Text variant="medium" className={classNames.boldText}>{localization.WhatIfTab.featureValues}</Text>
                         <SearchBox
+                            className={classNames.featureSearch}
                             placeholder={localization.WhatIf.filterFeaturePlaceholder}
                             onChange={this.filterFeatures}
                         />
@@ -473,6 +474,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <div className={classNames.featureImportanceChartAndLegend}>
                         <FeatureImportanceBar
                             jointDataset={this.props.jointDataset}
+                            yAxisLabels={[
+                                localization.featureImportance,
+                                localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string
+                            ]}
                             sortArray={this.state.sortArray}
                             startingK={this.state.startingK}
                             unsortedX={this.props.metadata.featureNamesAbridged}
@@ -539,7 +544,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     {predictedClass !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(5))}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(3))}</Text>)}
                 </div>);
         } else {
             return <div></div>
@@ -557,10 +562,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 this.temporaryPoint[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
                 undefined;
             return (<div className={classNames.customPredictBlock}>
-                    {predictedClass !== undefined &&
+                    {this.props.jointDataset.hasPredictedY && predictedClass !== undefined &&
                     (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, predictedClassName)}</Text>)}
-                    {predictedProb !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toPrecision(5))}</Text>)}
+                    {this.props.jointDataset.hasPredictedY && predictedClass === undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, localization.WhatIfTab.loading)}</Text>)}
+                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb !== undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toPrecision(3))}</Text>)}
+                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb === undefined &&
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, localization.WhatIfTab.loading)}</Text>)}
                 </div>);
         } else {
             return <div></div>
