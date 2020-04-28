@@ -235,7 +235,8 @@
         "legendHelpText": "Toggle cohorts on and off in the plot by clicking on the legend items.",
         "sortBy": "Sort by",
         "viewDependencePlotFor": "View dependence plot for:",
-        "datasetCohortSelector": "Select a dataset cohort"
+        "datasetCohortSelector": "Select a dataset cohort",
+        "aggregateFeatureImportance": "Aggregate Feature Importance"
     },
     "FeatureBar": {
         "sortBy": "Sort by:"
@@ -305,7 +306,9 @@
         "newPredictedClass": "New predicted class: {0}",
         "newProbability": "New probability: {0}",
         "saveAsNewPoint": "Save as new point",
-        "saveChanges": "Save changes"
+        "saveChanges": "Save changes",
+        "loading": "loading...",
+        "classLabel": "Class: {0}"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",

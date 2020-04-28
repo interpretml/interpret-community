@@ -150,6 +150,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             <div className={classNames.globalChartWithLegend}>
                 <FeatureImportanceBar
                     jointDataset={this.props.jointDataset}
+                    yAxisLabels={[localization.GlobalTab.aggregateFeatureImportance]}
                     sortArray={this.state.sortArray}
                     startingK={this.state.startingK}
                     unsortedX={this.props.metadata.featureNamesAbridged}
