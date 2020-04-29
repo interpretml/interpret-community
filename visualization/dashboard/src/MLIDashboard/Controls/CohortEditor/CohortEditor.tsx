@@ -1,3 +1,4 @@
+import { initializeIcons } from '@uifabric/icons';
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
 import { Text, TextField } from "office-ui-fabric-react";
@@ -14,7 +15,6 @@ import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles } from "./CohortEditor.styles";
-import { initializeIcons } from '@uifabric/icons';
 
 initializeIcons();
 
@@ -123,12 +123,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         });
         return (
             <Callout
-                onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
                 styles={cohortEditor}
-                gapSpace={170}
-                directionalHintFixed={true}
             >
                 <div className={styles.container}>
                 <IconButton className={styles.closeIcon} iconProps={{iconName:"ChromeClose"}} onClick={ this.closeCallout.bind(this)}/>

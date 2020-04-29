@@ -243,7 +243,7 @@ const cohortEditor = cohortEditorStyles();
 export const cohortEditorCallout: () => ICalloutContentStyles = () => {
     return {
         container: {},
-        root: {marginLeft:"212px"},
+        root: {marginLeft:"30%", marginTop:"7%"},
         beak: {},
         beakCurtain: {},
         calloutMain: cohortEditor.cohortEditor
