@@ -1,8 +1,9 @@
+import { initializeIcons } from '@uifabric/icons';
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
 import { Text, TextField } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
-import { Callout, DirectionalHint } from "office-ui-fabric-react/lib/Callout";
+import { Callout } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { CheckboxVisibility, DetailsList, Selection, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
@@ -14,7 +15,6 @@ import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles } from "./CohortEditor.styles";
-import { initializeIcons } from '@uifabric/icons';
 
 initializeIcons();
 
