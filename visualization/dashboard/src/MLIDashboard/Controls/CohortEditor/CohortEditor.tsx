@@ -2,7 +2,7 @@ import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
 import { Text, TextField } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
-import { Callout } from "office-ui-fabric-react/lib/Callout";
+import { Callout, DirectionalHint } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
 import { CheckboxVisibility, DetailsList, Selection, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
@@ -123,12 +123,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         });
         return (
             <Callout
-                onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
                 styles={cohortEditor}
-                gapSpace={170}
-                directionalHintFixed={true}
             >
                 <div className={styles.container}>
                 <IconButton className={styles.closeIcon} iconProps={{iconName:"ChromeClose"}} onClick={ this.closeCallout.bind(this)}/>
