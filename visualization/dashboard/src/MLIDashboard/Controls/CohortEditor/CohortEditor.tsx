@@ -75,10 +75,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         {
             key: FilterMethods.lessThan,
             text: localization.Filters.lessThanComparison
-        },
-        {
-            key: FilterMethods.inTheRangeOf,
-            text: localization.Filters.inTheRangeOf
         }
     ];
     private _isInitialized = false;
