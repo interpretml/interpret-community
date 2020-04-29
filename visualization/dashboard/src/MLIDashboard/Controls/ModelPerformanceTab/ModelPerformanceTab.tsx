@@ -65,7 +65,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             this.props.cohorts,
             this.state.selectedCohortIndex
         );
-        const metricsList = this.generateMetrics() as IBinaryStats[];
+        const metricsList = (this.generateMetrics() as IBinaryStats[]).reverse();
         const height = Math.max(400, 160 *  metricsList.length) + "px";
         const cohortOptions: IDropdownOption[] = this.props.chartProps.yAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
