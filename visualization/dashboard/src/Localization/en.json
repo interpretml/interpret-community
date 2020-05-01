@@ -200,7 +200,10 @@
         "numericValue": "Value",
         "numericalComparison": "Operation",
         "minimum":"Minimum",
-        "maximum":"Maximum"
+        "maximum":"Maximum",
+        "min":"Min: ",
+        "max":"Max: ",
+        "uniqueValues":"# of unique values: "
     },
     "Columns": {
         "regressionError": "Regression error",

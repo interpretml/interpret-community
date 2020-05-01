@@ -124,15 +124,15 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 styles={cohortEditor}
             >
                 <div className={styles.container}>
-                <IconButton className={styles.closeIcon} iconProps={{iconName:"ChromeClose"}} onClick={ this.closeCallout.bind(this)}/>
+                    <IconButton className={styles.closeIcon} iconProps={{ iconName: "ChromeClose" }} onClick={this.closeCallout.bind(this)} />
                     <TextField
-                            className={styles.cohortName}
-                            value={this.state.cohortName}
-                            label={localization.CohortEditor.cohortNameLabel}
-                            placeholder={localization.CohortEditor.cohortNamePlaceholder}
-                            onGetErrorMessage={this._getErrorMessage}
-                            validateOnLoad={false}
-                            onChange={this.setCohortName} />
+                        className={styles.cohortName}
+                        value={this.state.cohortName}
+                        label={localization.CohortEditor.cohortNameLabel}
+                        placeholder={localization.CohortEditor.cohortNamePlaceholder}
+                        onGetErrorMessage={this._getErrorMessage}
+                        validateOnLoad={false}
+                        onChange={this.setCohortName} />
 
                     <div className={styles.wrapper}>
                         <div className={styles.leftHalf}>
@@ -145,7 +145,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 checkboxVisibility={CheckboxVisibility.hidden}
                                 onRenderDetailsHeader={this._onRenderDetailsHeader}
                                 selection={this._leftSelection}
-                                selectionPreservedOnEmptyClick={true}
                                 setKey={"set"}
                                 columns={[{ key: 'col1', name: 'name', minWidth: 150, fieldName: 'title' }]}
                             />
@@ -171,7 +170,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             }
                         </div>
                     </div>
-                    <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>Save</PrimaryButton>
+                        <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>{localization.CohortEditor.save}</PrimaryButton>
                 </div>
             </Callout>
         );
@@ -231,6 +230,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private saveState = (): void => {
         this.updateFilter(this.state.openedFilter);
+        this._leftSelection.setAllSelected(false);
     }
 
     private readonly _onRenderDetailsHeader = () => {
@@ -338,7 +338,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         }
 
         this.setState({ filters });
-        this.setState({ openedFilter: undefined, filterIndex: undefined, isEditingFilter: false });
+        this.setState({ openedFilter: undefined, filterIndex: undefined, isEditingFilter: false});
     }
 
     private cancelFilter = (): void => {
@@ -353,7 +353,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private editFilter(index: number): void {
         const editFilter = this.state.filters[index];
-        this.setState({ isEditingFilter: true, filterIndex: index });
+        this.setState({ isEditingFilter: true, filterIndex: index});
         this.setState({ openedFilter: _.cloneDeep(editFilter) });
     }
 
@@ -378,7 +378,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         label = this.props.jointDataset.metaDict[filter.column].abbridgedLabel + space
         label += filter.method + space
         label += filter.arg
-
+        console.log("Label::", label)
         return (<Text variant={"small"} className={styles.filterLabel}>{label}</Text>);
     }
 
@@ -414,7 +414,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 {selectedMeta.treatAsCategorical && (
                     <div className={styles.featureTextDiv}>
                         <Text variant={"small"} className={styles.featureText}>
-                            {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                            {localization.Filters.uniqueValues} {selectedMeta.sortedCategoricalValues.length}
                         </Text>
                         <ComboBox
                             multiSelect
@@ -430,7 +430,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 {!selectedMeta.treatAsCategorical && (
                     <div className={styles.featureTextDiv}>
                         <Text variant={"small"} className={styles.featureText}>
-                            {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
+                            {localization.Filters.min}{selectedMeta.featureRange.min} {localization.Filters.max}{selectedMeta.featureRange.max}
                         </Text>
                         <ComboBox
                             label={localization.Filters.numericalComparison}
