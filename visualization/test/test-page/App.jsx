@@ -10,6 +10,7 @@ import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
 import { initializeIcons } from "@uifabric/icons";
+import { createTheme } from "@uifabric/styling";
 
   var ibmNoClass = _.cloneDeep(ibmData);
   ibmNoClass.classNames = undefined;
@@ -18,11 +19,90 @@ import { initializeIcons } from "@uifabric/icons";
   var irisNoFeatures = _.cloneDeep(irisData);
   irisNoFeatures.featureNames = undefined;
 
+  const darkTheme = createTheme({
+    palette: {
+      themePrimary: '#2899f5',
+      themeLighterAlt: '#f6fbff',
+      themeLighter: '#dbeefd',
+      themeLight: '#bcdffc',
+      themeTertiary: '#7bc0f9',
+      themeSecondary: '#40a4f6',
+      themeDarkAlt: '#2389dc',
+      themeDark: '#1e74ba',
+      themeDarker: '#165589',
+      neutralLighterAlt: '#111111',
+      neutralLighter: '#111111',
+      neutralLight: '#101010',
+      neutralQuaternaryAlt: '#0f0f0f',
+      neutralQuaternary: '#0f0f0f',
+      neutralTertiaryAlt: '#0e0e0e',
+      neutralTertiary: '#c8c8c8',
+      neutralSecondary: '#d0d0d0',
+      neutralPrimaryAlt: '#dadada',
+      neutralPrimary: '#ffffff',
+      neutralDark: '#f4f4f4',
+      black: '#f8f8f8',
+      white: '#121212',
+    }});
+
+  const lightTheme = createTheme({
+    palette: {
+      themePrimary: '#0078d4',
+      themeLighterAlt: '#eff6fc',
+      themeLighter: '#deecf9',
+      themeLight: '#c7e0f4',
+      themeTertiary: '#71afe5',
+      themeSecondary: '#2b88d8',
+      themeDarkAlt: '#106ebe',
+      themeDark: '#005a9e',
+      themeDarker: '#004578',
+      neutralLighterAlt: '#faf9f8',
+      neutralLighter: '#f3f2f1',
+      neutralLight: '#edebe9',
+      neutralQuaternaryAlt: '#e1dfdd',
+      neutralQuaternary: '#d0d0d0',
+      neutralTertiaryAlt: '#c8c6c4',
+      neutralTertiary: '#a19f9d',
+      neutralSecondary: '#605e5c',
+      neutralPrimaryAlt: '#3b3a39',
+      neutralPrimary: '#323130',
+      neutralDark: '#201f1e',
+      black: '#000000',
+      white: '#ffffff',
+    }});
+
+    const darkContrastTheme = createTheme({
+      palette: {
+        themePrimary: '#ffff00',
+        themeLighterAlt: '#fffff5',
+        themeLighter: '#ffffd6',
+        themeLight: '#ffffb3',
+        themeTertiary: '#ffff66',
+        themeSecondary: '#ffff1f',
+        themeDarkAlt: '#e6e600',
+        themeDark: '#c2c200',
+        themeDarker: '#8f8f00',
+        neutralLighterAlt: '#000000',
+        neutralLighter: '#000000',
+        neutralLight: '#000000',
+        neutralQuaternaryAlt: '#000000',
+        neutralQuaternary: '#000000',
+        neutralTertiaryAlt: '#000000',
+        neutralTertiary: '#c8c8c8',
+        neutralSecondary: '#d0d0d0',
+        neutralPrimaryAlt: '#dadada',
+        neutralPrimary: '#ffffff',
+        neutralDark: '#f4f4f4',
+        black: '#f8f8f8',
+        white: '#000000',
+      }});
+
     class App extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {value: 4};
+        this.state = {value: 4, themeIndex: 0};
         this.handleChange = this.handleChange.bind(this);
+        this.handleThemeChange = this.handleThemeChange.bind(this);
         this.generateRandomScore = this.generateRandomScore.bind(this);
       }
 
@@ -40,6 +120,12 @@ import { initializeIcons } from "@uifabric/icons";
         {label: 'largeFeatureCount', data: largeFeatureCount}
       ]
 
+      static themeChoices = [
+        {label: 'light', data: lightTheme},
+        {label: 'dark', data: darkTheme},
+        {label: "darkHiContrast", data: darkContrastTheme}
+      ]
+
       messages = {
         'LocalExpAndTestReq': [{displayText: 'LocalExpAndTestReq'}],
         'LocalOrGlobalAndTestReq': [{displayText: 'LocalOrGlobalAndTestReq'}],
@@ -49,6 +135,10 @@ import { initializeIcons } from "@uifabric/icons";
 
       handleChange(event){
         this.setState({value: event.target.value});
+      }
+
+      handleThemeChange(event){
+        this.setState({themeIndex: event.target.value})
       }
 
       generateRandomScore(data) {
@@ -82,6 +172,7 @@ import { initializeIcons } from "@uifabric/icons";
 
       render() {
         const data = _.cloneDeep(App.choices[this.state.value].data);
+        const theme = App.themeChoices[this.state.themeIndex].data;
         // data.localExplanations = undefined;
         const classDimension = data.localExplanations && Array.isArray(data.localExplanations.scores[0][0]) ?
           data.localExplanations.scores.length : 1;
@@ -92,6 +183,12 @@ import { initializeIcons } from "@uifabric/icons";
             </label>
             <select value={this.state.value} onChange={this.handleChange}>
               {App.choices.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}
+            </select>
+            <label>
+              Select theme:
+            </label>
+            <select value={this.state.themeIndex} onChange={this.handleThemeChange}>
+              {App.themeChoices.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}
             </select>
               <div style={{ width: '80vw', height: '90vh', backgroundColor: 'white', margin:'50px auto'}}>
                   <div style={{ width: '100%', height: '100%'}}>
@@ -109,7 +206,7 @@ import { initializeIcons } from "@uifabric/icons";
                         }}
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
-                        // theme={"dark"}
+                        theme={theme}
                         key={new Date()}
                       />
                   </div>

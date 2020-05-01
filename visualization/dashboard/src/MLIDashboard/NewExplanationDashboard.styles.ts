@@ -2,6 +2,7 @@ import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "of
 
 export interface IExplanationDashboardStyles {
   pivotLabelWrapper: IStyle;
+  page: IStyle;
 }
 
 export const explanationDashboardStyles: () => IProcessedStyleSet<IExplanationDashboardStyles> = () => {
@@ -12,6 +13,11 @@ export const explanationDashboardStyles: () => IProcessedStyleSet<IExplanationDa
             display: "flex",
             flexDirection: "row",
             padding: "0 30px"
+        },
+        page: {
+            maxHeight: "1000px",
+            backgroundColor: theme.semanticColors.bodyBackground,
+            color: theme.semanticColors.bodyText
         }
     });
 };

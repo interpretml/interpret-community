@@ -275,8 +275,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID().toString());
         const classNames = explanationDashboardStyles();
         return (
-            <>
-                <div style={{maxHeight: "1000px"}}>
+                <div className={classNames.page} style={{maxHeight: "1000px"}}>
                     <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
@@ -345,7 +344,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             )}
                         </div>
                     </div>
-            </>
         );
     }
 
