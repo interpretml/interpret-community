@@ -378,7 +378,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         label = this.props.jointDataset.metaDict[filter.column].abbridgedLabel + space
         label += filter.method + space
         label += filter.arg
-        console.log("Label::", label)
         return (<Text variant={"small"} className={styles.filterLabel}>{label}</Text>);
     }
 
