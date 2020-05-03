@@ -100,10 +100,11 @@ import { createTheme } from "@uifabric/styling";
     class App extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {value: 4, themeIndex: 0};
+        this.state = {value: 4, themeIndex: 0, language: App.languages[0].val};
         this.handleChange = this.handleChange.bind(this);
         this.handleThemeChange = this.handleThemeChange.bind(this);
         this.generateRandomScore = this.generateRandomScore.bind(this);
+        this.handleLanguageChange= this.handleLanguageChange.bind(this);
       }
 
       static choices = [
@@ -126,6 +127,11 @@ import { createTheme } from "@uifabric/styling";
         {label: "darkHiContrast", data: darkContrastTheme}
       ]
 
+      static languages = [
+        {label: "english", val: "en-EN"},
+        {label: "spanish", val: "sp-SP"}
+      ]
+
       messages = {
         'LocalExpAndTestReq': [{displayText: 'LocalExpAndTestReq'}],
         'LocalOrGlobalAndTestReq': [{displayText: 'LocalOrGlobalAndTestReq'}],
@@ -139,6 +145,10 @@ import { createTheme } from "@uifabric/styling";
 
       handleThemeChange(event){
         this.setState({themeIndex: event.target.value})
+      }
+
+      handleLanguageChange(event){
+        this.setState({language: event.target.value})
       }
 
       generateRandomScore(data) {
@@ -189,6 +199,12 @@ import { createTheme } from "@uifabric/styling";
             </label>
             <select value={this.state.themeIndex} onChange={this.handleThemeChange}>
               {App.themeChoices.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}
+            </select>
+            <label>
+              Select language:
+            </label>
+            <select value={this.state.language} onChange={this.handleLanguageChange}>
+              {App.languages.map((item) => <option key={item.val} value={item.val}>{item.label}</option>)}
             </select>
               <div style={{ width: '80vw', height: '90vh', backgroundColor: 'white', margin:'50px auto'}}>
                   <div style={{ width: '100%', height: '100%'}}>
