@@ -28,6 +28,77 @@ except ImportError:
     module_logger.debug('Could not import torch, required if using a PyTorch model')
 
 
+class _FunctionWrapper(object):
+    """Wraps a function to reshape the input data.
+
+    :param function: The prediction function to evaluate on the examples.
+    :type function: function
+    """
+
+    def __init__(self, function):
+        """Wraps a function to reshape the input data.
+
+        :param function: The prediction function to evaluate on the examples.
+        :type function: function
+        """
+        self._function = function
+
+    def _function_input_1D_wrapper(self, dataset):
+        """Wraps a function that reshapes the input dataset to be 2D from 1D.
+
+        :param dataset: The model evaluation examples.
+        :type dataset: np.array
+        :return: A wrapped function.
+        :rtype: function
+        """
+        if len(dataset.shape) == 1:
+            dataset = dataset.reshape(1, -1)
+        return self._function(dataset)
+
+    def _function_flatten(self, dataset):
+        """Wraps a function that flattens the input dataset from 2D to 1D.
+
+        :param dataset: The model evaluation examples.
+        :type dataset: np.array
+        :return: A wrapped function.
+        :rtype: function
+        """
+        return self._function(dataset).flatten()
+
+    def _function_2D_two_cols_wrapper_2D_result(self, dataset):
+        """Wraps a function that creates two columns, [1-p, p], from 2D array of one column evaluation result.
+
+        :param dataset: The model evaluation examples.
+        :type dataset: np.array
+        :return: A wrapped function.
+        :rtype: function
+        """
+        result = self._function(dataset)[:, 0]
+        return np.stack([1 - result, result], axis=-1)
+
+    def _function_2D_two_cols_wrapper_1D_result(self, dataset):
+        """Wraps a function that creates two columns, [1-p, p], from evaluation result that is a 1D array.
+
+        :param dataset: The model evaluation examples.
+        :type dataset: np.array
+        :return: A wrapped function.
+        :rtype: function
+        """
+        result = self._function(dataset)
+        return np.stack([1 - result, result], axis=-1)
+
+    def _function_2D_one_col_wrapper(self, dataset):
+        """Wraps a function that creates one column in rare edge case scenario for multiclass one-class result.
+
+        :param dataset: The model evaluation examples.
+        :type dataset: np.array
+        :return: A wrapped function.
+        :rtype: function
+        """
+        result = self._function(dataset)
+        return result.reshape(result.shape[0], 1)
+
+
 def _convert_to_two_cols(function, examples):
     """In classification case, convert the function's output to two columns if it outputs one column.
 
@@ -36,7 +107,7 @@ def _convert_to_two_cols(function, examples):
     :param examples: The model evaluation examples.
     :type examples: np.array or list
     :return: The function chosen from given model and classification domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # Add wrapper function to convert output to 2D array, check values to decide on whether
     # to throw, or create two columns [1-p, p], or leave just one in multiclass one-class edge-case
@@ -49,27 +120,18 @@ def _convert_to_two_cols(function, examples):
             raise Exception("Probability values outside of valid range: " + str(value))
         if value < 1:
             convert_to_two_cols = True
+    wrapper = _FunctionWrapper(function)
     if convert_to_two_cols:
         # Create two cols, [1-p, p], from evaluation result
         if is_2d_result:
-            def function_2D_two_cols_wrapper_2D_result(dataset):
-                result = function(dataset)[:, 0]
-                return np.stack([1 - result, result], axis=-1)
-            return (function_2D_two_cols_wrapper_2D_result, ModelTask.Classification)
+            return (wrapper._function_2D_two_cols_wrapper_2D_result, ModelTask.Classification)
         else:
-            def function_2D_two_cols_wrapper_1D_result(dataset):
-                result = function(dataset)
-                return np.stack([1 - result, result], axis=-1)
-            return (function_2D_two_cols_wrapper_1D_result, ModelTask.Classification)
+            return (wrapper._function_2D_two_cols_wrapper_1D_result, ModelTask.Classification)
     else:
         if is_2d_result:
             return (function, ModelTask.Classification)
         else:
-            def function_2D_one_col_wrapper(dataset):
-                result = function(dataset)
-                # Create one col in rare edge case scenario for multiclass one-class result
-                return result.reshape(result.shape[0], 1)
-            return (function_2D_one_col_wrapper, ModelTask.Classification)
+            return (wrapper._function_2D_one_col_wrapper, ModelTask.Classification)
 
 
 class WrappedPytorchModel(object):
@@ -182,7 +244,7 @@ def wrap_model(model, examples, model_task):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The wrapper model.
-    :rtype model
+    :rtype: model
     """
     return _wrap_model(model, examples, model_task, False)
 
@@ -200,7 +262,7 @@ def _wrap_model(model, examples, model_task, is_function):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The function chosen from given model and chosen domain, or model wrapping the function and chosen domain.
-    :rtype (function, str) or (model, str)
+    :rtype: (function, str) or (model, str)
     """
     if is_function:
         return _eval_function(model, examples, model_task)
@@ -232,7 +294,7 @@ def _eval_model(model, examples, model_task):
         outputs a 1 dimensional array.
     :type model_task: str
     :return: The function chosen from given model and chosen domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # TODO: Add more model types here
     is_sequential = str(type(model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
@@ -269,7 +331,7 @@ def _eval_function(function, examples, model_task, wrapped=False):
     :param wrapped: Indicates if function has already been wrapped.
     :type wrapped: bool
     :return: The function chosen from given model and chosen domain.
-    :rtype (function, str)
+    :rtype: (function, str)
     """
     # Try to run the function on a single example - if it doesn't work wrap
     # it in a function that converts a 1D array to 2D for those functions
@@ -283,13 +345,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
         # If function has already been wrapped, re-throw error to prevent stack overflow
         if wrapped:
             raise ex
-
-        def function_input_1D_wrapper(dataset):
-            if len(dataset.shape) == 1:
-                dataset = dataset.reshape(1, -1)
-            return function(dataset)
-
-        return _eval_function(function_input_1D_wrapper, examples, model_task, wrapped=True)
+        wrapper = _FunctionWrapper(function)
+        return _eval_function(wrapper._function_input_1D_wrapper, examples, model_task, wrapped=True)
     if len(result.shape) == 2:
         # If the result of evaluation the function is a 2D array of 1 column,
         # and they did not specify classifier or regressor, throw exception
@@ -304,9 +361,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
                 # model_task == ModelTask.Regression
                 # In case user specified a regressor but we have a 2D output with one column,
                 # we want to flatten the function to 1D
-                def function_flatten(dataset):
-                    return function(dataset).flatten()
-                return (function_flatten, model_task)
+                wrapper = _FunctionWrapper(function)
+                return (wrapper._function_flatten, model_task)
         else:
             if model_task == ModelTask.Unknown or model_task == ModelTask.Classification:
                 return (function, ModelTask.Classification)

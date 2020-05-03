@@ -27,7 +27,8 @@ from interpret_community.common.policy import SamplingPolicy
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_sklearn_logistic_regressor, create_iris_data, create_energy_data, create_cancer_data, \
     create_pandas_only_svm_classifier, create_keras_regressor, create_pytorch_regressor, \
-    create_keras_multiclass_classifier, create_pytorch_multiclass_classifier
+    create_keras_multiclass_classifier, create_pytorch_multiclass_classifier, \
+    create_multiclass_sparse_newsgroups_data
 from raw_explain.utils import IdentityTransformer
 from test_serialize_explanation import verify_serialization
 
@@ -511,7 +512,7 @@ class VerifyTabularTests(object):
                                      true_labels_required=False):
         # verifies we can run on very sparse data similar to what is done in auto ML
         # Note: we are using a multi-class classification dataset for testing regression
-        x_train, x_test, y_train, y_test, _ = self.create_newsgroups_data()
+        x_train, x_test, y_train, y_test, _, _ = create_multiclass_sparse_newsgroups_data()
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
@@ -637,7 +638,7 @@ class VerifyTabularTests(object):
     def verify_explain_model_subset_classification_sparse(self, is_local=True,
                                                           true_labels_required=False):
         # verifies explaining on a subset of features with sparse classification data
-        x_train, x_test, y_train, y_test, classes = self.create_newsgroups_data()
+        x_train, x_test, y_train, y_test, classes, _ = create_multiclass_sparse_newsgroups_data()
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
@@ -917,21 +918,6 @@ class VerifyTabularTests(object):
                     assert(predicted_probability <= 1.0 and predicted_probability >= 0.0)
                     if model_output is not None:
                         assert abs(predicted_probability - model_output[row_idx, class_idx]) < TOLERANCE
-
-    def create_newsgroups_data(self):
-        remove = ('headers', 'footers', 'quotes')
-        categories = ['alt.atheism', 'talk.religion.misc', 'comp.graphics', 'sci.space']
-        from sklearn.datasets import fetch_20newsgroups
-        ngroups = fetch_20newsgroups(subset='train', categories=categories,
-                                     shuffle=True, random_state=42, remove=remove)
-        x_train, x_test, y_train, y_validation = train_test_split(ngroups.data, ngroups.target,
-                                                                  test_size=0.02, random_state=42)
-        from sklearn.feature_extraction.text import HashingVectorizer
-        vectorizer = HashingVectorizer(stop_words='english', alternate_sign=False,
-                                       n_features=2**16)
-        x_train = vectorizer.transform(x_train)
-        x_test = vectorizer.transform(x_test)
-        return x_train, x_test, y_train, y_validation, categories
 
     def create_msx_data(self, test_size):
         sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')

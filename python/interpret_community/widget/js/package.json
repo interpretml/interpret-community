@@ -1,5 +1,5 @@
 {
-    "name": "component-host",
+    "name": "inline-interpret-dashboard",
     "version": "1.0.0",
     "description": "Host for component to be consumed as npm package",
     "main": "main.js",
