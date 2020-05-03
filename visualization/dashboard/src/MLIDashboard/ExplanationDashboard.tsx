@@ -111,6 +111,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 explanationGenerators,
                 localExplanation: undefined,
                 testDataset: {},
+                jointDataset: undefined,
                 globalExplanation: undefined,
                 isGlobalDerived: false,
                 ebmExplanation: undefined,
