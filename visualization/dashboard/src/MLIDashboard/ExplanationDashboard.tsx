@@ -33,7 +33,6 @@ import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
 import { JointDataset } from "./JointDataset";
-import { IFilterContext, IFilter } from "./Interfaces/IFilter";
 
 const s = require("./ExplanationDashboard.css");
 const RowIndex: string = "rowIndex";
@@ -45,7 +44,6 @@ export interface IDashboardContext {
 
 export interface IDashboardState {
     dashboardContext: IDashboardContext;
-    filters: IFilter[];
     activeGlobalTab: number;
     activeLocalTab: number;
     configs: {[key: string]: IPlotlyProperty | IFeatureImportanceConfig | IBarChartConfig};
@@ -393,8 +391,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         this.onClearSelection = this.onClearSelection.bind(this);
         this.handleGlobalTabClick = this.handleGlobalTabClick.bind(this);
         this.handleLocalTabClick = this.handleLocalTabClick.bind(this);
-        this.addFilter = this.addFilter.bind(this);
-        this.deleteFilter = this.deleteFilter.bind(this);
         this.pivotItems = [];
         if (explanationContext.testDataset.dataset !== undefined) {
             this.pivotItems.push({headerText: localization.dataExploration, itemKey: ExplanationDashboard.globalTabKeys[0]})
@@ -431,8 +427,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 [GlobalFeatureImportanceId]: {displayMode: FeatureImportanceModes.beehive, topK: defaultTopK, id: GlobalFeatureImportanceId},
                 [LocalBarId]: {topK: defaultTopK}
             },
-            selectedRow: undefined,
-            filters: []
+            selectedRow: undefined
         };
     }
 
@@ -472,12 +467,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
-        const filterContext: IFilterContext = {
-            filters: this.state.filters,
-            onAdd: this.addFilter,
-            onDelete: this.deleteFilter,
-            onUpdate: this.updateFilter
-        }
         // this.state.dashboardContext.explanationContext.jointDataset.applyFilters(this.state.filters);
         if (this.pivotItems.length === 0) {
             return <div>No valid views. Incomplete data.</div>
@@ -503,6 +492,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -513,6 +503,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[BarId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -523,6 +514,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[ExplanationScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -533,6 +525,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[GlobalFeatureImportanceId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -725,32 +718,5 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         this.selectionContext.onSelect([]);
         this.pivotRef.focus();
         this.setState({activeLocalTab: 0});
-    }
-
-    private addFilter(newFilter: IFilter): void {
-        this.setState(prevState => {
-            const filters = [...prevState.filters];
-            filters.push(newFilter);
-            return {filters}
-        });
-    }
-
-    private deleteFilter(index: number): void {
-        this.setState(prevState => {
-            if (prevState.filters.length < index || index < 0) {
-                return;
-            }
-            prevState.filters.splice(index, 1);
-            // prevState.dashboardContext.explanationContext.jointDataset.applyFilters(prevState.filters);
-            return prevState;
-        });
-    }
-
-    private updateFilter(filter: IFilter, index: number): void {
-        this.setState(prevState => {
-            const filters = [...prevState.filters];
-            filters[index] = filter;
-            return {filters}
-        });
     }
 }

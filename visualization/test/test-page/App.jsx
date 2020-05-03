@@ -1,5 +1,5 @@
 import React from 'react';
-import { NewExplanationDashboard } from 'interpret-dashboard';
+import { NewExplanationDashboard, ExplanationDashboard } from 'interpret-dashboard';
 import  {breastCancerData} from '../__mock_data/dummyData';
 import {ibmData} from '../__mock_data/ibmData';
 import {irisData} from '../__mock_data/irisData';
@@ -100,11 +100,12 @@ import { createTheme } from "@uifabric/styling";
     class App extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {value: 4, themeIndex: 0, language: App.languages[0].val};
+        this.state = {value: 4, themeIndex: 0, language: App.languages[0].val, showNewDash: 0};
         this.handleChange = this.handleChange.bind(this);
         this.handleThemeChange = this.handleThemeChange.bind(this);
         this.generateRandomScore = this.generateRandomScore.bind(this);
         this.handleLanguageChange= this.handleLanguageChange.bind(this);
+        this.handleViewChange = this.handleViewChange.bind(this);
       }
 
       static choices = [
@@ -149,6 +150,10 @@ import { createTheme } from "@uifabric/styling";
 
       handleLanguageChange(event){
         this.setState({language: event.target.value})
+      }
+
+      handleViewChange(event){
+        this.setState({showNewDash: +event.target.value})
       }
 
       generateRandomScore(data) {
@@ -206,9 +211,16 @@ import { createTheme } from "@uifabric/styling";
             <select value={this.state.language} onChange={this.handleLanguageChange}>
               {App.languages.map((item) => <option key={item.val} value={item.val}>{item.label}</option>)}
             </select>
+            <label>
+              Select view:
+            </label>
+            <select value={this.state.showNewDash} onChange={this.handleViewChange}>
+              <option key={"1"} value={0}>{"Version 1"}</option>
+              <option key={"2"} value={1}>{"Version 2"}</option>
+            </select>
               <div style={{ width: '80vw', height: '90vh', backgroundColor: 'white', margin:'50px auto'}}>
                   <div style={{ width: '100%', height: '100%'}}>
-                      <NewExplanationDashboard
+                      {this.state.showNewDash === 1 && (<NewExplanationDashboard
                         modelInformation={{modelClass: 'blackbox'}}
                         dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}
                         testData={data.trainingData}
@@ -224,7 +236,24 @@ import { createTheme } from "@uifabric/styling";
                         stringParams={{contextualHelp: this.messages}}
                         theme={theme}
                         key={new Date()}
-                      />
+                      />)}
+                      {this.state.showNewDash === 0 && (<ExplanationDashboard
+                        modelInformation={{modelClass: 'blackbox'}}
+                        dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}
+                        testData={data.trainingData}
+                        predictedY={data.predictedY}
+                        probabilityY={data.probabilityY}
+                        trueY={data.trueY}
+                        precomputedExplanations={{
+                          localFeatureImportance: data.localExplanations,
+                          globalFeatureImportance: data.globalExplanation,
+                          ebmGlobalExplanation: data.ebmData
+                        }}
+                        requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
+                        stringParams={{contextualHelp: this.messages}}
+                        theme={theme}
+                        key={new Date()}
+                      />)}
                   </div>
               </div>
           </div>

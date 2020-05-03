@@ -13,6 +13,7 @@ import { IExplanationContext, ModelTypes } from '../../IExplanationContext';
 import { ModelExplanationUtils } from '../../ModelExplanationUtils';
 import { PlotlyUtils, NoDataMessage, LoadingSpinner } from '../../SharedComponents';
 import { FeatureImportanceModes, IGlobalFeatureImportanceProps } from './FeatureImportanceWrapper';
+import { ScatterUtils } from '../Scatter';
 
 require('./Beehive.css');
 
@@ -85,9 +86,9 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         }, []);
     }, _.isEqual);
 
-    private static buildPlotlyProps: (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption) => IPlotlyProperty
+    private static buildPlotlyProps: (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption, selections: string[]) => IPlotlyProperty
     = (memoize as any).default(
-    (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption): IPlotlyProperty => {
+    (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption, selections: string[]): IPlotlyProperty => {
         const plotlyProps = _.cloneDeep(Beehive.BasePlotlyProps);
         const rows = Beehive.projectData(explanationContext, sortVector);
         _.set(plotlyProps, 'layout.xaxis.ticktext', sortVector.map(i => explanationContext.modelMetadata.featureNamesAbridged[i]));
@@ -221,6 +222,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         this.onDismiss = this.onDismiss.bind(this);
         this.showCrossClassInfo = this.showCrossClassInfo.bind(this);
         this.showGlobalSortInfo = this.showGlobalSortInfo.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         this.setChart = this.setChart.bind(this);
         this.setK = this.setK.bind(this);
         this.setColor = this.setColor.bind(this);
@@ -244,10 +246,11 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                 this.loadProps();
                 return <LoadingSpinner/>;
             }
-            const plotlyProps = this.state.plotlyProps;
+            let plotlyProps = this.state.plotlyProps;
             const weightContext = this.props.dashboardContext.weightContext;
             const relayoutArg = {'xaxis.range': [-0.5, this.props.config.topK - 0.5]};
             _.set(plotlyProps, 'layout.xaxis.range', [-0.5, this.props.config.topK - 0.5]);
+            plotlyProps = ScatterUtils.updatePropsForSelections(plotlyProps, this.props.selectedRow)
             return (
                 <div className="aggregate-chart">
                     <div className="top-controls">
@@ -331,6 +334,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                     )}
                     <AccessibleChart
                         plotlyProps={plotlyProps}
+                        onClickHandler={this.handleClick}
                         theme={this.props.theme}
                         relayoutArg={relayoutArg as any}
                     />
@@ -352,11 +356,24 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         const props = Beehive.buildPlotlyProps(
             this.props.dashboardContext.explanationContext, 
             sortVector,
-            this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption))
+            this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption)),
+            this.props.selectionContext.selectedIds
         );
         this.setState({plotlyProps: props})
         }, 1);
 
+    }
+
+    private handleClick(data: any): void {
+        const clickedId = (data.points[0] as any).customdata;
+        const selections: string[] = this.props.selectionContext.selectedIds.slice();
+        const existingIndex = selections.indexOf(clickedId);
+        if (existingIndex !== -1) {
+            selections.splice(existingIndex, 1);
+        } else {
+            selections.push(clickedId);
+        }
+        this.props.selectionContext.onSelect(selections);
     }
 
     private showCrossClassInfo(): void {
