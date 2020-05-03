@@ -132,7 +132,7 @@ import { createTheme } from "@uifabric/styling";
 
       static languages = [
         {label: "english", val: "en-EN"},
-        {label: "spanish", val: "sp-SP"}
+        {label: "spanish", val: "es-ES"}
       ]
 
       messages = {
