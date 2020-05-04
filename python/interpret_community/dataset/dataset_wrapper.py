@@ -5,7 +5,7 @@
 """Defines a helpful dataset wrapper to allow operations such as summarizing data, taking the subset or sampling."""
 
 import pandas as pd
-import scipy as sp
+from scipy.sparse import issparse
 import numpy as np
 
 from ..common.explanation_utils import _summarize_data, _generate_augmented_data
@@ -48,7 +48,7 @@ class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
         # If the data was previously successfully summarized, then there are no
         # timestamp columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no timestamps
-        if isinstance(X, DenseData) or sp.sparse.issparse(X):
+        if isinstance(X, DenseData) or issparse(X):
             return self
         tmp_dataset = X
         # If numpy array, temporarily convert to pandas for easier and uniform timestamp handling
@@ -214,7 +214,7 @@ class DatasetWrapper(object):
             evaluation_examples_temp = evaluation_examples_temp.values
         if len(evaluation_examples_temp.shape) == 1:
             return len(evaluation_examples_temp)
-        elif sp.sparse.issparse(evaluation_examples_temp):
+        elif issparse(evaluation_examples_temp):
             return evaluation_examples_temp.shape[1]
         else:
             return len(evaluation_examples_temp[0])
@@ -303,7 +303,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
+        if isinstance(self._dataset, DenseData) or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OrdinalEncoder, don't do encoding
         try:
@@ -348,7 +348,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if not columns or isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
+        if not columns or isinstance(self._dataset, DenseData) or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OneHotEncoder, don't do encoding
         try:
@@ -376,7 +376,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if isinstance(self._dataset, DenseData) or sp.sparse.issparse(self._dataset):
+        if isinstance(self._dataset, DenseData) or issparse(self._dataset):
             return None
         typed_dataset_without_index = self.typed_wrapper_func(self._dataset, keep_index_as_feature=True)
         self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(typed_dataset_without_index)
@@ -391,7 +391,7 @@ class DatasetWrapper(object):
         :param bucket_unknown: If true, buckets unknown values to separate categorical level.
         :type bucket_unknown: bool
         """
-        if self._string_indexed or sp.sparse.issparse(self._dataset):
+        if self._string_indexed or issparse(self._dataset):
             return
         name, ordinal_encoder, cols = column_indexer.transformers_[0]
         all_categories = ordinal_encoder.categories_
@@ -425,7 +425,7 @@ class DatasetWrapper(object):
         :param one_hot_encoder: The transformation steps to one-hot-encode the given dataset.
         :type one_hot_encoder: OneHotEncoder
         """
-        if self._one_hot_encoded or sp.sparse.issparse(self._dataset):
+        if self._one_hot_encoded or issparse(self._dataset):
             return
         self._dataset = one_hot_encoder.transform(self._dataset).astype(float)
         self._one_hot_encoded = True
@@ -436,7 +436,7 @@ class DatasetWrapper(object):
         :param timestamp_featurizer: The transformation steps to featurize timestamps in the given dataset.
         :type timestamp_featurizer: CustomTimestampFeaturizer
         """
-        if self._timestamp_featurized or sp.sparse.issparse(self._dataset):
+        if self._timestamp_featurized or issparse(self._dataset):
             return
         self._dataset = timestamp_featurizer.transform(self._dataset)
         self._timestamp_featurized = True
@@ -494,7 +494,7 @@ class DatasetWrapper(object):
         components = min(max_dim_clustering, num_cols)
         reduced_examples = self._dataset
         if components != num_cols:
-            if sp.sparse.issparse(self._dataset):
+            if issparse(self._dataset):
                 module_logger.debug('Reducing sparse data with StandardScaler and TruncatedSVD')
                 normalized_examples = StandardScaler(with_mean=False).fit_transform(self._dataset)
                 reducer = TruncatedSVD(n_components=components)

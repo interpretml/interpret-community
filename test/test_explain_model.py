@@ -6,7 +6,7 @@ import pytest
 
 # Tests for model explainability SDK
 import numpy as np
-import scipy as sp
+from scipy.sparse import csr_matrix
 import shap
 import logging
 import pandas as pd
@@ -283,7 +283,7 @@ class TestTabularExplainer(object):
         model = create_sklearn_random_forest_regressor(x_train, y_train)
         _, cols = x_train.shape
         shape = 1, cols
-        background = sp.sparse.csr_matrix(shape, dtype=x_train.dtype)
+        background = csr_matrix(shape, dtype=x_train.dtype)
 
         # Create tabular explainer
         exp = tabular_explainer(model, background)
