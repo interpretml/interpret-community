@@ -62,11 +62,11 @@ class MimicExplainer(BlackBoxExplainer):
     :type explainable_model_args: dict
     :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
-    :param augment_data: If true, oversamples the initialization examples to improve surrogate
+    :param augment_data: If True, oversamples the initialization examples to improve surrogate
         model accuracy to fit teacher model. Useful for high-dimensional data where
         the number of rows is less than the number of columns.
     :type augment_data: bool
-    :param max_num_of_augmentations: max number of times we can increase the input data size.
+    :param max_num_of_augmentations: Maximum number of times we can increase the input data size.
     :type max_num_of_augmentations: int
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. Note for mimic explainer this will
@@ -159,11 +159,11 @@ class MimicExplainer(BlackBoxExplainer):
         :type explainable_model_args: dict
         :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
-        :param augment_data: If true, oversamples the initialization examples to improve surrogate
+        :param augment_data: If True, oversamples the initialization examples to improve surrogate
             model accuracy to fit teacher model.  Useful for high-dimensional data where
             the number of rows is less than the number of columns.
         :type augment_data: bool
-        :param max_num_of_augmentations: max number of times we can increase the input data size.
+        :param max_num_of_augmentations: Maximum number of times we can increase the input data size.
         :type max_num_of_augmentations: int
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. Note for mimic explainer this will
