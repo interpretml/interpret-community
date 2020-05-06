@@ -6,15 +6,16 @@ import { mergeStyleSets } from "@uifabric/styling";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Transform } from "plotly.js-dist";
-import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../NewExplanationDashboard";
-import { JointDataset, ColumnCategories } from "../JointDataset";
-import { IExplanationModelMetadata } from "../IExplanationContext";
-import { AxisConfigDialog } from "./AxisConfigurationDialog/AxisConfigDialog";
-import { localization } from "../../Localization/localization";
+import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplanationDashboard";
+import { JointDataset, ColumnCategories } from "../../JointDataset";
+import { IExplanationModelMetadata } from "../../IExplanationContext";
+import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
+import { localization } from "../../../Localization/localization";
 import _ from "lodash";
-import { Cohort } from "../Cohort";
+import { Cohort } from "../../Cohort";
 import { Text } from "office-ui-fabric-react";
-import { FabricStyles } from "../FabricStyles";
+import { FabricStyles } from "../../FabricStyles";
+import { dependencePlotStyles } from "./DependencePlot.styles";
 
 export interface IDependecePlotProps {
     chartProps: IGenericChartProps;
@@ -68,103 +69,36 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
         } as any
     };
 
-    private static readonly classNames = mergeStyleSets({
-        DependencePlot: {
-            display: "flex",
-            flexGrow: "1",
-            flexDirection: "row"
-        },
-        chartWithAxes: {
-            display: "flex",
-            flex: "1",
-            padding: "5px 20px 0 20px",
-            flexDirection: "column"
-        },
-        chart: {
-            height: "100%",
-            flex: 1
-        },
-        chartWithVertical: {
-            height: "400px",
-            width: "100%",
-            display: "flex",
-            flexDirection: "row"
-        },
-        verticalAxis: {
-            position: "relative",
-            top: "0px",
-            height: "auto",
-            width: "50px"
-        },
-        rotatedVerticalBox: {
-            transform: "translateX(-50%) translateY(-50%) rotate(270deg)",
-            marginLeft: "15px",
-            position: "absolute",
-            top: "50%",
-            textAlign: "center",
-            width: "max-content"
-        },
-        horizontalAxisWithPadding: {
-            display: "flex",
-            flexDirection: "row"
-        },
-        paddingDiv: {
-            width: "50px"
-        },
-        horizontalAxis: {
-            flex: 1,
-            textAlign:"center"
-        },
-        placeholderWrapper: {
-            margin: "100px auto 0 auto"
-        },
-        placeholder: {
-            maxWidth: "70%"
-        },
-        secondaryChartPlacolderBox: {
-            height: "400px",
-            width: "100%"
-        },
-        secondaryChartPlacolderSpacer: {
-            margin: "25px auto 0 auto",
-            padding: "23px",
-            width:"fit-content",
-            boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
-        },
-        faintText: {
-            fontWeight: "350" as any,
-        }
-    });
-
     public render(): React.ReactNode {
+        const classNames = dependencePlotStyles();
         if (this.props.chartProps === undefined) { 
-            return (<div className={DependencePlot.classNames.secondaryChartPlacolderBox}>
-                <div className={DependencePlot.classNames.secondaryChartPlacolderSpacer}>
-                    <Text variant="large" className={DependencePlot.classNames.faintText}>{localization.DependencePlot.placeholder}</Text>
+            return (<div className={classNames.secondaryChartPlacolderBox}>
+                <div className={classNames.secondaryChartPlacolderSpacer}>
+                    <Text variant="large" className={classNames.faintText}>{localization.DependencePlot.placeholder}</Text>
                 </div>
             </div>);
         }
         const plotlyProps = this.generatePlotlyProps();
         return (
-            <div className={DependencePlot.classNames.DependencePlot}>
-                <div className={DependencePlot.classNames.chartWithAxes}>
-                    <div className={DependencePlot.classNames.chartWithVertical}>
-                        <div className={DependencePlot.classNames.verticalAxis}>
-                            <div className={DependencePlot.classNames.rotatedVerticalBox}>
+            <div className={classNames.DependencePlot}>
+                <div className={classNames.chartWithAxes}>
+                    <div className={classNames.chartWithVertical}>
+                        <div className={classNames.verticalAxis}>
+                            <div className={classNames.rotatedVerticalBox}>
                                 <Text variant={"medium"} block>{localization.DependencePlot.featureImportanceOf}</Text>
                                 <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label + " : " + this.props.metadata.classNames[0]}</Text>
                             </div>
                         </div>
-                        <div className={DependencePlot.classNames.chart}>
+                        <div className={classNames.chart}>
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
                                 theme={undefined}
                             />
                         </div>
                     </div>
-                    <div className={DependencePlot.classNames.horizontalAxisWithPadding}>
-                        <div className={DependencePlot.classNames.paddingDiv}></div>
-                        <div className={DependencePlot.classNames.horizontalAxis}>
+                    <div className={classNames.horizontalAxisWithPadding}>
+                        <div className={classNames.paddingDiv}></div>
+                        <div className={classNames.horizontalAxis}>
                             <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}</Text>
                         </div>
                     </div>

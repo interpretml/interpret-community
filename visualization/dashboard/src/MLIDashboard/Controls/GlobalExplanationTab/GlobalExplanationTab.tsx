@@ -5,7 +5,7 @@ import { BarChart, LoadingSpinner } from "../../SharedComponents";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
 import _ from "lodash";
-import { DependencePlot } from "../DependencePlot";
+import { DependencePlot } from "../DependencePlot/DependencePlot";
 import { IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
 import { mergeStyleSets } from "@uifabric/styling";
 import { SpinButton } from "office-ui-fabric-react/lib/SpinButton";
