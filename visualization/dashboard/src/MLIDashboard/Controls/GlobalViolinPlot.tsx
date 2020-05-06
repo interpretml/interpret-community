@@ -13,9 +13,6 @@ import { FabricStyles } from "../FabricStyles";
 export interface IGlobalViolinPlotProps {
     topK: number;
     startingK: number;
-    // selectionContext: SelectionContext;
-    theme?: string;
-    // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     cohort: Cohort;
@@ -111,7 +108,7 @@ export class GlobalViolinPlot extends React.PureComponent<IGlobalViolinPlotProps
         return (<>
             <AccessibleChart
                 plotlyProps={plotlyProps}
-                theme={this.props.theme}
+                theme={undefined}
                 relayoutArg={relayoutArg as any}
             />
         </>);

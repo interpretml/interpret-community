@@ -9,9 +9,9 @@ export class Cohort {
     public rowCount: number = 0;
     private readonly cohortIndex: number;
     private mutateCount: number = 0;
-    private _filteredData: Array<{[key: string]: number}>;
-    private _cachedAverageImportance: number[];
-    private _cachedTransposedLocalFeatureImportances: number[][];
+    private filteredData: Array<{[key: string]: number}>;
+    private cachedAverageImportance: number[];
+    private cachedTransposedLocalFeatureImportances: number[][];
     private currentSortKey: string | undefined;
     private currentSortReversed: boolean = false;
     constructor(public name: string, private jointDataset: JointDataset, public filters: IFilter[] = []) {
@@ -30,7 +30,7 @@ export class Cohort {
         this.applyFilters();
     }
 
-    // An id to track if a change requireing rerender has occured.
+    // An id to track if a change requiring rerender has occurred.
     public getCohortID(): number {
         return this.cohortIndex;
     }
@@ -46,14 +46,14 @@ export class Cohort {
 
     public sort(columnName: string = JointDataset.IndexLabel, reverse?: boolean): void {
         if (this.currentSortKey !== columnName) {
-            this._filteredData.sort((a, b) => {
+            this.filteredData.sort((a, b) => {
                 return a[columnName] - b[columnName];
             });
             this.currentSortKey = columnName;
             this.currentSortReversed = false;
         }
         if (this.currentSortReversed !== reverse) {
-            this._filteredData.reverse();
+            this.filteredData.reverse();
         }
     }
 
@@ -61,7 +61,7 @@ export class Cohort {
     // should not mutate the true dataset. Instead, bin props are preserved
     // and applied when requested.
     // Bin object stores array of upper bounds for each bin, return the index
-    // if the bin of the value;
+    // of the bin of the value;
     public unwrap(key: string, applyBin?: boolean): any[] {
         if (applyBin && this.jointDataset.metaDict[key].isCategorical === false) {
             let binVector = this.jointDataset.binDict[key];
@@ -69,46 +69,46 @@ export class Cohort {
                 this.jointDataset.addBin(key);
                 binVector = this.jointDataset.binDict[key];
             }
-            return this._filteredData.map(row => {
+            return this.filteredData.map(row => {
                 const rowValue = row[key];
                 return binVector.findIndex(upperLimit => upperLimit >= rowValue );
             });
         }
-        return this._filteredData.map(row => row[key]);
+        return this.filteredData.map(row => row[key]);
     }
 
     public calculateAverageImportance(): number[] {
-        if (this._cachedAverageImportance) {
-            return this._cachedAverageImportance;
+        if (this.cachedAverageImportance) {
+            return this.cachedAverageImportance;
         }
 
-        this._cachedAverageImportance = this.transposedLocalFeatureImportances().map(featureValues => {
+        this.cachedAverageImportance = this.transposedLocalFeatureImportances().map(featureValues => {
             if (!featureValues || featureValues.length === 0) {
                 return Number.NaN;
             }
             const total = featureValues.reduce((prev, current) => {return prev + Math.abs(current)}, 0);
             return total / featureValues.length;
         })
-        return this._cachedAverageImportance;
+        return this.cachedAverageImportance;
     }
 
     public transposedLocalFeatureImportances(): number[][] {
-        if (this._cachedTransposedLocalFeatureImportances) {
-            return this._cachedTransposedLocalFeatureImportances;
+        if (this.cachedTransposedLocalFeatureImportances) {
+            return this.cachedTransposedLocalFeatureImportances;
         }
         const featureLength = this.jointDataset.localExplanationFeatureCount;
-        const localFeatureImportances = this._filteredData.map(row => {
+        const localFeatureImportances = this.filteredData.map(row => {
             return JointDataset.localExplanationSlice(row, featureLength);
         });
-        this._cachedTransposedLocalFeatureImportances = ModelExplanationUtils.transpose2DArray(localFeatureImportances);
-        return this._cachedTransposedLocalFeatureImportances;
+        this.cachedTransposedLocalFeatureImportances = ModelExplanationUtils.transpose2DArray(localFeatureImportances);
+        return this.cachedTransposedLocalFeatureImportances;
     }
 
     private applyFilters(): void {
-        this._cachedAverageImportance = undefined;
-        this._cachedTransposedLocalFeatureImportances = undefined;
+        this.cachedAverageImportance = undefined;
+        this.cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
-        this._filteredData = this.jointDataset.dataDict.filter(row => 
+        this.filteredData = this.jointDataset.dataDict.filter(row => 
             this.filters.every(filter => {
                 const rowVal = row[filter.column];
                 switch(filter.method){
@@ -123,6 +123,6 @@ export class Cohort {
                 }
             })
         );
-        this.rowCount = this._filteredData.length;
+        this.rowCount = this.filteredData.length;
     }
 }

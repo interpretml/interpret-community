@@ -157,7 +157,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             selectedFeatureKey: JointDataset.DataLabelRoot + "0"
         };
         this.temporaryPoint = this.createCopyOfFirstRow();
-        //this.seriesOfRows = this.buildJoinedSelectedRows(this.state.selectedPointsIndexes, this.state.customPoints);
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -793,8 +792,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             if (this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION) {
                 return;
             }
-            // const startingIdex = this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION ? 1 : 0;
-            // newSelections = this.state.selectedPointsIndexes.slice(startingIdex);
             newSelections.push(index);
             pointIsActive.push(true);
         } else {
@@ -841,7 +838,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     return;
                 }
                 if (err.name === 'PythonError') {
-                    alert("error");
+                    alert(localization.formatString(localization.IcePlot.errorPrefix, err.message) as string);
                 }
             }
         });

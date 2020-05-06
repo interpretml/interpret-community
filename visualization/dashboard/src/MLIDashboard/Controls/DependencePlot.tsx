@@ -16,11 +16,8 @@ import { Cohort } from "../Cohort";
 import { Text } from "office-ui-fabric-react";
 import { FabricStyles } from "../FabricStyles";
 
-export interface INewDataTabProps {
+export interface IDependecePlotProps {
     chartProps: IGenericChartProps;
-    // selectionContext: SelectionContext;
-    theme?: string;
-    // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     cohort: Cohort;
     cohortIndex: number;
@@ -28,7 +25,7 @@ export interface INewDataTabProps {
     onChange: (props: IGenericChartProps) => void;
 }
 
-export class DependencePlot extends React.PureComponent<INewDataTabProps> {
+export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
     public static basePlotlyProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false},
         data: [{}],

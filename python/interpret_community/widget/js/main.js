@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { NewExplanationDashboard } from 'interpret-dashboard';
+import { ExplanationDashboard } from 'interpret-dashboard';
 
 const RenderDashboard = (divId, data) => {
   let generatePrediction = (postData) => {
