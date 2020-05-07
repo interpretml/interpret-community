@@ -243,6 +243,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         super(props);
         NewExplanationDashboard.initializeIcons(props);
         const theme = loadTheme(props.theme || defaultTheme);
+        localization.setLanguage('en')
         this.onModelConfigChanged = this.onModelConfigChanged.bind(this);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);

@@ -1,4 +1,4 @@
-import { IProcessedStyleSet } from "@uifabric/styling";
+import { IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import _ from "lodash";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode } from "mlchartlib";
 import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox  } from "office-ui-fabric-react";
@@ -380,7 +380,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             </div>
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
-                                theme={undefined}
+                                theme={getTheme() as any}
                                 onClickHandler={this.selectPointFromChart}
                             />
                         </div>

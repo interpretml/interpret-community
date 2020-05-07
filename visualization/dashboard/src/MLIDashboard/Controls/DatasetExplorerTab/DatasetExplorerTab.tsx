@@ -6,7 +6,7 @@ import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
-import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
+import { mergeStyleSets, IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
@@ -188,7 +188,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             </Callout>}
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
-                                theme={undefined}
+                                theme={getTheme() as any}
                             />
                         </div>
                         <div className={classNames.horizontalAxisWithPadding}>

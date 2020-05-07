@@ -3,7 +3,7 @@ import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplan
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { Cohort } from "../../Cohort";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, getTheme, ITheme } from "@uifabric/styling";
 import _ from "lodash";
 import { DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { localization } from "../../../Localization/localization";
@@ -119,7 +119,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                 <div className={classNames.chart}>
                                     <AccessibleChart
                                         plotlyProps={plotlyProps}
-                                        theme={undefined}
+                                        theme={getTheme() as any}
                                     />
                                 </div>
                                 <div className={classNames.rightPanel}>
