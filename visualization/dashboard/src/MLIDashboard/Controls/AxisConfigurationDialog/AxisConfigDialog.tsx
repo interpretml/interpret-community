@@ -39,8 +39,9 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private _isInitialized = false;
 
     private _leftSelection: Selection;
-    private readonly MIN_HIST_COLS = 2;
-    private readonly MAX_HIST_COLS = 40;
+    private static readonly MIN_HIST_COLS = 2;
+    private static readonly MAX_HIST_COLS = 40;
+    private static readonly DEFAULT_BIN_COUNT = 5;
 
     private readonly leftItems= [
         Cohort.CohortKey,
@@ -162,8 +163,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                     className={styles.spinButton}
                                     labelPosition={Position.top}
                                     label={localization.AxisConfigDialog.numOfBins}
-                                    min={this.MIN_HIST_COLS}
-                                    max={this.MAX_HIST_COLS}
+                                    min={AxisConfigDialog.MIN_HIST_COLS}
+                                    max={AxisConfigDialog.MAX_HIST_COLS}
                                     value={this.state.binCount.toString()}
                                     onIncrement={this.setNumericValue.bind(this, 1, selectedMeta)}
                                     onDecrement={this.setNumericValue.bind(this, -1, selectedMeta)}
@@ -177,9 +178,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                 <PrimaryButton 
                     text={localization.AxisConfigDialog.select}
                     onClick={this.saveState}
-                    className ={styles.selectButton}
-                >Select</PrimaryButton>
-                
+                    className={styles.selectButton}
+                />
             </Callout>
         );
     }
@@ -242,14 +242,14 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
         if (delta === 0) {
             const number = +stringVal;
-            if (!Number.isInteger(number) || number > this.MAX_HIST_COLS || number < this.MIN_HIST_COLS) {
+            if (!Number.isInteger(number) || number > AxisConfigDialog.MAX_HIST_COLS || number < AxisConfigDialog.MIN_HIST_COLS) {
                 return this.state.binCount.toString();
             }
             this.setState({binCount: number});
         } else {
             const prevVal = this.state.binCount as number;
             const newVal = prevVal + delta;
-            if (newVal > this.MAX_HIST_COLS || newVal < this.MIN_HIST_COLS) {
+            if (newVal > AxisConfigDialog.MAX_HIST_COLS || newVal < AxisConfigDialog.MIN_HIST_COLS) {
                 return prevVal.toString();
             }
             this.setState({binCount: newVal});
@@ -288,7 +288,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         let binCount = undefined;
         if (this.props.canBin && selectedMeta.isCategorical === false) {
             binCount = selectedMeta.sortedCategoricalValues !== undefined ?
-                selectedMeta.sortedCategoricalValues.length : 5;
+                selectedMeta.sortedCategoricalValues.length : AxisConfigDialog.DEFAULT_BIN_COUNT;
         }
         return binCount;
     }

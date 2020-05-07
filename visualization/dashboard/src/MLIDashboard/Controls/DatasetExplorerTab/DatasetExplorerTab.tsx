@@ -20,9 +20,7 @@ import { Icon, Text, Callout, DirectionalHint, ChoiceGroup, IChoiceGroupOption, 
 
 export interface IDatasetExplorerTabProps {
     chartProps: IGenericChartProps;
-    // selectionContext: SelectionContext;
     theme?: string;
-    // messages?: HelpMessageDict;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     cohorts: Cohort[];
