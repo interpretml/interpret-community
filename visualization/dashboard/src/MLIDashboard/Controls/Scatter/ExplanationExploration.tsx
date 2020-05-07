@@ -29,6 +29,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
         this.onColorSelected = this.onColorSelected.bind(this);
         this.onDismiss = this.onDismiss.bind(this);
         this.onIconClick = this.onIconClick.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -43,6 +44,8 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
             const initialColorOption = ScatterUtils.getselectedColorOption(this.plotlyProps, dropdownOptions);
             const weightContext = this.props.dashboardContext.weightContext;
             const includeWeightDropdown = this.props.dashboardContext.explanationContext.modelMetadata.modelType === ModelTypes.multiclass;
+            let plotProp = ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps));
+            plotProp = ScatterUtils.updatePropsForSelections(plotProp, this.props.selectedRow);
             return (
                 <div className="explanation-chart">
                     <div className="top-controls">
@@ -123,10 +126,9 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                     </Callout>
                     )}
                     <AccessibleChart
-                        plotlyProps={ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps))}
-                        sharedSelectionContext={this.props.selectionContext}
+                        plotlyProps={plotProp}
                         theme={this.props.theme}
-                        onSelection={DefaultSelectionFunctions.scatterSelection}
+                        onClickHandler={this.handleClick}
                     />
                 </div>
             );
@@ -137,6 +139,18 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
         }
         const explanationStrings = this.props.messages ? this.props.messages.LocalExpAndTestReq : undefined;
         return <NoDataMessage explanationStrings={explanationStrings}/>;
+    }
+
+    private handleClick(data: any): void {
+        const clickedId = (data.points[0] as any).customdata;
+        const selections: string[] = this.props.selectionContext.selectedIds.slice();
+        const existingIndex = selections.indexOf(clickedId);
+        if (existingIndex !== -1) {
+            selections.splice(existingIndex, 1);
+        } else {
+            selections.push(clickedId);
+        }
+        this.props.selectionContext.onSelect(selections);
     }
 
     private onXSelected(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {

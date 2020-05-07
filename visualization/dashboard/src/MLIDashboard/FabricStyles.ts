@@ -81,6 +81,37 @@ export class FabricStyles {
         '#17becf'   // blue-teal
     ];
 
+    // public static fabricColorPalette: string[] = [
+    //     "#0078d4",
+    //     "#00188f",
+    //     "#00A2ad",
+    //     "#4b003f",
+    //     "#917edb",
+    //     "#001d3f",
+    //     "#e3008c",
+    //     "#022f22",
+    //     "#ef6950",
+    //     "#502006"
+    // ];
+
+    public static fabricColorPalette: string[] = [
+        '#1f77b4',  // muted blue
+        '#ff7f0e',  // safety orange
+        '#2ca02c',  // cooked asparagus green
+        '#d62728',  // brick red
+        '#9467bd',  // muted purple
+        '#8c564b',  // chestnut brown
+        '#e377c2',  // raspberry yogurt pink
+        '#7f7f7f',  // middle gray
+        '#bcbd22',  // curry yellow-green
+        '#17becf'   // blue-teal
+    ];
+
+    public static fabricColorInactiveSeries: string = "#949494";
+
+    public static chartAxisColor: string = "#979797";
+    public static fontFamilies = "Segoe UI, Segoe UI Web (West European),  Roboto, Helvetica Neue, sans-serif";
+
     public static verticalTabsStyle: Partial<IPivotStyles> = {
         root: {
             height: "100%",
