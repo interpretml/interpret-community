@@ -4,7 +4,7 @@
 
 import numpy as np
 import pytest
-import scipy.sparse as sparse
+from scipy.sparse import issparse, csr_matrix
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -36,13 +36,13 @@ class TestDataMapper:
         x = np.ones((10, 2))
         data_mapper = DataMapper([([0], IdentityTransformer()), ([1], SparseTransformer())])
         result = data_mapper.transform(x)
-        assert sparse.issparse(result)
+        assert issparse(result)
 
     def test_transform_sparse(self):
-        x = sparse.csr_matrix(np.zeros((10, 2)))
+        x = csr_matrix(np.zeros((10, 2)))
         result = self._identity_mapper_list.transform(x)
         assert result.shape == x.shape
-        assert sparse.issparse(result)
+        assert issparse(result)
 
     def test_column_with_brackets(self):
         x = np.ones((2, 3))
