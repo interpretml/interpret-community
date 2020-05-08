@@ -33,6 +33,7 @@ export interface INewExplanationDashboardState {
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
+    requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
 interface IGlobalExplanationProps {
@@ -257,6 +258,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             localization.setLanguage(this.props.locale);
         }
         this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
+        this.validatePredictMethod();
 
         if (this.state.jointDataset.hasPredictedY) {
             this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
@@ -340,12 +342,28 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     cohorts={this.state.cohorts}
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
-                                    invokeModel={this.props.requestPredictions}
+                                    invokeModel={this.state.requestPredictions}
                                 />
                             )}
                         </div>
                     </div>
         );
+    }
+
+    private async validatePredictMethod(): Promise<void> {
+        if (this.props.requestPredictions && this.props.testData !== undefined && this.props.testData.length > 0) {
+            try {
+                const abortController = new AbortController();
+                const prediction = await this.props.requestPredictions([this.props.testData[0]], abortController.signal);
+                if (prediction !== undefined) {
+                    this.setState({requestPredictions: this.props.requestPredictions});
+                }
+            } catch {
+
+            }
+
+        }
+        
     }
 
     private onConfigChanged(newConfig: IGenericChartProps): void {

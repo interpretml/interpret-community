@@ -79,7 +79,7 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         rightPanel: {
             width: "195px",
             height: "100%",
-            backgroundColor: theme.semanticColors.bodyBackgroundHovered,
+            backgroundColor: theme.semanticColors.bodyBackgroundChecked,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-evenly",
@@ -93,7 +93,7 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+            boxShadow: `0px 4px 4px ${theme.palette.blackTranslucent40}`,
             backgroundColor: theme.semanticColors.bodyBackground
         },
         verticalAxis: {
