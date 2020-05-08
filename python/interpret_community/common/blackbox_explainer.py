@@ -5,7 +5,7 @@
 """Defines the black box explainer API, which can either take in a black box model or function."""
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, isspmatrix_csr, csr_matrix
 from functools import wraps
 
 from .base_explainer import BaseExplainer
@@ -213,21 +213,21 @@ def add_prepare_function_and_summary_method(cls):
             idx = current_index_list[0]
             tiles = int(data.shape[0])
             evaluation_row = original_data[idx]
-            if sp.sparse.issparse(evaluation_row):
-                if not sp.sparse.isspmatrix_csr(evaluation_row):
+            if issparse(evaluation_row):
+                if not isspmatrix_csr(evaluation_row):
                     evaluation_row = evaluation_row.tocsr()
                 nnz = evaluation_row.nnz
                 rows, cols = evaluation_row.shape
                 rows *= tiles
                 shape = rows, cols
                 if nnz == 0:
-                    examples = sp.sparse.csr_matrix(shape, dtype=evaluation_row.dtype).tolil()
+                    examples = csr_matrix(shape, dtype=evaluation_row.dtype).tolil()
                 else:
                     new_indptr = np.arange(0, rows * nnz + 1, nnz)
                     new_data = np.tile(evaluation_row.data, rows)
                     new_indices = np.tile(evaluation_row.indices, rows)
-                    examples = sp.sparse.csr_matrix((new_data, new_indices, new_indptr),
-                                                    shape=shape).tolil()
+                    examples = csr_matrix((new_data, new_indices, new_indptr),
+                                          shape=shape).tolil()
             else:
                 examples = np.tile(original_data[idx], tiles).reshape((data.shape[0], original_data.shape[1]))
             examples[:, explain_subset] = data
