@@ -194,7 +194,9 @@
     "Filters": {
         "equalComparison": "Equal to",
         "greaterThanComparison": "Greater than",
+        "greaterThanEqualToComparison": "Greater than equal to",
         "lessThanComparison": "Less than",
+        "lessThanEqualToComparison": "Less than equal to",
         "inTheRangeOf": "In the range of",
         "categoricalIncludeValues": "Included values:",
         "numericValue": "Value",
@@ -327,6 +329,7 @@
         "cohortNameLabel":"Dataset cohort name",
         "cohortNamePlaceholder":"Name your cohort",
         "save":"Save",
+        "delete":"Delete",
         "cancel":"Cancel",
         "cohortNameError":"Missing cohort name"
     },
@@ -338,5 +341,14 @@
         "binLabel": "Apply binning to data",
         "TreatAsCategorical": "Treat as categorical",
         "numOfBins":"Number of bins"
+    },
+    "FilterOperations": {
+        "equals": " = ",
+        "lessThan": " < ",
+        "greaterThan": " > ",
+        "lessThanEquals": " <= ",
+        "greaterThanEquals": " >= ",
+        "includes": " includes ",
+        "inTheRangeOf": " [ "
     }
 }

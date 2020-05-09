@@ -26,11 +26,13 @@ export interface ICohortEditorStyles {
     filterIcon: IStyle;
     cohortName: IStyle;
     saveCohort: IStyle;
+    deleteCohort: IStyle;
     saveAndCancelDiv: IStyle;
     saveFilterButton: IStyle;
     cancelFilterButton: IStyle;
     closeIcon: IStyle;
     cohortEditor: IStyle;
+    saveAndDeleteDiv: IStyle;
 }
 
 export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> = () => {
@@ -203,11 +205,34 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             alignSelf: "flex-start"
         },
         saveCohort: {
-            marginTop: "18px",
             alignSelf: "flex-end",
             marginRight: "27px",
             width: '62px',
             height: '32px',
+        },
+        saveAndDeleteDiv: {
+            display: "flex",
+            flexDirection: "row",
+            marginTop: "18px"
+        },
+        deleteCohort: {
+            alignSelf: "flex-start",
+            marginRight: "17px",
+            marginLeft: "374px",
+            width: '80px',
+            height: '32px',
+            borderColor: theme.palette.red,
+            color:theme.palette.red,
+            selectors:{
+                ':hover':{
+                    background: theme.palette.red,
+                    color: theme.palette.white
+                },
+                ':active':{
+                    background: theme.palette.red,
+                    color: theme.palette.white
+                }
+            }
         },
         saveAndCancelDiv: {
             display: "flex",

@@ -18,6 +18,7 @@ export interface ICohortListProps {
 
 export interface ICohortListState {
     cohortIndex?: number;
+    isNewCohort?: boolean;
 }
 
 export class CohortList extends React.PureComponent<ICohortListProps, ICohortListState> {
@@ -102,8 +103,9 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                         cohortName={cohortForEdit.name}
                         onSave={this.updateCohort.bind(this)}
                         onCancel={this.onCancel.bind(this)}
+                        onDelete={this.onDelete.bind(this)}
+                        isNewCohort={this.state.isNewCohort}
                     />
-
                 )}
             </div>
         );
@@ -118,11 +120,16 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
         this.setState({ cohortIndex: undefined });
     }
 
+    private onDelete(): void {
+        this.props.onDelete(this.state.cohortIndex)
+        this.setState({ cohortIndex: undefined });
+    }
+
     private openDialog(cohortIndex?: number): void {
         if (cohortIndex === undefined) {
-            this.setState({ cohortIndex: this.props.cohorts.length });
+            this.setState({ cohortIndex: this.props.cohorts.length, isNewCohort: true });
         } else {
-            this.setState({ cohortIndex });
+            this.setState({ cohortIndex, isNewCohort: false });
         }
     }
 

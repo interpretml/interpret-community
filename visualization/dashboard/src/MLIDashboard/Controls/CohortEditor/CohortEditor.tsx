@@ -18,20 +18,28 @@ import { cohortEditorCallout, cohortEditorStyles } from "./CohortEditor.styles";
 
 initializeIcons();
 
+export interface IEditFilter {
+    filterColumn?: string;
+    selectionKey?: string;
+}
+
 export interface ICohortEditorProps {
     jointDataset: JointDataset;
     filterList: IFilter[];
     cohortName: string;
+    isNewCohort: boolean;
     onSave: (newCohort: Cohort) => void;
     onCancel: () => void;
+    onDelete: () => void;
 }
 
 export interface ICohortEditorState {
     openedFilter?: IFilter;
     filterIndex?: number;
     filters?: IFilter[];
-    isEditingFilter?: boolean;
     cohortName: string;
+    filterSelection?: string;
+    editingFilterIndex?: string;
 }
 
 const styles = cohortEditorStyles();
@@ -73,8 +81,20 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             text: localization.Filters.greaterThanComparison
         },
         {
+            key: FilterMethods.greaterThanEqualTo,
+            text: localization.Filters.greaterThanEqualToComparison
+        },
+        {
             key: FilterMethods.lessThan,
             text: localization.Filters.lessThanComparison
+        },
+        {
+            key: FilterMethods.lessThanEqualTo,
+            text: localization.Filters.lessThanEqualToComparison
+        },
+        {
+            key: FilterMethods.inTheRangeOf,
+            text: localization.Filters.inTheRangeOf
         }
     ];
     private _isInitialized = false;
@@ -85,8 +105,8 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             openedFilter: undefined,
             filterIndex: this.props.filterList.length,
             filters: this.props.filterList,
-            isEditingFilter: false,
-            cohortName: this.props.cohortName
+            cohortName: this.props.cohortName,
+            filterSelection: undefined
         };
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
@@ -117,6 +137,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 />
             </div>);
         });
+
         return (
             <Callout
                 setInitialFocus={true}
@@ -145,6 +166,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 checkboxVisibility={CheckboxVisibility.hidden}
                                 onRenderDetailsHeader={this._onRenderDetailsHeader}
                                 selection={this._leftSelection}
+                                selectionPreservedOnEmptyClick={true}
                                 setKey={"set"}
                                 columns={[{ key: 'col1', name: 'name', minWidth: 150, fieldName: 'title' }]}
                             />
@@ -170,14 +192,26 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             }
                         </div>
                     </div>
+                    {this.props.isNewCohort ?
                         <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>{localization.CohortEditor.save}</PrimaryButton>
+                        :
+                        <div className={styles.saveAndDeleteDiv}>
+                            <DefaultButton onClick={this.deleteCohort.bind(this)} className={styles.deleteCohort}>{localization.CohortEditor.delete}</DefaultButton>
+                            <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>{localization.CohortEditor.save}</PrimaryButton>
+                        </div>
+                    }
                 </div>
             </Callout>
         );
     }
 
     private closeCallout = (): void => {
+        this.setState({ openedFilter: undefined, filters: undefined, filterIndex: undefined})
         this.props.onCancel();
+    };
+
+    private deleteCohort = (): void => {
+        this.props.onDelete();
     };
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
@@ -230,6 +264,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private saveState = (): void => {
         this.updateFilter(this.state.openedFilter);
+        this.setState({ editingFilterIndex: undefined });
         this._leftSelection.setAllSelected(false);
     }
 
@@ -328,9 +363,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     private updateFilter(filter: IFilter): void {
-        const isEditingFilter = this.state.isEditingFilter;
         let filters = [...this.state.filters];
-        if (!isEditingFilter) {
+
+        if (this.state.openedFilter.column!== this.state.editingFilterIndex) {
             filters.push(filter);
         }
         else {
@@ -338,11 +373,11 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         }
 
         this.setState({ filters });
-        this.setState({ openedFilter: undefined, filterIndex: undefined, isEditingFilter: false});
+        this.setState({ openedFilter: undefined, filterIndex: undefined });
     }
 
     private cancelFilter = (): void => {
-        this.setState({ openedFilter: undefined, isEditingFilter: false });
+        this.setState({ openedFilter: undefined });
     }
 
     private removeFilter(index: number): void {
@@ -353,8 +388,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private editFilter(index: number): void {
         const editFilter = this.state.filters[index];
-        this.setState({ isEditingFilter: true, filterIndex: index});
+        this.setState({ filterIndex: index });
         this.setState({ openedFilter: _.cloneDeep(editFilter) });
+        this.setState({ editingFilterIndex: editFilter.column });
     }
 
     private saveCohort(): void {
@@ -374,11 +410,36 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     private setFilterLabel(filter: IFilter): React.ReactNode {
         //TODO: change the function unwrap neatly 
         let label = "";
-        const space = " ";
-        label = this.props.jointDataset.metaDict[filter.column].abbridgedLabel + space
-        label += filter.method + space
+        label = this.props.jointDataset.metaDict[filter.column].abbridgedLabel
+
+        if (filter.method != FilterMethods.inTheRangeOf) {
+            const filterMethod = this.getFilterMethodLabel(filter.method)
+            label += filterMethod
+        }
+
         label += filter.arg
+        console.log("LABEL:: ", label);
         return (<Text variant={"small"} className={styles.filterLabel}>{label}</Text>);
+    }
+
+    private getFilterMethodLabel(filterMethod: FilterMethods): string {
+        let label = "";
+        switch (filterMethod) {
+            case FilterMethods.equal:
+                return label = localization.FilterOperations.equals;
+            case FilterMethods.greaterThan:
+                return label = localization.FilterOperations.greaterThan;
+            case FilterMethods.greaterThanEqualTo:
+                return label = localization.FilterOperations.greaterThanEquals;
+            case FilterMethods.lessThan:
+                return label = localization.FilterOperations.lessThan;
+            case FilterMethods.lessThanEqualTo:
+                return label = localization.FilterOperations.lessThanEquals;
+            case FilterMethods.includes:
+                return label = localization.FilterOperations.includes;
+            case FilterMethods.inTheRangeOf:
+                return label = localization.FilterOperations.inTheRangeOf;
+        }
     }
 
     private buildRightPanel(openedFilter): React.ReactNode {
@@ -444,16 +505,26 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 <SpinButton
                                     labelPosition={Position.top}
                                     className={styles.minSpinBox}
+                                    value={openedFilter.arg.toString()}
+                                    //value={openedFilter.arg}
                                     label={localization.Filters.minimum}
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
+                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
+                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
                                 />
                                 <SpinButton
                                     labelPosition={Position.top}
                                     className={styles.maxSpinBox}
+                                    value={openedFilter.arg.toString()}
+                                    //value={openedFilter.arg}
                                     label={localization.Filters.maximum}
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
+                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
+                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
                                 />
                             </div>
                             :
@@ -465,6 +536,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
                                     value={openedFilter.arg.toString()}
+                                    //value={openedFilter.arg}
                                     onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
                                     onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
@@ -473,7 +545,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                         }
                     </div>
                 )}
-                {this.state.isEditingFilter ?
+                {this.state.editingFilterIndex == this.state.openedFilter.column ? 
                     <div className={styles.saveAndCancelDiv}>
                         <DefaultButton
                             className={styles.saveFilterButton}

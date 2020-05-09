@@ -105,6 +105,7 @@ export class Cohort {
     }
 
     private applyFilters(): void {
+        //debugger;
         this._cachedAverageImportance = undefined;
         this._cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
@@ -116,9 +117,15 @@ export class Cohort {
                         return rowVal === filter.arg;
                     case FilterMethods.greaterThan:
                         return rowVal > filter.arg;
+                    case FilterMethods.greaterThanEqualTo:
+                        return rowVal >= filter.arg;
                     case FilterMethods.lessThan:
                         return rowVal < filter.arg;
+                    case FilterMethods.lessThanEqualTo:
+                        return rowVal <= filter.arg;
                     case FilterMethods.includes:
+                        return (filter.arg as number[]).includes(rowVal);
+                    case FilterMethods.inTheRangeOf:
                         return (filter.arg as number[]).includes(rowVal);
                 }
             })

@@ -1,11 +1,10 @@
-import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
-import { INumericRange, ICategoricalRange, RangeTypes } from "mlchartlib";
-import { localization } from "../Localization/localization";
-import { IFilter, FilterMethods } from "./Interfaces/IFilter";
 import _ from "lodash";
-import { IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
-import { WeightVectors, WeightVectorOption } from "./IWeightedDropdownContext";
+import { ICategoricalRange, INumericRange, RangeTypes } from "mlchartlib";
+import { localization } from "../Localization/localization";
 import { Cohort } from "./Cohort";
+import { IExplanationModelMetadata, ModelTypes } from "./IExplanationContext";
+import { IMultiClassLocalFeatureImportance, ISingleClassLocalFeatureImportance } from "./Interfaces";
+import { WeightVectorOption, WeightVectors } from "./IWeightedDropdownContext";
 
 export interface IJointDatasetArgs {
     dataset?: any[][];
