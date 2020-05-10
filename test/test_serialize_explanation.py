@@ -14,7 +14,7 @@ import pandas as pd
 from interpret_community.common.constants import ExplainParams
 from interpret_community.mimic.mimic_explainer import MimicExplainer
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.explanation.explanation import save_explanation, load_explanation
+from interpret_community.explanation.explanation import save_explanation, load_explanation, _save_explanation, _load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
@@ -43,6 +43,7 @@ class TestSerializeExplanation(object):
                                    classes=iris[DatasetConstants.CLASSES].tolist())
         explanation = explainer.explain_global()
         verify_serialization(explanation)
+        verify_serialization_mlflow(explanation)
 
     def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
@@ -50,6 +51,7 @@ class TestSerializeExplanation(object):
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
         verify_serialization(explanation)
+        verify_serialization_mlflow(explanation)
 
 
 def _assert_explanation_equivalence(actual, expected):
@@ -98,4 +100,23 @@ def verify_serialization(explanation):
     test_logger.info("validating serialization of explanation:\n%s", comment)
     expljson = save_explanation(explanation)
     deserialized_explanation = load_explanation(expljson)
+    _assert_explanation_equivalence(deserialized_explanation, explanation)
+
+
+def verify_serialization_mlflow(explanation):
+    # paramkeys = ['MODEL_TYPE', 'MODEL_TASK', 'METHOD', 'FEATURES', 'CLASSES']
+    # log_items = dict()
+    # for paramkey in paramkeys:
+    #     param = getattr(ExplainParams, paramkey)
+    #     value = getattr(explanation, param, None)
+    #     if value is not None:
+    #         if isinstance(value, np.ndarray):
+    #             log_items[param] = value.tolist()
+    #         else:
+    #             log_items[param] = value
+    # comment = json.dumps(log_items)
+    # test_logger.setLevel(logging.INFO)
+    # test_logger.info("validating serialization of explanation:\n%s", comment)
+    _save_explanation(explanation, 'temp')
+    deserialized_explanation = _load_explanation('temp/explanation.json')
     _assert_explanation_equivalence(deserialized_explanation, explanation)

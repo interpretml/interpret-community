@@ -1690,6 +1690,15 @@ def _transform_value_for_load(paramkey, expldict, _metadata):
     return value
 
 
+def _save_explanation(explanation, output_path):
+    import os
+    explanation_str = save_explanation(explanation)
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    with open(os.path.join(output_path, "explanation.json"), "w") as stream:
+        stream.write(explanation_str)
+
+
 def save_explanation(explanation):
     """Serialize the explanation.
 
@@ -1723,6 +1732,24 @@ def save_explanation(explanation):
         '_metadata': _metadata,
         'explanation': expldict
     })
+
+
+def log_explanation(path, explanation):
+    try:
+        import mlflow.pyfunc
+    except ImportError as e:
+        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, pip install mlflow to resolve the error: {}.".format(e))
+
+
+def _load_pyfunc(path):
+    with open(path, 'r') as stream:
+        explanation_str = stream.read()
+        return load_explanation(explanation_str)
+
+
+def _load_explanation(*args, **kwargs):
+    import mlflow.pyfunc
+    return mlflow.pyfunc.load_model(*args, **kwargs)
 
 
 def load_explanation(expljson):
