@@ -1,7 +1,7 @@
 import { initializeIcons } from '@uifabric/icons';
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
-import { Text, TextField } from "office-ui-fabric-react";
+import { Text, TextField, TooltipHost, TooltipOverflowMode } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Callout } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
@@ -14,7 +14,7 @@ import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
-import { cohortEditorCallout, cohortEditorStyles } from "./CohortEditor.styles";
+import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
 
 initializeIcons();
 
@@ -44,6 +44,7 @@ export interface ICohortEditorState {
 
 const styles = cohortEditorStyles();
 const cohortEditor = cohortEditorCallout();
+const tooltip = tooltipHostStyles;
 
 export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohortEditorState> {
     private _leftSelection: Selection;
@@ -121,7 +122,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     public render(): React.ReactNode {
         const openedFilter = this.state.openedFilter;
-
         const filterList = this.state.filters.map((filter, index) => {
             return (<div key={index} className={styles.existingFilter}>
                 {this.setFilterLabel(filter)}
@@ -409,17 +409,38 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private setFilterLabel(filter: IFilter): React.ReactNode {
         //TODO: change the function unwrap neatly 
+        const selectedFilter = this.props.jointDataset.metaDict[filter.column];
         let label = "";
-        label = this.props.jointDataset.metaDict[filter.column].abbridgedLabel
+        label = selectedFilter.abbridgedLabel
 
         if (filter.method != FilterMethods.inTheRangeOf) {
             const filterMethod = this.getFilterMethodLabel(filter.method)
             label += filterMethod
         }
+  
+        if (selectedFilter.isCategorical) {
+            let selectedValues = [];
+            let filterArgs = filter.arg as number[];
+            filterArgs.forEach((element) => {
+                selectedValues.push(selectedFilter.sortedCategoricalValues[element])
+            }
+            );
+            label += selectedValues;
+        }
+        else {
+            label += filter.arg
+        }
 
-        label += filter.arg
-        console.log("LABEL:: ", label);
-        return (<Text variant={"small"} className={styles.filterLabel}>{label}</Text>);
+        return (<TooltipHost
+        overflowMode={TooltipOverflowMode.Self}
+        hostClassName={styles.filterLabel}
+        content={label}
+        onTooltipToggle={() => false}
+        styles={tooltip}
+      >
+        {label}
+      </TooltipHost>);
+
     }
 
     private getFilterMethodLabel(filterMethod: FilterMethods): string {

@@ -1,4 +1,4 @@
-import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles } from "office-ui-fabric-react";
+import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles, ITooltipHostStyles } from "office-ui-fabric-react";
 
 export interface ICohortEditorStyles {
     wrapper: IStyle;
@@ -35,8 +35,9 @@ export interface ICohortEditorStyles {
     saveAndDeleteDiv: IStyle;
 }
 
+const theme = getTheme();
+
 export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> = () => {
-    const theme = getTheme();
     return mergeStyleSets<ICohortEditorStyles>({
         cohortEditor: {
             overflowY: 'visible',
@@ -132,7 +133,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             height: "20px",
             marginLeft: "30px",
             color: theme.palette.neutralSecondaryAlt,
-            //color:"#979797",
             textAlign: "left",
         },
         treatCategorical: {
@@ -146,7 +146,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             marginLeft: "35px",
             textAlign: "center",
             color: theme.palette.neutralSecondaryAlt
-            //color: "#979797" 
         },
         existingFilter: {
             border: '1px solid',
@@ -168,7 +167,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             textOverflow: "ellipsis"
         },
         defaultFilterList: {
-            //color: "#979797",
             color: theme.palette.neutralSecondaryAlt,
             marginLeft: "10px"
         },
@@ -263,6 +261,12 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         }
     });
 };
+
+
+export const tooltipHostStyles: Partial<ITooltipHostStyles> = {
+    root: { display: 'block' },
+  };
+
 
 const cohortEditor = cohortEditorStyles();
 export const cohortEditorCallout: () => ICalloutContentStyles = () => {
