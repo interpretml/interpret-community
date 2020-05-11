@@ -326,7 +326,6 @@ export class Violin extends React.PureComponent<IGlobalFeatureImportanceProps, I
                     )}
                     <AccessibleChart
                         plotlyProps={plotlyProps}
-                        sharedSelectionContext={this.props.selectionContext}
                         theme={this.props.theme}
                         relayoutArg={relayoutArg as any}
                     />
