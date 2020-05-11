@@ -1,4 +1,3 @@
-import { initializeIcons } from '@uifabric/icons';
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
 import { Text, TextField, TooltipHost, TooltipOverflowMode } from "office-ui-fabric-react";
@@ -15,9 +14,6 @@ import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
-import { update } from 'plotly.js-dist';
-
-initializeIcons();
 
 export interface IEditFilter {
     filterColumn?: string;
@@ -251,11 +247,13 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         if (!this._isInitialized) {
             return;
         }
-        let property = this._leftSelection.getSelection()[0].key as string;
-        if (property === JointDataset.DataLabelRoot) {
-            property += "0";
+        if(this._leftSelection.getSelection().length != 0){
+            let property = this._leftSelection.getSelection()[0].key as string;
+            if (property === JointDataset.DataLabelRoot) {
+                property += "0";
+            }
+            this.setDefaultStateForKey(property);
         }
-        this.setDefaultStateForKey(property);
     }
 
     private readonly setSelectedProperty = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
