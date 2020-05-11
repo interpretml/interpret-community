@@ -105,7 +105,6 @@ export class Cohort {
     }
 
     private applyFilters(): void {
-        //debugger;
         this._cachedAverageImportance = undefined;
         this._cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
@@ -114,19 +113,20 @@ export class Cohort {
                 const rowVal = row[filter.column];
                 switch(filter.method){
                     case FilterMethods.equal:
-                        return rowVal === filter.arg;
+                        return rowVal === filter.arg[0];
                     case FilterMethods.greaterThan:
-                        return rowVal > filter.arg;
+                        return rowVal > filter.arg[0];
                     case FilterMethods.greaterThanEqualTo:
-                        return rowVal >= filter.arg;
+                        return rowVal >= filter.arg[0];
                     case FilterMethods.lessThan:
-                        return rowVal < filter.arg;
+                        return rowVal < filter.arg[0];
                     case FilterMethods.lessThanEqualTo:
-                        return rowVal <= filter.arg;
+                        return rowVal <= filter.arg[0];
                     case FilterMethods.includes:
                         return (filter.arg as number[]).includes(rowVal);
                     case FilterMethods.inTheRangeOf:
-                        return (filter.arg as number[]).includes(rowVal);
+                        //TODO:validate arg[0] < arg[1]
+                        return rowVal >= filter.arg[0] && rowVal <= filter.arg[1];
                 }
             })
         );

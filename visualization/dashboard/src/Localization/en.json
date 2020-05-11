@@ -205,7 +205,8 @@
         "maximum":"Maximum",
         "min":"Min: ",
         "max":"Max: ",
-        "uniqueValues":"# of unique values: "
+        "uniqueValues":"# of unique values: ",
+        "space":" "
     },
     "Columns": {
         "regressionError": "Regression error",
@@ -349,6 +350,7 @@
         "lessThanEquals": " <= ",
         "greaterThanEquals": " >= ",
         "includes": " includes ",
-        "inTheRangeOf": " [ "
+        "inTheRangeOfOpen": " [ ",
+        "inTheRangeOfClose": " ]"
     }
 }

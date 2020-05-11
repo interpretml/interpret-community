@@ -15,6 +15,7 @@ import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
+import { update } from 'plotly.js-dist';
 
 initializeIcons();
 
@@ -231,7 +232,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             this.setState(
                 {
                     openedFilter: {
-                        arg: this.props.jointDataset.metaDict[openedFilter.column].featureRange.max,
+                        arg: [...this.state.openedFilter.arg, this.props.jointDataset.metaDict[openedFilter.column].featureRange.max],
                         method: FilterMethods.lessThan,
                         column: openedFilter.column
                     }
@@ -306,26 +307,42 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         )
     }
 
-    private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
+    private readonly setNumericValue = (delta: number, column: IJointMeta, index=0, stringVal:string): string | void => {
         const openedFilter = this.state.openedFilter;
         if (delta === 0) {
-            const number = +stringVal;
-            if ((!Number.isInteger(number) && column.featureRange.rangeType === RangeTypes.integer)
-                || number > column.featureRange.max || number < column.featureRange.min) {
+            const numberVal = +stringVal;
+            if ((!Number.isInteger(numberVal) && column.featureRange.rangeType === RangeTypes.integer)
+                || numberVal > column.featureRange.max || numberVal < column.featureRange.min) {
                 return this.state.openedFilter.arg.toString();
             }
-
-            this.setState(
-                {
-                    openedFilter: {
-                        arg: number,
-                        method: openedFilter.method,
-                        column: openedFilter.column
+            if(openedFilter.method === FilterMethods.inTheRangeOf){
+                var openArg = this.state.openedFilter.arg as number[];
+                openArg[index] = numberVal;
+                this.setState(
+                    {
+                        openedFilter: {
+                            arg: openArg,
+                            method: openedFilter.method,
+                            column: openedFilter.column
+                        }
                     }
-                }
-            )
+                )
+            }
+            else {
+                this.setState(
+                    {
+                        openedFilter: {
+                            arg: [numberVal],
+                            method: openedFilter.method,
+                            column: openedFilter.column
+                        }
+                    }
+                )
+            }
+
+
         } else {
-            const prevVal = openedFilter.arg as number;
+            const prevVal = openedFilter.arg[0] as number;
             const newVal = prevVal + delta;
             if (newVal > column.featureRange.max || newVal < column.featureRange.min) {
                 return prevVal.toString();
@@ -333,7 +350,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             this.setState(
                 {
                     openedFilter: {
-                        arg: newVal,
+                        arg: [newVal],
                         method: openedFilter.method,
                         column: openedFilter.column
                     }
@@ -344,6 +361,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private setDefaultStateForKey(key: string): void {
         let filter: IFilter = { column: key } as IFilter;
+        filter.arg = [];
         const meta = this.props.jointDataset.metaDict[key];
         if (meta.isCategorical) {
             filter.method = FilterMethods.includes;
@@ -353,7 +371,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             filter.arg = meta.sortedCategoricalValues as any[];
         } else {
             filter.method = FilterMethods.lessThan;
-            filter.arg = meta.featureRange.max;
+            filter.arg.push(meta.featureRange.max);
         }
         this.setState(
             {
@@ -408,16 +426,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     private setFilterLabel(filter: IFilter): React.ReactNode {
-        //TODO: change the function unwrap neatly 
         const selectedFilter = this.props.jointDataset.metaDict[filter.column];
         let label = "";
         label = selectedFilter.abbridgedLabel
 
-        if (filter.method != FilterMethods.inTheRangeOf) {
-            const filterMethod = this.getFilterMethodLabel(filter.method)
+        const filterMethod = this.getFilterMethodLabel(filter.method)
             label += filterMethod
-        }
-  
         if (selectedFilter.isCategorical) {
             let selectedValues = [];
             let filterArgs = filter.arg as number[];
@@ -429,6 +443,10 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         }
         else {
             label += filter.arg
+        }
+
+        if (filter.method == FilterMethods.inTheRangeOf) {
+            label += localization.FilterOperations.inTheRangeOfClose
         }
 
         return (<TooltipHost
@@ -459,7 +477,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             case FilterMethods.includes:
                 return label = localization.FilterOperations.includes;
             case FilterMethods.inTheRangeOf:
-                return label = localization.FilterOperations.inTheRangeOf;
+                return label = localization.FilterOperations.inTheRangeOfOpen;
         }
     }
 
@@ -510,8 +528,10 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 )}
                 {!selectedMeta.treatAsCategorical && (
                     <div className={styles.featureTextDiv}>
-                        <Text variant={"small"} className={styles.featureText}>
-                            {localization.Filters.min}{selectedMeta.featureRange.min} {localization.Filters.max}{selectedMeta.featureRange.max}
+                        <Text block nowrap variant={"small"} className={styles.featureText}>
+                            {localization.Filters.min}{(selectedMeta.featureRange.min % 1) !=0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min}
+                            {localization.Filters.space}
+                            {localization.Filters.max}{(selectedMeta.featureRange.max % 1) !=0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max}
                         </Text>
                         <ComboBox
                             label={localization.Filters.numericalComparison}
@@ -526,26 +546,24 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 <SpinButton
                                     labelPosition={Position.top}
                                     className={styles.minSpinBox}
-                                    value={openedFilter.arg.toString()}
-                                    //value={openedFilter.arg}
+                                    value={openedFilter.arg[0]}
                                     label={localization.Filters.minimum}
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
-                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
-                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
-                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta, 0)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta,0)}
+                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta, 0)}
                                 />
                                 <SpinButton
                                     labelPosition={Position.top}
                                     className={styles.maxSpinBox}
-                                    value={openedFilter.arg.toString()}
-                                    //value={openedFilter.arg}
+                                    value={openedFilter.arg[1]}
                                     label={localization.Filters.maximum}
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
-                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
-                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
-                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta, 1)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta, 1)}
+                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta, 1)}
                                 />
                             </div>
                             :
@@ -557,10 +575,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
                                     value={openedFilter.arg.toString()}
-                                    //value={openedFilter.arg}
-                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta)}
-                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta)}
-                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                    onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta, 0)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta, 0)}
+                                    onValidate={this.setNumericValue.bind(this, 0, selectedMeta, 0)}
                                 />
                             </div>
                         }

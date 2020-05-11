@@ -10,7 +10,7 @@ export const enum FilterMethods {
 
 export interface IFilter {
     method: FilterMethods;
-    arg: number | number[];
+    arg: number[];
     column: string;
 }
 

@@ -43,8 +43,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             overflowY: 'visible',
             width: '560px',
             height: '624px',
-            //TODO: fix rgba here
-            boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
+            ////elevation64 is used for dialogs/panels
+            boxShadow: theme.effects.elevation64,
             borderRadius: '2px'
         },
         wrapper: {

@@ -134,7 +134,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         {selectedMeta.treatAsCategorical && (
                             <div>
                                 <Text variant={"small"} className={styles.featureText}>
-                                {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                                {/* {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`} */}
+                                {localization.Filters.uniqueValues} {selectedMeta.sortedCategoricalValues.length}
                                 </Text>
                                 {this.props.canDither && (
                                     <Checkbox 
@@ -147,8 +148,10 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                         {!selectedMeta.treatAsCategorical && (
                             <div>
-                                <Text variant={"small"} className={styles.featureText}>
-                                {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
+                                <Text variant={"small"} className={styles.featureText} nowrap block>
+                                {/* {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`} */}
+                                {localization.Filters.min}{(selectedMeta.featureRange.min % 1) !=0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min}{localization.Filters.space}
+                                {localization.Filters.max}{(selectedMeta.featureRange.max % 1) !=0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max}
                                 </Text>
                                 {this.props.canBin && !this.props.mustBin && (
                                     <Checkbox
