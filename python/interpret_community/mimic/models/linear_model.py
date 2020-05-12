@@ -4,20 +4,74 @@
 
 """Defines an explainable linear model."""
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, csr_matrix
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
-from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor, Lasso
 from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
-
+from ...common.explanation_utils import _summarize_data
 import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     import shap
+    from shap.common import DenseData
 
 DEFAULT_RANDOM_STATE = 123
 FEATURE_DEPENDENCE = 'interventional'
+LINEAR_PENALTY = 'penalty'
+LINEAR_L2 = 'l2'
+LINEAR_SOLVER = 'solver'
+LINEAR_LBFGS = 'lbfgs'
+LINEAR_MULTICLASS = 'multi_class'
+LINEAR_MULTINOMIAL = 'multinomial'
+LINEAR_RANDOM_STATE = 'random_state'
+
+
+class LinearExplainer(shap.LinearExplainer):
+    """Linear explainer with support for sparse data and sparse output."""
+
+    def __init__(self, model, data, feature_dependence=FEATURE_DEPENDENCE):
+        """Initialize the LinearExplainer.
+
+        :param model: The linear model to compute the shap values for as a (coef, intercept) tuple.
+        :type model: (numpy.matrix, double)
+        :param data: The mean and covariance of the dataset.
+        :type data: (scipy.csr_matrix, None)
+        :param feature_dependence: Indicates the type of feature dependency, interventional by default.
+        :type feature_dependence: str
+        """
+        self.is_sparse = data[1] is None
+        if self.is_sparse:
+            # Sparse case
+            self.coef = model[0]
+            if not issparse(self.coef):
+                self.coef = np.asmatrix(self.coef)
+            self.intercept = model[1]
+            self._background = data[0]
+            self.expected_value = np.array(self._background.dot(self.coef.T) + self.intercept).flatten()
+        else:
+            # Dense case
+            super(LinearExplainer, self).__init__(model, data, feature_dependence=feature_dependence)
+
+    def shap_values(self, evaluation_examples):
+        """Estimate the SHAP values for a set of samples.
+
+        :param evaluation_examples: The evaluation examples.
+        :type evaluation_examples: numpy or scipy array
+        :return: For models with a single output this returns a matrix of SHAP values
+            (# samples x # features). Each row sums to the difference between the model output for that
+            sample and the expected value of the model output (which is stored as expected_value
+            attribute of the explainer).
+        :rtype: Union[list, numpy.ndarray]
+        """
+        if self.is_sparse:
+            assert len(evaluation_examples.shape) == 2, "Sparse instance must have 2 dimensions!"
+            assert self.coef.shape[0] == 1, "Multiclass coefficients need to be evaluated separately"
+            mean_multiplier = csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
+            return (evaluation_examples - mean_multiplier * self._background).multiply(self.coef[0]).tocsr()
+        else:
+            return super().shap_values(evaluation_examples)
 
 
 def _create_linear_explainer(model, multiclass, mean, covariance, seed):
@@ -46,15 +100,15 @@ def _create_linear_explainer(model, multiclass, mean, covariance, seed):
         else:
             coef_intercept_list = [(coef, intercepts) for coef in coefs]
         for class_coef, intercept in coef_intercept_list:
-            linear_explainer = shap.LinearExplainer((class_coef, intercept), (mean, covariance),
-                                                    feature_dependence=SHAPDefaults.INDEPENDENT)
+            linear_explainer = LinearExplainer((class_coef, intercept), (mean, covariance),
+                                               feature_dependence=SHAPDefaults.INDEPENDENT)
             explainers.append(linear_explainer)
         return explainers
     else:
         model_coef = model.coef_
         model_intercept = model.intercept_
-        return shap.LinearExplainer((model_coef, model_intercept), (mean, covariance),
-                                    feature_dependence=SHAPDefaults.INDEPENDENT)
+        return LinearExplainer((model_coef, model_intercept), (mean, covariance),
+                               feature_dependence=SHAPDefaults.INDEPENDENT)
 
 
 def _compute_local_shap_values(linear_explainer, evaluation_examples, classification):
@@ -80,6 +134,26 @@ def _compute_local_shap_values(linear_explainer, evaluation_examples, classifica
     return shap_values
 
 
+def _compute_background_data(dataset):
+    """Compute the background data for linear explainer.
+
+    :param dataset: The input dataset to compute background for.
+    :type dataset: numpy or scipy array
+    """
+    background = _summarize_data(dataset)
+    if isinstance(background, DenseData):
+        background = background.data
+    if not issparse(background) and len(background.shape) == 2:
+        mean_shape = background.shape[1]
+        # Take mean of clusters to get better representation of background
+        if background.shape[0] > 1:
+            background = background.mean(axis=0)
+        # Check again prior to reshape
+        if len(background.shape) == 2:
+            background = background.reshape((mean_shape,))
+    return background
+
+
 class LinearExplainableModel(BaseExplainableModel):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.GLASSBOX
@@ -90,28 +164,46 @@ class LinearExplainableModel(BaseExplainableModel):
     :type multiclass: bool
     :param random_state: Int to seed the model.
     :type random_state: int
+    :param classification: Indicates whether the model is used for classification or regression scenario.
+    :type classification: bool
+    :param sparse_data: Indicates whether the training data will be sparse.
+    :type sparse_data: bool
     """
 
-    def __init__(self, multiclass=False, random_state=DEFAULT_RANDOM_STATE, classification=True, **kwargs):
+    def __init__(self, multiclass=False, random_state=DEFAULT_RANDOM_STATE, classification=True,
+                 sparse_data=False, **kwargs):
         """Initialize the LinearExplainableModel.
 
         :param multiclass: Set to true to generate a multiclass model.
         :type multiclass: bool
         :param random_state: Int to seed the model.
         :type random_state: int
+        :param classification: Indicates whether the model is used for classification or regression scenario.
+        :type classification: bool
+        :param sparse_data: Indicates whether the training data will be sparse.
+        :type sparse_data: bool
         """
         self.multiclass = multiclass
         self.random_state = random_state
+        self._sparse_data = sparse_data
         if self.multiclass:
             initializer = LogisticRegression
-            kwargs['random_state'] = random_state
+            if self._sparse_data:
+                kwargs[LINEAR_PENALTY] = LINEAR_L2
+            if LINEAR_SOLVER not in kwargs:
+                kwargs[LINEAR_SOLVER] = LINEAR_LBFGS
+                kwargs[LINEAR_MULTICLASS] = LINEAR_MULTINOMIAL
+            kwargs[LINEAR_RANDOM_STATE] = random_state
         else:
-            initializer = LinearRegression
+            if self._sparse_data:
+                initializer = Lasso
+            else:
+                initializer = LinearRegression
         initializer_args = _get_initializer_args(kwargs)
         self._linear = initializer(**initializer_args)
         super(LinearExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing LinearExplainableModel')
-        self._method = 'mimic.linear'
+        self._method = 'linear'
         self._linear_explainer = None
         self._classification = classification
 
@@ -132,13 +224,8 @@ class LinearExplainableModel(BaseExplainableModel):
         :type labels: numpy or scipy array
         """
         self._linear.fit(dataset, labels, **kwargs)
-        original_mean = np.asarray(dataset.mean(0))
-        if len(original_mean.shape) == 2:
-            mean_shape = original_mean.shape[1]
-            self.mean = original_mean.reshape((mean_shape,))
-        else:
-            self.mean = original_mean
-        if not sp.sparse.issparse(dataset):
+        self._background = _compute_background_data(dataset)
+        if not issparse(dataset):
             self.covariance = np.cov(dataset, rowvar=False)
         else:
             # Not needed for sparse case
@@ -204,7 +291,7 @@ class LinearExplainableModel(BaseExplainableModel):
         :rtype: Union[list, numpy.ndarray]
         """
         if self._linear_explainer is None:
-            self._linear_explainer = _create_linear_explainer(self._linear, self.multiclass, self.mean,
+            self._linear_explainer = _create_linear_explainer(self._linear, self.multiclass, self._background,
                                                               self.covariance, self.random_state)
         return _compute_local_shap_values(self._linear_explainer, evaluation_examples, self._classification)
 
@@ -216,7 +303,7 @@ class LinearExplainableModel(BaseExplainableModel):
         :rtype: list
         """
         if self._linear_explainer is None:
-            self._linear_explainer = _create_linear_explainer(self._linear, self.multiclass, self.mean,
+            self._linear_explainer = _create_linear_explainer(self._linear, self.multiclass, self._background,
                                                               self.covariance, self.random_state)
         if isinstance(self._linear_explainer, list):
             expected_values = []
@@ -278,7 +365,7 @@ class SGDExplainableModel(BaseExplainableModel):
         self._sgd = initializer(random_state=random_state, **initializer_args)
         super(SGDExplainableModel, self).__init__(**kwargs)
         self._logger.debug('Initializing SGDExplainableModel')
-        self._method = 'mimic.sgd'
+        self._method = 'sgd'
         self._sgd_explainer = None
         self._classification = classification
 
@@ -299,13 +386,8 @@ class SGDExplainableModel(BaseExplainableModel):
         :type labels: numpy or scipy array
         """
         self._sgd.fit(dataset, labels, **kwargs)
-        original_mean = np.asarray(dataset.mean(0))
-        if len(original_mean.shape) == 2:
-            mean_shape = original_mean.shape[1]
-            self.mean = original_mean.reshape((mean_shape,))
-        else:
-            self.mean = original_mean
-        if not sp.sparse.issparse(dataset):
+        self._background = _compute_background_data(dataset)
+        if not issparse(dataset):
             self.covariance = np.cov(dataset, rowvar=False)
         else:
             # Not needed for sparse case
@@ -373,7 +455,7 @@ class SGDExplainableModel(BaseExplainableModel):
         :rtype: Union[list, numpy.ndarray]
         """
         if self._sgd_explainer is None:
-            self._sgd_explainer = _create_linear_explainer(self._sgd, self.multiclass, self.mean,
+            self._sgd_explainer = _create_linear_explainer(self._sgd, self.multiclass, self._background,
                                                            self.covariance, self.random_state)
         return _compute_local_shap_values(self._sgd_explainer, evaluation_examples, self._classification)
 
@@ -385,7 +467,7 @@ class SGDExplainableModel(BaseExplainableModel):
         :rtype: list
         """
         if self._sgd_explainer is None:
-            self._sgd_explainer = _create_linear_explainer(self._sgd, self.multiclass, self.mean,
+            self._sgd_explainer = _create_linear_explainer(self._sgd, self.multiclass, self._background,
                                                            self.covariance, self.random_state)
         if isinstance(self._sgd_explainer, list):
             expected_values = []

@@ -6,7 +6,9 @@ var config = {
     output: {
       path: path.resolve(__dirname, '..', 'static'),
       filename: 'index.js',
-      libraryTarget: 'umd'
+      library: "inline-interpret-dashboard",
+      libraryTarget: 'umd',
+      umdNamedDefine: true
     },
     devtool: 'source-map',
     module: {

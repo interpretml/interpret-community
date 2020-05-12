@@ -18,8 +18,8 @@ def retrieve_dataset(dataset, **kwargs):
     filepath = os.path.join(outdirname, dataset)
     if extension == '.npz':
         # sparse format file
-        import scipy.sparse as sparse
-        return sparse.load_npz(filepath)
+        from scipy.sparse import load_npz
+        return load_npz(filepath)
     elif extension == '.svmlight':
         from sklearn import datasets
         return datasets.load_svmlight_file(filepath)

@@ -14,3 +14,5 @@ pyyaml
 keras
 scipy==1.3.3
 flask
+flask-cors
+jinja2

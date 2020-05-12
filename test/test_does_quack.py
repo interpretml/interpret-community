@@ -6,6 +6,7 @@ import pytest
 import logging
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from interpret_community.explanation.explanation import BaseExplanation, FeatureImportanceExplanation, \
     LocalExplanation, GlobalExplanation, ExpectedValuesMixin, ClassesMixin, PerClassMixin, _DatasetsMixin, \
@@ -59,6 +60,24 @@ class LocalValuesValid(object):
     @property
     def num_examples(self):
         return None
+
+    @property
+    def is_local_sparse(self):
+        return False
+
+
+class SparseLocalValuesValid(object):
+    @property
+    def local_importance_values(self):
+        return csr_matrix([[.2, 0, .01], [0, .2, 0]])
+
+    @property
+    def num_examples(self):
+        return None
+
+    @property
+    def is_local_sparse(self):
+        return True
 
 
 class GlobalValid(object):
@@ -330,6 +349,10 @@ class TestDoesQuack(object):
         ValidLocalExp = type('ValidLocalExplanation', (BaseValid, FeatureImportanceValid, LocalValuesValid), {})
         assert LocalExplanation._does_quack(ValidLocalExp())
 
+    def test_does_quack_sparse_local_explanation(self):
+        ValidLocalExp = type('ValidLocalExplanation', (BaseValid, FeatureImportanceValid, SparseLocalValuesValid), {})
+        assert LocalExplanation._does_quack(ValidLocalExp())
+
     def test_does_quack_local_explanation_negative(self):
         NoFeatureLocalExp = type('InvalidLocalExplanation', (LocalValuesValid,), {})
         assert not LocalExplanation._does_quack(NoFeatureLocalExp())
@@ -345,6 +368,10 @@ class TestDoesQuack(object):
             @property
             def num_examples(self):
                 return None
+
+            @property
+            def is_local_sparse(self):
+                return False
         LocalNoneLocalExp = type('InvalidLocalExplanation',
                                  (LocalExplanationNone, FeatureImportanceValid, BaseValid),
                                  {})
@@ -358,6 +385,10 @@ class TestDoesQuack(object):
             @property
             def num_examples(self):
                 return None
+
+            @property
+            def is_local_sparse(self):
+                return False
         LocalNonListLocalExp = type('InvalidLocalExplanation',
                                     (LocalExplanationNonList, FeatureImportanceValid, BaseValid),
                                     {})
@@ -371,6 +402,10 @@ class TestDoesQuack(object):
             @property
             def num_examples(self):
                 return None
+
+            @property
+            def is_local_sparse(self):
+                return False
         LocalNumpyLocalExp = type('InvalidLocalExplanation',
                                   (LocalExplanationNumpy, FeatureImportanceValid, BaseValid),
                                   {})
@@ -380,10 +415,27 @@ class TestDoesQuack(object):
             @property
             def local_importance_values(self):
                 return [[.2, .4, .01], [.3, .2, 0]]
+
+            @property
+            def is_local_sparse(self):
+                return False
         LocalNoNumExamplesExp = type('InvalidLocalExplanation',
                                      (LocalNoNumExamples, FeatureImportanceValid, BaseValid),
                                      {})
         assert not LocalExplanation._does_quack(LocalNoNumExamplesExp())
+
+        class LocalNoIsSparse(object):
+            @property
+            def local_importance_values(self):
+                return [[.2, .4, .01], [.3, .2, 0]]
+
+            @property
+            def num_examples(self):
+                return None
+        LocalNoIsSparseExp = type('InvalidLocalExplanation',
+                                  (LocalNoIsSparse, FeatureImportanceValid, BaseValid),
+                                  {})
+        assert not LocalExplanation._does_quack(LocalNoIsSparseExp())
 
     def test_does_quack_global_explanation(self):
         ValidGlobalLocalExp = type('ValidGlobalExplanation',

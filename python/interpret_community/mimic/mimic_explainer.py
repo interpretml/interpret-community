@@ -11,6 +11,7 @@ be used to explain the teacher model.
 """
 
 import numpy as np
+from scipy.sparse import issparse
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -329,7 +330,7 @@ class MimicExplainer(BlackBoxExplainer):
         :rtype: dict
         """
         classification = self.predict_proba_flag
-        kwargs = {ExplainParams.METHOD: ExplainType.MIMIC}
+        kwargs = {ExplainParams.METHOD: self._get_method}
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         if evaluation_examples is not None:
@@ -418,6 +419,15 @@ class MimicExplainer(BlackBoxExplainer):
         return explanation if self._datamapper is None else _create_raw_feats_global_explanation(
             explanation, feature_maps=[self._datamapper.feature_map], features=self.features, **raw_kwargs)
 
+    @property
+    def _get_method(self):
+        """Get the method for this explainer, or mimic with surrogate model type.
+
+        :return: The method, or mimic with surrogate model type.
+        :rtype: str
+        """
+        return "{}.{}".format(ExplainType.MIMIC, self._method)
+
     def _get_explain_local_kwargs(self, evaluation_examples):
         """Get the kwargs for explain_local to create a local explanation.
 
@@ -435,6 +445,9 @@ class MimicExplainer(BlackBoxExplainer):
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
             # Outputting shap values in terms of the probabilities of the teacher model
             probabilities = self.function(original_evaluation_examples)
+        # if index column should not be set on surrogate model, remove it
+        if self.reset_index == ResetIndex.ResetTeacher:
+            evaluation_examples.set_index()
         if self._timestamp_featurizer:
             evaluation_examples.apply_timestamp_featurizer(self._timestamp_featurizer)
         if self._column_indexer:
@@ -448,27 +461,38 @@ class MimicExplainer(BlackBoxExplainer):
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
+        is_sparse = issparse(local_importance_values) or issparse(local_importance_values[0])
         expected_values = self.surrogate_model.expected_values
-        kwargs[ExplainParams.METHOD] = ExplainType.MIMIC
+        kwargs[ExplainParams.METHOD] = self._get_method
         self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 
         if self.predict_proba_flag:
-            if self.surrogate_model.multiclass:
-                # For multiclass case, convert to array
-                local_importance_values = np.array(local_importance_values)
-            else:
-                # TODO: Eventually move this back inside the surrogate model
-                # If binary case, we need to reformat the data to have importances per class
-                # and convert the expected values back to the original domain
-                local_importance_values = np.stack((-local_importance_values, local_importance_values))
+            if not is_sparse:
+                if self.surrogate_model.multiclass:
+                    # For multiclass case, convert to array, but only if not sparse
+                    local_importance_values = np.array(local_importance_values)
+                else:
+                    # TODO: Eventually move this back inside the surrogate model
+                    # If binary case, we need to reformat the data to have importances per class
+                    # and convert the expected values back to the original domain
+                    local_importance_values = np.stack((-local_importance_values, local_importance_values))
+            elif not self.surrogate_model.multiclass:
+                # For binary classification sparse case we need to reformat the data
+                # to have importance values per class
+                local_importance_values = [-local_importance_values, local_importance_values]
+
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         # Reformat local_importance_values result if explain_subset specified
         if self.explain_subset:
             self._logger.debug('Getting subset of local_importance_values')
             if classification:
-                local_importance_values = local_importance_values[:, :, self.explain_subset]
+                if is_sparse and self.surrogate_model.multiclass:
+                    for i in range(len(local_importance_values)):
+                        local_importance_values[i] = local_importance_values[i][:, self.explain_subset]
+                else:
+                    local_importance_values = local_importance_values[:, :, self.explain_subset]
             else:
                 local_importance_values = local_importance_values[:, self.explain_subset]
         if classification:

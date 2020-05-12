@@ -5,7 +5,7 @@
 """Utilities to train a surrogate model from teacher."""
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, isspmatrix_csr, vstack as sparse_vstack
 
 
 def _soft_logit(values, clip_val=5):
@@ -59,9 +59,9 @@ def _model_distill(teacher_model_predict_fn, uninitialized_surrogate_model, data
                 max_row_index = np.argmax(teacher_y[:, missing_label])
                 # Append the extra label to data and y value
                 training_labels = np.append(training_labels, missing_label)
-                if sp.sparse.issparse(data) and not sp.sparse.isspmatrix_csr(data):
+                if issparse(data) and not isspmatrix_csr(data):
                     data = data.tocsr()
-                vstack = sp.sparse.vstack if sp.sparse.issparse(data) else np.vstack
+                vstack = sparse_vstack if issparse(data) else np.vstack
                 data = vstack([data, data[max_row_index:max_row_index + 1, :]])
         surrogate_model = uninitialized_surrogate_model(multiclass=multiclass,
                                                         **explainable_model_args)

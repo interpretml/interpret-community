@@ -1,4 +1,5 @@
 import { IModelMetadata } from "mlchartlib";
+import { JointDataset } from "./JointDataset";
 
 export enum ModelTypes {
     regression = 'regression',
@@ -8,6 +9,7 @@ export enum ModelTypes {
 
 export interface IExplanationContext {
     modelMetadata: IExplanationModelMetadata;
+    jointDataset: JointDataset;
     explanationGenerators: IExplanationGenerators;
     localExplanation?: ILocalExplanation;
     testDataset?: ITestDataset;
@@ -15,6 +17,7 @@ export interface IExplanationContext {
     isGlobalDerived: boolean;
     ebmExplanation?: IFeatureValueExplanation;
     customVis?: string;
+    inputError?: string;
 }
 
 // The interface containing either the local explanations matrix, 

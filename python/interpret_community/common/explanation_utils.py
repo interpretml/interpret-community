@@ -6,8 +6,7 @@
 
 import logging
 import numpy as np
-import scipy as sp
-from scipy import sparse
+from scipy.sparse import issparse, csr_matrix, vstack as sparse_vstack
 from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
@@ -43,13 +42,13 @@ def _summarize_data(X, k=10, to_round_values=True):
     :return: DenseData or SparseData object.
     :rtype: iml.datatypes.DenseData or iml.datatypes.SparseData
     """
-    is_sparse = sp.sparse.issparse(X)
+    is_sparse = issparse(X)
     if not isinstance(X, DenseData):
         if is_sparse:
             module_logger.debug('Creating sparse data summary as csr matrix')
             # calculate median of sparse background data
             median_dense = csc_median_axis_0(X.tocsc())
-            return sp.sparse.csr_matrix(median_dense)
+            return csr_matrix(median_dense)
         elif len(X) > 10 * k:
             module_logger.debug('Create dense data summary with k-means')
             # use kmeans to summarize the examples for initialization
@@ -62,7 +61,7 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
     :param importance_values: The importance values computed for the dataset.
-    :type importance_values: np.array
+    :type importance_values: np.array or list[scipy.sparse.csr_matrix]
     :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
     :type raw_to_output_feature_maps: list[numpy.array or sparse matrix]
     :return: Raw feature importance values.
@@ -83,11 +82,17 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     raw_to_output_map = normalize(raw_to_output_map, norm='l1', axis=0)
 
     orig_single_dimensional_importances = False
+    if isinstance(importance_values, list):
+        raw_importances = []
+        for class_matrix in importance_values:
+            raw_importances.append(class_matrix.dot(raw_to_output_map.T))
+        return np.array(raw_importances)
+
     if len(importance_values.shape) < 2:
         importance_values = importance_values.reshape(1, -1)
         orig_single_dimensional_importances = True
 
-    if sparse.issparse(raw_to_output_map):
+    if issparse(raw_to_output_map):
         if len(importance_values.shape) > 2:
             raw_importances = _multiply_sparse_matrix_3d_numpy_tensor(importance_values, raw_to_output_map.T)
         else:
@@ -138,7 +143,7 @@ def _transform_data(data, data_mapper=None):
 
 
 def _get_dense_examples(examples):
-    if sp.sparse.issparse(examples):
+    if issparse(examples):
         module_logger.debug('converting sparse examples to regular array')
         return examples.toarray()
     return examples
@@ -169,7 +174,7 @@ def _generate_augmented_data(x, max_num_of_augmentations=np.inf):
     :rtype ndarray or sparse matrix
     """
     x_augmented = x
-    vstack = sparse.vstack if sparse.issparse(x) else np.vstack
+    vstack = sparse_vstack if issparse(x) else np.vstack
     for i in range(min(x.shape[1] // x.shape[0] - 1, max_num_of_augmentations)):
         x_permuted = shuffle(x.T, random_state=i).T
         x_augmented = vstack([x_augmented, x_permuted])

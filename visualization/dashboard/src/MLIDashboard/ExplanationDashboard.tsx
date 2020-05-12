@@ -7,7 +7,7 @@ import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { Pivot, PivotItem, PivotLinkFormat, PivotLinkSize, IPivotItemProps, IPivot } from "office-ui-fabric-react/lib/Pivot";
 import * as React from "react";
 import { localization } from "../Localization/localization";
-import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata } from "mlchartlib";
+import { IPlotlyProperty, SelectionContext, ICategoricalRange, INumericRange, RangeTypes, ModelMetadata, IModelMetadata } from "mlchartlib";
 import { FabricStyles } from "./FabricStyles";
 import {
     FeatureImportanceWrapper,
@@ -32,8 +32,7 @@ import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from "./I
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
-
-initializeIcons();
+import { JointDataset } from "./JointDataset";
 
 const s = require("./ExplanationDashboard.css");
 const RowIndex: string = "rowIndex";
@@ -55,6 +54,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     private readonly selectionContext = new SelectionContext(RowIndex, 1);
     private selectionSubscription: string;
 
+    private static iconsInitialized = false;
+
     private static globalTabKeys: string[] = [
         "dataExploration",
         "globalImportance",
@@ -69,6 +70,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         "perturbationExploration",
         "ICE"
     ];
+
+    private static initializeIcons(props: IExplanationDashboardProps): void {
+        if (ExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
+            initializeIcons(props.iconUrl);
+            ExplanationDashboard.iconsInitialized = true;
+        }
+    }
 
     private static transposeLocalImportanceMatrix: (input: number[][][]) =>  number[][][]
         = (memoize as any).default(
@@ -96,6 +104,21 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             requestLocalFeatureExplanations: props.requestLocalFeatureExplanations
         };
         const modelMetadata = ExplanationDashboard.buildModelMetadata(props);
+        const errorMessage = ExplanationDashboard.validateInputs(props, modelMetadata);
+        if (errorMessage !== undefined) {
+            return {
+                modelMetadata,
+                explanationGenerators,
+                localExplanation: undefined,
+                testDataset: {},
+                jointDataset: undefined,
+                globalExplanation: undefined,
+                isGlobalDerived: false,
+                ebmExplanation: undefined,
+                customVis:undefined,
+                inputError: errorMessage
+            };
+        }
         const testDataset: ITestDataset =  {
                 dataset: props.testData,
                 predictedY: props.predictedY,
@@ -103,7 +126,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 trueY: props.trueY
             };
         let localExplanation: ILocalExplanation;
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined && testDataset) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance !== undefined &&
+            props.precomputedExplanations.localFeatureImportance.scores !== undefined && testDataset) {
             let weighting = props.predictedY ? WeightVectors.predicted : WeightVectors.absAvg;
             let localFeatureMatrix = ExplanationDashboard.buildLocalFeatureMatrix(props.precomputedExplanations.localFeatureImportance.scores, modelMetadata.modelType);
             let flattenedFeatureMatrix = ExplanationDashboard.buildLocalFlattenMatrix(localFeatureMatrix, modelMetadata.modelType, testDataset, weighting);
@@ -122,7 +146,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
         let globalExplanation: IGlobalExplanation;
         let isGlobalDerived: boolean = false;
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance !== undefined && props.precomputedExplanations.globalFeatureImportance.scores !== undefined) {
             let intercepts = undefined;
             // if (props.precomputedExplanations.globalFeatureImportance.intercept) {
             //     intercepts = props.precomputedExplanations.globalFeatureImportance.intercept;
@@ -154,7 +178,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                     if (featureExplanation.type !== "univariate") {
                         return undefined;
                     }
-                    if (featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
+                    if (featureExplanation.scores && featureExplanation.scores.every(dim1 => Array.isArray(dim1))) {
                         return {
                             type: "univariate",
                             scores: featureExplanation.scores,
@@ -177,16 +201,147 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             };
         }
 
+        const jointDataset = new JointDataset({
+            dataset: props.testData,
+            predictedY: props.predictedY, 
+            trueY: props.trueY,
+            metadata: modelMetadata});
+        let customVis = (props.precomputedExplanations && props.precomputedExplanations.customVis) ?
+            props.precomputedExplanations.customVis : undefined;
+
         return {
             modelMetadata,
+            jointDataset,
             explanationGenerators,
             localExplanation,
             testDataset,
             globalExplanation,
             isGlobalDerived,
             ebmExplanation: ebmExplanation,
-            customVis: props.precomputedExplanations.customVis
+            customVis: customVis
         };
+    }
+
+    private static validateInputs(props: IExplanationDashboardProps, modelMetadata: IExplanationModelMetadata): string | undefined {
+        const classLength = modelMetadata.classNames.length;
+        const featureLength = modelMetadata.featureNames.length;
+        let rowLength: number;
+        if (props.trueY) {
+            rowLength = props.trueY.length;
+        }
+        if (props.predictedY) {
+            const length = props.predictedY.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Predicted y has dimension [${length}], expected [${rowLength}]`;
+            }
+        }
+        if (props.probabilityY) {
+            if (!Array.isArray(props.probabilityY)) {
+                return `Predicted probability not an array. Expected array of dimension [${rowLength} x ${classLength}]`;
+            }
+            const length = props.probabilityY.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Predicted y has length [${length}], expected [${rowLength}]`;
+            }
+            if (length === 0) {
+                return "Predicted probability input not a non-empty array";
+            }
+            const cLength = props.probabilityY[0].length;
+            if (cLength !== classLength) {
+                return `Inconsistent dimensions. Predicted probability has dimensions [${length} x ${cLength}], expected [${rowLength} x ${classLength}]`;
+            }
+            if (!props.probabilityY.every(row => row.length === classLength)) {
+                return `Inconsistent dimensions. Predicted probability has rows of varying length`;
+            }
+        }
+        if (props.testData) {
+            if (!Array.isArray(props.testData)) {
+                return `Eval dataset not an array. Expected array of dimension [${rowLength} x ${featureLength}]`;
+            }
+            const length = props.testData.length;
+            if (rowLength === undefined) {
+                rowLength = length;
+            }
+            if (length !== rowLength) {
+                return `Inconsistent dimensions. Eval dataset has length [${length}], expected [${rowLength}]`;
+            }
+            if (length === 0) {
+                return "Eval dataset not a non-empty array";
+            }
+            const fLength = props.testData[0].length;
+            if (fLength !== featureLength) {
+                return `Inconsistent dimensions. Eval dataset has dimensions [${length} x ${fLength}], expected [${rowLength} x ${featureLength}]`;
+            }
+            if (!props.testData.every(row => row.length === featureLength)) {
+                return `Inconsistent dimensions. Eval dataset has rows of varying length`;
+            }
+        }
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance && props.precomputedExplanations.localFeatureImportance.scores) {
+            const localExp = props.precomputedExplanations.localFeatureImportance.scores;
+            if (!Array.isArray(localExp)) {
+                return `Local explanation not an array. Expected array of dimension [${classLength} x ${rowLength} x ${featureLength}]`;
+            }
+            // explanation will be 2d in case of regression models. 3 for classifier
+            let expDim: number = 2;
+            if ((localExp as number[][][]).every(dim1 => {
+                return dim1.every(dim2 => Array.isArray(dim2));
+            })) {
+                expDim = 3;
+            }
+            if (expDim === 3) {
+                const cLength = localExp.length;
+                if (classLength !== cLength) {
+                    return `Inconsistent dimensions. Local Explanation has class length [${cLength}], expected [${classLength}]`;
+                }
+                if (cLength === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                const rLength = localExp[0].length;
+                if (rLength === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                if (rowLength === undefined) {
+                    rowLength = rLength;
+                }
+                if (rLength !== rowLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength}], expected [${classLength} x ${rowLength}]`;
+                }
+                if (!localExp.every(classArray => classArray.length === rowLength)) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+                const fLength = (localExp[0][0] as number[]).length;
+                if (fLength !== featureLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${cLength} x ${rLength} x ${fLength}], expected [${classLength} x ${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(classArray => classArray.every(rowArray => rowArray.length === featureLength))) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+            } else {
+                const length = localExp.length;
+                if (rowLength === undefined) {
+                    rowLength = length;
+                }
+                if (length !== rowLength) {
+                    return `Inconsistent dimensions. Local Explanation has row length [${length}], expected [${rowLength}]`;
+                }
+                if (length === 0) {
+                    return "Local explanation not a non-empty array";
+                }
+                const fLength = (localExp[0] as number[]).length;
+                if (fLength !== featureLength) {
+                    return `Inconsistent dimensions. Local explanations has dimensions [${length} x ${fLength}], expected [${rowLength} x ${featureLength}]`;
+                }
+                if (!localExp.every(rowArray => rowArray.length === featureLength)) {
+                    return `Inconsistent dimensions. Local explanation has rows of varying length`;
+                }
+            }
+        }
     }
 
     private static buildLocalFeatureMatrix(localExplanationRaw: number[][] | number[][][], modelType: ModelTypes): number[][][] {
@@ -262,9 +417,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             let featureLength = 0;
             if (props.testData && props.testData[0] !== undefined) {
                 featureLength = props.testData[0].length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
                 featureLength = props.precomputedExplanations.globalFeatureImportance.scores.length;
-            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+            } else if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance && props.precomputedExplanations.localFeatureImportance.scores) {
                 const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
                 if ((localImportances as number[][][]).every(dim1 => {
                     return dim1.every(dim2 => Array.isArray(dim2));
@@ -279,7 +434,11 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             featureNames = ExplanationDashboard.buildIndexedNames(featureLength, localization.defaultFeatureNames);
             featureNamesAbridged = featureNames;
         }
-        const classNames = props.dataSummary.classNames || ExplanationDashboard.buildIndexedNames(ExplanationDashboard.getClassLength(props), localization.defaultClassNames);
+        let classNames = props.dataSummary.classNames;
+        const classLength = ExplanationDashboard.getClassLength(props);
+        if (!classNames || classNames.length !== classLength) {
+            classNames = ExplanationDashboard.buildIndexedNames(classLength, localization.defaultClassNames);
+        }
         const featureIsCategorical = ModelMetadata.buildIsCategorical(featureNames.length, props.testData, props.dataSummary.categoricalMap);
         const featureRanges = ModelMetadata.buildFeatureRanges(props.testData, featureIsCategorical, props.dataSummary.categoricalMap);
         return {
@@ -315,23 +474,27 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY) {
-            return props.probabilityY[0].length;
-        }
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
+            && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
             if ((localImportances as number[][][]).every(dim1 => {
                 return dim1.every(dim2 => Array.isArray(dim2));
             })) {
                 return localImportances.length;
+            } else {
+                // 2d is regression (could be a non-scikit convention binary, but that is not supported)
+                return 1;
             }
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
             // determine if passed in vaules is 1D or 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
                 .every(dim1 => Array.isArray(dim1))) {
                 return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
             }
+        }
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
+            return props.probabilityY[0].length;
         }
         // default to regression case
         return 1;
@@ -353,10 +516,10 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     private pivotItems: IPivotItemProps[];
-    private pivotRef: IPivot;
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
+        ExplanationDashboard.initializeIcons(props);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale)
         }
@@ -443,13 +606,19 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     public render(): React.ReactNode {
+        if (this.state.dashboardContext.explanationContext.inputError) {
+            return <div>{this.state.dashboardContext.explanationContext.inputError}</div>
+        }
+        if (this.pivotItems.length === 0) {
+            return <div>No valid views. Incomplete data.</div>
+        }
         return (
             <>
                 <div className="explainerDashboard">
                     <div className="charts-wrapper">
-                        <div className="global-charts-wrapper">
+                        <div className="global-charts-wrapper" >
                             <Pivot
-                                componentRef={ref => {this.pivotRef = ref;}}
+                                id={"globalPivot"}
                                 selectedKey={ExplanationDashboard.globalTabKeys[this.state.activeGlobalTab]}
                                 onLinkClick={this.handleGlobalTabClick}
                                 linkFormat={PivotLinkFormat.tabs}
@@ -464,6 +633,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -474,6 +644,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[BarId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -484,6 +655,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[ExplanationScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -494,6 +666,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[GlobalFeatureImportanceId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -647,7 +820,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                         },
                         globalExplanation: prevState.dashboardContext.explanationContext.globalExplanation,
                         explanationGenerators: prevState.dashboardContext.explanationContext.explanationGenerators,
-                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived
+                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived,
+                        jointDataset: prevState.dashboardContext.explanationContext.jointDataset
                     },
                     weightContext: newWeightContext
                 }
@@ -683,7 +857,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClearSelection(): void {
         this.selectionContext.onSelect([]);
-        this.pivotRef.focus();
         this.setState({activeLocalTab: 0});
+        (document.querySelector("#globalPivot button")as any).focus();
     }
 }

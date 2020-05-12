@@ -13,6 +13,7 @@ import { IExplanationContext, ModelTypes } from '../../IExplanationContext';
 import { ModelExplanationUtils } from '../../ModelExplanationUtils';
 import { PlotlyUtils, NoDataMessage, LoadingSpinner } from '../../SharedComponents';
 import { FeatureImportanceModes, IGlobalFeatureImportanceProps } from './FeatureImportanceWrapper';
+import { ScatterUtils } from '../Scatter';
 
 require('./Beehive.css');
 
@@ -61,10 +62,10 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             return data.localExplanation.flattenedValues.map((row, rowIndex) => {
                 const predictedClassIndex = data.testDataset.predictedY ? data.testDataset.predictedY[rowIndex] : undefined;
                 const predictedClass = data.testDataset.predictedY ?
-                    (isClassifier ? data.modelMetadata.classNames[predictedClassIndex] : predictedClassIndex) : undefined;
+                    (isClassifier ? data.modelMetadata.classNames[predictedClassIndex] || `class ${predictedClassIndex}`: predictedClassIndex) : undefined;
                 const trueClassIndex = data.testDataset.trueY ? data.testDataset.trueY[rowIndex] : undefined;
                 const trueClass = data.testDataset.trueY ?
-                    (isClassifier ? data.modelMetadata.classNames[trueClassIndex] : trueClassIndex) : undefined;
+                    (isClassifier ? data.modelMetadata.classNames[trueClassIndex] || `class ${trueClassIndex}` : trueClassIndex) : undefined;
                 return {
                     rowIndex: rowIndex.toString(),
                     normalizedFeatureValue: mappers !== undefined ?
@@ -85,9 +86,9 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         }, []);
     }, _.isEqual);
 
-    private static buildPlotlyProps: (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption) => IPlotlyProperty
+    private static buildPlotlyProps: (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption, selections: string[]) => IPlotlyProperty
     = (memoize as any).default(
-    (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption): IPlotlyProperty => {
+    (explanationContext: IExplanationContext, sortVector: number[], selectedOption: IComboBoxOption, selections: string[]): IPlotlyProperty => {
         const plotlyProps = _.cloneDeep(Beehive.BasePlotlyProps);
         const rows = Beehive.projectData(explanationContext, sortVector);
         _.set(plotlyProps, 'layout.xaxis.ticktext', sortVector.map(i => explanationContext.modelMetadata.featureNamesAbridged[i]));
@@ -137,10 +138,14 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
             }
         } else {
             if (data.testDataset.predictedY) {
-                result.push(localization.formatString('AggregateImportance.predictedClassTooltip', data.modelMetadata.classNames[data.testDataset.predictedY[rowIndex]]));
+                const classIndex = data.testDataset.predictedY[rowIndex];
+                const className =  data.modelMetadata.classNames[classIndex] || "unknown class";
+                result.push(localization.formatString('AggregateImportance.predictedClassTooltip', className));
             }
             if (data.testDataset.trueY) {
-                result.push(localization.formatString('AggregateImportance.trueClassTooltip', data.modelMetadata.classNames[data.testDataset.trueY[rowIndex]]));
+                const classIndex = data.testDataset.trueY[rowIndex];
+                const className =  data.modelMetadata.classNames[classIndex] || "unknown class";
+                result.push(localization.formatString('AggregateImportance.trueClassTooltip', className));
             }
         }
         return result.join('<br>');
@@ -217,6 +222,7 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         this.onDismiss = this.onDismiss.bind(this);
         this.showCrossClassInfo = this.showCrossClassInfo.bind(this);
         this.showGlobalSortInfo = this.showGlobalSortInfo.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         this.setChart = this.setChart.bind(this);
         this.setK = this.setK.bind(this);
         this.setColor = this.setColor.bind(this);
@@ -240,11 +246,11 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                 this.loadProps();
                 return <LoadingSpinner/>;
             }
-            const sortVector = Beehive.generateSortVector(this.props.dashboardContext.explanationContext).slice(-1 * Beehive.maxFeatures).reverse();
-            const plotlyProps = Beehive.buildPlotlyProps(this.props.dashboardContext.explanationContext, sortVector, this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption)));
+            let plotlyProps = this.state.plotlyProps;
             const weightContext = this.props.dashboardContext.weightContext;
             const relayoutArg = {'xaxis.range': [-0.5, this.props.config.topK - 0.5]};
             _.set(plotlyProps, 'layout.xaxis.range', [-0.5, this.props.config.topK - 0.5]);
+            plotlyProps = ScatterUtils.updatePropsForSelections(plotlyProps, this.props.selectedRow)
             return (
                 <div className="aggregate-chart">
                     <div className="top-controls">
@@ -328,10 +334,9 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
                     )}
                     <AccessibleChart
                         plotlyProps={plotlyProps}
-                        sharedSelectionContext={this.props.selectionContext}
+                        onClickHandler={this.handleClick}
                         theme={this.props.theme}
                         relayoutArg={relayoutArg as any}
-                        onSelection={DefaultSelectionFunctions.scatterSelection}
                     />
                 </div>
             );  
@@ -351,11 +356,24 @@ export class Beehive extends React.PureComponent<IGlobalFeatureImportanceProps, 
         const props = Beehive.buildPlotlyProps(
             this.props.dashboardContext.explanationContext, 
             sortVector,
-            this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption))
+            this.colorOptions.find((option => (option.key as any) === this.state.selectedColorOption)),
+            this.props.selectionContext.selectedIds
         );
         this.setState({plotlyProps: props})
         }, 1);
 
+    }
+
+    private handleClick(data: any): void {
+        const clickedId = (data.points[0] as any).customdata;
+        const selections: string[] = this.props.selectionContext.selectedIds.slice();
+        const existingIndex = selections.indexOf(clickedId);
+        if (existingIndex !== -1) {
+            selections.splice(existingIndex, 1);
+        } else {
+            selections.push(clickedId);
+        }
+        this.props.selectionContext.onSelect(selections);
     }
 
     private showCrossClassInfo(): void {

@@ -13,12 +13,12 @@ import { PlotlyUtils } from "../../SharedComponents";
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;
     selectionContext: SelectionContext;
+    selectedRow: number;                 
     theme?: string;
-    messages?: HelpMessageDict
+    messages?: HelpMessageDict;
     dashboardContext: IDashboardContext;
     onChange: (props: IPlotlyProperty, id: string) => void;
 }
-
 
 export interface IProjectedData {
     TrainingData: any[];
@@ -243,9 +243,13 @@ export class ScatterUtils {
             }
             if (explanationContext.testDataset.probabilityY) {
                 explanationContext.testDataset.probabilityY[0].forEach((probClass, index) => {
+                    let className = explanationContext.modelMetadata.classNames[index];
+                    if (!className) {
+                        className = `class ${index}`;
+                    }
                     result.push({
                         key: `ProbabilityY[${index}]`,
-                        text: localization.formatString(localization.ExplanationScatter.probabilityLabel, explanationContext.modelMetadata.classNames[index]) as string,
+                        text: localization.formatString(localization.ExplanationScatter.probabilityLabel, className) as string,
                         data: {isCategorical: false}
                     });
                 });
@@ -348,6 +352,36 @@ export class ScatterUtils {
         }
         foundOption = options.find(option => option.key === plotlyProps.data[0].groupBy![0]);
         return foundOption ? foundOption.key.toString() : undefined;
+    }
+
+    public static updatePropsForSelections(plotlyProps: IPlotlyProperty, selectedRow: number): IPlotlyProperty {
+        if (selectedRow === undefined) {
+            plotlyProps.data.forEach(trace => {
+                _.set(trace, 'marker.line.width', [0]);
+                _.set(trace, 'selectedpoints', null); 
+            });
+            return _.cloneDeep(plotlyProps);
+        }
+        const selection = selectedRow !== undefined ? selectedRow.toString() : undefined;
+        plotlyProps.data.forEach(trace => {
+            let selectedIndexes: number[] = [];
+            let newWidths: number[] = [0];
+            if ((trace as any).customdata) {
+                const customData = ((trace as any).customdata as string[]);
+                newWidths =  new Array(customData.length).fill(0);
+
+                customData.forEach((id, index) => {
+                    if (selection === id) {
+                        selectedIndexes.push(index);
+                        newWidths[index] = 2
+                    }
+                });
+            }
+
+            (trace as any).selectedpoints = selectedIndexes;
+            _.set(trace, 'marker.line.width', newWidths);
+        });
+        return _.cloneDeep(plotlyProps);
     }
 
     private static updateTooltipArgs(props: IPlotlyProperty, accessor: string, label: string, index: number): void {

@@ -11,7 +11,7 @@ and can be inaccurate when there are feature interactions.
 """
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, isspmatrix_csc, SparseEfficiencyWarning
 from sklearn.metrics import mean_absolute_error, explained_variance_score, mean_squared_error, \
     mean_squared_log_error, median_absolute_error, r2_score, average_precision_score, f1_score, \
     fbeta_score, precision_score, recall_score
@@ -33,7 +33,6 @@ from ..common.progress import get_tqdm
 # Although we get a sparse efficiency warning when using csr matrix format for setting the
 # values, if we use lil scikit-learn converts the matrix to csr which has much worse performance
 import warnings
-from scipy.sparse import SparseEfficiencyWarning
 
 
 module_logger = logging.getLogger(__name__)
@@ -214,14 +213,18 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             outputs a 1 dimensional array.
         :type model_task: str
         """
+        log_pytorch_missing = False
         try:
             if isinstance(model, nn.Module):
                 # Wrap the model in an extra layer that converts the numpy array
                 # to pytorch Variable and adds predict and predict_proba functions
                 model = WrappedPytorchModel(model)
-        except NameError:
-            self._logger.debug('Could not import torch, required if using a pytorch model')
+        except (NameError, AttributeError):
+            log_pytorch_missing = True
         super(PFIExplainer, self).__init__(model, is_function=is_function, **kwargs)
+        # Note: we can't log debug until after init has been called to create the logger
+        if log_pytorch_missing:
+            self._logger.debug('Could not import torch, required if using a pytorch model')
         self._logger.debug('Initializing PFIExplainer')
 
         if transformations is not None and explain_subset is not None:
@@ -295,7 +298,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         :type global_importance_values: numpy.ndarray
         """
         shuffled_prediction = predict_function(shuffled_dataset)
-        if sp.sparse.issparse(shuffled_prediction):
+        if issparse(shuffled_prediction):
             shuffled_prediction = shuffled_prediction.toarray()
         metric = self.metric(true_labels, shuffled_prediction, **self.metric_args)
         importance_score = base_metric - metric
@@ -441,9 +444,9 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         # Score the model on the given dataset
         prediction = predict_function(dataset)
         # The scikit-learn metrics can't handle sparse arrays
-        if sp.sparse.issparse(true_labels):
+        if issparse(true_labels):
             true_labels = true_labels.toarray()
-        if sp.sparse.issparse(prediction):
+        if issparse(prediction):
             prediction = prediction.toarray()
         # Evaluate the model with given metric on the dataset
         base_metric = self.metric(true_labels, prediction, **self.metric_args)
@@ -458,13 +461,13 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             column_indexes = range(dataset.shape[1])
             global_importance_values = np.zeros(dataset.shape[1])
         tqdm = get_tqdm(self._logger, self.show_progress)
-        if sp.sparse.issparse(dataset):
+        if issparse(dataset):
             # Create a dataset for shuffling
             # Although lil matrix is better for changing sparsity structure, scikit-learn
             # converts matrixes back to csr for prediction which is much more expensive
             shuffled_dataset = dataset.tocsr(copy=True)
             # Convert to csc format if not already for faster column index access
-            if not sp.sparse.isspmatrix_csc(dataset):
+            if not isspmatrix_csc(dataset):
                 dataset = dataset.tocsc()
             # Get max NNZ across all columns
             dataset_nnz = dataset.getnnz(axis=0)
