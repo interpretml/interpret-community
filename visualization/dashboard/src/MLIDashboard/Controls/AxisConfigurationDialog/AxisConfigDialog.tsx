@@ -39,9 +39,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private _isInitialized = false;
 
     private _leftSelection: Selection;
-    private static readonly MIN_HIST_COLS = 2;
-    private static readonly MAX_HIST_COLS = 40;
-    private static readonly DEFAULT_BIN_COUNT = 5;
+    private readonly MIN_HIST_COLS = 2;
+    private readonly MAX_HIST_COLS = 40;
 
     private readonly leftItems= [
         Cohort.CohortKey,
@@ -135,7 +134,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         {selectedMeta.treatAsCategorical && (
                             <div>
                                 <Text variant={"small"} className={styles.featureText}>
-                                {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                                {/* {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`} */}
+                                {localization.Filters.uniqueValues} {selectedMeta.sortedCategoricalValues.length}
                                 </Text>
                                 {this.props.canDither && (
                                     <Checkbox 
@@ -148,8 +148,10 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                         {!selectedMeta.treatAsCategorical && (
                             <div>
-                                <Text variant={"small"} className={styles.featureText}>
-                                {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
+                                <Text variant={"small"} className={styles.featureText} nowrap block>
+                                {/* {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`} */}
+                                {localization.Filters.min}{(selectedMeta.featureRange.min % 1) !=0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min}{localization.Filters.space}
+                                {localization.Filters.max}{(selectedMeta.featureRange.max % 1) !=0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max}
                                 </Text>
                                 {this.props.canBin && !this.props.mustBin && (
                                     <Checkbox
@@ -163,8 +165,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                     className={styles.spinButton}
                                     labelPosition={Position.top}
                                     label={localization.AxisConfigDialog.numOfBins}
-                                    min={AxisConfigDialog.MIN_HIST_COLS}
-                                    max={AxisConfigDialog.MAX_HIST_COLS}
+                                    min={this.MIN_HIST_COLS}
+                                    max={this.MAX_HIST_COLS}
                                     value={this.state.binCount.toString()}
                                     onIncrement={this.setNumericValue.bind(this, 1, selectedMeta)}
                                     onDecrement={this.setNumericValue.bind(this, -1, selectedMeta)}
@@ -178,8 +180,9 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                 <PrimaryButton 
                     text={localization.AxisConfigDialog.select}
                     onClick={this.saveState}
-                    className={styles.selectButton}
-                />
+                    className ={styles.selectButton}
+                >Select</PrimaryButton>
+                
             </Callout>
         );
     }
@@ -242,14 +245,14 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private readonly setNumericValue = (delta: number, column: IJointMeta, stringVal: string): string | void => {
         if (delta === 0) {
             const number = +stringVal;
-            if (!Number.isInteger(number) || number > AxisConfigDialog.MAX_HIST_COLS || number < AxisConfigDialog.MIN_HIST_COLS) {
+            if (!Number.isInteger(number) || number > this.MAX_HIST_COLS || number < this.MIN_HIST_COLS) {
                 return this.state.binCount.toString();
             }
             this.setState({binCount: number});
         } else {
             const prevVal = this.state.binCount as number;
             const newVal = prevVal + delta;
-            if (newVal > AxisConfigDialog.MAX_HIST_COLS || newVal < AxisConfigDialog.MIN_HIST_COLS) {
+            if (newVal > this.MAX_HIST_COLS || newVal < this.MIN_HIST_COLS) {
                 return prevVal.toString();
             }
             this.setState({binCount: newVal});
@@ -288,7 +291,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         let binCount = undefined;
         if (this.props.canBin && selectedMeta.isCategorical === false) {
             binCount = selectedMeta.sortedCategoricalValues !== undefined ?
-                selectedMeta.sortedCategoricalValues.length : AxisConfigDialog.DEFAULT_BIN_COUNT;
+                selectedMeta.sortedCategoricalValues.length : 5;
         }
         return binCount;
     }

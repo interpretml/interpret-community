@@ -202,8 +202,10 @@
         "_equalComparison.comment": "filter for rows that are exactly equal",
         "greaterThanComparison": "Greater than",
         "_greaterThanComparison.comment": "filter for rows that are greater than a value",
+        "greaterThanEqualToComparison": "Greater than equal to",
         "lessThanComparison": "Less than",
         "_lessThanComparison.comment": "filter for rows that are less than a value",
+        "lessThanEqualToComparison": "Less than equal to",
         "inTheRangeOf": "In the range of",
         "_inTheRangeOf.comment": "filter for rows that are between two values",
         "categoricalIncludeValues": "Included values:",
@@ -213,7 +215,11 @@
         "numericalComparison": "Operation",
         "_numericalComparison.comment": "label for dropdown containing [greater than, less than, equal to]",
         "minimum":"Minimum",
-        "maximum":"Maximum"
+        "maximum":"Maximum",
+        "min":"Min: ",
+        "max":"Max: ",
+        "uniqueValues":"# of unique values: ",
+        "space":" "
     },
     "Columns": {
         "regressionError": "Regression error",
@@ -404,6 +410,7 @@
         "cohortNamePlaceholder":"Name your cohort",
         "_cohortNamePlaceholder.comment": "placeholder for cohort name",
         "save":"Save",
+        "delete":"Delete",
         "cancel":"Cancel",
         "cohortNameError":"Missing cohort name",
         "_cohortNameError.comment": "error message if  required name is missing"
@@ -423,5 +430,15 @@
         "_TreatAsCategorical.comment": "a checkbox label to treat integers as categories instead of as numbers",
         "numOfBins":"Number of bins",
         "_numberOfBins.comment": "the number of groups (bins) to place all values into"
+    },
+    "FilterOperations": {
+        "equals": " = ",
+        "lessThan": " < ",
+        "greaterThan": " > ",
+        "lessThanEquals": " <= ",
+        "greaterThanEquals": " >= ",
+        "includes": " includes ",
+        "inTheRangeOfOpen": " [ ",
+        "inTheRangeOfClose": " ]"
     }
 }
