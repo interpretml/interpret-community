@@ -4,7 +4,7 @@
 
 """Defines an explainable linear model."""
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, csr_matrix
 
 from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
 from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor, Lasso
@@ -45,7 +45,7 @@ class LinearExplainer(shap.LinearExplainer):
         if self.is_sparse:
             # Sparse case
             self.coef = model[0]
-            if not sp.sparse.issparse(self.coef):
+            if not issparse(self.coef):
                 self.coef = np.asmatrix(self.coef)
             self.intercept = model[1]
             self._background = data[0]
@@ -68,7 +68,7 @@ class LinearExplainer(shap.LinearExplainer):
         if self.is_sparse:
             assert len(evaluation_examples.shape) == 2, "Sparse instance must have 2 dimensions!"
             assert self.coef.shape[0] == 1, "Multiclass coefficients need to be evaluated separately"
-            mean_multiplier = sp.sparse.csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
+            mean_multiplier = csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
             return (evaluation_examples - mean_multiplier * self._background).multiply(self.coef[0]).tocsr()
         else:
             return super().shap_values(evaluation_examples)
@@ -143,7 +143,7 @@ def _compute_background_data(dataset):
     background = _summarize_data(dataset)
     if isinstance(background, DenseData):
         background = background.data
-    if not sp.sparse.issparse(background) and len(background.shape) == 2:
+    if not issparse(background) and len(background.shape) == 2:
         mean_shape = background.shape[1]
         # Take mean of clusters to get better representation of background
         if background.shape[0] > 1:
@@ -225,7 +225,7 @@ class LinearExplainableModel(BaseExplainableModel):
         """
         self._linear.fit(dataset, labels, **kwargs)
         self._background = _compute_background_data(dataset)
-        if not sp.sparse.issparse(dataset):
+        if not issparse(dataset):
             self.covariance = np.cov(dataset, rowvar=False)
         else:
             # Not needed for sparse case
@@ -387,7 +387,7 @@ class SGDExplainableModel(BaseExplainableModel):
         """
         self._sgd.fit(dataset, labels, **kwargs)
         self._background = _compute_background_data(dataset)
-        if not sp.sparse.issparse(dataset):
+        if not issparse(dataset):
             self.covariance = np.cov(dataset, rowvar=False)
         else:
             # Not needed for sparse case

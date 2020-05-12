@@ -32,15 +32,16 @@ export interface IIcePlotState {
 }
 
 export interface IRangeView {
+    key?: string;
     featureIndex: number;
     type: RangeTypes;
-    min?: string;
+    min?: number;
     minErrorMessage?: string;
-    max?: string;
+    max?: number;
     maxErrorMessage?: string;
-    steps?: string;
+    steps?: number;
     stepsErrorMessage?: string;
-    selectedOptionKeys?: string[]; 
+    selectedOptionKeys?: Array<string|number>; 
     categoricalOptions?: IComboBoxOption[];
 }
 
@@ -200,7 +201,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                             {this.state.rangeView.type === RangeTypes.categorical &&
                                 <ComboBox
                                     multiSelect
-                                    selectedKey={this.state.rangeView.selectedOptionKeys}
+                                    selectedKey={this.state.rangeView.selectedOptionKeys as string[]}
                                     allowFreeform={true}
                                     autoComplete="on"
                                     options={this.state.rangeView.categoricalOptions}
@@ -213,19 +214,19 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                                     <TextField 
                                         label={localization.IcePlot.minimumInputLabel}
                                         styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.min}
+                                        value={this.state.rangeView.min.toString()}
                                         onChange={this.onMinRangeChanged}
                                         errorMessage={this.state.rangeView.minErrorMessage}/>
                                     <TextField 
                                         label={localization.IcePlot.maximumInputLabel}
                                         styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.max}
+                                        value={this.state.rangeView.max.toString()}
                                         onChange={this.onMaxRangeChanged}
                                         errorMessage={this.state.rangeView.maxErrorMessage}/>
                                     <TextField 
                                         label={localization.IcePlot.stepInputLabel}
                                         styles={FabricStyles.textFieldStyle}
-                                        value={this.state.rangeView.steps}
+                                        value={this.state.rangeView.steps.toString()}
                                         onChange={this.onStepsRangeChanged}
                                         errorMessage={this.state.rangeView.stepsErrorMessage}/>
                                 </div>
@@ -248,7 +249,6 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
                     <div className="chart-wrapper">
                         <AccessibleChart
                             plotlyProps={plotlyProps}
-                            sharedSelectionContext={undefined}
                             theme={this.props.theme}
                         />
                     </div>
@@ -273,9 +273,9 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
             const summary = this.props.explanationContext.modelMetadata.featureRanges[featureIndex] as INumericRange;
             return {
                 featureIndex,
-                min: summary.min.toString(),
-                max: summary.max.toString(),
-                steps: '20',
+                min: summary.min,
+                max: summary.max,
+                steps: 20,
                 type: summary.rangeType
             };
         }
@@ -293,7 +293,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
     private onMinRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
         const val = + newValue;
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.min = newValue;
+        rangeView.min = +newValue;
         if (Number.isNaN(val) || (this.state.rangeView.type === RangeTypes.integer && !Number.isInteger(val))) {
             rangeView.minErrorMessage = this.state.rangeView.type === RangeTypes.integer ? localization.IcePlot.integerError : localization.IcePlot.numericError;
             this.setState({rangeView});
@@ -307,7 +307,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
     private onMaxRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
         const val = + newValue;
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.max = newValue;
+        rangeView.max = +newValue;
         if (Number.isNaN(val) || (this.state.rangeView.type === RangeTypes.integer && !Number.isInteger(val))) {
             rangeView.maxErrorMessage = this.state.rangeView.type === RangeTypes.integer ? localization.IcePlot.integerError : localization.IcePlot.numericError;
             this.setState({rangeView});
@@ -321,7 +321,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
     private onStepsRangeChanged(ev: React.FormEvent<HTMLInputElement>, newValue?: string): void {
         const val = + newValue;
         const rangeView = _.cloneDeep(this.state.rangeView);
-        rangeView.steps = newValue;
+        rangeView.steps = +newValue;
         if (!Number.isInteger(val)) {
             rangeView.stepsErrorMessage = localization.IcePlot.integerError;
             this.setState({rangeView});
@@ -348,7 +348,7 @@ export class ICEPlot extends  React.Component<IIcePlotProps, IIcePlotState> {
         this.setState({rangeView}, () => {this.fetchData()});
     }
 
-    private updateSelectedOptionKeys = (selectedKeys: string[], option: IComboBoxOption): string[] => {
+    private updateSelectedOptionKeys = (selectedKeys: Array<string|number>, option: IComboBoxOption): Array<string|number> => {
         selectedKeys = [...selectedKeys]; // modify a copy
         const index = selectedKeys.indexOf(option.key as string);
         if (option.selected && index < 0) {

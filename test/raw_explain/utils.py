@@ -3,7 +3,7 @@
 # ---------------------------------------------------------
 
 import numpy as np
-import scipy.sparse as sparse
+from scipy.sparse import csr_matrix
 from sklearn.base import BaseEstimator
 
 
@@ -37,7 +37,7 @@ class SparseTransformer(BaseEstimator):
         return self
 
     def transform(self, x):
-        return sparse.csr_matrix(x)
+        return csr_matrix(x)
 
 
 def _get_feature_map_from_indices_list(indices_list, num_raw_cols, num_generated_cols):

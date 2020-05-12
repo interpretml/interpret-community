@@ -22,7 +22,7 @@ copyright = '2020, Microsoft'
 author = 'Microsoft'
 
 # The full version, including alpha/beta/rc tags
-release = '0.10.0'
+release = '0.10.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -64,7 +64,8 @@ master_doc = 'index'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# Note: We will use the default theme which is nicer
+# html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -73,7 +74,9 @@ html_static_path = []
 
 
 def run_apidoc(_):
-    argv = ["-f", "-T", "-e", "-M", "-o", ".", os.path.join("..", "interpret_community")]
+    package_path = os.path.join("..", "interpret_community")
+    api_reference_path = os.path.join(".", "api_reference")
+    argv = ["-f", "-T", "-e", "-M", "-o", api_reference_path, package_path]
 
     from sphinx.ext import apidoc
     apidoc.main(argv)

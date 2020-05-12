@@ -28,6 +28,7 @@ export interface IGlobalFeatureImportanceProps {
     dashboardContext: IDashboardContext;
     config: IFeatureImportanceConfig;
     selectionContext: SelectionContext;
+    selectedRow: number;
     chartTypeOptions?: IComboBoxOption[];
     messages?: HelpMessageDict;
     theme?: string;
