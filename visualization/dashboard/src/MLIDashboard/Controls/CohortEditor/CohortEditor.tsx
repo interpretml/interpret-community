@@ -15,11 +15,6 @@ import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
 
-export interface IEditFilter {
-    filterColumn?: string;
-    selectionKey?: string;
-}
-
 export interface ICohortEditorProps {
     jointDataset: JointDataset;
     filterList: IFilter[];
@@ -35,7 +30,6 @@ export interface ICohortEditorState {
     filterIndex?: number;
     filters?: IFilter[];
     cohortName: string;
-    filterSelection?: string;
     editingFilterIndex?: string;
 }
 
@@ -103,8 +97,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             openedFilter: undefined,
             filterIndex: this.props.filterList.length,
             filters: this.props.filterList,
-            cohortName: this.props.cohortName,
-            filterSelection: undefined
+            cohortName: this.props.cohortName
         };
         this._leftSelection = new Selection({
             selectionMode: SelectionMode.single,
