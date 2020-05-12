@@ -19,6 +19,7 @@ except ModuleNotFoundError:
     raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
                        "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
+
 class ExplanationDashboard:
     """Explanation Dashboard Class.
 
