@@ -124,6 +124,7 @@ class ExplanationDashboard:
             domain_suffix = result["domainsuffix"]
             return "https://{}-{}.{}".format(instance_name, self.port, domain_suffix)
 
+        @staticmethod
         def _local_port_available(ip, port, rais=True):
             """
             Borrowed from:
@@ -133,10 +134,6 @@ class ExplanationDashboard:
                 backlog = 5
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.bind((ip, port))
-                sock.listen(backlog)
-                sock.close()
-                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-                sock.bind(("::1", port))
                 sock.listen(backlog)
                 sock.close()
             except socket.error:  # pragma: no cover

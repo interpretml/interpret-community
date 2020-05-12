@@ -9,7 +9,7 @@ import uuid
 import json
 import pandas as pd
 import gc
-import scipy as sp
+from scipy.sparse import issparse
 
 from abc import ABCMeta, abstractmethod
 
@@ -374,7 +374,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: bool
         """
         local_vals = self._local_importance_values
-        return sp.sparse.issparse(local_vals) or (isinstance(local_vals, list) and sp.sparse.issparse(local_vals[0]))
+        return issparse(local_vals) or (isinstance(local_vals, list) and issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -575,7 +575,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
         is_list = isinstance(explanation.local_importance_values, list)
-        is_sparse = sp.sparse.issparse(explanation.local_importance_values)
+        is_sparse = issparse(explanation.local_importance_values)
         if not is_list and not is_sparse:
             return False
         if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
@@ -1580,7 +1580,7 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
         local_importance_values = local_explanation_row._local_importance_values
         # in-place abs
-        if sp.sparse.issparse(local_importance_values):
+        if issparse(local_importance_values):
             local_importance_values = abs(local_importance_values)
         else:
             np.abs(local_importance_values, out=local_importance_values)

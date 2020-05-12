@@ -11,7 +11,7 @@ be used to explain the teacher model.
 """
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -461,7 +461,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
-        is_sparse = sp.sparse.issparse(local_importance_values) or sp.sparse.issparse(local_importance_values[0])
+        is_sparse = issparse(local_importance_values) or issparse(local_importance_values[0])
         expected_values = self.surrogate_model.expected_values
         kwargs[ExplainParams.METHOD] = self._get_method
         self.features = evaluation_examples.get_features(features=self.features)

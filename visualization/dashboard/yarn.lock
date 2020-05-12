@@ -2724,10 +2724,10 @@ mkdirp@0.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mlchartlib@0.1.37:
-  version "0.1.37"
-  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.37.tgz#3a87f65e9f4831bb004cd0e3863640fad132ebcc"
-  integrity sha512-lVJRm8BkjY9i2T+olWm0qE2XfwTKvoZGSGDkz2aKz/6V88EvMZkshnqDYENOS6B5sK00wkQzZMSotZYKSDMlTg==
+mlchartlib@0.1.38-beta1:
+  version "0.1.38-beta1"
+  resolved "https://registry.yarnpkg.com/mlchartlib/-/mlchartlib-0.1.38-beta1.tgz#baad6a82ae9aedfbfae73fde4c1a24ba5745029b"
+  integrity sha512-r/4dwOR8fkppHnD0B5PbA/+S+t3iViwcS+tuvNj7e9zdjOhFkeHHB8ghkQGVfWR8h4ScBtoqy7QHoSL6aoDlNw==
   dependencies:
     jmespath "^0.15.0"
     lodash "^4.17.11"
