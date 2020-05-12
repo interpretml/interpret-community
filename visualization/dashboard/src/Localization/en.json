@@ -296,7 +296,9 @@
         "precision": "Precision: {0}",
         "recall": "Recall: {0}",
         "fpr": "fpr: {0}",
-        "fnr": "fnr: {0}"
+        "fnr": "fnr: {0}",
+        "missingParameters": "This view requires the array of predicted values from the model.",
+        "_missingPArameters.comment": "Show a message if the required prediction array not provided"
     },
     "Charts": {
         "yValue": "Y-value",
@@ -316,7 +318,9 @@
         "aggregatePlots": "Aggregate plots",
         "_aggregatePlots.comment": "configuration option to view plots that sum or average points, opposed to sowing each point on its own",
         "chartType": "Chart type",
-        "_chartType.comment": "label for dropdown to select chart format"
+        "_chartType.comment": "label for dropdown to select chart format",
+        "missingParameters": "The dataset explorer requires an evaluation dataset be supplied for visualization.",
+        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "DependencePlot": {
         "featureImportanceOf": "Feature importance of",
@@ -390,7 +394,9 @@
         "stepsLabel": "Steps",
         "_stepsLabel.comment": "number of increments to use between minimum and maximum",
         "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
-        "_disclaimer.comment": "the tool should not be liable for any bad predictions"
+        "_disclaimer.comment": "the tool should not be liable for any bad predictions",
+        "missingParameters": "This view requires an evaluation dataset be supplied for visualization.",
+        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",

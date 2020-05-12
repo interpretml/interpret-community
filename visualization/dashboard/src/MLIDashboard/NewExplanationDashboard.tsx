@@ -260,16 +260,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
         this.validatePredictMethod();
 
-        if (this.state.jointDataset.hasPredictedY) {
-            this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
-        }
-        if (this.state.jointDataset.hasDataset) {
-            this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
-        }
+        this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
+        this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
         this.pivotItems.push({headerText: localization.aggregateFeatureImportance, itemKey: globalTabKeys.explanationTab});
-        if (this.state.jointDataset.hasDataset) {
-            this.pivotItems.push({headerText: localization.individualAndWhatIf, itemKey: globalTabKeys.whatIfTab});
-        }
+        this.pivotItems.push({headerText: localization.individualAndWhatIf, itemKey: globalTabKeys.whatIfTab});
     }
 
     render(): React.ReactNode {

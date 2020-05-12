@@ -56,6 +56,14 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
 
     public render(): React.ReactNode {
         const classNames = modelPerformanceTabStyles();
+        if (!this.props.jointDataset.hasDataset) {
+            return (
+            <div className={classNames.missingParametersPlaceholder}>
+                <div className={classNames.missingParametersPlaceholderSpacer}>
+                    <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingParameters}</Text>
+                </div>
+            </div>);
+        }
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }

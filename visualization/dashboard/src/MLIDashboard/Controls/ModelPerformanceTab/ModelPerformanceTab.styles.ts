@@ -1,4 +1,5 @@
 import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
+import { FabricStyles } from "../../FabricStyles";
 
 export interface IModelPerformanceTabStyles {
     page: IStyle;
@@ -20,6 +21,9 @@ export interface IModelPerformanceTabStyles {
     cohortPickerWrapper: IStyle;
     cohortPickerLabel: IStyle;
     boldText: IStyle;
+    missingParametersPlaceholder: IStyle;
+    missingParametersPlaceholderSpacer: IStyle;
+    faintText: IStyle;
 }
 
 export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerformanceTabStyles> = () => {
@@ -137,6 +141,9 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         boldText: {
             fontWeight: "600",
             paddingBottom: "5px"
-        }
+        },
+        missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
+        missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
+        faintText: [FabricStyles.faintText]
     });
 };

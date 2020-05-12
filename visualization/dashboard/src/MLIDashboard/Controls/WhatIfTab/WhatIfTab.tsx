@@ -229,7 +229,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             return (
                 <div className={classNames.missingParametersPlaceholder}>
                     <div className={classNames.missingParametersPlaceholderSpacer}>
-                        <Text variant="large" className={classNames.faintText}>{localization.GlobalTab.missingParameters}</Text>
+                        <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.missingParameters}</Text>
                     </div>
                 </div>
             );

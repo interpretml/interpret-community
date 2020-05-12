@@ -110,6 +110,15 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
 
     public render(): React.ReactNode {
         const classNames = datasetExplorerTabStyles();
+
+        if (!this.props.jointDataset.hasDataset) {
+            return (
+            <div className={classNames.missingParametersPlaceholder}>
+                <div className={classNames.missingParametersPlaceholderSpacer}>
+                    <Text variant="large" className={classNames.faintText}>{localization.DatasetExplorer.missingParameters}</Text>
+                </div>
+            </div>);
+        }
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
