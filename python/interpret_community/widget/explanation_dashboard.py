@@ -20,7 +20,6 @@ except ModuleNotFoundError:
                        "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
 class ExplanationDashboard:
-
     """Explanation Dashboard Class.
 
     :param explanation: An object that represents an explanation.
