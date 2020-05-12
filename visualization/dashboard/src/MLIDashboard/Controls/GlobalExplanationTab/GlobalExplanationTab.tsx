@@ -94,6 +94,16 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
     public render(): React.ReactNode {
         const classNames = globalTabStyles();
+
+        if (!this.props.jointDataset.hasLocalExplanations) {
+            return (
+                <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.GlobalTab.missingParameters}</Text>
+                    </div>
+                </div>
+            );
+        }
         
         const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
         if (this.props.globalBarSettings === undefined) {

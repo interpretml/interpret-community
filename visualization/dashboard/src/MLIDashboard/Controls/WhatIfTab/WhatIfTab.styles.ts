@@ -1,4 +1,5 @@
 import { IProcessedStyleSet, getTheme, mergeStyleSets, IStyle } from "@uifabric/styling";
+import { FabricStyles } from "../../FabricStyles";
 
 export interface IWhatIfTabStyles {
     page: IStyle;
@@ -38,8 +39,8 @@ export interface IWhatIfTabStyles {
     choiceGroup: IStyle;
     choiceGroupFlexContainer: IStyle;
     panelIconAndLabel: IStyle;
-    secondaryChartPlacolderBox: IStyle;
-    secondaryChartPlacolderSpacer: IStyle;
+    missingParametersPlaceholder: IStyle;
+    missingParametersPlaceholderSpacer: IStyle;
     faintText: IStyle;
     predictedBlock: IStyle;
     upperWhatIfPanel: IStyle;
@@ -251,19 +252,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
             alignItems: "center",
             display: "flex"
         },
-        secondaryChartPlacolderBox: {
-            height: "300px",
-            width: "100%"
-        },
-        secondaryChartPlacolderSpacer: {
-            margin: "25px auto 0 auto",
-            padding: "23px",
-            width:"fit-content",
-            boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
-        },
-        faintText: {
-            fontWeight: "350" as any,
-        },
+        missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
+        missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
+        faintText: [FabricStyles.faintText],
         predictedBlock: {
             paddingTop: "5px"
         },
@@ -287,8 +278,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         disclaimerWrapper: {
             padding: "5px 15px 10px 26px"
         },
-        panelPlaceholderWrapper: {
-            padding: "80px 20px"
-        }
+        panelPlaceholderWrapper: [FabricStyles.missingParameterPlaceholder, {
+            padding: "0 16px",
+            boxSizing: "border-box"
+        }]
     });
 }

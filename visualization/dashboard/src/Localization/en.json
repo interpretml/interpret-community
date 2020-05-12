@@ -255,7 +255,9 @@
         "datasetCohortSelector": "Select a dataset cohort",
         "_datasetCohortSelector.comment": "label for selecting single cohort",
         "aggregateFeatureImportance": "Aggregate Feature Importance",
-        "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances"
+        "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances",
+        "missingParameters": "The aggregate feture importance tab requires the local feature importance parameter be supplied.",
+        "_missingPArameters.comment": "Show a message if the required feature importance parameter is not provided"
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",

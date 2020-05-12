@@ -1,6 +1,7 @@
 import { IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
 import { IPivotStyles } from "office-ui-fabric-react/lib/Pivot";
 import { ITextFieldStyles } from "office-ui-fabric-react/lib/TextField";
+import { IStyle } from "@uifabric/styling";
 
 export interface IRGBColor {
     r: number;
@@ -53,6 +54,23 @@ export class FabricStyles {
             maxHeight: "256px",
             minWidth: "200px"
         }
+    }
+
+    public static missingParameterPlaceholder: IStyle = {
+        height: "300px",
+        width: "100%"
+    };
+
+    public static missingParameterPlaceholderSpacer: IStyle = {
+        margin: "25px auto 0 auto",
+        maxWidth: "400px",
+        padding: "23px",
+        width:"fit-content",
+        boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
+    };
+
+    public static faintText: IStyle = {
+        fontWeight: "350" as any,
     }
 
     public static plotlyColorPalette: IRGBColor[] =  [

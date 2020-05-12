@@ -224,6 +224,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     public render(): React.ReactNode {
+        const classNames = whatIfTabStyles();
+        if (!this.props.jointDataset.hasDataset) {
+            return (
+                <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.GlobalTab.missingParameters}</Text>
+                    </div>
+                </div>
+            );
+        }
         if (this.props.chartProps === undefined) {
             return (<div />);
         }
@@ -235,7 +245,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const rowOptions: IDropdownOption[ ]= this.props.cohorts[this.state.selectedCohortIndex].unwrap(JointDataset.IndexLabel).map(index => {
             return {key: index, text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string};
         });
-        const classNames = whatIfTabStyles();
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => { return { key: index, text: cohort.name }; });
         return (<div className={classNames.page}>
             <div className={classNames.infoWithText}>
@@ -257,7 +266,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <Text variant={"medium"} className={classNames.boldText}>{localization.WhatIfTab.whatIfDatapoint}</Text>
                         </div>
                         <div className={classNames.panelPlaceholderWrapper}>
-                            <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
+                            <div className={classNames.missingParametersPlaceholderSpacer}>
+                                <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -459,15 +470,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         let secondaryPlot: React.ReactNode;
         if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
             if (!this.props.jointDataset.hasLocalExplanations) {
-                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
-                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                secondaryPlot = <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceLackingParameters}</Text>
                     </div>
                 </div>
             }
             else if (this.includedFeatureImportance.length === 0){
-                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
-                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                secondaryPlot = <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
                     </div>
                 </div>
@@ -506,15 +517,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
         } else {
             if (!this.props.invokeModel) {
-                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
-                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                secondaryPlot = <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.iceLackingParameters}</Text>
                     </div>
                 </div>
             }
             else if (this.testableDatapoints.length === 0){
-                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
-                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                secondaryPlot = <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.IceGetStartedText}</Text>
                     </div>
             </div>;

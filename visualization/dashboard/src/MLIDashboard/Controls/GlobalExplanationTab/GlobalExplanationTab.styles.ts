@@ -1,4 +1,5 @@
 import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
+import { FabricStyles } from "../../FabricStyles";
 
 export interface IGlobalTabStyles {
     page: IStyle;
@@ -15,6 +16,9 @@ export interface IGlobalTabStyles {
     cohortLegend: IStyle;
     legendHelpText: IStyle;
     secondaryChartAndLegend: IStyle;
+    missingParametersPlaceholder: IStyle;
+    missingParametersPlaceholderSpacer: IStyle;
+    faintText: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -85,6 +89,9 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         },
         legendHelpText: {
             fontWeight: "300"
-        }
+        },
+        missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
+        missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
+        faintText: [FabricStyles.faintText]
     });
 };
