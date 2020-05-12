@@ -49,3 +49,21 @@ class DataFrameTestModel(object):
             assert list(X.index.names) == list(self._sample_df.index.names)
             for i in range(len(X.index.names)):
                 assert X.index.get_level_values(i).dtype == self._sample_df.index.get_level_values(i).dtype
+
+
+class SkewedTestModel(object):
+    def __init__(self):
+        pass
+
+    def fit(self, X):
+        pass
+
+    def predict(self, X_pred):
+        result = np.repeat(0, X_pred.shape[0])
+        result[0] = 1
+        return result
+
+    def predict_proba(self, X_pred):
+        prediction = self.predict(X_pred).reshape(-1, 1)
+        zeros = np.repeat(0, X_pred.shape[0]).reshape(-1, 1)
+        return np.concatenate((1 - prediction, prediction, zeros), axis=1)
