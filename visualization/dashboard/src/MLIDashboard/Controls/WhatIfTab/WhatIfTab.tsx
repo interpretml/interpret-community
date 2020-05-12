@@ -95,19 +95,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         } as any
     };
 
-    private buildCustomRowSeries(customRows: Array<{ [key: string]: any }>): any[] {
-        return customRows.map((row, i) => {
-            return {
-                name: row[WhatIfTab.namePath],
-                unsortedFeatureValues: JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.localExplanationFeatureCount),
-                unsortedY: undefined,
-                color: row[WhatIfTab.colorPath],
-                onEdit: this.setTemporaryPointToCustomPoint.bind(this, i),
-                onDelete: this.removeCustomPoint.bind(this, i)
-            };
-        });
-    }
-
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
@@ -137,7 +124,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.generateDefaultChartAxes();
         }
         this.state = {
-            isPanelOpen: true,
+            isPanelOpen: this.props.invokeModel !== undefined,
             xDialogOpen: false,
             yDialogOpen: false,
             selectedWhatIfRootIndex: 0,
@@ -260,7 +247,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 classNames.expandedPanel :
                 classNames.collapsedPanel}>
                 {this.state.isPanelOpen && this.props.invokeModel === undefined && (
-                    <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
+                    <div>
+                        <div className={classNames.panelIconAndLabel}>
+                        <IconButton
+                            iconProps={{ iconName: "ChevronRight" }}
+                            onClick={this.dismissPanel}
+                            className={classNames.blackIcon}
+                        />
+                        <Text variant={"medium"} className={classNames.boldText}>{localization.WhatIfTab.whatIfDatapoint}</Text>
+                        </div>
+                        <div className={classNames.panelPlaceholderWrapper}>
+                            <Text>{localization.WhatIfTab.panelPlaceholder}</Text>
+                        </div>
+                    </div>
                 )}
                 {this.state.isPanelOpen && this.props.invokeModel !== undefined && (<div>
                     <div className={classNames.panelIconAndLabel}>
@@ -459,7 +458,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private buildSecondaryArea(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
         let secondaryPlot: React.ReactNode;
         if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
-            if (this.includedFeatureImportance.length === 0){
+            if (!this.props.jointDataset.hasLocalExplanations) {
+                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
+                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceLackingParameters}</Text>
+                    </div>
+                </div>
+            }
+            else if (this.includedFeatureImportance.length === 0){
                 secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
                     <div className={classNames.secondaryChartPlacolderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.featureImportanceGetStartedText}</Text>
@@ -499,7 +505,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 </div>);
             }
         } else {
-            if (this.testableDatapoints.length === 0){
+            if (!this.props.invokeModel) {
+                secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
+                    <div className={classNames.secondaryChartPlacolderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.iceLackingParameters}</Text>
+                    </div>
+                </div>
+            }
+            else if (this.testableDatapoints.length === 0){
                 secondaryPlot = <div className={classNames.secondaryChartPlacolderBox}>
                     <div className={classNames.secondaryChartPlacolderSpacer}>
                         <Text variant="large" className={classNames.faintText}>{localization.WhatIfTab.IceGetStartedText}</Text>

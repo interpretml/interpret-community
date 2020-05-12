@@ -65,6 +65,7 @@ export class JointDataset {
     public static readonly ReducedLocalImportanceSortIndexRoot = "LocalImportanceSortIndex";
 
     public hasDataset: boolean = false;
+    public hasLocalExplanations: boolean = false;
     public hasPredictedY: boolean = false;
     public hasPredictedProbabilities: boolean = false;
     public hasTrueY: boolean = false;
@@ -283,6 +284,7 @@ export class JointDataset {
             this.localExplanationFeatureCount = this.rawLocalImportance[0].length;
             this._localExplanationIndexesComputed = new Array(this.localExplanationFeatureCount).fill(false);
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
+            this.hasLocalExplanations = true;
         }
     }
 

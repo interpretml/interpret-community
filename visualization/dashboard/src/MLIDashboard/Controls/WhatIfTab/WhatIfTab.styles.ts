@@ -48,6 +48,7 @@ export interface IWhatIfTabStyles {
     featureSearch: IStyle;
     iceFeatureSelection: IStyle;
     disclaimerWrapper: IStyle;
+    panelPlaceholderWrapper: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -285,6 +286,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         disclaimerWrapper: {
             padding: "5px 15px 10px 26px"
+        },
+        panelPlaceholderWrapper: {
+            padding: "80px 20px"
         }
     });
 }

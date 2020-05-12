@@ -269,7 +269,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         if (this.state.jointDataset.localExplanationFeatureCount > 0) {
             this.pivotItems.push({headerText: localization.aggregateFeatureImportance, itemKey: globalTabKeys.explanationTab});
         }
-        if (this.state.jointDataset.localExplanationFeatureCount > 0 && this.state.jointDataset.hasDataset && this.props.requestPredictions) {
+        if (this.state.jointDataset.hasDataset) {
             this.pivotItems.push({headerText: localization.individualAndWhatIf, itemKey: globalTabKeys.whatIfTab});
         }
     }

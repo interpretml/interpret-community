@@ -234,7 +234,7 @@ import { createTheme } from "@uifabric/styling";
                           globalFeatureImportance: data.globalExplanation,
                           ebmGlobalExplanation: data.ebmData
                         }}
-                        requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
+                        //requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         theme={theme}
                         locale={this.state.language}
