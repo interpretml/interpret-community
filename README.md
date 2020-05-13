@@ -7,16 +7,9 @@
 
 Interpret Community SDK
 =============================================================
-[InterpretML](https://github.com/interpretml/) is a machine learning interpretability package for training interpretable machine learning models and/or explaining blackbox AI systems. InterpretML that consists of the following repositories:
-
-| Component | Description |
-| ---- | --- |
-| [**Interpret**](https://github.com/interpretml/interpret) | Supporting a collection of glassbox models and blackbox/graybox explainers for **tabular data** scenarios|
-| [**Interpret-Community**](https://github.com/interpretml/interpret-community) (Here) | An experimental repository extending [Interpret](https://github.com/interpretml/interpret), with additional interpretability techniques and utility functions to handle real-world datasets and workflows for explaining models trained on **tabular data**|
-| [**Interpret-Text-Contrib**](https://github.com/interpretml/interpret-text-contrib) | Supporting a collection of interpretability technique for models trained on **text (NLP) data**|
 
 
-This repository contains Interpret-Community SDK and Jupyter notebooks with examples to showcase its use.
+Interpret-Community is an experimental repository extending [Interpret](https://github.com/interpretml/interpret), with additional interpretability techniques and utility functions to handle real-world datasets and workflows for explaining models trained on **tabular data**. This repository contains Interpret-Community SDK and Jupyter notebooks with examples to showcase its use.
 
 # Contents
 
