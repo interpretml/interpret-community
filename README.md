@@ -24,7 +24,7 @@ Interpret-Community is an experimental repository extending [Interpret](https://
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community is an extension of the [Interpret](https://github.com/interpretml/interpret) repository, incorporating further community developed and experimental interpretability techniques and functionalities for using machine learning interpretability in real world scenarios. Interpret-Community makes it very easy for users to extend [Interpret](https://github.com/interpretml/interpret), adding their experimental techniques (or functionalities), and perform comparative analysis to evaluate their brand new capabilities.
+Interpret-Community extends [Interpret](https://github.com/interpretml/interpret) repository, incorporates further community developed and experimental interpretability techniques and functionalities for using machine learning interpretability in real world scenarios. Interpret-Community makes it very easy for users to extend [Interpret](https://github.com/interpretml/interpret), adding their experimental techniques (or functionalities), and perform comparative analysis to evaluate their brand new capabilities.
 
 Interpret-Community 
 
