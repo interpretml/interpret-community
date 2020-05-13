@@ -133,11 +133,18 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     />
                                 </div>
                                 <div className={classNames.rightPanel}>
-                                    {metricsList.map(stats => {
+                                    {!this.props.jointDataset.hasTrueY && (
+                                        <div className={classNames.missingParametersPlaceholder}>
+                                            <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
+                                                <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingTrueY}</Text>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
                                             <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(5))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate.toPrecision(3 ))}</Text>
                                         </div>)

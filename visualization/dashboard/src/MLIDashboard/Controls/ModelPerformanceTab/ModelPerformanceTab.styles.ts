@@ -23,6 +23,7 @@ export interface IModelPerformanceTabStyles {
     boldText: IStyle;
     missingParametersPlaceholder: IStyle;
     missingParametersPlaceholderSpacer: IStyle;
+    missingParametersPlaceholderNeutralSpacer: IStyle;
     faintText: IStyle;
 }
 
@@ -144,6 +145,12 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
         },
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
+        missingParametersPlaceholderNeutralSpacer: [
+            FabricStyles.missingParameterPlaceholderSpacer, 
+            {
+                backgroundColor: theme.semanticColors.bodyBackground
+            }
+        ],
         faintText: [FabricStyles.faintText]
     });
 };

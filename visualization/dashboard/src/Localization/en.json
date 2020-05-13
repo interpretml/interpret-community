@@ -298,7 +298,9 @@
         "fpr": "fpr: {0}",
         "fnr": "fnr: {0}",
         "missingParameters": "This view requires the array of predicted values from the model.",
-        "_missingPArameters.comment": "Show a message if the required prediction array not provided"
+        "_missingPArameters.comment": "Show a message if the required prediction array not provided",
+        "missingTrueY": "Model performance statistics require the true outcomes be provided in addition to the predicted outcomes",
+        "_missingTrueY.comment": "Show message if true Y values are not provided, since statistics require the true value"
     },
     "Charts": {
         "yValue": "Y-value",
