@@ -87,6 +87,16 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
 
     constructor(props: IDatasetExplorerTabProps) {
         super(props);
+        this.state = {
+            xDialogOpen: false,
+            yDialogOpen: false,
+            colorDialogOpen: false,
+            calloutVisible: false,
+            selectedCohortIndex: 0
+        };
+        if (!this.props.jointDataset.hasDataset) {
+            return;
+        }
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
@@ -98,14 +108,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
         this.closeCallout = this.closeCallout.bind(this);
-
-        this.state = {
-            xDialogOpen: false,
-            yDialogOpen: false,
-            colorDialogOpen: false,
-            calloutVisible: false,
-            selectedCohortIndex: 0
-        };
     }
 
     public render(): React.ReactNode {

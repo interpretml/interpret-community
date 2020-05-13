@@ -1,7 +1,7 @@
 import { IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
 import { IPivotStyles } from "office-ui-fabric-react/lib/Pivot";
 import { ITextFieldStyles } from "office-ui-fabric-react/lib/TextField";
-import { IStyle } from "@uifabric/styling";
+import { IStyle, getTheme } from "@uifabric/styling";
 
 export interface IRGBColor {
     r: number;
@@ -66,7 +66,7 @@ export class FabricStyles {
         maxWidth: "400px",
         padding: "23px",
         width:"fit-content",
-        boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.2)"
+        boxShadow: getTheme().effects.elevation4
     };
 
     public static faintText: IStyle = {

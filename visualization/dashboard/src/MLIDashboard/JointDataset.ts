@@ -282,6 +282,7 @@ export class JointDataset {
         if (args.localExplanations) {
             this.rawLocalImportance = JointDataset.buildLocalFeatureMatrix(args.localExplanations.scores, args.metadata.modelType);
             this.localExplanationFeatureCount = this.rawLocalImportance[0].length;
+            this.initializeDataDictIfNeeded(this.rawLocalImportance);
             this._localExplanationIndexesComputed = new Array(this.localExplanationFeatureCount).fill(false);
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
             this.hasLocalExplanations = true;
@@ -449,7 +450,7 @@ export class JointDataset {
             }
         }
         this.rawLocalImportance[0].forEach((classArray, featureIndex) => {
-            const featureLabel = this.metaDict[JointDataset.DataLabelRoot + featureIndex.toString()].label;
+            const featureLabel = this._modelMeta.featureNames[featureIndex];
             this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
                 label: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 abbridgedLabel: localization.formatString(localization.featureImportanceOf, featureLabel) as string,

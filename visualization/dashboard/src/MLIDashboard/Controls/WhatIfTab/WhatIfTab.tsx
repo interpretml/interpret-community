@@ -120,8 +120,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     constructor(props: IWhatIfTabProps) {
         super(props);
-        if (props.chartProps === undefined) {
-            this.generateDefaultChartAxes();
+        
+        if (!this.props.jointDataset.hasDataset) {
+            return;
         }
         this.state = {
             isPanelOpen: this.props.invokeModel !== undefined,
@@ -143,6 +144,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             secondaryChartChoice: WhatIfTab.featureImportanceKey,
             selectedFeatureKey: JointDataset.DataLabelRoot + "0"
         };
+
+        if (props.chartProps === undefined) {
+            this.generateDefaultChartAxes();
+        }
         this.temporaryPoint = this.createCopyOfFirstRow();
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);

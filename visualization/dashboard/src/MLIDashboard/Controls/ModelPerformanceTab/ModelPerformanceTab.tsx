@@ -38,6 +38,14 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
 
     constructor(props: IModelPerformanceTabProps) {
         super(props);
+        this.state = {
+            xDialogOpen: false,
+            yDialogOpen: false,
+            selectedCohortIndex: 0
+        };
+        if (!this.props.jointDataset.hasPredictedY) {
+            return;
+        }
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
@@ -46,17 +54,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         this.setXOpen = this.setXOpen.bind(this);
         this.setYOpen = this.setYOpen.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
-
-        this.state = {
-            xDialogOpen: false,
-            yDialogOpen: false,
-            selectedCohortIndex: 0
-        };
     }
 
     public render(): React.ReactNode {
         const classNames = modelPerformanceTabStyles();
-        if (!this.props.jointDataset.hasDataset) {
+        if (!this.props.jointDataset.hasPredictedY) {
             return (
             <div className={classNames.missingParametersPlaceholder}>
                 <div className={classNames.missingParametersPlaceholderSpacer}>
