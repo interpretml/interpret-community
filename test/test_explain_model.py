@@ -359,7 +359,6 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(x_test)
         assert len(explanation.local_importance_values) == len(classes)
 
-    @pytest.mark.skip
     def test_explain_model_xgboost_binary(self, tabular_explainer):
         # Fit an xgboost tree model
         def create_model(x_train, y_train):
