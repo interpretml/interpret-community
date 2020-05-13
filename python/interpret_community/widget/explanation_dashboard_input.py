@@ -12,7 +12,25 @@ import pandas as pd
 
 
 class ExplanationDashboardInput:
-    """Represents an explanation as all the pieces that can be serialized and passed to JavaScript."""
+    """Represents an explanation as all the pieces that can be serialized and passed to JavaScript.
+
+    :param explanation: An object that represents an explanation.
+    :type explanation: ExplanationMixin
+    :param model: An object that represents a model. It is assumed that for the classification case
+        it has a method of predict_proba() returning the prediction probabilities for each
+        class and for the regression case a method of predict() returning the prediction value.
+    :type model: object
+    :param dataset: A matrix of feature vector examples (# examples x # features), the same samples
+        used to build the explanation. Will overwrite any set on explanation object already
+    :type dataset: numpy.array or list[][]
+    :param true_y: The true labels for the provided dataset. Will overwrite any set on
+        explanation object already.
+    :type true_y: numpy.array or list[]
+    :param classes: The class names.
+    :type classes: numpy.array or list[]
+    :param features: Feature names.
+    :type features: numpy.array or list[]
+    """
 
     def __init__(
             self,
