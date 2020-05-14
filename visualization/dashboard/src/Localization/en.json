@@ -437,5 +437,17 @@
         "_TreatAsCategorical.comment": "a checkbox label to treat integers as categories instead of as numbers",
         "numOfBins":"Number of bins",
         "_numberOfBins.comment": "the number of groups (bins) to place all values into"
+    },
+    "ValidationErrors": {
+        "predictedProbability": "Predicted probability",
+        "predictedY": "Predicted Y",
+        "evalData": "Evaluation dataset",
+        "localFeatureImportance": "Local feature importance",
+        "inconsistentDimensions": "Inconsistent dimensions. {0} has dimensions {1}, expected {2}",
+        "_inconsistentDimensions.comment": "Raise warning if arguments passed in have different sizes, listing dimensions of both mismatching pieces.",
+        "notNonEmpty": "{0} input not a non-empty array",
+        "varyingLength": "Inconsistent dimensions. {0} has elements of varying length",
+        "notArray": "{0} not an array. Expected array of dimension {1}",
+        "errorHeader": "Some input parameters were inconsistent and will not be used: "
     }
 }

@@ -18,6 +18,8 @@ import { defaultTheme } from "./Themes";
 import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
 import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplorerTab";
+import { ValidateProperties } from "./ValidateProperties";
+import { MessageBar, MessageBarType, Text } from "office-ui-fabric-react";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -33,6 +35,7 @@ export interface INewExplanationDashboardState {
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
+    validationWarnings: string[];
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
@@ -141,23 +144,27 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
-            return props.probabilityY[0].length;
-        }
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
+            && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
             if ((localImportances as number[][][]).every(dim1 => {
                 return dim1.every(dim2 => Array.isArray(dim2));
             })) {
                 return localImportances.length;
+            } else {
+                // 2d is regression (could be a non-scikit convention binary, but that is not supported)
+                return 1;
             }
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
             // determine if passed in vaules is 1D or 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
                 .every(dim1 => Array.isArray(dim1))) {
                 return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
             }
+        }
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
+            return props.probabilityY[0].length;
         }
         // default to regression case
         return 1;
@@ -205,6 +212,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     public static buildInitialExplanationContext(props: IExplanationDashboardProps): INewExplanationDashboardState {
         const modelMetadata = NewExplanationDashboard.buildModelMetadata(props);
+        const validationCheck = new ValidateProperties(props, modelMetadata);
+
         let localExplanations: IMultiClassLocalFeatureImportance | ISingleClassLocalFeatureImportance;
         if (props && props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance &&
             props.precomputedExplanations.localFeatureImportance.scores) {
@@ -223,6 +232,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const cohorts = [new Cohort(localization.Cohort.defaultLabel, jointDataset, [])];
         return {
             cohorts,
+            validationWarnings: validationCheck.errorStrings,
             activeGlobalTab: globalTabKeys.modelPerformance,
             jointDataset,
             modelMetadata,
@@ -243,8 +253,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
-        const theme = loadTheme(props.theme || defaultTheme);
-        localization.setLanguage('en')
+        loadTheme(props.theme || defaultTheme);
         this.onModelConfigChanged = this.onModelConfigChanged.bind(this);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
@@ -254,11 +263,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setSortVector = this.setSortVector.bind(this);
         this.onCohortChange = this.onCohortChange.bind(this);
         this.deleteCohort = this.deleteCohort.bind(this);
+        this.clearWarning = this.clearWarning.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
-        this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
-        this.validatePredictMethod();
+        this.state = NewExplanationDashboard.buildInitialExplanationContext(_.cloneDeep(props));
 
         this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
         this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
@@ -271,6 +280,19 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const classNames = explanationDashboardStyles();
         return (
                 <div className={classNames.page} style={{maxHeight: "1000px"}}>
+                    {this.state.validationWarnings.length !== 0 &&
+                        <MessageBar
+                            onDismiss={this.clearWarning}
+                            dismissButtonAriaLabel="Close"
+                            messageBarType={MessageBarType.warning}
+                        >
+                            <div>
+                                <Text block>{localization.ValidationErrors.errorHeader}</Text>
+                                {this.state.validationWarnings.map(message => {
+                                    return <Text block>{message}</Text>
+                                })}
+                            </div>
+                        </MessageBar>}
                     <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
@@ -294,7 +316,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.modelPerformance && (
                                 <ModelPerformanceTab
                                     jointDataset={this.state.jointDataset}
-                                    theme={this.props.theme}
                                     metadata={this.state.modelMetadata}
                                     chartProps={this.state.modelChartConfig}
                                     onChange={this.onModelConfigChanged}
@@ -304,7 +325,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.dataExploration && (
                                 <DatasetExplorerTab
                                     jointDataset={this.state.jointDataset}
-                                    theme={this.props.theme}
                                     metadata={this.state.modelMetadata}
                                     chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
@@ -328,7 +348,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
                                 <WhatIfTab 
-                                    theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
                                     cohorts={this.state.cohorts}
@@ -340,22 +359,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                         </div>
                     </div>
         );
-    }
-
-    private async validatePredictMethod(): Promise<void> {
-        if (this.props.requestPredictions && this.props.testData !== undefined && this.props.testData.length > 0) {
-            try {
-                const abortController = new AbortController();
-                const prediction = await this.props.requestPredictions([this.props.testData[0]], abortController.signal);
-                if (prediction !== undefined) {
-                    this.setState({requestPredictions: this.props.requestPredictions});
-                }
-            } catch {
-
-            }
-
-        }
-        
     }
 
     private onConfigChanged(newConfig: IGenericChartProps): void {
@@ -397,5 +400,9 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const prevCohorts = [...this.state.cohorts];
         prevCohorts.splice(index, 1);
         this.setState({cohorts: prevCohorts});
+    }
+
+    private clearWarning(): void {
+        this.setState({validationWarnings: []})
     }
 }

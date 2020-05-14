@@ -22,7 +22,6 @@ import { InteractiveLegend } from "../InteractiveLegend";
 import { IWhatIfTabStyles, whatIfTabStyles } from "./WhatIfTab.styles";
 
 export interface IWhatIfTabProps {
-    theme: any;
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     cohorts: Cohort[];
