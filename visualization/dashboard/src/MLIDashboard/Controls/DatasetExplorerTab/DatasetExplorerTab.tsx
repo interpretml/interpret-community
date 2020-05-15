@@ -6,7 +6,7 @@ import { localization } from "../../../Localization/localization";
 import { FabricStyles } from "../../FabricStyles";
 import _ from "lodash";
 import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
-import { mergeStyleSets, IProcessedStyleSet } from "@uifabric/styling";
+import { mergeStyleSets, IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
@@ -81,12 +81,22 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private readonly _colorButtonId = "color-button-id";
     private readonly _chartConfigId = "chart-connfig-button";
     private readonly chartOptions: IChoiceGroupOption[] = [
-        {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}, 
-        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots}
+        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots},
+        {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}
     ];
 
     constructor(props: IDatasetExplorerTabProps) {
         super(props);
+        this.state = {
+            xDialogOpen: false,
+            yDialogOpen: false,
+            colorDialogOpen: false,
+            calloutVisible: false,
+            selectedCohortIndex: 0
+        };
+        if (!this.props.jointDataset.hasDataset) {
+            return;
+        }
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
@@ -98,18 +108,19 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
         this.closeCallout = this.closeCallout.bind(this);
-
-        this.state = {
-            xDialogOpen: false,
-            yDialogOpen: false,
-            colorDialogOpen: false,
-            calloutVisible: false,
-            selectedCohortIndex: 0
-        };
     }
 
     public render(): React.ReactNode {
         const classNames = datasetExplorerTabStyles();
+
+        if (!this.props.jointDataset.hasDataset) {
+            return (
+            <div className={classNames.missingParametersPlaceholder}>
+                <div className={classNames.missingParametersPlaceholderSpacer}>
+                    <Text variant="large" className={classNames.faintText}>{localization.DatasetExplorer.missingParameters}</Text>
+                </div>
+            </div>);
+        }
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
@@ -188,7 +199,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             </Callout>}
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
-                                theme={undefined}
+                                theme={getTheme() as any}
                             />
                         </div>
                         <div className={classNames.horizontalAxisWithPadding}>
@@ -554,7 +565,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
         const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
-            chartType: ChartTypes.Scatter,
+            chartType: ChartTypes.Bar,
             xAxis: {
                 property: JointDataset.IndexLabel,
                 options: {}

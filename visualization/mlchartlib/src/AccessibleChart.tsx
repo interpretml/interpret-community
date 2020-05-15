@@ -1,11 +1,13 @@
 import * as _ from 'lodash';
 import * as Plotly from 'plotly.js-dist';
 import { PlotlyHTMLElement, Layout } from 'plotly.js-dist';
+import { ITheme } from "@uifabric/styling";
 import * as React from 'react';
 import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
 import { PlotlyThemes, IPlotlyTheme } from './PlotlyThemes';
 import { IPlotlyProperty } from './IPlotlyProperty';
+
 
 type SelectableChartType = 'scatter' | 'multi-line' | 'non-selectable';
 
@@ -18,7 +20,7 @@ export interface IPlotlyAnimateProps {
 
 export interface AccessibleChartProps {
     plotlyProps: IPlotlyProperty;
-    theme: string;
+    theme: string | ITheme;
     themeOverride?: Partial<IPlotlyTheme>;
     relayoutArg?: Partial<Layout>;
     animateArg?: IPlotlyAnimateProps;
