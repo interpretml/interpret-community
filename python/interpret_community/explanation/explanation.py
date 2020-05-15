@@ -1076,9 +1076,14 @@ class PerClassMixin(ClassesMixin):
         else:
             ranked_per_class_names = self._per_class_rank
 
-        if top_k is not None:
-            ranked_per_class_names = ranked_per_class_names[:, :top_k]
-        return ranked_per_class_names.tolist()
+        if hasattr(ranked_per_class_names, 'tolist'):
+            if top_k is not None:
+                ranked_per_class_names = ranked_per_class_names[:, :top_k]
+            return ranked_per_class_names.tolist()
+        else:
+            if top_k is not None:
+                ranked_per_class_names = list(map(lambda x: x[:top_k], ranked_per_class_names))
+            return ranked_per_class_names
 
     def get_ranked_per_class_values(self, top_k=None):
         """Get per class feature importance sorted from highest to lowest.
