@@ -659,7 +659,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[str] or list[int]
         """
         if self._ranked_global_names is None and self._features is not None:
-            self._ranked_global_names = _sort_values(self._features, self._global_importance_rank)
+            self._ranked_global_names = _sort_feature_list_single(self._features, self._global_importance_rank)
 
         if self._ranked_global_names is not None:
             ranked_global_names = self._ranked_global_names
@@ -679,8 +679,8 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[float]
         """
         if self._ranked_global_values is None:
-            self._ranked_global_values = _sort_values(self._global_importance_values,
-                                                      self._global_importance_rank)
+            self._ranked_global_values = _sort_feature_list_single(self._global_importance_values,
+                                                                   self._global_importance_rank)
         if top_k is not None:
             return self._ranked_global_values[:top_k].tolist()
         return self._ranked_global_values.tolist()
@@ -1068,7 +1068,7 @@ class PerClassMixin(ClassesMixin):
         :rtype: list[list[str]] or list[list[int]]
         """
         if self._ranked_per_class_names is None and self._features is not None:
-            self._ranked_per_class_names = _sort_values(self._features, self._per_class_rank)
+            self._ranked_per_class_names = _sort_feature_list_multiclassk(self._features, self._per_class_rank)
 
         if self._ranked_per_class_names is not None:
             ranked_per_class_names = self._ranked_per_class_names
