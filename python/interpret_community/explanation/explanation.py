@@ -667,9 +667,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
         else:
             ranked_global_names = self._global_importance_rank
 
+        if hasattr(ranked_global_names, 'tolist'):
+            ranked_global_names = ranked_global_names.tolist()
         if top_k is not None:
-            return ranked_global_names[:top_k].tolist()
-        return ranked_global_names.tolist()
+            ranked_global_names = ranked_global_names[:top_k]
+        return ranked_global_names
 
     def get_ranked_global_values(self, top_k=None):
         """Get global feature importance sorted from highest to lowest.
@@ -682,9 +684,12 @@ class GlobalExplanation(FeatureImportanceExplanation):
         if self._ranked_global_values is None:
             self._ranked_global_values = _sort_feature_list_single(self._global_importance_values,
                                                                    self._global_importance_rank)
+        ranked_global_values = self._ranked_global_values
+        if hasattr(ranked_global_values, 'tolist'):
+            ranked_global_values = ranked_global_values.tolist()
         if top_k is not None:
-            return self._ranked_global_values[:top_k].tolist()
-        return self._ranked_global_values.tolist()
+            ranked_global_values = ranked_global_values[:top_k]
+        return ranked_global_values
 
     def get_raw_explanation(self, feature_maps, raw_feature_names=None):
         """Get raw explanation given input feature maps.
