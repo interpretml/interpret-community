@@ -11,7 +11,7 @@ import { ModelTypes, IExplanationModelMetadata } from "../../IExplanationContext
 import { FabricStyles } from "../../FabricStyles";
 import { Data } from "plotly.js-dist";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
-import { SpinButton, Text } from "office-ui-fabric-react";
+import { SpinButton, Text, getTheme } from "office-ui-fabric-react";
 import { multiIcePlotStyles } from "./MultiICEPlot.styles";
 
 export interface IMultiICEPlotProps {
@@ -244,7 +244,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                 <div className={classNames.chartWrapper}>
                     <AccessibleChart
                         plotlyProps={plotlyProps}
-                        theme={undefined}
+                        theme={getTheme() as any}
                     />
                 </div>}
             </div>);

@@ -2,7 +2,7 @@ import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib
 import * as Plotly from "plotly.js-dist";
 import React from "react";
 import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions, PlotlyMode } from "mlchartlib";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, getTheme } from "@uifabric/styling";
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Transform } from "plotly.js-dist";
@@ -92,7 +92,7 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                         <div className={classNames.chart}>
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
-                                theme={undefined}
+                                theme={getTheme() as any}
                             />
                         </div>
                     </div>
