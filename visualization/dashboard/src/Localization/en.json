@@ -256,7 +256,7 @@
         "_datasetCohortSelector.comment": "label for selecting single cohort",
         "aggregateFeatureImportance": "Aggregate Feature Importance",
         "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances",
-        "missingParameters": "The aggregate feture importance tab requires the local feature importance parameter be supplied.",
+        "missingParameters": "This tab requires the local feature importance parameter be supplied.",
         "_missingPArameters.comment": "Show a message if the required feature importance parameter is not provided"
     },
     "CohortBanner": {
@@ -297,7 +297,7 @@
         "recall": "Recall: {0}",
         "fpr": "fpr: {0}",
         "fnr": "fnr: {0}",
-        "missingParameters": "This view requires the array of predicted values from the model.",
+        "missingParameters": "This tab requires the array of predicted values from the model be supplied.",
         "_missingPArameters.comment": "Show a message if the required prediction array not provided",
         "missingTrueY": "Model performance statistics require the true outcomes be provided in addition to the predicted outcomes",
         "_missingTrueY.comment": "Show message if true Y values are not provided, since statistics require the true value"
@@ -321,7 +321,7 @@
         "_aggregatePlots.comment": "configuration option to view plots that sum or average points, opposed to sowing each point on its own",
         "chartType": "Chart type",
         "_chartType.comment": "label for dropdown to select chart format",
-        "missingParameters": "The dataset explorer requires an evaluation dataset be supplied for visualization.",
+        "missingParameters": "This tab requires an evaluation dataset be supplied.",
         "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "DependencePlot": {
@@ -333,7 +333,7 @@
     "WhatIfTab": {
         "helperText": "Select an individual datapoint by clicking on a datapoint in the scatterplot or by entering the datapoint index or feature values on the left panel to view its local feature importance values below",
         "_helperText.comment": "explains what is shown in this tab and what actions are available",
-        "panelPlaceholder": "An operationalized model is required to make predictions for new data points.",
+        "panelPlaceholder": "A model is required to make predictions for new data points.",
         "_panelPlaceholder.comment": "message shown to user when they did not give a model as inputs",
         "cohortPickerLabel": "Select a dataset cohort to explore",
         "_cohortPickerLabel.comment": "label for single-select dropdown to pick a cohort to view",
@@ -397,7 +397,7 @@
         "_stepsLabel.comment": "number of increments to use between minimum and maximum",
         "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
         "_disclaimer.comment": "the tool should not be liable for any bad predictions",
-        "missingParameters": "This view requires an evaluation dataset be supplied for visualization.",
+        "missingParameters": "This tab requires an evaluation dataset be supplied.",
         "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "CohortEditor": {

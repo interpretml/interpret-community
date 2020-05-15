@@ -98,7 +98,7 @@ export const modelPerformanceTabStyles: () => IProcessedStyleSet<IModelPerforman
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            boxShadow: `0px 4px 4px ${theme.palette.blackTranslucent40}`,
+            boxShadow: theme.effects.elevation4,
             backgroundColor: theme.semanticColors.bodyBackground
         },
         verticalAxis: {

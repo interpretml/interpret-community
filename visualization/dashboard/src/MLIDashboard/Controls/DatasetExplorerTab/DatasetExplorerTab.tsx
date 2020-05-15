@@ -81,8 +81,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private readonly _colorButtonId = "color-button-id";
     private readonly _chartConfigId = "chart-connfig-button";
     private readonly chartOptions: IChoiceGroupOption[] = [
-        {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}, 
-        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots}
+        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots},
+        {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}
     ];
 
     constructor(props: IDatasetExplorerTabProps) {
@@ -565,7 +565,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
         const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
-            chartType: ChartTypes.Scatter,
+            chartType: ChartTypes.Bar,
             xAxis: {
                 property: JointDataset.IndexLabel,
                 options: {}
