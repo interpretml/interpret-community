@@ -11,6 +11,7 @@ from interpret_community.permutation.permutation_importance import PFIExplainer
 from constants import owner_email_tools_and_ux
 
 from common_tabular_tests import VerifyTabularTests
+from common_utils import create_sklearn_svm_classifier, create_cancer_data
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
@@ -98,6 +99,15 @@ class TestPFIExplainer(object):
     def test_explain_with_transformations_column_transformer_regression(self):
         self.verify_tabular \
             .verify_explain_model_transformations_column_transformer_regression(true_labels_required=True)
+
+    def test_missing_true_labels(self):
+        x_train, x_test, y_train, _, _, _ = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        pfi_explainer = PFIExplainer(model, is_function=True)
+        # Validate we throw nice error message to user when missing true_labels parameter
+        with pytest.raises(TypeError):
+            pfi_explainer.explain_global(x_test)  # pylint: disable=no-value-for-parameter
 
     @property
     def iris_overall_expected_features(self):
