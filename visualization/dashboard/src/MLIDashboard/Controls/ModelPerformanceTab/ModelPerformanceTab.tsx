@@ -3,7 +3,7 @@ import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplan
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { Cohort } from "../../Cohort";
-import { mergeStyleSets } from "@uifabric/styling";
+import { mergeStyleSets, getTheme, ITheme } from "@uifabric/styling";
 import _ from "lodash";
 import { DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { localization } from "../../../Localization/localization";
@@ -38,6 +38,14 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
 
     constructor(props: IModelPerformanceTabProps) {
         super(props);
+        this.state = {
+            xDialogOpen: false,
+            yDialogOpen: false,
+            selectedCohortIndex: 0
+        };
+        if (!this.props.jointDataset.hasPredictedY) {
+            return;
+        }
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
@@ -46,16 +54,18 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         this.setXOpen = this.setXOpen.bind(this);
         this.setYOpen = this.setYOpen.bind(this);
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
-
-        this.state = {
-            xDialogOpen: false,
-            yDialogOpen: false,
-            selectedCohortIndex: 0
-        };
     }
 
     public render(): React.ReactNode {
         const classNames = modelPerformanceTabStyles();
+        if (!this.props.jointDataset.hasPredictedY) {
+            return (
+            <div className={classNames.missingParametersPlaceholder}>
+                <div className={classNames.missingParametersPlaceholderSpacer}>
+                    <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingParameters}</Text>
+                </div>
+            </div>);
+        }
         if (this.props.chartProps === undefined) {
             return (<div/>);
         }
@@ -119,15 +129,22 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                 <div className={classNames.chart}>
                                     <AccessibleChart
                                         plotlyProps={plotlyProps}
-                                        theme={undefined}
+                                        theme={getTheme() as any}
                                     />
                                 </div>
                                 <div className={classNames.rightPanel}>
-                                    {metricsList.map(stats => {
+                                    {!this.props.jointDataset.hasTrueY && (
+                                        <div className={classNames.missingParametersPlaceholder}>
+                                            <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
+                                                <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingTrueY}</Text>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
                                             <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(5))}</Text>
+                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate.toPrecision(3))}</Text>
                                             <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate.toPrecision(3 ))}</Text>
                                         </div>)

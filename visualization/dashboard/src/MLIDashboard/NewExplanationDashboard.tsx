@@ -18,6 +18,8 @@ import { defaultTheme } from "./Themes";
 import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
 import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplorerTab";
+import { ValidateProperties } from "./ValidateProperties";
+import { MessageBar, MessageBarType, Text } from "office-ui-fabric-react";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -33,6 +35,8 @@ export interface INewExplanationDashboardState {
     globalImportance: number[];
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
+    validationWarnings: string[];
+    requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
 interface IGlobalExplanationProps {
@@ -140,23 +144,27 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private static getClassLength: (props: IExplanationDashboardProps) => number
     = (memoize as any).default((props: IExplanationDashboardProps): number  => {
-        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
-            return props.probabilityY[0].length;
-        }
-        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance
+            && props.precomputedExplanations.localFeatureImportance.scores) {
             const localImportances = props.precomputedExplanations.localFeatureImportance.scores;
             if ((localImportances as number[][][]).every(dim1 => {
                 return dim1.every(dim2 => Array.isArray(dim2));
             })) {
                 return localImportances.length;
+            } else {
+                // 2d is regression (could be a non-scikit convention binary, but that is not supported)
+                return 1;
             }
         }
-        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance) {
+        if (props.precomputedExplanations && props.precomputedExplanations.globalFeatureImportance && props.precomputedExplanations.globalFeatureImportance.scores) {
             // determine if passed in vaules is 1D or 2D
             if ((props.precomputedExplanations.globalFeatureImportance.scores as number[][])
                 .every(dim1 => Array.isArray(dim1))) {
                 return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
             }
+        }
+        if (props.probabilityY && Array.isArray(props.probabilityY) && Array.isArray(props.probabilityY[0]) && props.probabilityY[0].length > 0) {
+            return props.probabilityY[0].length;
         }
         // default to regression case
         return 1;
@@ -204,6 +212,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     public static buildInitialExplanationContext(props: IExplanationDashboardProps): INewExplanationDashboardState {
         const modelMetadata = NewExplanationDashboard.buildModelMetadata(props);
+        const validationCheck = new ValidateProperties(props, modelMetadata);
+
         let localExplanations: IMultiClassLocalFeatureImportance | ISingleClassLocalFeatureImportance;
         if (props && props.precomputedExplanations && props.precomputedExplanations.localFeatureImportance &&
             props.precomputedExplanations.localFeatureImportance.scores) {
@@ -222,6 +232,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const cohorts = [new Cohort(localization.Cohort.defaultLabel, jointDataset, [])];
         return {
             cohorts,
+            validationWarnings: validationCheck.errorStrings,
             activeGlobalTab: globalTabKeys.modelPerformance,
             jointDataset,
             modelMetadata,
@@ -242,7 +253,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
-        const theme = loadTheme(props.theme || defaultTheme);
+        loadTheme(props.theme || defaultTheme);
         this.onModelConfigChanged = this.onModelConfigChanged.bind(this);
         this.onConfigChanged = this.onConfigChanged.bind(this);
         this.onWhatIfConfigChanged = this.onWhatIfConfigChanged.bind(this);
@@ -252,23 +263,16 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setSortVector = this.setSortVector.bind(this);
         this.onCohortChange = this.onCohortChange.bind(this);
         this.deleteCohort = this.deleteCohort.bind(this);
+        this.clearWarning = this.clearWarning.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
-        this.state = NewExplanationDashboard.buildInitialExplanationContext(props);
+        this.state = NewExplanationDashboard.buildInitialExplanationContext(_.cloneDeep(props));
 
-        if (this.state.jointDataset.hasPredictedY) {
-            this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
-        }
-        if (this.state.jointDataset.hasDataset) {
-            this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
-        }
-        if (this.state.jointDataset.localExplanationFeatureCount > 0) {
-            this.pivotItems.push({headerText: localization.aggregateFeatureImportance, itemKey: globalTabKeys.explanationTab});
-        }
-        if (this.state.jointDataset.localExplanationFeatureCount > 0 && this.state.jointDataset.hasDataset && this.props.requestPredictions) {
-            this.pivotItems.push({headerText: localization.individualAndWhatIf, itemKey: globalTabKeys.whatIfTab});
-        }
+        this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
+        this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
+        this.pivotItems.push({headerText: localization.aggregateFeatureImportance, itemKey: globalTabKeys.explanationTab});
+        this.pivotItems.push({headerText: localization.individualAndWhatIf, itemKey: globalTabKeys.whatIfTab});
     }
 
     render(): React.ReactNode {
@@ -276,6 +280,19 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const classNames = explanationDashboardStyles();
         return (
                 <div className={classNames.page} style={{maxHeight: "1000px"}}>
+                    {this.state.validationWarnings.length !== 0 &&
+                        <MessageBar
+                            onDismiss={this.clearWarning}
+                            dismissButtonAriaLabel="Close"
+                            messageBarType={MessageBarType.warning}
+                        >
+                            <div>
+                                <Text block>{localization.ValidationErrors.errorHeader}</Text>
+                                {this.state.validationWarnings.map(message => {
+                                    return <Text block>{message}</Text>
+                                })}
+                            </div>
+                        </MessageBar>}
                     <CohortList
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
@@ -299,7 +316,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.modelPerformance && (
                                 <ModelPerformanceTab
                                     jointDataset={this.state.jointDataset}
-                                    theme={this.props.theme}
                                     metadata={this.state.modelMetadata}
                                     chartProps={this.state.modelChartConfig}
                                     onChange={this.onModelConfigChanged}
@@ -309,7 +325,6 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             {this.state.activeGlobalTab === globalTabKeys.dataExploration && (
                                 <DatasetExplorerTab
                                     jointDataset={this.state.jointDataset}
-                                    theme={this.props.theme}
                                     metadata={this.state.modelMetadata}
                                     chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
@@ -333,13 +348,12 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
                                 <WhatIfTab 
-                                    theme={this.props.theme}
                                     jointDataset={this.state.jointDataset}
                                     metadata={this.state.modelMetadata}
                                     cohorts={this.state.cohorts}
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
-                                    invokeModel={this.props.requestPredictions}
+                                    invokeModel={this.state.requestPredictions}
                                 />
                             )}
                         </div>
@@ -386,5 +400,9 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const prevCohorts = [...this.state.cohorts];
         prevCohorts.splice(index, 1);
         this.setState({cohorts: prevCohorts});
+    }
+
+    private clearWarning(): void {
+        this.setState({validationWarnings: []})
     }
 }
