@@ -24,7 +24,7 @@ Interpret-Community is an experimental repository extending [Interpret](https://
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community extends [Interpret](https://github.com/interpretml/interpret) repository, incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios. Interpret-Community enables adding new experimental techniques (or functionalities), and performing comparative analysis to evaluate them.
+Interpret-Community extends the [Interpret](https://github.com/interpretml/interpret) repository and incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios. Interpret-Community enables adding new experimental techniques (or functionalities) and performing comparative analysis to evaluate them.
 
 Interpret-Community 
 
@@ -302,7 +302,7 @@ Besides the interpretability techniques described above, Interpret-Community sup
 
 
 
-The following two sections demonstrate how you can get aggregate (global) and instance-level (local) feature importance values. Instance-level feature importance measures focus on the contribution of features for a specific prediction (e.g., why the model predicted an 80% chance of breast cancer for Mary?), whereas aggregate-level feature importance takes all predictions into account (Overall, what are the top important features in predicting a high risk for breast cancer?):
+The following two sections demonstrate how you can get aggregate (global) and instance-level (local) feature importance values. Instance-level feature importance measures focus on the contribution of features for a specific prediction (e.g., why did the model predict an 80% chance of breast cancer for Mary?), whereas aggregate-level feature importance takes all predictions into account (Overall, what are the top important features in predicting a high risk for breast cancer?):
 ## Overall (Global) feature importance values
 
 Get the aggregate feature importance values.
