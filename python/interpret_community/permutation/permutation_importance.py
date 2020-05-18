@@ -11,7 +11,7 @@ and can be inaccurate when there are feature interactions.
 """
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse, isspmatrix_csc, SparseEfficiencyWarning
 from sklearn.metrics import mean_absolute_error, explained_variance_score, mean_squared_error, \
     mean_squared_log_error, median_absolute_error, r2_score, average_precision_score, f1_score, \
     fbeta_score, precision_score, recall_score
@@ -33,7 +33,7 @@ from ..common.progress import get_tqdm
 # Although we get a sparse efficiency warning when using csr matrix format for setting the
 # values, if we use lil scikit-learn converts the matrix to csr which has much worse performance
 import warnings
-from scipy.sparse import SparseEfficiencyWarning
+from functools import wraps
 
 
 module_logger = logging.getLogger(__name__)
@@ -44,6 +44,20 @@ try:
     import torch.nn as nn
 except ImportError:
     module_logger.debug('Could not import torch, required if using a pytorch model')
+
+
+def labels_decorator(explain_func):
+    """Decorate PFI explainer to throw better error message if true_labels not passed.
+
+    :param explain_func: PFI explanation function.
+    :type explain_func: explanation function
+    """
+    @wraps(explain_func)
+    def explain_func_wrapper(self, evaluation_examples, *args, **kwargs):
+        if not args:
+            raise TypeError("PFI explainer requires true_labels parameter to be passed in for explain_global")
+        return explain_func(self, evaluation_examples, *args, **kwargs)
+    return explain_func_wrapper
 
 
 class PFIExplainer(GlobalExplainer, BlackBoxMixin):
@@ -299,7 +313,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         :type global_importance_values: numpy.ndarray
         """
         shuffled_prediction = predict_function(shuffled_dataset)
-        if sp.sparse.issparse(shuffled_prediction):
+        if issparse(shuffled_prediction):
             shuffled_prediction = shuffled_prediction.toarray()
         metric = self.metric(true_labels, shuffled_prediction, **self.metric_args)
         importance_score = base_metric - metric
@@ -445,9 +459,9 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
         # Score the model on the given dataset
         prediction = predict_function(dataset)
         # The scikit-learn metrics can't handle sparse arrays
-        if sp.sparse.issparse(true_labels):
+        if issparse(true_labels):
             true_labels = true_labels.toarray()
-        if sp.sparse.issparse(prediction):
+        if issparse(prediction):
             prediction = prediction.toarray()
         # Evaluate the model with given metric on the dataset
         base_metric = self.metric(true_labels, prediction, **self.metric_args)
@@ -462,13 +476,13 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
             column_indexes = range(dataset.shape[1])
             global_importance_values = np.zeros(dataset.shape[1])
         tqdm = get_tqdm(self._logger, self.show_progress)
-        if sp.sparse.issparse(dataset):
+        if issparse(dataset):
             # Create a dataset for shuffling
             # Although lil matrix is better for changing sparsity structure, scikit-learn
             # converts matrixes back to csr for prediction which is much more expensive
             shuffled_dataset = dataset.tocsr(copy=True)
             # Convert to csc format if not already for faster column index access
-            if not sp.sparse.isspmatrix_csc(dataset):
+            if not isspmatrix_csc(dataset):
                 dataset = dataset.tocsc()
             # Get max NNZ across all columns
             dataset_nnz = dataset.getnnz(axis=0)
@@ -495,6 +509,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                                                                           explain_subset=self.explain_subset)
         return kwargs
 
+    @labels_decorator
     @tabular_decorator
     def explain_global(self, evaluation_examples, true_labels):
         """Globally explains the blackbox model using permutation feature importance.
