@@ -11,7 +11,7 @@ be used to explain the teacher model.
 """
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import issparse
 
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
@@ -62,11 +62,11 @@ class MimicExplainer(BlackBoxExplainer):
     :type explainable_model_args: dict
     :param is_function: Default is False. Set to True if passing function instead of model.
     :type is_function: bool
-    :param augment_data: If true, oversamples the initialization examples to improve surrogate
+    :param augment_data: If True, oversamples the initialization examples to improve surrogate
         model accuracy to fit teacher model. Useful for high-dimensional data where
         the number of rows is less than the number of columns.
     :type augment_data: bool
-    :param max_num_of_augmentations: max number of times we can increase the input data size.
+    :param max_num_of_augmentations: Maximum number of times we can increase the input data size.
     :type max_num_of_augmentations: int
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. Note for mimic explainer this will
@@ -159,11 +159,11 @@ class MimicExplainer(BlackBoxExplainer):
         :type explainable_model_args: dict
         :param is_function: Default is False. Set to True if passing function instead of model.
         :type is_function: bool
-        :param augment_data: If true, oversamples the initialization examples to improve surrogate
+        :param augment_data: If True, oversamples the initialization examples to improve surrogate
             model accuracy to fit teacher model.  Useful for high-dimensional data where
             the number of rows is less than the number of columns.
         :type augment_data: bool
-        :param max_num_of_augmentations: max number of times we can increase the input data size.
+        :param max_num_of_augmentations: Maximum number of times we can increase the input data size.
         :type max_num_of_augmentations: int
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. Note for mimic explainer this will
@@ -461,21 +461,27 @@ class MimicExplainer(BlackBoxExplainer):
 
         local_importance_values = self.surrogate_model.explain_local(dataset, probabilities=probabilities)
         classification = isinstance(local_importance_values, list) or self.predict_proba_flag
-        is_sparse = sp.sparse.issparse(local_importance_values) or sp.sparse.issparse(local_importance_values[0])
+        is_sparse = issparse(local_importance_values) or issparse(local_importance_values[0])
         expected_values = self.surrogate_model.expected_values
         kwargs[ExplainParams.METHOD] = self._get_method
         self.features = evaluation_examples.get_features(features=self.features)
         kwargs[ExplainParams.FEATURES] = self.features
 
-        if self.predict_proba_flag and not is_sparse:
-            if self.surrogate_model.multiclass:
-                # For multiclass case, convert to array, but only if not sparse
-                local_importance_values = np.array(local_importance_values)
-            else:
-                # TODO: Eventually move this back inside the surrogate model
-                # If binary case, we need to reformat the data to have importances per class
-                # and convert the expected values back to the original domain
-                local_importance_values = np.stack((-local_importance_values, local_importance_values))
+        if self.predict_proba_flag:
+            if not is_sparse:
+                if self.surrogate_model.multiclass:
+                    # For multiclass case, convert to array, but only if not sparse
+                    local_importance_values = np.array(local_importance_values)
+                else:
+                    # TODO: Eventually move this back inside the surrogate model
+                    # If binary case, we need to reformat the data to have importances per class
+                    # and convert the expected values back to the original domain
+                    local_importance_values = np.stack((-local_importance_values, local_importance_values))
+            elif not self.surrogate_model.multiclass:
+                # For binary classification sparse case we need to reformat the data
+                # to have importance values per class
+                local_importance_values = [-local_importance_values, local_importance_values]
+
         if classification:
             kwargs[ExplainParams.CLASSES] = self.classes
         # Reformat local_importance_values result if explain_subset specified

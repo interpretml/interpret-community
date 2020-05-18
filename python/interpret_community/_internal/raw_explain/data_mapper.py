@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas
-import scipy.sparse as sparse
+from scipy.sparse import issparse, hstack
 from sklearn.pipeline import Pipeline
 
 from .feature_mappers import encoders_to_mappers_dict, get_feature_mapper_for_pipeline, IdentityMapper, \
@@ -48,8 +48,8 @@ class TransformationsListTransformer:
             else:
                 results.append(tr.transform(x_column))
 
-        if any(map(sparse.issparse, results)):
-            return sparse.hstack(results).tocsr()
+        if any(map(issparse, results)):
+            return hstack(results).tocsr()
         else:
             return np.hstack(tuple(results))
 

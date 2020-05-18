@@ -72,6 +72,10 @@ Generate the wheel where setup.py is located:
 cd (interpret-community location)\python
 python setup.py sdist bdist_wheel
 ```
+If using WSL, it may be necessary to use
+```
+python setup.py sdist bdist_wheel --bdist-dir ~/temp/bdistwheel
+```
 You should see the following files in the dist directory:
 ```
 dist/
@@ -88,6 +92,7 @@ Run twine upload to the pypi test repository:
 ```
 twine upload --repository pypitest dist/*
 ```
+The twine install location may not be on PATH by default; either add it or call twine using its full path.
 
 Validate that the page looks correct on the pypi release page.
 
