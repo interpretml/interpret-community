@@ -30,7 +30,6 @@ export interface ICohortEditorState {
     filterIndex?: number;
     filters?: IFilter[];
     cohortName: string;
-    editingFilterIndex?: string;
 }
 
 const styles = cohortEditorStyles();
@@ -91,6 +90,16 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     ];
     private _isInitialized = false;
 
+    private static filterMethodLabels: {[key in FilterMethods]: string} = {
+        [FilterMethods.equal] : localization.FilterOperations.equals,
+        [FilterMethods.greaterThan] : localization.FilterOperations.greaterThan,
+        [FilterMethods.greaterThanEqualTo] : localization.FilterOperations.greaterThanEquals,
+        [FilterMethods.lessThan] : localization.FilterOperations.lessThan,
+        [FilterMethods.lessThanEqualTo] : localization.FilterOperations.lessThanEquals,
+        [FilterMethods.includes] : localization.FilterOperations.includes,
+        [FilterMethods.inTheRangeOf] : localization.FilterOperations.inTheRangeOf,
+    }
+    
     constructor(props: ICohortEditorProps) {
         super(props);
         this.state = {
@@ -196,7 +205,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     private closeCallout = (): void => {
-        this.setState({ openedFilter: undefined, filters: undefined, filterIndex: undefined})
         this.props.onCancel();
     };
 
@@ -221,7 +229,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             this.setState(
                 {
                     openedFilter: {
-                        arg: [...this.state.openedFilter.arg, this.props.jointDataset.metaDict[openedFilter.column].featureRange.max],
+                        arg: [this.props.jointDataset.metaDict[openedFilter.column].featureRange.max],
                         method: FilterMethods.lessThan,
                         column: openedFilter.column
                     }
@@ -251,12 +259,13 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private readonly setSelectedProperty = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
         const property = item.key as string;
+        // reset filterIndex to handle if user clicks on another filter while in edit mode 
+        this.setState({filterIndex: this.state.filters.length});
         this.setDefaultStateForKey(property);
     }
 
-    private saveState = (): void => {
-        this.updateFilter(this.state.openedFilter);
-        this.setState({ editingFilterIndex: undefined });
+    private saveState = (index: number): void => {
+        this.updateFilter(this.state.openedFilter, index);
         this._leftSelection.setAllSelected(false);
     }
 
@@ -287,6 +296,16 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private readonly setComparison = (event: React.FormEvent<IComboBox>, item: IComboBoxOption): void => {
         const openedFilter = this.state.openedFilter;
+        if (item.key as FilterMethods === FilterMethods.inTheRangeOf) {
+            //default values for in the range operation
+            const meta = this.props.jointDataset.metaDict[openedFilter.column].featureRange
+            openedFilter.arg[0] = meta.min
+            openedFilter.arg[1] = meta.max
+        }
+        else {
+            //handle switch from in the range to less than, equals etc
+            openedFilter.arg = openedFilter.arg.slice(0,1)
+        }
         this.setState(
             {
                 openedFilter: {
@@ -298,61 +317,43 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         )
     }
 
-    private readonly setNumericValue = (delta: number, column: IJointMeta, index=0, stringVal:string): string | void => {
-        const openedFilter = this.state.openedFilter;
+    private readonly setNumericValue = (delta: number, column: IJointMeta, index, stringVal:string): string | void => {
+        var openArg = this.state.openedFilter.arg;
         if (delta === 0) {
             const numberVal = +stringVal;
             if ((!Number.isInteger(numberVal) && column.featureRange.rangeType === RangeTypes.integer)
                 || numberVal > column.featureRange.max || numberVal < column.featureRange.min) {
-                return this.state.openedFilter.arg.toString();
+                return this.state.openedFilter.arg[index].toString();
             }
-            if(openedFilter.method === FilterMethods.inTheRangeOf){
-                var openArg = this.state.openedFilter.arg as number[];
                 openArg[index] = numberVal;
-                this.setState(
-                    {
-                        openedFilter: {
-                            arg: openArg,
-                            method: openedFilter.method,
-                            column: openedFilter.column
-                        }
-                    }
-                )
-            }
-            else {
-                this.setState(
-                    {
-                        openedFilter: {
-                            arg: [numberVal],
-                            method: openedFilter.method,
-                            column: openedFilter.column
-                        }
-                    }
-                )
-            }
-
-
-        } else {
-            const prevVal = openedFilter.arg[0] as number;
+        } 
+        else {
+            const prevVal = openArg[index];
             const newVal = prevVal + delta;
             if (newVal > column.featureRange.max || newVal < column.featureRange.min) {
                 return prevVal.toString();
             }
-            this.setState(
-                {
-                    openedFilter: {
-                        arg: [newVal],
-                        method: openedFilter.method,
-                        column: openedFilter.column
-                    }
-                }
-            )
+            openArg[index] = newVal;
         }
+
+        // in the range validation
+        if (openArg[1] <= openArg[0]) {
+            openArg[1] = column.featureRange.max;
+        }
+
+        this.setState(
+            {
+                openedFilter: {
+                    arg: openArg,
+                    method: this.state.openedFilter.method,
+                    column: this.state.openedFilter.column
+                }
+            }
+        )
     }
 
     private setDefaultStateForKey(key: string): void {
         let filter: IFilter = { column: key } as IFilter;
-        filter.arg = [];
         const meta = this.props.jointDataset.metaDict[key];
         if (meta.isCategorical) {
             filter.method = FilterMethods.includes;
@@ -362,7 +363,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             filter.arg = meta.sortedCategoricalValues as any[];
         } else {
             filter.method = FilterMethods.lessThan;
-            filter.arg.push(meta.featureRange.max);
+            filter.arg = [meta.featureRange.max];
         }
         this.setState(
             {
@@ -371,18 +372,10 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         )
     }
 
-    private updateFilter(filter: IFilter): void {
+    private updateFilter(filter: IFilter, index: number): void {
         let filters = [...this.state.filters];
-
-        if (this.state.openedFilter.column!== this.state.editingFilterIndex) {
-            filters.push(filter);
-        }
-        else {
-            filters[this.state.filterIndex] = filter;
-        }
-
-        this.setState({ filters });
-        this.setState({ openedFilter: undefined, filterIndex: undefined });
+        filters[index] = filter;
+        this.setState({ filters, openedFilter: undefined, filterIndex: this.state.filters.length});
     }
 
     private cancelFilter = (): void => {
@@ -397,9 +390,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
 
     private editFilter(index: number): void {
         const editFilter = this.state.filters[index];
-        this.setState({ filterIndex: index });
-        this.setState({ openedFilter: _.cloneDeep(editFilter) });
-        this.setState({ editingFilterIndex: editFilter.column });
+        this.setState({ filterIndex: index, openedFilter: _.cloneDeep(editFilter) });
     }
 
     private saveCohort(): void {
@@ -416,28 +407,58 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         this.setState({ cohortName: event.target.value });
     }
 
-    private setFilterLabel(filter: IFilter): React.ReactNode {
-        const selectedFilter = this.props.jointDataset.metaDict[filter.column];
-        let label = "";
-        label = selectedFilter.abbridgedLabel
+    private roundDecimalValue(value): number {
+        return (value % 1) != 0 ? (Math.round(value * 10000) / 10000).toFixed(4) : value
+    }
 
-        const filterMethod = this.getFilterMethodLabel(filter.method)
-            label += filterMethod
-        if (selectedFilter.isCategorical) {
+    private setFilterLabel(filter: IFilter): React.ReactNode {
+        //TODO: simplify this function
+        const selectedFilter = this.props.jointDataset.metaDict[filter.column];
+        let stringArgs;
+        let label = "";
+
+        if (selectedFilter.isCategorical || this.props.jointDataset.metaDict[filter.column].treatAsCategorical) {
             let selectedValues = [];
-            let filterArgs = filter.arg as number[];
-            filterArgs.forEach((element) => {
-                selectedValues.push(selectedFilter.sortedCategoricalValues[element])
+            let filterArgs = filter.arg;
+
+            // map key to value for isCategorical filter 
+            if (selectedFilter.isCategorical) {
+                filterArgs.forEach((element) => {
+                    selectedValues.push(selectedFilter.sortedCategoricalValues[element])
+                }
+                ); 
             }
-            );
-            label += selectedValues;
+            else {
+                // treatAsCategorical
+                selectedValues = filterArgs;
+            }
+            
+            stringArgs = selectedValues.toString();
+            if (selectedValues.length > 3) {
+                const otherValues = selectedValues.slice(0,3).toString();
+                const countOtherValues = (selectedValues.length - 3);
+                stringArgs = localization.formatString(localization.FilterOperations.overflowFilterArgs, otherValues,countOtherValues.toString())
+            }
+            
+        } 
+        else if(filter.method === FilterMethods.inTheRangeOf) {
+            //switch from in the range to other ops retains the value
+            for (var i = 0; i < filter.arg.length; i++) {
+                filter.arg[i] = this.roundDecimalValue(filter.arg[i])
+            }
+            stringArgs = filter.arg.toString();
+
+        } else {
+            stringArgs = this.roundDecimalValue(filter.arg[0]).toString();
+        }
+
+        if (filter.method === FilterMethods.inTheRangeOf) {
+            // example: Age [30,40]
+            label = `${selectedFilter.abbridgedLabel} ${localization.formatString(localization.FilterOperations.inTheRangeOf, stringArgs)}`
         }
         else {
-            label += filter.arg
-        }
-
-        if (filter.method == FilterMethods.inTheRangeOf) {
-            label += localization.FilterOperations.inTheRangeOfClose
+            // example: Age < 30
+            label = `${selectedFilter.abbridgedLabel} ${localization.formatString(CohortEditor.filterMethodLabels[filter.method], stringArgs)}`
         }
 
         return (<TooltipHost
@@ -449,27 +470,6 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
       >
         {label}
       </TooltipHost>);
-
-    }
-
-    private getFilterMethodLabel(filterMethod: FilterMethods): string {
-        let label = "";
-        switch (filterMethod) {
-            case FilterMethods.equal:
-                return label = localization.FilterOperations.equals;
-            case FilterMethods.greaterThan:
-                return label = localization.FilterOperations.greaterThan;
-            case FilterMethods.greaterThanEqualTo:
-                return label = localization.FilterOperations.greaterThanEquals;
-            case FilterMethods.lessThan:
-                return label = localization.FilterOperations.lessThan;
-            case FilterMethods.lessThanEqualTo:
-                return label = localization.FilterOperations.lessThanEquals;
-            case FilterMethods.includes:
-                return label = localization.FilterOperations.includes;
-            case FilterMethods.inTheRangeOf:
-                return label = localization.FilterOperations.inTheRangeOfOpen;
-        }
     }
 
     private buildRightPanel(openedFilter): React.ReactNode {
@@ -478,12 +478,21 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min) / 10;
         const isDataColumn = openedFilter.column.indexOf(JointDataset.DataLabelRoot) !== -1;
         let categoricalOptions: IComboBoxOption[] = [];
+
+        // filterIndex is set when the filter is editing openedFilter and reset to filters.length otherwise
+        const isEditingFilter = this.state.filterIndex !== this.state.filters.length;
+
+        let minVal, maxVal; 
         if (selectedMeta.treatAsCategorical) {
             // Numerical values treated as categorical are stored with the values in the column,
             // true categorical values store indexes to the string values
             categoricalOptions = selectedMeta.isCategorical ?
                 selectedMeta.sortedCategoricalValues.map((label, index) => { return { key: index, text: label } }) :
                 selectedMeta.sortedCategoricalValues.map((label) => { return { key: label, text: label.toString() } })
+        }
+        else {
+            minVal = this.roundDecimalValue(selectedMeta.featureRange.min)
+            maxVal = this.roundDecimalValue(selectedMeta.featureRange.max)
         }
         return (
             <div className={styles.rightHalf}>
@@ -504,7 +513,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 {selectedMeta.treatAsCategorical && (
                     <div className={styles.featureTextDiv}>
                         <Text variant={"small"} className={styles.featureText}>
-                            {localization.Filters.uniqueValues} {selectedMeta.sortedCategoricalValues.length}
+                            {`${localization.formatString(localization.Filters.uniqueValues,selectedMeta.sortedCategoricalValues.length)}`}
                         </Text>
                         <ComboBox
                             multiSelect
@@ -520,9 +529,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 {!selectedMeta.treatAsCategorical && (
                     <div className={styles.featureTextDiv}>
                         <Text block nowrap variant={"small"} className={styles.featureText}>
-                            {localization.Filters.min}{(selectedMeta.featureRange.min % 1) !=0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min}
-                            {localization.Filters.space}
-                            {localization.Filters.max}{(selectedMeta.featureRange.max % 1) !=0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max}
+                            {`${localization.formatString(localization.Filters.min,minVal)} ${localization.formatString(localization.Filters.max,maxVal)}`}
                         </Text>
                         <ComboBox
                             label={localization.Filters.numericalComparison}
@@ -542,7 +549,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
                                     onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta, 0)}
-                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta,0)}
+                                    onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta, 0)}
                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta, 0)}
                                 />
                                 <SpinButton
@@ -565,7 +572,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                     label={localization.Filters.numericValue}
                                     min={selectedMeta.featureRange.min}
                                     max={selectedMeta.featureRange.max}
-                                    value={openedFilter.arg.toString()}
+                                    value={openedFilter.arg[0]}
                                     onIncrement={this.setNumericValue.bind(this, numericDelta, selectedMeta, 0)}
                                     onDecrement={this.setNumericValue.bind(this, -numericDelta, selectedMeta, 0)}
                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta, 0)}
@@ -574,12 +581,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                         }
                     </div>
                 )}
-                {this.state.editingFilterIndex == this.state.openedFilter.column ? 
+                {   isEditingFilter ?
                     <div className={styles.saveAndCancelDiv}>
                         <DefaultButton
                             className={styles.saveFilterButton}
                             text={localization.CohortEditor.save}
-                            onClick={this.saveState}
+                            onClick={this.saveState.bind(this, this.state.filterIndex)}
                         />
                         <DefaultButton
                             className={styles.cancelFilterButton}
@@ -591,7 +598,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                     <DefaultButton
                         className={styles.addFilterButton}
                         text={localization.CohortEditor.addFilter}
-                        onClick={this.saveState} />
+                        onClick={this.saveState.bind(this, this.state.filters.length)} />
                 }
             </div>
         );

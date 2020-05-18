@@ -202,12 +202,12 @@
         "_equalComparison.comment": "filter for rows that are exactly equal",
         "greaterThanComparison": "Greater than",
         "_greaterThanComparison.comment": "filter for rows that are greater than a value",
-        "greaterThanEqualToComparison": "Greater than equal to",
-        "_greaterThanEqualToComparison.comment": "filter for rows that are greater than equal to a value",
+        "greaterThanEqualToComparison": "Greater than or equal to",
+        "_greaterThanEqualToComparison.comment": "filter for rows that are greater than or equal to a value",
         "lessThanComparison": "Less than",
         "_lessThanComparison.comment": "filter for rows that are less than a value",
-        "lessThanEqualToComparison": "Less than equal to",
-        "_lessThanEqualToComparison.comment": "filter for rows that are less than equal to a value",
+        "lessThanEqualToComparison": "Less than or equal to",
+        "_lessThanEqualToComparison.comment": "filter for rows that are less than or equal to a value",
         "inTheRangeOf": "In the range of",
         "_inTheRangeOf.comment": "filter for rows that are between two values",
         "categoricalIncludeValues": "Included values:",
@@ -218,10 +218,10 @@
         "_numericalComparison.comment": "label for dropdown containing [greater than, less than, equal to]",
         "minimum":"Minimum",
         "maximum":"Maximum",
-        "min":"Min: ",
-        "max":"Max: ",
-        "uniqueValues":"# of unique values: ",
-        "space":" "
+        "min":"Min: {0}",
+        "max":"Max: {0}",
+        "uniqueValues":"# of unique values: {0}",
+        "_uniqueValues.comment": "the number of unique values for a selected categorical filter"
     },
     "Columns": {
         "regressionError": "Regression error",
@@ -434,13 +434,14 @@
         "_numberOfBins.comment": "the number of groups (bins) to place all values into"
     },
     "FilterOperations": {
-        "equals": " = ",
-        "lessThan": " < ",
-        "greaterThan": " > ",
-        "lessThanEquals": " <= ",
-        "greaterThanEquals": " >= ",
-        "includes": " includes ",
-        "inTheRangeOfOpen": " [ ",
-        "inTheRangeOfClose": " ]"
+        "equals": " = {0}",
+        "lessThan": " < {0}",
+        "greaterThan": " > {0}",
+        "lessThanEquals": " <= {0}",
+        "greaterThanEquals": " >= {0}",
+        "includes": " includes {0} ",
+        "_includes_comment": "tooltip label for a filter with included values",
+        "inTheRangeOf": "[ {0} ]",
+        "overflowFilterArgs": "{0} and {1} others"
     }
 }
