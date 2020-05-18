@@ -1,4 +1,6 @@
 import { IPlotlyProperty } from './IPlotlyProperty';
+import * as _ from 'lodash';
+import { ITheme } from '@uifabric/styling';
 
 export interface IPlotlyTheme {
     axisColor: string;
@@ -36,47 +38,45 @@ const plotlyBlackTheme: IPlotlyTheme = {
 };
 
 export class PlotlyThemes {
-    public static applyTheme(props: IPlotlyProperty, theme?: string, themeOverride?: Partial<IPlotlyTheme>): IPlotlyProperty {
+    public static applyTheme(props: IPlotlyProperty, theme?: string | ITheme, themeOverride?: Partial<IPlotlyTheme>): IPlotlyProperty {
 
-        const newProps = { ...props };
-        newProps.layout = props.layout ? { ...props.layout } : ({} as Plotly.Layout);
-        newProps.layout.font = newProps.layout.font ? { ...newProps.layout.font } : ({} as Plotly.Font);
-        newProps.layout.xaxis = newProps.layout.xaxis ? { ...newProps.layout.xaxis } : ({} as Plotly.LayoutAxis);
-        newProps.layout.yaxis = newProps.layout.yaxis ? { ...newProps.layout.yaxis } : ({} as Plotly.LayoutAxis);
+        const newProps = _.cloneDeep(props);
 
-        const defaultPlotlyTheme = this.getTheme(theme);
-        const plotlyTheme: IPlotlyTheme = {
-            axisColor: (themeOverride && themeOverride.axisColor) || defaultPlotlyTheme.axisColor,
-            backgroundColor: (themeOverride && themeOverride.backgroundColor) || defaultPlotlyTheme.backgroundColor,
-            axisGridColor: (themeOverride && themeOverride.axisGridColor) || defaultPlotlyTheme.axisGridColor,
-            fontColor: (themeOverride && themeOverride.fontColor) || defaultPlotlyTheme.fontColor
-        }
+        const plotTheme = _.merge(this.getTheme(theme), themeOverride);
 
-        newProps.layout.font.color = plotlyTheme.fontColor;
-        newProps.layout.paper_bgcolor = plotlyTheme.backgroundColor;
-        newProps.layout.plot_bgcolor = plotlyTheme.backgroundColor;
-        newProps.layout.xaxis.color = plotlyTheme.axisColor;
-        newProps.layout.xaxis.gridcolor = plotlyTheme.axisGridColor;
-        newProps.layout.yaxis.color = plotlyTheme.axisColor;
-        newProps.layout.yaxis.gridcolor = plotlyTheme.axisGridColor;
+        _.set(newProps, 'layout.font.color', plotTheme.fontColor);
+        _.set(newProps, 'layout.paper_bgcolor', plotTheme.backgroundColor);
+        _.set(newProps, 'layout.plot_bgcolor', plotTheme.backgroundColor);
+        _.set(newProps, 'layout.xaxis.color', plotTheme.axisColor);
+        _.set(newProps, 'layout.yaxis.color', plotTheme.axisColor);
+        _.set(newProps, 'layout.xaxis.gridcolor', plotTheme.axisGridColor);
+        _.set(newProps, 'layout.yaxis.gridcolor', plotTheme.axisGridColor);
 
         return newProps;
     }
 
-    private static getTheme(theme?: string): IPlotlyTheme {
-        switch (theme) {
-            case undefined:
-            case 'light':
-                return plotlyLightTheme;
-            case 'dark':
-                return plotlyDarkTheme;
-            case 'white':
-                return plotlyWhiteTheme;
-            case 'black':
-                return plotlyBlackTheme;
-            default:
-                return plotlyLightTheme;
+    private static getTheme(theme?: string | ITheme): IPlotlyTheme {
+        if (typeof theme === 'string' || theme === undefined) {
+            switch (theme) {
+                case undefined:
+                case 'light':
+                    return plotlyLightTheme;
+                case 'dark':
+                    return plotlyDarkTheme;
+                case 'white':
+                    return plotlyWhiteTheme;
+                case 'black':
+                    return plotlyBlackTheme;
+                default:
+                    return plotlyLightTheme;
+            }
         }
+        return _.defaults({
+            axisColor: theme.semanticColors.bodyText,
+            axisGridColor: theme.semanticColors.bodySubtext,
+            backgroundColor: theme.semanticColors.bodyBackground,
+            fontColor: theme.semanticColors.bodyText
+        }, plotlyLightTheme)
     }
 
     private constructor() {}

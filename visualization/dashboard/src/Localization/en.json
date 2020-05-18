@@ -263,7 +263,9 @@
         "datasetCohortSelector": "Select a dataset cohort",
         "_datasetCohortSelector.comment": "label for selecting single cohort",
         "aggregateFeatureImportance": "Aggregate Feature Importance",
-        "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances"
+        "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances",
+        "missingParameters": "This tab requires the local feature importance parameter be supplied.",
+        "_missingPArameters.comment": "Show a message if the required feature importance parameter is not provided"
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",
@@ -302,7 +304,11 @@
         "precision": "Precision: {0}",
         "recall": "Recall: {0}",
         "fpr": "fpr: {0}",
-        "fnr": "fnr: {0}"
+        "fnr": "fnr: {0}",
+        "missingParameters": "This tab requires the array of predicted values from the model be supplied.",
+        "_missingPArameters.comment": "Show a message if the required prediction array not provided",
+        "missingTrueY": "Model performance statistics require the true outcomes be provided in addition to the predicted outcomes",
+        "_missingTrueY.comment": "Show message if true Y values are not provided, since statistics require the true value"
     },
     "Charts": {
         "yValue": "Y-value",
@@ -322,7 +328,9 @@
         "aggregatePlots": "Aggregate plots",
         "_aggregatePlots.comment": "configuration option to view plots that sum or average points, opposed to sowing each point on its own",
         "chartType": "Chart type",
-        "_chartType.comment": "label for dropdown to select chart format"
+        "_chartType.comment": "label for dropdown to select chart format",
+        "missingParameters": "This tab requires an evaluation dataset be supplied.",
+        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "DependencePlot": {
         "featureImportanceOf": "Feature importance of",
@@ -353,8 +361,12 @@
         "_featureImportancePlot.comment": "name of a plot type showing the importance of each feature in making a decision",
         "icePlot": "ICE plot",
         "_icePlot.comment": "name of a plot type named Individual Conditional Expectation (ICE)",
+        "featureImportanceLackingParameters": "Provide local feature importances to see how each feature impacts individual predictions.",
+        "_featureImportanceLackingParameters.comment": "placeholder if no local feature importances passed in",
         "featureImportanceGetStartedText":"Select a point to view feature importance",
         "_featureImportanceGetStartedText.comment": "placeholder to prompt user to click point in neighboring chart to view this chart",
+        "iceLackingParameters": "ICE plots require an operationalized model to make predictions for hypothetical datapoints.",
+        "_iceLackingParameters.comment": "placeholder text if a required parameter is not passed in, cannot show ICE plot if no model passed in",
         "IceGetStartedText": "Select a point or create a What-If point to view ICE plots",
         "_IceGetStartedText.comment": "placeholder to prompt user to click point in neighboring chart to see this chart",
         "whatIfDatapoint": "What-If datapoint",
@@ -392,7 +404,9 @@
         "stepsLabel": "Steps",
         "_stepsLabel.comment": "number of increments to use between minimum and maximum",
         "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
-        "_disclaimer.comment": "the tool should not be liable for any bad predictions"
+        "_disclaimer.comment": "the tool should not be liable for any bad predictions",
+        "missingParameters": "This tab requires an evaluation dataset be supplied.",
+        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
@@ -432,6 +446,18 @@
         "_TreatAsCategorical.comment": "a checkbox label to treat integers as categories instead of as numbers",
         "numOfBins":"Number of bins",
         "_numberOfBins.comment": "the number of groups (bins) to place all values into"
+    },
+    "ValidationErrors": {
+        "predictedProbability": "Predicted probability",
+        "predictedY": "Predicted Y",
+        "evalData": "Evaluation dataset",
+        "localFeatureImportance": "Local feature importance",
+        "inconsistentDimensions": "Inconsistent dimensions. {0} has dimensions {1}, expected {2}",
+        "_inconsistentDimensions.comment": "Raise warning if arguments passed in have different sizes, listing dimensions of both mismatching pieces.",
+        "notNonEmpty": "{0} input not a non-empty array",
+        "varyingLength": "Inconsistent dimensions. {0} has elements of varying length",
+        "notArray": "{0} not an array. Expected array of dimension {1}",
+        "errorHeader": "Some input parameters were inconsistent and will not be used: "
     },
     "FilterOperations": {
         "equals": " = {0}",

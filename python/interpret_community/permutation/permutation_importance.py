@@ -33,6 +33,7 @@ from ..common.progress import get_tqdm
 # Although we get a sparse efficiency warning when using csr matrix format for setting the
 # values, if we use lil scikit-learn converts the matrix to csr which has much worse performance
 import warnings
+from functools import wraps
 
 
 module_logger = logging.getLogger(__name__)
@@ -43,6 +44,20 @@ try:
     import torch.nn as nn
 except ImportError:
     module_logger.debug('Could not import torch, required if using a pytorch model')
+
+
+def labels_decorator(explain_func):
+    """Decorate PFI explainer to throw better error message if true_labels not passed.
+
+    :param explain_func: PFI explanation function.
+    :type explain_func: explanation function
+    """
+    @wraps(explain_func)
+    def explain_func_wrapper(self, evaluation_examples, *args, **kwargs):
+        if not args:
+            raise TypeError("PFI explainer requires true_labels parameter to be passed in for explain_global")
+        return explain_func(self, evaluation_examples, *args, **kwargs)
+    return explain_func_wrapper
 
 
 class PFIExplainer(GlobalExplainer, BlackBoxMixin):
@@ -494,6 +509,7 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                                                                           explain_subset=self.explain_subset)
         return kwargs
 
+    @labels_decorator
     @tabular_decorator
     def explain_global(self, evaluation_examples, true_labels):
         """Globally explains the blackbox model using permutation feature importance.

@@ -1,4 +1,5 @@
 import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
+import { FabricStyles } from "../../FabricStyles";
 
 export interface IDatasetExplorerTabStyles {
     page: IStyle;
@@ -24,6 +25,9 @@ export interface IDatasetExplorerTabStyles {
     legend: IStyle;
     callout: IStyle;
     chartEditorButton: IStyle;
+    missingParametersPlaceholder: IStyle;
+    missingParametersPlaceholderSpacer: IStyle;
+    faintText: IStyle;
 }
 
 export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplorerTabStyles> = () => {
@@ -154,6 +158,9 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
             position: "absolute",
             right: "10px",
             zIndex: 10
-        }
+        },
+        missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
+        missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
+        faintText: [FabricStyles.faintText]
     });
 };
