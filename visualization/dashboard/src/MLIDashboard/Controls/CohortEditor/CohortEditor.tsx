@@ -317,7 +317,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         )
     }
 
-    private readonly setNumericValue = (delta: number, column: IJointMeta, index, stringVal:string): string | void => {
+    private readonly setNumericValue = (delta: number, column: IJointMeta, index, stringVal: string): string | void => {
         var openArg = this.state.openedFilter.arg;
         if (delta === 0) {
             const numberVal = +stringVal;
@@ -441,15 +441,21 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             }
             
         } 
-        else if(filter.method === FilterMethods.inTheRangeOf) {
-            //switch from in the range to other ops retains the value
-            for (var i = 0; i < filter.arg.length; i++) {
-                filter.arg[i] = this.roundDecimalValue(filter.arg[i])
-            }
-            stringArgs = filter.arg.toString();
+        // else if(filter.method === FilterMethods.inTheRangeOf) {
+        //     //switch from in the range to other ops retains the value
+        //     for (var i = 0; i < filter.arg.length; i++) {
+        //         filter.arg[i] = this.roundDecimalValue(filter.arg[i])
+        //     }
+        //     stringArgs = filter.arg.toString();
 
-        } else {
-            stringArgs = this.roundDecimalValue(filter.arg[0]).toString();
+        // } else {
+            else {
+                for (var i = 0; i < filter.arg.length; i++) {
+                    filter.arg[i] = this.roundDecimalValue(filter.arg[i])
+                }
+                stringArgs = filter.arg.toString();
+
+            //stringArgs = this.roundDecimalValue(filter.arg[0]).toString();
         }
 
         if (filter.method === FilterMethods.inTheRangeOf) {

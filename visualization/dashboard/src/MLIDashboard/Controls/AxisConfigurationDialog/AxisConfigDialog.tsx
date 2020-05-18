@@ -181,7 +181,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                 <PrimaryButton 
                     text={localization.AxisConfigDialog.select}
                     onClick={this.saveState}
-                    className ={styles.selectButton}
+                    className={styles.selectButton}
                 />
                 
             </Callout>

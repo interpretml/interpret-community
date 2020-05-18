@@ -125,7 +125,6 @@ export class Cohort {
                     case FilterMethods.includes:
                         return (filter.arg as number[]).includes(rowVal);
                     case FilterMethods.inTheRangeOf:
-                        //TODO:validate arg[0] < arg[1]
                         return rowVal >= filter.arg[0] && rowVal <= filter.arg[1];
                 }
             })
