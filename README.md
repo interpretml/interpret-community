@@ -9,7 +9,7 @@ Interpret Community SDK
 =============================================================
 
 
-Interpret-Community is an experimental repository extending [Interpret](https://github.com/interpretml/interpret), with additional interpretability techniques and utility functions to handle real-world datasets and workflows for explaining models trained on **tabular data**. This repository contains Interpret-Community SDK and Jupyter notebooks with examples to showcase its use.
+Interpret-Community is an experimental repository extending [Interpret](https://github.com/interpretml/interpret), with additional interpretability techniques and utility functions to handle real-world datasets and workflows for explaining models trained on **tabular data**. This repository contains the Interpret-Community SDK and Jupyter notebooks with examples to showcase its use.
 
 # Contents
 
@@ -24,14 +24,14 @@ Interpret-Community is an experimental repository extending [Interpret](https://
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community extends [Interpret](https://github.com/interpretml/interpret) repository, incorporates further community developed and experimental interpretability techniques and functionalities for using machine learning interpretability in real world scenarios. Interpret-Community makes it very easy for users to extend [Interpret](https://github.com/interpretml/interpret), adding their experimental techniques (or functionalities), and perform comparative analysis to evaluate their brand new capabilities.
+Interpret-Community extends [Interpret](https://github.com/interpretml/interpret) repository, incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios. Interpret-Community enables adding new experimental techniques (or functionalities), and performing comparative analysis to evaluate them.
 
 Interpret-Community 
 
-1. Actively incorporates innovative experimental interpretability techniques, and allows for further expansion by researchers and data scientists
-3. Applies optimizations to make it possible to run interpretability techniques on real-world datasets at scale
-4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide model insights in terms of the original raw features rather than engineered features
-5. Provides interactive and exploratory visualizations to empower data scientists to gain significant insight into their data
+1. Actively incorporates innovative experimental interpretability techniques and allows for further expansion by researchers and data scientists
+2. Applies optimizations to make it possible to run interpretability techniques on real-world datasets at scale
+3. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide model insights in terms of the original raw features rather than engineered features
+4. Provides interactive and exploratory visualizations to empower data scientists to gain meaningful insight into their data
 
  
 # <a name="try"></a>
@@ -175,7 +175,7 @@ jupyter notebook
 This API supports models that are trained on datasets in Python `numpy.array`, `pandas.DataFrame`, `iml.datatypes.DenseData`, or `scipy.sparse.csr_matrix` format.
 
 
-The explanation functions accept both models and pipelines as input, as long as the model or pipeline implements the prediction function predict or predict_proba that conforms to the Scikit convention. If not compatible, you can wrap your model's prediction function into a wrapper function that transforms the output into the format that is supported (predict or predict_proba of Scikit), and pass that wrapper function to your selected interpretability techniques.  
+The explanation functions accept both models and pipelines as input as long as the model or pipeline implements a `predict` or `predict_proba` function that conforms to the Scikit convention. If not compatible, you can wrap your model's prediction function into a wrapper function that transforms the output into the format that is supported (predict or predict_proba of Scikit), and pass that wrapper function to your selected interpretability techniques.  
 
 If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via **PyTorch**, **TensorFlow**, and **Keras** deep learning frameworks.
 
@@ -192,7 +192,7 @@ The following are a list of the experimental explainers available in the communi
 Interpretability Technique|Description|Type
 |--|--|--------------------|
 |SHAP Kernel Explainer| [SHAP](https://github.com/slundberg/shap)'s Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for **any model**.|Model-agnostic|
-|SHAP Tree Explainer| [SHAP](https://github.com/slundberg/shap)’s tree explainer, which focuses on polynomial time fast SHAP value estimation algorithm specific to **trees and ensembles of trees**.|Model-specific|
+|SHAP Tree Explainer| [SHAP](https://github.com/slundberg/shap)’s Tree explainer, which focuses on the polynomial time fast SHAP value estimation algorithm specific to **trees and ensembles of trees**.|Model-specific|
 |SHAP Deep Explainer| Based on the explanation from [SHAP](https://github.com/slundberg/shap), Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the [SHAP NIPS paper](https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions). **TensorFlow** models and **Keras** models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".|Model-specific|
 |SHAP Linear Explainer| [SHAP](https://github.com/slundberg/shap)'s Linear explainer computes SHAP values for a **linear model**, optionally accounting for inter-feature correlations.|Model-specific|
 |Mimic Explainer (Global Surrogate)| Mimic explainer is based on the idea of training [global surrogate models](https://christophm.github.io/interpretable-ml-book/global.html) to mimic blackbox models. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of **any black box model** as accurately as possible. Data scientists can interpret the surrogate model to draw conclusions about the black box model. You can use one of the following interpretable models as your surrogate model: LightGBM (LGBMExplainableModel), Linear Regression (LinearExplainableModel), Stochastic Gradient Descent explainable model (SGDExplainableModel), and Decision Tree (DecisionTreeExplainableModel).|Model-agnostic|
@@ -302,7 +302,7 @@ Besides the interpretability techniques described above, Interpret-Community sup
 
 
 
-The following two sections demonstrate how you can get global and local feature importance values. Local measures focus on the contribution of features for a specific prediction (e.g., why the model predicted an 80% chance of breast cancer for Mary?), whereas global measures take all predictions into account (Overall, what are the top K important features in predicting a high risk for breast cancer?):
+The following two sections demonstrate how you can get aggregate (global) and instance-level (local) feature importance values. Instance-level feature importance measures focus on the contribution of features for a specific prediction (e.g., why the model predicted an 80% chance of breast cancer for Mary?), whereas aggregate-level feature importance takes all predictions into account (Overall, what are the top important features in predicting a high risk for breast cancer?):
 ## Overall (Global) feature importance values
 
 Get the aggregate feature importance values.
@@ -325,7 +325,7 @@ global_explanation.get_feature_importance_dict()
 ```
 
 ## Instance-level (local) feature importance values
-Get the local feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support local explanations.
+Get the instance-level feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support instance-level explanations.
 
 ```python
 # explain the first data point in the test set
