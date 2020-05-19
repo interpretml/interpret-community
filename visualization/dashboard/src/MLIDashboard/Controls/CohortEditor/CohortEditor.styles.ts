@@ -1,4 +1,4 @@
-import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles } from "office-ui-fabric-react";
+import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles, ITooltipHostStyles } from "office-ui-fabric-react";
 
 export interface ICohortEditorStyles {
     wrapper: IStyle;
@@ -26,22 +26,25 @@ export interface ICohortEditorStyles {
     filterIcon: IStyle;
     cohortName: IStyle;
     saveCohort: IStyle;
+    deleteCohort: IStyle;
     saveAndCancelDiv: IStyle;
     saveFilterButton: IStyle;
     cancelFilterButton: IStyle;
     closeIcon: IStyle;
     cohortEditor: IStyle;
+    saveAndDeleteDiv: IStyle;
 }
 
+const theme = getTheme();
+
 export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> = () => {
-    const theme = getTheme();
     return mergeStyleSets<ICohortEditorStyles>({
         cohortEditor: {
             overflowY: 'visible',
             width: '560px',
             height: '624px',
-            //TODO: fix rgba here
-            boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
+            ////elevation64 is used for dialogs/panels
+            boxShadow: theme.effects.elevation64,
             borderRadius: '2px'
         },
         wrapper: {
@@ -130,7 +133,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             height: "20px",
             marginLeft: "30px",
             color: theme.palette.neutralSecondaryAlt,
-            //color:"#979797",
             textAlign: "left",
         },
         treatCategorical: {
@@ -144,7 +146,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             marginLeft: "35px",
             textAlign: "center",
             color: theme.palette.neutralSecondaryAlt
-            //color: "#979797" 
         },
         existingFilter: {
             border: '1px solid',
@@ -166,7 +167,6 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             textOverflow: "ellipsis"
         },
         defaultFilterList: {
-            //color: "#979797",
             color: theme.palette.neutralSecondaryAlt,
             marginLeft: "10px"
         },
@@ -203,11 +203,34 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             alignSelf: "flex-start"
         },
         saveCohort: {
-            marginTop: "18px",
             alignSelf: "flex-end",
             marginRight: "27px",
             width: '62px',
             height: '32px',
+        },
+        saveAndDeleteDiv: {
+            display: "flex",
+            flexDirection: "row",
+            marginTop: "18px"
+        },
+        deleteCohort: {
+            alignSelf: "flex-start",
+            marginRight: "17px",
+            marginLeft: "374px",
+            width: '80px',
+            height: '32px',
+            borderColor: theme.palette.red,
+            color:theme.palette.red,
+            selectors:{
+                ':hover':{
+                    background: theme.palette.red,
+                    color: theme.palette.white
+                },
+                ':active':{
+                    background: theme.palette.red,
+                    color: theme.palette.white
+                }
+            }
         },
         saveAndCancelDiv: {
             display: "flex",
@@ -238,6 +261,12 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         }
     });
 };
+
+
+export const tooltipHostStyles: Partial<ITooltipHostStyles> = {
+    root: { display: 'block' },
+  };
+
 
 const cohortEditor = cohortEditorStyles();
 export const cohortEditorCallout: () => ICalloutContentStyles = () => {
