@@ -11,7 +11,6 @@ import { Position } from "office-ui-fabric-react/lib/utilities/positioning";
 import React from "react";
 import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
-import { FabricStyles } from "../../FabricStyles";
 import { ColumnCategories, IJointMeta, JointDataset } from "../../JointDataset";
 import { ISelectorConfig } from "../../NewExplanationDashboard";
 import { axisControlCallout, axisControlDialogStyles } from "./AxisConfigDialog.styles";
@@ -88,6 +87,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     public render(): React.ReactNode {
         const selectedMeta = this.props.jointDataset.metaDict[this.state.selectedColumn.property];
         const isDataColumn = this.state.selectedColumn.property.indexOf(JointDataset.DataLabelRoot) !== -1;
+        var minVal, maxVal;
+
         return (
             <Callout
                 onDismiss={this.props.onCancel}
@@ -135,7 +136,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         {selectedMeta.treatAsCategorical && (
                             <div>
                                 <Text variant={"small"} className={styles.featureText}>
-                                {`# of unique values: ${selectedMeta.sortedCategoricalValues.length}`}
+                                {`${localization.formatString(localization.Filters.uniqueValues,selectedMeta.sortedCategoricalValues.length)}`}
                                 </Text>
                                 {this.props.canDither && (
                                     <Checkbox 
@@ -148,9 +149,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                         {!selectedMeta.treatAsCategorical && (
                             <div>
-                                <Text variant={"small"} className={styles.featureText}>
-                                {`Min: ${selectedMeta.featureRange.min}`} {`Max: ${selectedMeta.featureRange.max}`}
-                                </Text>
+                                <Text variant={"small"} className={styles.featureText} nowrap block>
+                                    { minVal = (selectedMeta.featureRange.min % 1) != 0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min }
+                                    { maxVal = (selectedMeta.featureRange.max % 1) != 0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max }
+                                    {`${localization.formatString(localization.Filters.min,minVal)}${localization.formatString(localization.Filters.max,maxVal)}`}
+                               </Text>
                                 {this.props.canBin && !this.props.mustBin && (
                                     <Checkbox
                                         label={localization.AxisConfigDialog.binLabel}
@@ -180,6 +183,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                     onClick={this.saveState}
                     className={styles.selectButton}
                 />
+                
             </Callout>
         );
     }

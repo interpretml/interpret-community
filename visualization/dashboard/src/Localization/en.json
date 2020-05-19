@@ -202,8 +202,12 @@
         "_equalComparison.comment": "filter for rows that are exactly equal",
         "greaterThanComparison": "Greater than",
         "_greaterThanComparison.comment": "filter for rows that are greater than a value",
+        "greaterThanEqualToComparison": "Greater than or equal to",
+        "_greaterThanEqualToComparison.comment": "filter for rows that are greater than or equal to a value",
         "lessThanComparison": "Less than",
         "_lessThanComparison.comment": "filter for rows that are less than a value",
+        "lessThanEqualToComparison": "Less than or equal to",
+        "_lessThanEqualToComparison.comment": "filter for rows that are less than or equal to a value",
         "inTheRangeOf": "In the range of",
         "_inTheRangeOf.comment": "filter for rows that are between two values",
         "categoricalIncludeValues": "Included values:",
@@ -213,7 +217,11 @@
         "numericalComparison": "Operation",
         "_numericalComparison.comment": "label for dropdown containing [greater than, less than, equal to]",
         "minimum":"Minimum",
-        "maximum":"Maximum"
+        "maximum":"Maximum",
+        "min":"Min: {0}",
+        "max":"Max: {0}",
+        "uniqueValues":"# of unique values: {0}",
+        "_uniqueValues.comment": "the number of unique values for a selected categorical filter"
     },
     "Columns": {
         "regressionError": "Regression error",
@@ -418,6 +426,7 @@
         "cohortNamePlaceholder":"Name your cohort",
         "_cohortNamePlaceholder.comment": "placeholder for cohort name",
         "save":"Save",
+        "delete":"Delete",
         "cancel":"Cancel",
         "cohortNameError":"Missing cohort name",
         "_cohortNameError.comment": "error message if  required name is missing"
@@ -451,6 +460,16 @@
         "errorHeader": "Some input parameters were inconsistent and will not be used: ",
         "datasizeWarning": "The evaluation dataset is too large to be effectively displayed in some charts, please add filters to decrease the size of the cohort.",
         "addCohort": "Add filters"
-
+    },
+    "FilterOperations": {
+        "equals": " = {0}",
+        "lessThan": " < {0}",
+        "greaterThan": " > {0}",
+        "lessThanEquals": " <= {0}",
+        "greaterThanEquals": " >= {0}",
+        "includes": " includes {0} ",
+        "_includes_comment": "tooltip label for a filter with included values",
+        "inTheRangeOf": "[ {0} ]",
+        "overflowFilterArgs": "{0} and {1} others"
     }
 }
