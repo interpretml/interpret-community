@@ -82,7 +82,8 @@ enum globalTabKeys {
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
     private static iconsInitialized = false;
     private static ROW_WARNING_SIZE = 100;
-    
+    public static ROW_ERROR_SIZE = 100;
+
     private static initializeIcons(props: IExplanationDashboardProps): void {
         if (NewExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
             initializeIcons(props.iconUrl);
@@ -305,7 +306,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                         >
                             <div>
                                 <Text>{localization.ValidationErrors.datasizeWarning}</Text>
-                                <Link onClick={this.openCohort.bind(this, 0)}>{localization.ValidationErrors.addCohort}</Link>
+                                <Link onClick={this.openCohort.bind(this, 0)}>{localization.ValidationErrors.addFilters}</Link>
                             </div>
                         </MessageBar>}
                     {this.state.validationWarnings.length !== 0 &&
@@ -337,6 +338,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                             onCancel={this.closeCohortEditor}
                             onDelete={this.deleteCohort}
                             isNewCohort={this.state.editingCohortIndex === this.state.cohorts.length}
+                            deleteIsDisabled={this.state.cohorts.length === 1}
                         />
                     )}
                         <div className={NewExplanationDashboard.classNames.pivotWrapper}>
@@ -368,6 +370,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
                                     cohorts={this.state.cohorts}
+                                    editCohort={this.openCohort}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (

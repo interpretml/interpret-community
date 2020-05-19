@@ -25,6 +25,7 @@ export interface ICohortEditorProps {
     filterList: IFilter[];
     cohortName: string;
     isNewCohort: boolean;
+    deleteIsDisabled: boolean;
     onSave: (newCohort: Cohort) => void;
     onCancel: () => void;
     onDelete: () => void;
@@ -200,7 +201,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                         <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>{localization.CohortEditor.save}</PrimaryButton>
                         :
                         <div className={styles.saveAndDeleteDiv}>
-                            <DefaultButton onClick={this.deleteCohort.bind(this)} className={styles.deleteCohort}>{localization.CohortEditor.delete}</DefaultButton>
+                            <DefaultButton disabled={this.props.deleteIsDisabled} onClick={this.deleteCohort.bind(this)} className={styles.deleteCohort}>{localization.CohortEditor.delete}</DefaultButton>
                             <PrimaryButton onClick={this.saveCohort} className={styles.saveCohort}>{localization.CohortEditor.save}</PrimaryButton>
                         </div>
                     }
