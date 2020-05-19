@@ -15,6 +15,11 @@ import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
 import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
 
+export interface ICohort {
+    filterList: IFilter[];
+    cohortName: string;
+}
+
 export interface ICohortEditorProps {
     jointDataset: JointDataset;
     filterList: IFilter[];
