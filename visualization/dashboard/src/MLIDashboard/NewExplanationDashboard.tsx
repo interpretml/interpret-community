@@ -19,7 +19,7 @@ import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
 import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplorerTab";
 import { ValidateProperties } from "./ValidateProperties";
-import { MessageBar, MessageBarType, Text } from "office-ui-fabric-react";
+import { MessageBar, MessageBarType, Text, Link } from "office-ui-fabric-react";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -36,6 +36,7 @@ export interface INewExplanationDashboardState {
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
     validationWarnings: string[];
+    showingDatasizeWarning: boolean;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
@@ -78,6 +79,7 @@ enum globalTabKeys {
 
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
     private static iconsInitialized = false;
+    private static ROW_WARNING_SIZE = 10000;
     
     private static initializeIcons(props: IExplanationDashboardProps): void {
         if (NewExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
@@ -244,7 +246,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             globalImportanceIntercept: globalProps.globalImportanceIntercept,
             globalImportance: globalProps.globalImportance,
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
-            sortVector: undefined
+            sortVector: undefined,
+            showingDatasizeWarning: jointDataset.datasetRowCount > NewExplanationDashboard.ROW_WARNING_SIZE
         };
     }
 
@@ -280,6 +283,17 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const classNames = explanationDashboardStyles();
         return (
                 <div className={classNames.page} style={{maxHeight: "1000px"}}>
+                    {this.state.showingDatasizeWarning &&
+                        <MessageBar
+                            onDismiss={this.clearSizeWarning}
+                            dismissButtonAriaLabel="Close"
+                            messageBarType={MessageBarType.warning}
+                        >
+                            <div>
+                                <Text>{localization.ValidationErrors.datasizeWarning}</Text>
+                                <Link onClick={this.addFilter}>{localization.ValidationErrors.addCohort}</Link>
+                            </div>
+                        </MessageBar>}
                     {this.state.validationWarnings.length !== 0 &&
                         <MessageBar
                             onDismiss={this.clearWarning}
@@ -299,6 +313,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                         metadata={this.state.modelMetadata}
                         onChange={this.onCohortChange}
                         onDelete={this.deleteCohort}
+                        programaticOpenEditor={this.state.open}
                     />
                         <div className={NewExplanationDashboard.classNames.pivotWrapper}>
                             <Pivot
@@ -404,5 +419,13 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private clearWarning(): void {
         this.setState({validationWarnings: []})
+    }
+
+    private clearSizeWarning(): void {
+        this.setState({showingDatasizeWarning: false});
+    }
+
+    private addFilter(): void {
+        this.state.cohorts[0].
     }
 }

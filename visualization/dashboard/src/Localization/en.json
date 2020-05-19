@@ -448,6 +448,9 @@
         "notNonEmpty": "{0} input not a non-empty array",
         "varyingLength": "Inconsistent dimensions. {0} has elements of varying length",
         "notArray": "{0} not an array. Expected array of dimension {1}",
-        "errorHeader": "Some input parameters were inconsistent and will not be used: "
+        "errorHeader": "Some input parameters were inconsistent and will not be used: ",
+        "datasizeWarning": "The evaluation dataset is too large to be effectively displayed in some charts, please add filters to decrease the size of the cohort.",
+        "addCohort": "Add filters"
+
     }
 }
