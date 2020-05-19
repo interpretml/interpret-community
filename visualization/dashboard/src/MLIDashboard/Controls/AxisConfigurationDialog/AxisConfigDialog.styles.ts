@@ -24,8 +24,8 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
             height: '386px',
             left: '450px',
             top: '250px',
-            //TODO: fix rgba here
-            boxShadow: '0px 0.6px 1.8px rgba(0, 0, 0, 0.108), 0px 3.2px 7.2px rgba(0, 0, 0, 0.132)',
+            //elevation64 is used for dialogs/panels
+            boxShadow: theme.effects.elevation64,
             borderRadius: '2px'
         },
         wrapper: {
@@ -47,7 +47,6 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
             background: theme.palette.neutralLight,
             marginRight: "27px",
             marginLeft: "25px",
-            //marginTop: "0px",
             borderRadius: "5px"
         },
         filterHeader: {
@@ -64,9 +63,9 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
         featureText: {
             width: "180px",
             height: "20px",
+            marginTop:"1px",
             marginLeft: "27px",
             color: theme.palette.neutralSecondaryAlt,
-            //color:"#979797",
             textAlign: "left",
         },
         featureComboBox: {
