@@ -5,40 +5,20 @@ import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { JointDataset } from "../../JointDataset";
-import { CohortEditor } from "../CohortEditor/CohortEditor";
 import { cohortListStyles } from "./CohortList.styles";
 
 export interface ICohortListProps {
     cohorts: Cohort[];
     metadata: IExplanationModelMetadata;
     jointDataset: JointDataset;
-    onChange: (newCohort: Cohort, index: number) => void;
-    onDelete: (index: number) => void;
+    editCohort: (index: number) => void;
+    cloneAndEdit: (index: number) => void;
 }
 
-export interface ICohortListState {
-    cohortIndex?: number;
-    isNewCohort?: boolean;
-}
-
-export class CohortList extends React.PureComponent<ICohortListProps, ICohortListState> {
-    constructor(props: ICohortListProps) {
-        super(props);
-        this.state = {};
-        this.onCancel = this.onCancel.bind(this);
-        this.openDialog = this.openDialog.bind(this);
-    }
-
+export class CohortList extends React.PureComponent<ICohortListProps> {
     public render(): React.ReactNode {
-        let cohortForEdit: Cohort;
         let classNames = cohortListStyles();
-        if (this.state.cohortIndex !== undefined) {
-            if (this.state.cohortIndex === this.props.cohorts.length) {
-                cohortForEdit = new Cohort("cohort " + this.state.cohortIndex, this.props.jointDataset);
-            } else {
-                cohortForEdit = _.cloneDeep(this.props.cohorts[this.state.cohortIndex]);
-            }
-        }
+        
         let modelType: string;
         if (this.props.metadata.modelType === ModelTypes.binary) {
             modelType = localization.CohortBanner.binaryClassifier;
@@ -79,12 +59,12 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                                             {
                                                 key: 'item4',
                                                 name: localization.CohortBanner.editCohort,
-                                                onClick: this.openDialog.bind(this, index),
+                                                onClick: this.props.editCohort.bind(this, index),
                                             },
                                             {
                                                 key: 'item5',
                                                 name: localization.CohortBanner.duplicateCohort,
-                                                onClick: this.cloneAndOpen.bind(this, index),
+                                                onClick: this.props.cloneAndEdit.bind(this, index),
                                             },
                                         ]
                                     }}
@@ -94,49 +74,9 @@ export class CohortList extends React.PureComponent<ICohortListProps, ICohortLis
                             <Text block variant={"xSmall"} className={classNames.summaryItemText}>{localization.formatString(localization.CohortBanner.filters, cohort.filters.length)}</Text>
                         </div>);
                     })}
-                    <PrimaryButton onClick={this.openDialog.bind(this, undefined)} text={localization.CohortBanner.addCohort} />
+                    <PrimaryButton onClick={this.props.editCohort.bind(this, this.props.cohorts.length)} text={localization.CohortBanner.addCohort} />
                 </div>
-                {cohortForEdit !== undefined && (
-                    <CohortEditor
-                        jointDataset={this.props.jointDataset}
-                        filterList={cohortForEdit.filters}
-                        cohortName={cohortForEdit.name}
-                        onSave={this.updateCohort.bind(this)}
-                        onCancel={this.onCancel.bind(this)}
-                        onDelete={this.onDelete.bind(this)}
-                        isNewCohort={this.state.isNewCohort}
-                    />
-                )}
             </div>
         );
-    }
-
-    private onCancel(): void {
-        this.setState({ cohortIndex: undefined });
-    }
-
-    private updateCohort(newCohort: Cohort): void {
-        this.props.onChange(newCohort, this.state.cohortIndex);
-        this.setState({ cohortIndex: undefined });
-    }
-
-    private onDelete(): void {
-        this.props.onDelete(this.state.cohortIndex)
-        this.setState({ cohortIndex: undefined });
-    }
-
-    private openDialog(cohortIndex?: number): void {
-        if (cohortIndex === undefined) {
-            this.setState({ cohortIndex: this.props.cohorts.length, isNewCohort: true });
-        } else {
-            this.setState({ cohortIndex, isNewCohort: false });
-        }
-    }
-
-    private cloneAndOpen(cohortIndex: number): void {
-        const newCohort = _.cloneDeep(this.props.cohorts[cohortIndex]);
-        newCohort.name += localization.CohortBanner.copy;
-        this.props.onChange(newCohort, this.props.cohorts.length);
-        this.setState({ cohortIndex: this.props.cohorts.length });
     }
 }
