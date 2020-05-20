@@ -81,8 +81,8 @@ enum globalTabKeys {
 
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
     private static iconsInitialized = false;
-    private static ROW_WARNING_SIZE = 100;
-    public static ROW_ERROR_SIZE = 100;
+    private static ROW_WARNING_SIZE = 6000;
+    public static ROW_ERROR_SIZE = 10000;
 
     private static initializeIcons(props: IExplanationDashboardProps): void {
         if (NewExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
@@ -396,6 +396,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
                                     invokeModel={this.state.requestPredictions}
+                                    editCohort={this.openCohort}
                                 />
                             )}
                         </div>
