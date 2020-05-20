@@ -101,13 +101,18 @@ class TestPFIExplainer(object):
             .verify_explain_model_transformations_column_transformer_regression(true_labels_required=True)
 
     def test_missing_true_labels(self):
-        x_train, x_test, y_train, _, _, _ = create_cancer_data()
+        x_train, x_test, y_train, y_test, _, _ = create_cancer_data()
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
-        pfi_explainer = PFIExplainer(model, is_function=True)
+        pfi_explainer = PFIExplainer(model, is_function=False)
         # Validate we throw nice error message to user when missing true_labels parameter
         with pytest.raises(TypeError):
             pfi_explainer.explain_global(x_test)  # pylint: disable=no-value-for-parameter
+        # Validate passing as args works
+        explanation1 = pfi_explainer.explain_global(x_test, y_test)
+        # Validate passing as kwargs works
+        explanation2 = pfi_explainer.explain_global(x_test, true_labels=y_test)
+        assert explanation1.global_importance_values == explanation2.global_importance_values
 
     @property
     def iris_overall_expected_features(self):
