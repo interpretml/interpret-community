@@ -50,11 +50,18 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         JointDataset.TrueYLabel,
         JointDataset.ClassificationError,
         JointDataset.RegressionError,
-        JointDataset.ProbabilityYRoot + "0"
+        JointDataset.ProbabilityYRoot
     ].map(key => {
         const metaVal = this.props.jointDataset.metaDict[key];
-        if (key === JointDataset.DataLabelRoot && this.props.orderedGroupTitles.includes(ColumnCategories.dataset)) {
+        if (key === JointDataset.DataLabelRoot &&
+            this.props.orderedGroupTitles.includes(ColumnCategories.dataset) &&
+            this.props.jointDataset.hasDataset) {
             return {key, title: localization.Columns.dataset};
+        }
+        if (key === JointDataset.ProbabilityYRoot &&
+            this.props.orderedGroupTitles.includes(ColumnCategories.outcome) &&
+            this.props.jointDataset.hasPredictedProbabilities) {
+            return {key, title: localization.Columns.predictedProbabilities};
         }
         if  (metaVal === undefined || !this.props.orderedGroupTitles.includes(metaVal.category)) {
             return undefined;
@@ -68,7 +75,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
             const key = JointDataset.DataLabelRoot + index.toString();
             return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
         });
-
+    private readonly classArray: IComboBoxOption[] = new Array(this.props.jointDataset.predictionClassCount).fill(0)
+        .map((unused, index) => {
+            const key = JointDataset.ProbabilityYRoot + index.toString();
+            return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
+        });
     constructor(props: IAxisConfigProps) {
         super(props);
         this.state = {
@@ -87,6 +98,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     public render(): React.ReactNode {
         const selectedMeta = this.props.jointDataset.metaDict[this.state.selectedColumn.property];
         const isDataColumn = this.state.selectedColumn.property.indexOf(JointDataset.DataLabelRoot) !== -1;
+        const isProbabilityColumn = this.state.selectedColumn.property.indexOf(JointDataset.ProbabilityYRoot) !== -1;
         var minVal, maxVal;
 
         return (
@@ -113,7 +125,9 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         />
                     </div>
                     {this.state.selectedColumn.property === Cohort.CohortKey && (
-                            <div className={styles.rightHalf}>Group by cohort</div>
+                            <div className={styles.rightHalf}>
+                                <Text>{localization.AxisConfigDialog.groupByCohort}</Text>
+                            </div>
                     )}
                     {this.state.selectedColumn.property !== Cohort.CohortKey &&
                     (<div className={styles.rightHalf}>
@@ -122,6 +136,15 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 options={this.dataArray}
                                 onChange={this.setSelectedProperty}
                                 label={localization.AxisConfigDialog.selectFeature}
+                                className={styles.featureComboBox}
+                                selectedKey={this.state.selectedColumn.property}
+                            />
+                        )}
+                        {isProbabilityColumn && (
+                            <ComboBox
+                                options={this.classArray}
+                                onChange={this.setSelectedProperty}
+                                label={localization.AxisConfigDialog.selectClass}
                                 className={styles.featureComboBox}
                                 selectedKey={this.state.selectedColumn.property}
                             />
@@ -189,9 +212,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     }
 
     private extractSelectionKey(key: string): string {
-        let index = key.indexOf(JointDataset.DataLabelRoot);
-        if (index !== -1) {
+        if (key.indexOf(JointDataset.DataLabelRoot) !== -1) {
             return JointDataset.DataLabelRoot;
+        }
+        if (key.indexOf(JointDataset.ProbabilityYRoot) !== -1) {
+            return JointDataset.ProbabilityYRoot;
         }
         return key;
     }
@@ -276,7 +301,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
             return;
         }
         let property = this._leftSelection.getSelection()[0].key as string;
-        if (property === JointDataset.DataLabelRoot) {
+        if (property === JointDataset.DataLabelRoot || property === JointDataset.ProbabilityYRoot) {
             property += "0";
         }
         this.setDefaultStateForKey(property);

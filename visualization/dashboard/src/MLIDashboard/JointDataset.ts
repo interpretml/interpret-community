@@ -70,6 +70,7 @@ export class JointDataset {
     public hasPredictedProbabilities: boolean = false;
     public hasTrueY: boolean = false;
     public datasetFeatureCount: number = 0;
+    public predictionClassCount: number = 0;
     public datasetRowCount: number = 0;
     public localExplanationFeatureCount: number = 0;
 
@@ -187,29 +188,33 @@ export class JointDataset {
             this.hasPredictedY = true;
         }
         if (args.predictedProbabilities) {
-            if (args.metadata.modelType === ModelTypes.binary) {
+            if (args.metadata.modelType !== ModelTypes.regression) {
                 this.initializeDataDictIfNeeded(args.predictedY);
                 args.predictedProbabilities.forEach((predictionArray, index) => {
                     predictionArray.forEach((val, classIndex) => {
                         this.dataDict[index][JointDataset.ProbabilityYRoot + classIndex.toString()] = val;
                     });
                 });
-                const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, args.metadata.classNames[0]) as string;
-                const projection = args.predictedProbabilities.map(row => row[0]);
-                this.metaDict[JointDataset.ProbabilityYRoot + "0"] = {
-                    label,
-                    abbridgedLabel: label,
-                    isCategorical: false,
-                    treatAsCategorical: false,
-                    sortedCategoricalValues: undefined,
-                    category: ColumnCategories.outcome,
-                    featureRange: {
-                        min: Math.min(...projection),
-                        max: Math.max(...projection),
-                        rangeType: RangeTypes.numeric
-                    }
-                };
+                // create metadata for each class
+                args.metadata.classNames.forEach((className, classIndex) => {
+                    const label = localization.formatString(localization.ExplanationScatter.probabilityLabel, className) as string;
+                    const projection = args.predictedProbabilities.map(row => row[classIndex]);
+                    this.metaDict[JointDataset.ProbabilityYRoot + classIndex.toString()] = {
+                        label,
+                        abbridgedLabel: label,
+                        isCategorical: false,
+                        treatAsCategorical: false,
+                        sortedCategoricalValues: undefined,
+                        category: ColumnCategories.outcome,
+                        featureRange: {
+                            min: Math.min(...projection),
+                            max: Math.max(...projection),
+                            rangeType: RangeTypes.numeric
+                        }
+                    };
+                });
                 this.hasPredictedProbabilities = true;
+                this.predictionClassCount = args.metadata.classNames.length;
             }
         }
         if (args.trueY) {
