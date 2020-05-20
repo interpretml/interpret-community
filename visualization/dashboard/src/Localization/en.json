@@ -429,7 +429,7 @@
         "delete":"Delete",
         "cancel":"Cancel",
         "cohortNameError":"Missing cohort name",
-        "_cohortNameError.comment": "error message if  required name is missing",
+        "_cohortNameError.comment": "error message if required name is missing",
         "placeholderName": "Cohort {0}",
         "_placeholderName.comment": "starting name for a new cohort"
     },
