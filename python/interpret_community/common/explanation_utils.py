@@ -369,6 +369,8 @@ def _sort_feature_list_single(features, order):
 
 # returns a list of lists, where each internal list is the feature list sorted according to the order of a single class
 def _sort_feature_list_multiclass(features, order):
+    if hasattr(features, 'tolist'):
+        features = features.tolist()
     return [list(map(lambda x: features[x], order_i)) for order_i in order]
 
 
