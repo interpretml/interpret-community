@@ -1707,31 +1707,52 @@ def save_explanation(explanation):
     :return: JSON-formatted explanation data.
     :rtype: str
     """
-    paramkeys = list(ExplainParams.get_serializable())
-    expldict = dict()
-    _metadata = dict()
-    for paramkey in paramkeys:
-        param = getattr(ExplainParams, paramkey)
-        if hasattr(explanation, param):
-            value = getattr(explanation, param)
+    uploadable_properties = [
+        ExplainParams.FEATURES,
+        ExplainParams.LOCAL_IMPORTANCE_VALUES,
+        ExplainParams.EXPECTED_VALUES,
+        ExplainParams.CLASSES,
+        ExplainParams.GLOBAL_NAMES,
+        ExplainParams.GLOBAL_RANK,
+        ExplainParams.GLOBAL_VALUES,
+        ExplainParams.PER_CLASS_NAMES,
+        ExplainParams.PER_CLASS_RANK,
+        ExplainParams.PER_CLASS_VALUES
+    ]
+    # TODO handle metadata
+    # TODO will need to add viz data on top of this
+    # TODO handle global value back compat in load
+    # paramkeys = list(ExplainParams.get_serializable())
+    # expldict = dict()
+    # _metadata = dict()
+    # for paramkey in paramkeys:
+    for prop in uploadable_properties:
+        # param = getattr(ExplainParams, paramkey)
+        if hasattr(explanation, prop):
+            value = getattr(explanation, prop)
             if isinstance(value, pd.DataFrame):
-                expldict[param] = value.values.tolist()
-                _metadata[param] = 'DataFrame'
+                value = value.values.tolist()
+                metadata = 'DataFrame'
             elif isinstance(value, DatasetWrapper):
-                expldict[param] = value.original_dataset.tolist()
-                _metadata[param] = 'DatasetWrapper'
+                value = value.original_dataset.tolist()
+                metadata = 'DatasetWrapper'
             elif isinstance(value, DenseData):
-                expldict[param] = value.original_dataset.tolist()
-                _metadata[param] = 'DenseData'
+                value = value.original_dataset.tolist()
+                metadata = 'DenseData'
             elif isinstance(value, np.ndarray):
-                expldict[param] = value.tolist()
-                _metadata[param] = 'ndarray'
+                value = value.tolist()
+                metadata = 'ndarray'
+            elif isinstance(value, list):
+                metadata = 'list'
             else:
-                expldict[param] = value
-    return json.dumps({
-        '_metadata': _metadata,
-        'explanation': expldict
-    })
+                metadata = 'other'
+        data_dict = {
+            'metadata': metadata,
+            'data': value
+        }
+        filename = prop + '.json'
+        with open(filename, 'w') as f:
+            json.dump(data_dict, f)
 
 
 def log_explanation(path, explanation):
