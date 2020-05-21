@@ -9,10 +9,10 @@ import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
 import { mergeStyleSets, IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
 import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
-import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Button";
+import { IconButton, Button, DefaultButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { IExplanationModelMetadata } from "../../IExplanationContext";
 import { Transform } from "plotly.js-dist";
-import { ISelectorConfig, IGenericChartProps, ChartTypes } from "../../NewExplanationDashboard";
+import { ISelectorConfig, IGenericChartProps, ChartTypes, NewExplanationDashboard } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { Cohort } from "../../Cohort";
 import { dastasetExplorerTabStyles as datasetExplorerTabStyles, IDatasetExplorerTabStyles } from "./DatasetExplorerTab.styles";
@@ -25,6 +25,7 @@ export interface IDatasetExplorerTabProps {
     metadata: IExplanationModelMetadata;
     cohorts: Cohort[];
     onChange: (props: IGenericChartProps) => void;
+    editCohort: (index: number) => void;
 }
 
 export interface IDatasetExplorerTabState {
@@ -108,6 +109,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
         this.closeCallout = this.closeCallout.bind(this);
+        this.editCohort = this.editCohort.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -132,6 +134,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const cohortOptions: IDropdownOption[] = this.props.chartProps.xAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
         const legend = this.buildColorLegend(classNames);
+        const cohortLength = this.props.cohorts[this.state.selectedCohortIndex].rowCount;
+        const canRenderChart = cohortLength < NewExplanationDashboard.ROW_ERROR_SIZE || this.props.chartProps.chartType !== ChartTypes.Scatter;
         const isHistogram = this.props.chartProps.chartType !== ChartTypes.Scatter && (
             this.props.chartProps.yAxis === undefined ||
             this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical);
@@ -197,10 +201,18 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                 <Text variant="medium" className={classNames.boldText}>{localization.DatasetExplorer.chartType}</Text>
                                 <ChoiceGroup selectedKey={this.props.chartProps.chartType} options={this.chartOptions} onChange={this.onChartTypeChange}/>
                             </Callout>}
-                            <AccessibleChart
+                            {!canRenderChart && (
+                                <div className={classNames.missingParametersPlaceholder}>
+                                    <div className={classNames.missingParametersPlaceholderSpacer}>
+                                        <Text block variant="large" className={classNames.faintText}>{localization.ValidationErrors.datasizeError}</Text>
+                                        <PrimaryButton onClick={this.editCohort}>{localization.ValidationErrors.addFilters}</PrimaryButton>
+                                    </div>
+                                </div>
+                            )}
+                            {canRenderChart && (<AccessibleChart
                                 plotlyProps={plotlyProps}
                                 theme={getTheme() as any}
-                            />
+                            />)}
                         </div>
                         <div className={classNames.horizontalAxisWithPadding}>
                             <div className={classNames.paddingDiv}></div>
@@ -255,6 +267,10 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     </div>
                 </div>
         </div>);
+    }
+
+    private editCohort(): void {
+        this.props.editCohort(this.state.selectedCohortIndex);
     }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
