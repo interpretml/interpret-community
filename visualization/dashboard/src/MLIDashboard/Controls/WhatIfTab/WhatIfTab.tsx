@@ -15,7 +15,7 @@ import { ColumnCategories, JointDataset } from "../../JointDataset";
 import { MultiICEPlot } from "../MultiICEPlot/MultiICEPlot";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { ModelExplanationUtils } from "../../ModelExplanationUtils";
-import { ChartTypes, IGenericChartProps, ISelectorConfig } from "../../NewExplanationDashboard";
+import { ChartTypes, IGenericChartProps, ISelectorConfig, NewExplanationDashboard } from "../../NewExplanationDashboard";
 import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
 import { InteractiveLegend } from "../InteractiveLegend";
@@ -28,6 +28,7 @@ export interface IWhatIfTabProps {
     chartProps: IGenericChartProps;
     onChange: (config: IGenericChartProps) => void;
     invokeModel: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
+    editCohort: (index: number) => void;
 }
 
 export interface IWhatIfTabState {
@@ -246,6 +247,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.props.chartProps,
             this.props.cohorts[this.state.selectedCohortIndex]
         );
+        const cohortLength = this.props.cohorts[this.state.selectedCohortIndex].rowCount;
+        const canRenderChart = cohortLength < NewExplanationDashboard.ROW_ERROR_SIZE || this.props.chartProps.chartType !== ChartTypes.Scatter;
         const rowOptions: IDropdownOption[ ]= this.props.cohorts[this.state.selectedCohortIndex].unwrap(JointDataset.IndexLabel).map(index => {
             return {key: index, text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string};
         });
@@ -392,11 +395,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                     )}
                                 </div>
                             </div>
+                            {!canRenderChart && (
+                                <div className={classNames.missingParametersPlaceholder}>
+                                    <div className={classNames.missingParametersPlaceholderSpacer}>
+                                        <Text block variant="large" className={classNames.faintText}>{localization.ValidationErrors.datasizeError}</Text>
+                                        <PrimaryButton onClick={this.editCohort}>{localization.ValidationErrors.addFilters}</PrimaryButton>
+                                    </div>
+                                </div>
+                            )}
+                            {canRenderChart && (
                             <AccessibleChart
                                 plotlyProps={plotlyProps}
                                 theme={getTheme() as any}
                                 onClickHandler={this.selectPointFromChart}
-                            />
+                            />)}
                         </div>
                         <div className={classNames.horizontalAxisWithPadding}>
                             <div className={classNames.paddingDiv}></div>
@@ -468,6 +480,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             </div>
             </div>
         </div>);
+    }
+
+    private editCohort(): void {
+        this.props.editCohort(this.state.selectedCohortIndex);
     }
 
     private buildSecondaryArea(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {

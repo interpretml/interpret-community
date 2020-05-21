@@ -19,7 +19,8 @@ import { CohortList } from "./Controls/CohortList/CohortList";
 import { explanationDashboardStyles } from "./NewExplanationDashboard.styles";
 import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplorerTab";
 import { ValidateProperties } from "./ValidateProperties";
-import { MessageBar, MessageBarType, Text } from "office-ui-fabric-react";
+import { MessageBar, MessageBarType, Text, Link } from "office-ui-fabric-react";
+import { CohortEditor, ICohort } from "./Controls/CohortEditor/CohortEditor";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -36,6 +37,8 @@ export interface INewExplanationDashboardState {
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
     validationWarnings: string[];
+    showingDatasizeWarning: boolean;
+    editingCohortIndex?: number;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
@@ -78,7 +81,9 @@ enum globalTabKeys {
 
 export class NewExplanationDashboard extends React.PureComponent<IExplanationDashboardProps, INewExplanationDashboardState> {
     private static iconsInitialized = false;
-    
+    private static ROW_WARNING_SIZE = 6000;
+    public static ROW_ERROR_SIZE = 10000;
+
     private static initializeIcons(props: IExplanationDashboardProps): void {
         if (NewExplanationDashboard.iconsInitialized === false && props.shouldInitializeIcons !== false) {
             initializeIcons(props.iconUrl);
@@ -244,7 +249,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             globalImportanceIntercept: globalProps.globalImportanceIntercept,
             globalImportance: globalProps.globalImportance,
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
-            sortVector: undefined
+            sortVector: undefined,
+            showingDatasizeWarning: jointDataset.datasetRowCount > NewExplanationDashboard.ROW_WARNING_SIZE
         };
     }
 
@@ -264,6 +270,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.onCohortChange = this.onCohortChange.bind(this);
         this.deleteCohort = this.deleteCohort.bind(this);
         this.clearWarning = this.clearWarning.bind(this);
+        this.openCohort = this.openCohort.bind(this);
+        this.closeCohortEditor = this.closeCohortEditor.bind(this);
+        this.clearSizeWarning = this.clearSizeWarning.bind(this);
+        this.cloneAndOpenCohort = this.cloneAndOpenCohort.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
@@ -278,8 +288,27 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
     render(): React.ReactNode {
         const cohortIDs = this.state.cohorts.map(cohort => cohort.getCohortID().toString());
         const classNames = explanationDashboardStyles();
+        let cohortForEdit: ICohort;
+        if (this.state.editingCohortIndex !== undefined) {
+            if (this.state.editingCohortIndex === this.state.cohorts.length) {
+                cohortForEdit = {cohortName: localization.formatString(localization.CohortEditor.placeholderName, this.state.editingCohortIndex) as string, filterList: []};
+            } else {
+                cohortForEdit = {cohortName: this.state.cohorts[this.state.editingCohortIndex].name, filterList: [...this.state.cohorts[this.state.editingCohortIndex].filters]}
+            }
+        }
         return (
                 <div className={classNames.page} style={{maxHeight: "1000px"}}>
+                    {this.state.showingDatasizeWarning &&
+                        <MessageBar
+                            onDismiss={this.clearSizeWarning}
+                            dismissButtonAriaLabel="Close"
+                            messageBarType={MessageBarType.warning}
+                        >
+                            <div>
+                                <Text>{localization.ValidationErrors.datasizeWarning}</Text>
+                                <Link onClick={this.openCohort.bind(this, 0)}>{localization.ValidationErrors.addFilters}</Link>
+                            </div>
+                        </MessageBar>}
                     {this.state.validationWarnings.length !== 0 &&
                         <MessageBar
                             onDismiss={this.clearWarning}
@@ -297,9 +326,21 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                         cohorts={this.state.cohorts}
                         jointDataset={this.state.jointDataset}
                         metadata={this.state.modelMetadata}
-                        onChange={this.onCohortChange}
-                        onDelete={this.deleteCohort}
+                        editCohort={this.openCohort}
+                        cloneAndEdit={this.cloneAndOpenCohort}
                     />
+                    {cohortForEdit !== undefined && (
+                        <CohortEditor
+                            jointDataset={this.state.jointDataset}
+                            filterList={cohortForEdit.filterList}
+                            cohortName={cohortForEdit.cohortName}
+                            onSave={this.onCohortChange}
+                            onCancel={this.closeCohortEditor}
+                            onDelete={this.deleteCohort}
+                            isNewCohort={this.state.editingCohortIndex === this.state.cohorts.length}
+                            deleteIsDisabled={this.state.cohorts.length === 1}
+                        />
+                    )}
                         <div className={NewExplanationDashboard.classNames.pivotWrapper}>
                             <Pivot
                                 componentRef={ref => {this.pivotRef = ref;}}
@@ -329,6 +370,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     chartProps={this.state.dataChartConfig}
                                     onChange={this.onConfigChanged}
                                     cohorts={this.state.cohorts}
+                                    editCohort={this.openCohort}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.explanationTab && (
@@ -354,6 +396,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     onChange={this.onWhatIfConfigChanged}
                                     chartProps={this.state.whatIfChartConfig}
                                     invokeModel={this.state.requestPredictions}
+                                    editCohort={this.openCohort}
                                 />
                             )}
                         </div>
@@ -390,19 +433,38 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.setState({sortVector: ModelExplanationUtils.getSortIndices(this.state.cohorts[0].calculateAverageImportance()).reverse()});
     }
 
-    private onCohortChange(newCohort: Cohort, index: number): void {
+    private onCohortChange(newCohort: Cohort): void {
         const prevCohorts = [...this.state.cohorts];
-        prevCohorts[index] = newCohort;
-        this.setState({cohorts: prevCohorts});
+        prevCohorts[this.state.editingCohortIndex] = newCohort;
+        this.setState({cohorts: prevCohorts, editingCohortIndex: undefined});
     }
 
-    private deleteCohort(index: number): void {
+    private deleteCohort(): void {
         const prevCohorts = [...this.state.cohorts];
-        prevCohorts.splice(index, 1);
+        prevCohorts.splice(this.state.editingCohortIndex, 1);
         this.setState({cohorts: prevCohorts});
     }
 
     private clearWarning(): void {
         this.setState({validationWarnings: []})
+    }
+
+    private clearSizeWarning(): void {
+        this.setState({showingDatasizeWarning: false});
+    }
+
+    private openCohort(index: number): void {
+        this.setState({editingCohortIndex: index});
+    }
+
+    private cloneAndOpenCohort(index: number): void {
+        const source = this.state.cohorts[index];
+        const cohorts = [...this.state.cohorts];
+        cohorts.push(new Cohort(source.name + localization.CohortBanner.copy, this.state.jointDataset, [...source.filters]));
+        this.setState({cohorts, editingCohortIndex: this.state.cohorts.length});
+    }
+
+    private closeCohortEditor(): void {
+        this.setState({editingCohortIndex: undefined});
     }
 }
