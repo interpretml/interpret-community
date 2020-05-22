@@ -476,8 +476,9 @@
         "lessThanEquals": " <= {0}",
         "greaterThanEquals": " >= {0}",
         "includes": " includes {0} ",
-        "_includes_comment": "tooltip label for a filter with included values",
+        "_includes.comment": "tooltip label for a filter with included values",
         "inTheRangeOf": "[ {0} ]",
-        "overflowFilterArgs": "{0} and {1} others"
+        "overflowFilterArgs": "{0} and {1} others",
+        "_overflowFilterArgs.comment": "first placeholder is the first one or two items in a long list, the second placeholder is the count of remaining items"
     }
 }
