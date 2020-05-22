@@ -19,6 +19,9 @@ export interface IGlobalTabStyles {
     missingParametersPlaceholder: IStyle;
     missingParametersPlaceholderSpacer: IStyle;
     faintText: IStyle;
+    chartEditorButton: IStyle;
+    callout: IStyle;
+    boldText: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -92,6 +95,22 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         },
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
-        faintText: [FabricStyles.faintText]
+        faintText: [FabricStyles.faintText],
+        chartEditorButton: {
+            color: theme.semanticColors.buttonText,
+            position: "absolute",
+            right: "10px",
+            zIndex: 10
+        },
+        callout: {
+            width: "200px",
+            boxSizing:"border-box",
+            padding: "10px 20px",
+            backgroundColor: theme.semanticColors.bodyBackground
+        },
+        boldText: {
+            fontWeight: "600",
+            paddingBottom: "5px"
+        }
     });
 };

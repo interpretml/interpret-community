@@ -21,7 +21,8 @@ import { GlobalViolinPlot } from "../GlobalViolinPlot";
 import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
-import { Icon, Text } from "office-ui-fabric-react";
+import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup } from "office-ui-fabric-react";
+import { FeatureImportanceBox } from "../FeatureImportanceBox/FeatureImportanceBox";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -52,6 +53,7 @@ export interface IGlobalExplanationtabState {
     seriesIsActive: boolean[];
     selectedCohortIndex: number;
     selectedFeatureIndex?: number;
+    calloutVisible: boolean;
 }
 
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
@@ -59,8 +61,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private activeSeries: IGlobalSeries[];
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
-
-
+    private readonly _chartConfigId = "chart-connfig-button";
 
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
@@ -72,7 +73,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             sortingSeriesIndex: 0,
             sortArray: ModelExplanationUtils.getSortIndices(
                 this.props.cohorts[0].calculateAverageImportance()).reverse(),
-            seriesIsActive: props.cohorts.map(unused => true)
+            seriesIsActive: props.cohorts.map(unused => true),
+            calloutVisible: false
         };
 
         if (!this.props.jointDataset.hasLocalExplanations) {
@@ -88,6 +90,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.setSortIndex = this.setSortIndex.bind(this);
         this.onXSet = this.onXSet.bind(this);
+        this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
+        this.closeCallout = this.closeCallout.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -162,7 +166,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 />
             </div>
             <div className={classNames.globalChartWithLegend}>
-                <FeatureImportanceBar
+                <FeatureImportanceBox
                     jointDataset={this.props.jointDataset}
                     yAxisLabels={[localization.GlobalTab.aggregateFeatureImportance]}
                     sortArray={this.state.sortArray}
@@ -173,6 +177,23 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     onFeatureSelection={this.handleFeatureSelection}
                     selectedFeatureIndex={this.state.selectedFeatureIndex}
                 />
+                <IconButton
+                    className={classNames.chartEditorButton}
+                    onClick={this.toggleCalloutOpen} 
+                    iconProps={{iconName: "AreaChart"}}
+                    id={this._chartConfigId}/>
+                {(this.state.calloutVisible) && <Callout
+                    className={classNames.callout}
+                    gapSpace={0}
+                    target={"#" + this._chartConfigId}
+                    isBeakVisible={false}
+                    onDismiss={this.closeCallout}
+                    directionalHint={ DirectionalHint.bottomRightEdge}
+                    setInitialFocus={true}
+                >
+                    <Text variant="medium" className={classNames.boldText}>{localization.DatasetExplorer.chartType}</Text>
+                    {/* <ChoiceGroup selectedKey={this.props.chartProps.chartType} options={this.chartOptions} onChange={this.onChartTypeChange}/> */}
+                </Callout>}
                 <div className={classNames.legendAndSort}>
                     <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohorts}</Text>
                     <Text variant={"small"} className={classNames.legendHelpText}>{localization.GlobalTab.legendHelpText}</Text>
@@ -251,6 +272,14 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
     private setStartingK(newValue: number): void {
         this.setState({startingK: newValue});
+    }
+
+    private toggleCalloutOpen(): void {
+        this.setState({calloutVisible: !this.state.calloutVisible});
+    }
+
+    private closeCallout(): void {
+        this.setState({calloutVisible: false});
     }
 
     private readonly setNumericValue = (delta: number, max: number, min: number, stringVal: string): string | void => {
