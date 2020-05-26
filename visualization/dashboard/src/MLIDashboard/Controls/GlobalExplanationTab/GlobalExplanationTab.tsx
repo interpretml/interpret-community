@@ -22,7 +22,6 @@ import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
 import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
-import { FeatureImportanceBox } from "../FeatureImportanceBox/FeatureImportanceBox";
 
 export interface IGlobalBarSettings {
     topK: number;
