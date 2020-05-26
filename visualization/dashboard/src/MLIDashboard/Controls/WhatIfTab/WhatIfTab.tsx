@@ -427,8 +427,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                         selectedColumn={this.props.chartProps.xAxis}
-                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                         onAccept={this.onXSet}
                                         onCancel={this.setXOpen.bind(this, false)}
@@ -525,6 +525,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 localization.featureImportance,
                                 localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string
                             ]}
+                            chartType={ChartTypes.Bar}
                             sortArray={this.state.sortArray}
                             startingK={this.state.startingK}
                             unsortedX={this.props.metadata.featureNamesAbridged}
