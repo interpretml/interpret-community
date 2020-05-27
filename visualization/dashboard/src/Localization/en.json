@@ -407,7 +407,9 @@
         "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
         "_disclaimer.comment": "the tool should not be liable for any bad predictions",
         "missingParameters": "This tab requires an evaluation dataset be supplied.",
-        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
+        "_missingParameters.comment": "Show a message if the required dataset parameter is not provided",
+        "selectionLimit": "Maximum of 3 selected points",
+        "_selectionLimit.comment": "A user can only select 3 points from a chart at a time, this message is displayed if they click a 4th"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
