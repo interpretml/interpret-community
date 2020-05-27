@@ -17,6 +17,7 @@ class ExplanationParams(object):
 class ExplainType(object):
     """Provide constants for model and explainer type information, useful for visualization."""
 
+    CAPTUM = 'captum'
     CLASSIFICATION = 'classification'
     DATA = 'data_type'
     EXPLAIN = 'explain_type'
