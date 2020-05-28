@@ -395,6 +395,7 @@ export class JointDataset {
             label: localization.Cohort.cohort,
             abbridgedLabel: localization.Cohort.cohort,
             isCategorical: true,
+            treatAsCategorical: true,
             category: ColumnCategories.cohort
         };
     }
