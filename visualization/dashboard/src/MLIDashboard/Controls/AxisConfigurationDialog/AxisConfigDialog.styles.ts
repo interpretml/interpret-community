@@ -1,7 +1,6 @@
 import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles } from "office-ui-fabric-react";
 
 export interface IAxisControlDialogStyles {
-    axisConfigDialog:IStyle;
     wrapper:IStyle;
     leftHalf:IStyle;
     rightHalf:IStyle;
@@ -12,96 +11,97 @@ export interface IAxisControlDialogStyles {
     filterHeader:IStyle;
     featureComboBox:IStyle;
     treatCategorical:IStyle;
+    statsArea: IStyle;
 }
 
 export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialogStyles> = () => {
     const theme = getTheme();
     return mergeStyleSets<IAxisControlDialogStyles>({
-        axisConfigDialog: {
-            position: 'absolute',
-            overflowY: 'visible',
-            width: '560px',
-            height: '386px',
-            left: '450px',
-            top: '250px',
-            //elevation64 is used for dialogs/panels
-            boxShadow: theme.effects.elevation64,
-            borderRadius: '2px'
-        },
         wrapper: {
-            height: "238px",
-            width: "560px",
+            flex: 1,
+            width: "100%",
             display: "flex",
-            marginTop:"65px"
+            flexDirection: "row",
+            padding: "30px 40px 25px 30px",
+            boxSizing: "border-box"
         },
         leftHalf: {
             width: "213px",
-            height: "238px",
-            marginLeft: "40px",
+            height: "100%"
         },
         rightHalf: {
+            boxSizing: "border-box",
+            marginLeft: "25px",
+            padding: "20px 25px",
             display: "inline-flex",
             width: "255px",
-            height: "238px,",
+            height: "100%",
             flexDirection: "column",
-            background: theme.palette.neutralLight,
-            marginRight: "27px",
-            marginLeft: "25px",
+            background: theme.semanticColors.bodyBackgroundChecked,
             borderRadius: "5px"
         },
         filterHeader: {
             fontWeight: FontWeights.semibold,
             fontSize: FontSizes.medium,
-            color: theme.palette.black
+            color: theme.semanticColors.bodyTextChecked
         },
         detailedList: {
-            marginTop: "28px",
-            height: "160px",
-            width: "197px",
+            height: "100%",
+            width: "100%",
             overflowX: "visible"
         },
         featureText: {
-            width: "180px",
-            height: "20px",
-            marginTop:"1px",
-            marginLeft: "27px",
-            color: theme.palette.neutralSecondaryAlt,
-            textAlign: "left",
+            color: theme.semanticColors.bodySubtext,
         },
         featureComboBox: {
             width: "180px",
             height: "56px",
-            margin: "21px 48px 1px 30px"
+            marginBottom: "10px"
         },
         treatCategorical: {
             width: "180px",
             height: "20px",
-            margin: "9px 45px 1px 30px"
+            marginBottom: "10px"
         },
         spinButton: {
             width:"55px",
             height:"36px",
-            marginLeft:"27px"
         },
         selectButton: {
-            marginTop:"24px",
             marginRight:"27px",
-            marginLeft:"463px",
+            marginBottom: "15px",
             height:"32px",
             width:"70px",
             alignSelf:"flex-end"
+        },
+        statsArea: {
+            display: "flex",
+            padding: "3px 20px 3px 0",
+            justifyContent: "space-between"
         }
-        
     });
 };
 
-const axisControlDialog = axisControlDialogStyles();
 export const axisControlCallout: () => ICalloutContentStyles = () => {
+    const theme = getTheme();
     return {
         container: {},
         root: {},
         beak: {},
         beakCurtain: {},
-        calloutMain: axisControlDialog.axisConfigDialog
+        calloutMain: {
+            position: 'absolute',
+            overflowY: 'visible',
+            width: '560px',
+            height: 'fit-content',
+            minHeight: "340px",
+            left: '450px',
+            top: '250px',
+            //elevation64 is used for dialogs/panels
+            boxShadow: theme.effects.elevation64,
+            borderRadius: '2px',
+            display: "flex",
+            flexDirection: "column"
+        }
     };
 };

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
-import { Text, TextField, TooltipHost, TooltipOverflowMode } from "office-ui-fabric-react";
+import { Text, TextField, TooltipHost, TooltipOverflowMode, IProcessedStyleSet } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Callout } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
@@ -13,7 +13,7 @@ import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { FilterMethods, IFilter } from "../../Interfaces/IFilter";
 import { IJointMeta, JointDataset } from "../../JointDataset";
-import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles } from "./CohortEditor.styles";
+import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles, ICohortEditorStyles } from "./CohortEditor.styles";
 
 export interface ICohort {
     filterList: IFilter[];
@@ -37,10 +37,6 @@ export interface ICohortEditorState {
     filters?: IFilter[];
     cohortName: string;
 }
-
-const styles = cohortEditorStyles();
-const cohortEditor = cohortEditorCallout();
-const tooltip = tooltipHostStyles;
 
 export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohortEditorState> {
     private _leftSelection: Selection;
@@ -126,10 +122,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
     }
 
     public render(): React.ReactNode {
+        const styles = cohortEditorStyles();
+        const cohortEditor = cohortEditorCallout();
         const openedFilter = this.state.openedFilter;
         const filterList = this.state.filters.map((filter, index) => {
             return (<div key={index} className={styles.existingFilter}>
-                {this.setFilterLabel(filter)}
+                {this.setFilterLabel(filter, styles)}
                 <IconButton
                     className={styles.filterIcon}
                     iconProps={{ iconName: "Edit" }}
@@ -169,7 +167,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                                 checkButtonAriaLabel="Row checkbox"
                                 checkboxVisibility={CheckboxVisibility.hidden}
-                                onRenderDetailsHeader={this._onRenderDetailsHeader}
+                                onRenderDetailsHeader={this._onRenderDetailsHeader.bind(this, styles)}
                                 selection={this._leftSelection}
                                 selectionPreservedOnEmptyClick={true}
                                 setKey={"set"}
@@ -183,7 +181,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                                 </Text>
                             </div>
                             :
-                            this.buildRightPanel(openedFilter)
+                            this.buildRightPanel(openedFilter, styles)
                         }
                     </div>
                     <div>
@@ -275,7 +273,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         this._leftSelection.setAllSelected(false);
     }
 
-    private readonly _onRenderDetailsHeader = () => {
+    private readonly _onRenderDetailsHeader = (styles: IProcessedStyleSet<ICohortEditorStyles>) => {
         return <div className={styles.filterHeader}>{localization.CohortEditor.selectFilter}</div>
     }
 
@@ -417,8 +415,9 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         return (value % 1) != 0 ? (Math.round(value * 10000) / 10000).toFixed(4) : value
     }
 
-    private setFilterLabel(filter: IFilter): React.ReactNode {
+    private setFilterLabel(filter: IFilter, styles: IProcessedStyleSet<ICohortEditorStyles>): React.ReactNode {
         //TODO: simplify this function
+        const tooltip = tooltipHostStyles;
         const selectedFilter = this.props.jointDataset.metaDict[filter.column];
         let stringArgs;
         let label = "";
@@ -473,7 +472,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
       </TooltipHost>);
     }
 
-    private buildRightPanel(openedFilter): React.ReactNode {
+    private buildRightPanel(openedFilter, styles: IProcessedStyleSet<ICohortEditorStyles>): React.ReactNode {
         const selectedMeta = this.props.jointDataset.metaDict[openedFilter.column];
         const numericDelta = selectedMeta.treatAsCategorical || selectedMeta.featureRange.rangeType === RangeTypes.integer ?
             1 : (selectedMeta.featureRange.max - selectedMeta.featureRange.min) / 10;

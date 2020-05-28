@@ -82,7 +82,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private readonly _colorButtonId = "color-button-id";
     private readonly _chartConfigId = "chart-connfig-button";
     private readonly chartOptions: IChoiceGroupOption[] = [
-        {key: ChartTypes.Bar, text: localization.DatasetExplorer.aggregatePlots},
+        {key: ChartTypes.Histogram, text: localization.DatasetExplorer.aggregatePlots},
         {key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints}
     ];
 
@@ -231,8 +231,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                         selectedColumn={this.props.chartProps.xAxis}
-                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                         onAccept={this.onXSet}
                                         onCancel={this.setXOpen.bind(this, false)}
@@ -446,7 +446,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 }
                 break;
             }
-            case ChartTypes.Bar: {
+            case ChartTypes.Histogram: {
                 cohort.sort(chartProps.yAxis.property);
                 const rawX = cohort.unwrap(chartProps.xAxis.property, true);
                 const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
@@ -529,7 +529,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 }
                 break;
             }
-            case ChartTypes.Bar: {
+            case ChartTypes.Histogram: {
                 hovertemplate += "x: %{text}<br>";
                 hovertemplate += "count: %{y}<br>";
             }
@@ -581,7 +581,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
         const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
-            chartType: ChartTypes.Bar,
+            chartType: ChartTypes.Histogram,
             xAxis: {
                 property: JointDataset.IndexLabel,
                 options: {}

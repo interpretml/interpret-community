@@ -37,6 +37,7 @@ export interface IWhatIfTabState {
     yDialogOpen: boolean;
     selectedWhatIfRootIndex: number;
     editingDataCustomIndex?: number;
+    showSelectionWarning: boolean;
     customPoints: Array<{ [key: string]: any }>;
     selectedCohortIndex: number;
     filteredFeatureList: Array<{ key: string, label: string }>;
@@ -142,7 +143,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             sortArray: [],
             sortingSeriesIndex: undefined,
             secondaryChartChoice: WhatIfTab.featureImportanceKey,
-            selectedFeatureKey: JointDataset.DataLabelRoot + "0"
+            selectedFeatureKey: JointDataset.DataLabelRoot + "0",
+            showSelectionWarning: false
         };
 
         if (props.chartProps === undefined) {
@@ -427,8 +429,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
                                         selectedColumn={this.props.chartProps.xAxis}
-                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                         onAccept={this.onXSet}
                                         onCancel={this.setXOpen.bind(this, false)}
@@ -455,10 +457,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 }
                             })}
                         />}
+                        {this.state.showSelectionWarning &&
+                        <Text variant={"xSmall"} className={classNames.errorText}>{localization.WhatIfTab.selectionLimit}</Text>}
                         {this.selectedFeatureImportance.length === 0 && 
                         <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.WhatIfTab.noneSelectedYet}</Text>}
                         <Text variant={"small"} block className={classNames.legendLabel}>{localization.WhatIfTab.whatIfDatapoints}</Text>
-                        {this.state.customPoints.length > 0 &&
+                        {this.state.customPoints.length > 0 && 
                         <InteractiveLegend
                             items={this.state.customPoints.map((row, rowIndex) => {
                                 return {
@@ -525,6 +529,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 localization.featureImportance,
                                 localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string
                             ]}
+                            chartType={ChartTypes.Bar}
                             sortArray={this.state.sortArray}
                             startingK={this.state.startingK}
                             unsortedX={this.props.metadata.featureNamesAbridged}
@@ -654,7 +659,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        this.setState({ selectedCohortIndex: item.key as number, selectedPointsIndexes: [] });
+        this.setState({ selectedCohortIndex: item.key as number, selectedPointsIndexes: [], showSelectionWarning: false });
     }
 
     private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
@@ -834,6 +839,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         let pointIsActive = [...this.state.pointIsActive];
         if (indexOf === -1) {
             if (this.state.selectedPointsIndexes.length > WhatIfTab.MAX_SELECTION) {
+                this.setState({showSelectionWarning: true});
                 return;
             }
             newSelections.push(index);
@@ -842,7 +848,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             newSelections.splice(indexOf, 1);
             pointIsActive.splice(indexOf, 1);
         }
-        this.setState({ selectedPointsIndexes: newSelections, pointIsActive });
+        this.setState({ selectedPointsIndexes: newSelections, pointIsActive, showSelectionWarning: false });
     }
 
     // fetch prediction for temporary point

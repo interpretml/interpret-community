@@ -150,11 +150,17 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
         callout: {
             width: "200px",
             boxSizing:"border-box",
+            display: "flex",
+            flexDirection: "column",
             padding: "10px 20px",
             backgroundColor: theme.semanticColors.bodyBackground
         },
         chartEditorButton: {
             color: theme.semanticColors.buttonText,
+            backgroundColor: theme.semanticColors.buttonBackground,
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: theme.semanticColors.buttonBorder,
             position: "absolute",
             right: "10px",
             zIndex: 10

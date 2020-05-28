@@ -19,6 +19,9 @@ export interface IGlobalTabStyles {
     missingParametersPlaceholder: IStyle;
     missingParametersPlaceholderSpacer: IStyle;
     faintText: IStyle;
+    chartEditorButton: IStyle;
+    callout: IStyle;
+    boldText: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -71,7 +74,8 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
             height: "400px",
             width: "100%",
             display: "flex",
-            flexDirection: "row"
+            flexDirection: "row",
+            position: "relative"
         },
         secondaryChartAndLegend: {
             height: "300px",
@@ -92,6 +96,28 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         },
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
-        faintText: [FabricStyles.faintText]
+        faintText: [FabricStyles.faintText],
+        chartEditorButton: {
+            color: theme.semanticColors.buttonText,
+            backgroundColor: theme.semanticColors.buttonBackground,
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: theme.semanticColors.buttonBorder,
+            position: "absolute",
+            right: "210px",
+            zIndex: 10
+        },
+        callout: {
+            width: "200px",
+            boxSizing:"border-box",
+            display: "flex",
+            flexDirection: "column",
+            padding: "10px 20px",
+            backgroundColor: theme.semanticColors.bodyBackground
+        },
+        boldText: {
+            fontWeight: "600",
+            paddingBottom: "5px"
+        }
     });
 };

@@ -233,7 +233,8 @@
         "trueNegative": "True negative",
         "falsePositive": "False positive",
         "falseNegative": "False negative",
-        "dataset": "Dataset"
+        "dataset": "Dataset",
+        "predictedProbabilities": "Prediction probabilities"
     },
     "WhatIf": {
         "closeAriaLabel": "Close",
@@ -406,7 +407,9 @@
         "disclaimer": "Disclaimer: These are explanations based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
         "_disclaimer.comment": "the tool should not be liable for any bad predictions",
         "missingParameters": "This tab requires an evaluation dataset be supplied.",
-        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
+        "_missingParameters.comment": "Show a message if the required dataset parameter is not provided",
+        "selectionLimit": "Maximum of 3 selected points",
+        "_selectionLimit.comment": "A user can only select 3 points from a chart at a time, this message is displayed if they click a 4th"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
@@ -447,7 +450,11 @@
         "TreatAsCategorical": "Treat as categorical",
         "_TreatAsCategorical.comment": "a checkbox label to treat integers as categories instead of as numbers",
         "numOfBins":"Number of bins",
-        "_numberOfBins.comment": "the number of groups (bins) to place all values into"
+        "_numberOfBins.comment": "the number of groups (bins) to place all values into",
+        "groupByCohort": "Group by cohort",
+        "_groupByCohort.comment": "if user selects to group by cohort, no further parameters to set, just show a message to fill space",
+        "selectClass": "Select class",
+        "_selectClass.comment": "label for dropdown listing all classes"
     },
     "ValidationErrors": {
         "predictedProbability": "Predicted probability",
@@ -471,8 +478,9 @@
         "lessThanEquals": " <= {0}",
         "greaterThanEquals": " >= {0}",
         "includes": " includes {0} ",
-        "_includes_comment": "tooltip label for a filter with included values",
+        "_includes.comment": "tooltip label for a filter with included values",
         "inTheRangeOf": "[ {0} ]",
-        "overflowFilterArgs": "{0} and {1} others"
+        "overflowFilterArgs": "{0} and {1} others",
+        "_overflowFilterArgs.comment": "first placeholder is the first one or two items in a long list, the second placeholder is the count of remaining items"
     }
 }

@@ -50,8 +50,9 @@ interface IGlobalExplanationProps {
 
 export enum ChartTypes {
     Scatter = "scatter",
-    Bar = "histogram",
-    Box = "box"
+    Histogram = "histogram",
+    Box = "box",
+    Bar = "bar"
 }
 
 export interface IGenericChartProps {

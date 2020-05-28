@@ -15,9 +15,11 @@ import { JointDataset } from "../../JointDataset";
 import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
 import { featureImportanceBarStyles } from "./FeatureImportanceBar.styles";
 import { Text } from "office-ui-fabric-react";
+import { ChartTypes } from "../../NewExplanationDashboard";
 
 export interface IFeatureBarProps {
     jointDataset: JointDataset;
+    chartType: ChartTypes;
     yAxisLabels: string[];
     sortArray: number[];
     selectedFeatureIndex?: number;
@@ -44,7 +46,7 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
     }
 
     public componentDidUpdate(prevProps: IFeatureBarProps) {
-        if (this.props.unsortedSeries !== prevProps.unsortedSeries || this.props.sortArray !== prevProps.sortArray) {
+        if (this.props.unsortedSeries !== prevProps.unsortedSeries || this.props.sortArray !== prevProps.sortArray || this.props.chartType !== prevProps.chartType) {
             this.setState({plotlyProps: undefined});
         }
     }
@@ -97,7 +99,6 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             layout: {
                 autosize: true,
                 dragmode: false,
-                barmode: 'group',
                 margin: {t: 10, r: 10, b: 30, l: 0},
                 hovermode: 'closest',
                 xaxis: {
@@ -126,22 +127,53 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             } as any
         };
 
-        const x = sortedIndexVector.map((unused, index) => index);
+        if (this.props.chartType === ChartTypes.Bar) {
+            baseSeries.layout.barmode = 'group';
+            const x = sortedIndexVector.map((unused, index) => index);
 
-        this.props.unsortedSeries.forEach((series, seriesIndex) => {
-            baseSeries.data.push({
-                orientation: 'v',
-                type: 'bar',
-                name: series.name,
-                x,
-                y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
-                marker: {
-                    color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
-                        FabricStyles.fabricColorPalette[series.colorIndex] : FabricStyles.fabricColorPalette[series.colorIndex])
-                }
-            } as any);
-            
-        });
+            this.props.unsortedSeries.forEach((series, seriesIndex) => {
+                baseSeries.data.push({
+                    orientation: 'v',
+                    type: 'bar',
+                    name: series.name,
+                    x,
+                    y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
+                    marker: {
+                        color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
+                            FabricStyles.fabricColorPalette[series.colorIndex] : FabricStyles.fabricColorPalette[series.colorIndex])
+                    }
+                } as any);
+                
+            });
+        } else if (this.props.chartType === ChartTypes.Box) {
+            baseSeries.layout.boxmode = 'group';
+            const x = new Array(this.props.jointDataset.datasetFeatureCount).fill(0).map((unused, index) => new Array(this.props.jointDataset.datasetRowCount).fill(index)).reduce((prev, curr) => {
+                prev.push(...curr);
+                return prev;
+            }, []);
+            this.props.unsortedSeries.forEach((series, seriesIndex) => {
+                baseSeries.data.push({
+                    type: 'box',
+                    boxmean: true,
+                    name: series.name,
+                    x: sortedIndexVector.map((sortIndex, xIndex) => series.unsortedIndividualY[sortIndex].map(unused => xIndex)).reduce((prev, curr) => {
+                        prev.push(...curr);
+                        return prev;
+                    }, []),
+                    y: sortedIndexVector.map(index => series.unsortedIndividualY[index]).reduce((prev, curr) => {
+                        prev.push(...curr);
+                        return prev;
+                    }, []),
+                    marker: {
+                        color: FabricStyles.fabricColorPalette[series.colorIndex]
+                    }
+                } as any);
+                
+            });
+        }
+
+
+        
 
         const ticktext = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         const tickvals = sortedIndexVector.map((val, index) => index);
