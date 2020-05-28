@@ -100,7 +100,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             <div className={classNames.rotatedVerticalBox}>
                                 <div>
                                     <Text block variant="mediumPlus" className={classNames.boldText}>{
-                                        this.props.chartProps.chartType === ChartTypes.Bar ?
+                                        this.props.chartProps.chartType === ChartTypes.Histogram ?
                                         localization.Charts.numberOfDatapoints : localization.Charts.yValue}</Text>
                                     <DefaultButton 
                                         onClick={this.setYOpen.bind(this, true)}
@@ -114,8 +114,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.cohort, ColumnCategories.dataset]}
                                         selectedColumn={this.props.chartProps.yAxis}
-                                        canBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
-                                        mustBin={this.props.chartProps.chartType === ChartTypes.Bar || this.props.chartProps.chartType === ChartTypes.Box}
+                                        canBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
+                                        mustBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                         onAccept={this.onYSet}
                                         onCancel={this.setYOpen.bind(this, false)}
@@ -208,7 +208,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
     private onXSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.xAxis = value;
-        newProps.chartType = this.props.jointDataset.metaDict[value.property].treatAsCategorical ? ChartTypes.Bar : ChartTypes.Box;
+        newProps.chartType = this.props.jointDataset.metaDict[value.property].treatAsCategorical ? ChartTypes.Histogram : ChartTypes.Box;
 
         this.props.onChange(newProps);
         this.setState({xDialogOpen: false})
@@ -237,7 +237,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         } // not handling multiclass at this time
 
         const chartProps: IGenericChartProps = {
-            chartType: this.props.jointDataset.metaDict[bestModelMetricKey].isCategorical ? ChartTypes.Bar : ChartTypes.Box,
+            chartType: this.props.jointDataset.metaDict[bestModelMetricKey].isCategorical ? ChartTypes.Histogram : ChartTypes.Box,
             yAxis: {
                 property: Cohort.CohortKey,
                 options: {}
@@ -301,7 +301,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             yLabels = [];
             yLabelIndexes = [];
             cohorts.forEach((cohort, cohortIndex) => {
-                const cohortXs = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Bar);
+                const cohortXs = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
                 const cohortY = new Array(cohortXs.length).fill(cohortIndex);
                 rawX.push(...cohortXs);
                 rawY.push(...cohortY);
@@ -311,7 +311,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         } else {
             const cohort = cohorts[selectedCohortIndex];
             rawY = cohort.unwrap(chartProps.yAxis.property, true);
-            rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Bar);
+            rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
             yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
             yLabelIndexes = yLabels.map((unused, index) => index);
         }
@@ -340,7 +340,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
                 break;
             }
-            case ChartTypes.Bar: {
+            case ChartTypes.Histogram: {
                 // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
                 // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
                 // We also use the selected Y property as the series prop, since all histograms will just be a count.

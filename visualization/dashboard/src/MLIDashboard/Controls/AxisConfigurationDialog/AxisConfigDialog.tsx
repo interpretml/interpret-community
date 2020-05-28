@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { RangeTypes } from "mlchartlib";
-import { Text } from "office-ui-fabric-react";
+import { Text, IProcessedStyleSet } from "office-ui-fabric-react";
 import { PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Callout, Target, DirectionalHint } from "office-ui-fabric-react/lib/Callout";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
@@ -13,9 +13,7 @@ import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { ColumnCategories, IJointMeta, JointDataset } from "../../JointDataset";
 import { ISelectorConfig } from "../../NewExplanationDashboard";
-import { axisControlCallout, axisControlDialogStyles } from "./AxisConfigDialog.styles";
-
-const styles = axisControlDialogStyles();
+import { axisControlCallout, axisControlDialogStyles, IAxisControlDialogStyles } from "./AxisConfigDialog.styles";
 
 export interface IAxisConfigProps {
     jointDataset: JointDataset;
@@ -50,11 +48,18 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         JointDataset.TrueYLabel,
         JointDataset.ClassificationError,
         JointDataset.RegressionError,
-        JointDataset.ProbabilityYRoot + "0"
+        JointDataset.ProbabilityYRoot
     ].map(key => {
         const metaVal = this.props.jointDataset.metaDict[key];
-        if (key === JointDataset.DataLabelRoot && this.props.orderedGroupTitles.includes(ColumnCategories.dataset)) {
+        if (key === JointDataset.DataLabelRoot &&
+            this.props.orderedGroupTitles.includes(ColumnCategories.dataset) &&
+            this.props.jointDataset.hasDataset) {
             return {key, title: localization.Columns.dataset};
+        }
+        if (key === JointDataset.ProbabilityYRoot &&
+            this.props.orderedGroupTitles.includes(ColumnCategories.outcome) &&
+            this.props.jointDataset.hasPredictedProbabilities) {
+            return {key, title: localization.Columns.predictedProbabilities};
         }
         if  (metaVal === undefined || !this.props.orderedGroupTitles.includes(metaVal.category)) {
             return undefined;
@@ -68,7 +73,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
             const key = JointDataset.DataLabelRoot + index.toString();
             return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
         });
-
+    private readonly classArray: IComboBoxOption[] = new Array(this.props.jointDataset.predictionClassCount).fill(0)
+        .map((unused, index) => {
+            const key = JointDataset.ProbabilityYRoot + index.toString();
+            return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
+        });
     constructor(props: IAxisConfigProps) {
         super(props);
         this.state = {
@@ -85,16 +94,19 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     }
 
     public render(): React.ReactNode {
+        const styles = axisControlDialogStyles();
         const selectedMeta = this.props.jointDataset.metaDict[this.state.selectedColumn.property];
         const isDataColumn = this.state.selectedColumn.property.indexOf(JointDataset.DataLabelRoot) !== -1;
-        var minVal, maxVal;
+        const isProbabilityColumn = this.state.selectedColumn.property.indexOf(JointDataset.ProbabilityYRoot) !== -1;
+        const minVal = selectedMeta.treatAsCategorical ? 0 : Number.isInteger(selectedMeta.featureRange.min) ? selectedMeta.featureRange.min : (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4);
+        const maxVal = selectedMeta.treatAsCategorical ? 0 : Number.isInteger(selectedMeta.featureRange.max) ? selectedMeta.featureRange.max : (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4);
 
         return (
             <Callout
                 onDismiss={this.props.onCancel}
                 setInitialFocus={true}
                 hidden={false}
-                styles = {axisControlCallout}
+                styles = {axisControlCallout()}
             >
                 <div className={styles.wrapper}>
                     <div className={styles.leftHalf}>
@@ -104,7 +116,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                             ariaLabelForSelectionColumn="Toggle selection"
                             ariaLabelForSelectAllCheckbox="Toggle selection for all items"
                             checkButtonAriaLabel="Row checkbox"
-                            onRenderDetailsHeader={this._onRenderDetailsHeader}
+                            onRenderDetailsHeader={this._onRenderDetailsHeader.bind(this, styles)}
                             checkboxVisibility={CheckboxVisibility.hidden}
                             selection={this._leftSelection}
                             selectionPreservedOnEmptyClick={true}
@@ -113,7 +125,9 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         />
                     </div>
                     {this.state.selectedColumn.property === Cohort.CohortKey && (
-                            <div className={styles.rightHalf}>Group by cohort</div>
+                            <div className={styles.rightHalf}>
+                                <Text>{localization.AxisConfigDialog.groupByCohort}</Text>
+                            </div>
                     )}
                     {this.state.selectedColumn.property !== Cohort.CohortKey &&
                     (<div className={styles.rightHalf}>
@@ -122,6 +136,15 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 options={this.dataArray}
                                 onChange={this.setSelectedProperty}
                                 label={localization.AxisConfigDialog.selectFeature}
+                                className={styles.featureComboBox}
+                                selectedKey={this.state.selectedColumn.property}
+                            />
+                        )}
+                        {isProbabilityColumn && (
+                            <ComboBox
+                                options={this.classArray}
+                                onChange={this.setSelectedProperty}
+                                label={localization.AxisConfigDialog.selectClass}
                                 className={styles.featureComboBox}
                                 selectedKey={this.state.selectedColumn.property}
                             />
@@ -149,11 +172,10 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         )}
                         {!selectedMeta.treatAsCategorical && (
                             <div>
-                                <Text variant={"small"} className={styles.featureText} nowrap block>
-                                    { minVal = (selectedMeta.featureRange.min % 1) != 0 ? (Math.round(selectedMeta.featureRange.min * 10000) / 10000).toFixed(4): selectedMeta.featureRange.min }
-                                    { maxVal = (selectedMeta.featureRange.max % 1) != 0 ? (Math.round(selectedMeta.featureRange.max * 10000) / 10000).toFixed(4): selectedMeta.featureRange.max }
-                                    {`${localization.formatString(localization.Filters.min,minVal)}${localization.formatString(localization.Filters.max,maxVal)}`}
-                               </Text>
+                                <div className={styles.statsArea}>
+                                    <Text variant={"small"} className={styles.featureText} nowrap block>{localization.formatString(localization.Filters.min,minVal)}</Text>
+                                    <Text variant={"small"} className={styles.featureText} nowrap block>{localization.formatString(localization.Filters.max,maxVal)}</Text>
+                                </div>
                                 {this.props.canBin && !this.props.mustBin && (
                                     <Checkbox
                                         label={localization.AxisConfigDialog.binLabel}
@@ -189,9 +211,11 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     }
 
     private extractSelectionKey(key: string): string {
-        let index = key.indexOf(JointDataset.DataLabelRoot);
-        if (index !== -1) {
+        if (key.indexOf(JointDataset.DataLabelRoot) !== -1) {
             return JointDataset.DataLabelRoot;
+        }
+        if (key.indexOf(JointDataset.ProbabilityYRoot) !== -1) {
+            return JointDataset.ProbabilityYRoot;
         }
         return key;
     }
@@ -228,7 +252,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         this.props.onAccept(this.state.selectedColumn);
     }
 
-    private readonly _onRenderDetailsHeader = () => {
+    private readonly _onRenderDetailsHeader = (styles: IProcessedStyleSet<IAxisControlDialogStyles>) => {
         return <div className={styles.filterHeader}>{localization.AxisConfigDialog.selectFilter}</div>
     }
 
@@ -276,7 +300,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
             return;
         }
         let property = this._leftSelection.getSelection()[0].key as string;
-        if (property === JointDataset.DataLabelRoot) {
+        if (property === JointDataset.DataLabelRoot || property === JointDataset.ProbabilityYRoot) {
             property += "0";
         }
         this.setDefaultStateForKey(property);

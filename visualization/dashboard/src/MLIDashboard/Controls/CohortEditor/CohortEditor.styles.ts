@@ -35,9 +35,9 @@ export interface ICohortEditorStyles {
     saveAndDeleteDiv: IStyle;
 }
 
-const theme = getTheme();
 
 export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> = () => {
+    const theme = getTheme();
     return mergeStyleSets<ICohortEditorStyles>({
         cohortEditor: {
             overflowY: 'visible',
@@ -62,7 +62,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             width: "255px",
             height: "344px,",
             flexDirection: "column",
-            background: theme.palette.neutralLight,
+            background: theme.semanticColors.bodyBackgroundChecked,
             marginRight: "27px",
             marginLeft: "25px",
             marginTop: "0px",
@@ -77,14 +77,14 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         filterHeader: {
             fontWeight: FontWeights.semibold,
             fontSize: FontSizes.medium,
-            color: theme.palette.black
+            color: theme.semanticColors.bodyTextChecked
         },
         addFilterButton: {
             width: "98px",
             height: "32px",
             marginLeft: "32px",
             marginTop: "53px",
-            background: theme.palette.white,
+            backgroundColor: theme.semanticColors.buttonBackground,
             border: "1px solid",
             borderColor: theme.semanticColors.buttonBorder,
             boxSizing: "border-box",
@@ -132,7 +132,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             width: "180px",
             height: "20px",
             marginLeft: "30px",
-            color: theme.palette.neutralSecondaryAlt,
+            color: theme.semanticColors.bodySubtext,
             textAlign: "left",
         },
         treatCategorical: {
@@ -145,11 +145,11 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             marginRight: "35px",
             marginLeft: "35px",
             textAlign: "center",
-            color: theme.palette.neutralSecondaryAlt
+            color: theme.semanticColors.bodySubtext
         },
         existingFilter: {
             border: '1px solid',
-            borderColor: theme.palette.themePrimary,
+            borderColor: theme.semanticColors.link,
             boxSizing: 'border-box',
             borderRadius: '3px',
             display: 'inline-flex',
@@ -160,14 +160,14 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             padding: "1px 9px 6px 11px",
             minWidth: "75px",
             maxWidth: "90px",
-            color: theme.palette.themePrimary,
+            color: theme.semanticColors.link,
             height: "25px",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis"
         },
         defaultFilterList: {
-            color: theme.palette.neutralSecondaryAlt,
+            color: theme.semanticColors.bodySubtext,
             marginLeft: "10px"
         },
         container: {
@@ -180,7 +180,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         addedFilter:
         {
             fontWeight: FontWeights.semibold,
-            color: theme.palette.black,
+            color: theme.semanticColors.bodyText,
             marginLeft: "45px",
             height: "30px",
             width: "178px"
@@ -252,10 +252,10 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             width: "40px",
             marginRight: "1px",
             alignSelf: "flex-end",
-            color: theme.palette.black,
+            color: theme.semanticColors.buttonText,
             selectors: {
                 ':hover': {
-                    color: theme.palette.black
+                    color: theme.semanticColors.buttonTextHovered
                 }
             }
         }

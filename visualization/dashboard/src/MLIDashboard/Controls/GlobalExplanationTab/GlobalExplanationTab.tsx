@@ -21,7 +21,7 @@ import { GlobalViolinPlot } from "../GlobalViolinPlot";
 import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
-import { Icon, Text } from "office-ui-fabric-react";
+import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -52,15 +52,20 @@ export interface IGlobalExplanationtabState {
     seriesIsActive: boolean[];
     selectedCohortIndex: number;
     selectedFeatureIndex?: number;
+    calloutVisible: boolean;
+    chartType: ChartTypes;
 }
 
 export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanationTabProps, IGlobalExplanationtabState> {
     private cohortSeries: IGlobalSeries[];
     private activeSeries: IGlobalSeries[];
+    private chartOptions: IChoiceGroupOption[] = [
+        {key: ChartTypes.Bar, text: localization.FeatureImportanceWrapper.barText},
+        {key: ChartTypes.Box, text: localization.FeatureImportanceWrapper.boxText}
+    ];
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
-
-
+    private readonly _chartConfigId = "chart-connfig-button";
 
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
@@ -72,7 +77,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             sortingSeriesIndex: 0,
             sortArray: ModelExplanationUtils.getSortIndices(
                 this.props.cohorts[0].calculateAverageImportance()).reverse(),
-            seriesIsActive: props.cohorts.map(unused => true)
+            seriesIsActive: props.cohorts.map(unused => true),
+            calloutVisible: false,
+            chartType: ChartTypes.Bar
         };
 
         if (!this.props.jointDataset.hasLocalExplanations) {
@@ -88,6 +95,9 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setSelectedCohort = this.setSelectedCohort.bind(this);
         this.setSortIndex = this.setSortIndex.bind(this);
         this.onXSet = this.onXSet.bind(this);
+        this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
+        this.closeCallout = this.closeCallout.bind(this);
+        this.onChartTypeChange = this.onChartTypeChange.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -126,29 +136,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 <Text variant="medium" className={classNames.helperText}>{localization.GlobalTab.helperText}</Text>
             </div>
             <div className={classNames.globalChartControls}>
-                {/* <SpinButton
-                    className={classNames.topK}
-                    styles={{
-                        spinButtonWrapper: {maxWidth: "150px"},
-                        labelWrapper: { alignSelf: "center"},
-                        root: {
-                            display: "inline-flex",
-                            float: "right",
-                            selectors: {
-                                "> div": {
-                                    maxWidth: "160px"
-                                }
-                            }
-                        }
-                    }}
-                    label={localization.AggregateImportance.topKFeatures}
-                    min={this.minK}
-                    max={this.maxK}
-                    value={this.state.topK.toString()}
-                    onIncrement={this.setNumericValue.bind(this, 1, this.maxK, this.minK)}
-                    onDecrement={this.setNumericValue.bind(this, -1, this.maxK, this.minK)}
-                    onValidate={this.setNumericValue.bind(this, 0, this.maxK, this.minK)}
-                /> */}
                 <Text variant="medium" className={classNames.sliderLabel}>{localization.formatString(localization.GlobalTab.topAtoB, this.state.startingK + 1, this.state.startingK + this.state.topK)}</Text>
                 <Slider
                     className={classNames.startingK}
@@ -166,13 +153,53 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     jointDataset={this.props.jointDataset}
                     yAxisLabels={[localization.GlobalTab.aggregateFeatureImportance]}
                     sortArray={this.state.sortArray}
+                    chartType={this.state.chartType}
                     startingK={this.state.startingK}
                     unsortedX={this.props.metadata.featureNamesAbridged}
                     unsortedSeries={this.activeSeries}
-                    topK={this.props.globalBarSettings.topK}
+                    topK={this.state.topK}
                     onFeatureSelection={this.handleFeatureSelection}
                     selectedFeatureIndex={this.state.selectedFeatureIndex}
                 />
+                <IconButton
+                    className={classNames.chartEditorButton}
+                    onClick={this.toggleCalloutOpen} 
+                    iconProps={{iconName: "AreaChart"}}
+                    id={this._chartConfigId}/>
+                {(this.state.calloutVisible) && <Callout
+                    className={classNames.callout}
+                    gapSpace={0}
+                    target={"#" + this._chartConfigId}
+                    isBeakVisible={false}
+                    onDismiss={this.closeCallout}
+                    directionalHint={ DirectionalHint.bottomRightEdge}
+                    setInitialFocus={true}
+                >
+                    <Text variant="medium" className={classNames.boldText}>{localization.DatasetExplorer.chartType}</Text>
+                    <ChoiceGroup selectedKey={this.state.chartType} options={this.chartOptions} onChange={this.onChartTypeChange}/>
+                    <SpinButton
+                        className={classNames.topK}
+                        styles={{
+                            spinButtonWrapper: {maxWidth: "100px"},
+                            labelWrapper: { alignSelf: "center"},
+                            root: {
+                                float: "right",
+                                selectors: {
+                                    "> div": {
+                                        maxWidth: "110px"
+                                    }
+                                }
+                            }
+                        }}
+                        label={localization.AggregateImportance.topKFeatures}
+                        min={this.minK}
+                        max={this.maxK}
+                        value={this.state.topK.toString()}
+                        onIncrement={this.setNumericValue.bind(this, 1, this.maxK, this.minK)}
+                        onDecrement={this.setNumericValue.bind(this, -1, this.maxK, this.minK)}
+                        onValidate={this.setNumericValue.bind(this, 0, this.maxK, this.minK)}
+                    />
+                </Callout>}
                 <div className={classNames.legendAndSort}>
                     <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohorts}</Text>
                     <Text variant={"small"} className={classNames.legendHelpText}>{localization.GlobalTab.legendHelpText}</Text>
@@ -212,19 +239,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         selectedKey={this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined}
                         onChange={this.onXSet}
                     />)}
-                    {/* {(this.state.xDialogOpen) && (
-                        <AxisConfigDialog 
-                            jointDataset={this.props.jointDataset}
-                            orderedGroupTitles={[ColumnCategories.dataset]}
-                            selectedColumn={this.props.chartProps.xAxis}
-                            canBin={false}
-                            mustBin={false}
-                            canDither={true}
-                            onAccept={this.onXSet}
-                            onCancel={this.setXOpen.bind(this, false)}
-                            target={this._xButtonId}
-                        />
-                    )} */}
                     <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohortSelector}</Text>
                     {cohortOptions && (<Dropdown 
                         styles={{ dropdown: { width: 150 } }}
@@ -234,14 +248,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     />)}
                 </div>
             </div>
-            {/* {this.state.secondChart === 'swarm' && (<GlobalViolinPlot
-                jointDataset={this.props.jointDataset}
-                metadata={this.props.metadata}
-                cohort={this.props.cohorts[this.state.selectedCohortIndex]}
-                topK={this.props.globalBarSettings.topK}
-                startingK={this.state.startingK}
-                sortVector={this.state.sortArray}
-            />)} */}
         </div>);
     }
 
@@ -253,21 +259,37 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setState({startingK: newValue});
     }
 
+    private setTopK(newValue: number): void {
+        this.setState({topK: newValue});
+    }
+
+    private toggleCalloutOpen(): void {
+        this.setState({calloutVisible: !this.state.calloutVisible});
+    }
+
+    private closeCallout(): void {
+        this.setState({calloutVisible: false});
+    }
+
+    private onChartTypeChange(event: React.SyntheticEvent<HTMLElement>, item: IChoiceGroupOption): void {
+        this.setState({chartType: item.key as ChartTypes})
+    }
+
     private readonly setNumericValue = (delta: number, max: number, min: number, stringVal: string): string | void => {
         if (delta === 0) {
             const number = +stringVal;
             if (!Number.isInteger(number)
                 || number > max || number < min) {
-                return this.state.startingK.toString();
+                return this.state.topK.toString();
             }
-            this.setStartingK(number);
+            this.setTopK(number);
         } else {
-            const prevVal = this.state.startingK;
+            const prevVal = this.state.topK;
             const newVal = prevVal + delta;
             if (newVal > max || newVal < min) {
                 return prevVal.toString();
             }
-            this.setStartingK(newVal);
+            this.setTopK(newVal);
         }
     }
 
@@ -351,6 +373,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             }
         };
         this.props.onDependenceChange(chartProps);
-        this.setState({selectedCohortIndex: cohortIndex});
+        this.setState({selectedCohortIndex: cohortIndex, selectedFeatureIndex: featureIndex});
     }
 }

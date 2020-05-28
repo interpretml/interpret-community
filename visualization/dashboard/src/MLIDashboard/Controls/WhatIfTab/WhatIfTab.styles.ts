@@ -50,6 +50,7 @@ export interface IWhatIfTabStyles {
     iceFeatureSelection: IStyle;
     disclaimerWrapper: IStyle;
     panelPlaceholderWrapper: IStyle;
+    errorText: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -281,6 +282,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         panelPlaceholderWrapper: [FabricStyles.missingParameterPlaceholder, {
             padding: "0 16px",
             boxSizing: "border-box"
-        }]
+        }],
+        errorText: {
+            color: theme.semanticColors.errorText
+        }
     });
 }
