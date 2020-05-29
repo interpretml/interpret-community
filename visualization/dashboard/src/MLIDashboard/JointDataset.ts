@@ -298,6 +298,10 @@ export class JointDataset {
         return {...this.dataDict[index]}
     }
 
+    public unwrap(key: string, binVector?: number[]): any[] {
+        return JointDataset.unwrap(this.dataDict, key, binVector);
+    }
+
     public setTreatAsCategorical(key: string, value: boolean): void {
         const metadata = this.metaDict[key];
         metadata.treatAsCategorical = value;

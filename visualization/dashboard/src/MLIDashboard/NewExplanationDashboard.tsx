@@ -279,7 +279,8 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             localization.setLanguage(this.props.locale);
         }
         this.state = NewExplanationDashboard.buildInitialExplanationContext(_.cloneDeep(props));
-
+        this.validatePredictMethod();
+        
         this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
         this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
         this.pivotItems.push({headerText: localization.aggregateFeatureImportance, itemKey: globalTabKeys.explanationTab});
@@ -403,6 +404,22 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                         </div>
                     </div>
         );
+    }
+
+    private async validatePredictMethod(): Promise<void> {
+        if (this.props.requestPredictions && this.props.testData !== undefined && this.props.testData.length > 0) {
+            try {
+                const abortController = new AbortController();
+                const prediction = await this.props.requestPredictions([this.props.testData[0]], abortController.signal);
+                if (prediction !== undefined) {
+                    this.setState({requestPredictions: this.props.requestPredictions});
+                }
+            } catch {
+
+            }
+
+        }
+
     }
 
     private onConfigChanged(newConfig: IGenericChartProps): void {

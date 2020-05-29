@@ -14,7 +14,7 @@ import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { modelPerformanceTabStyles } from "./ModelPerformanceTab.styles";
 import { Icon, Text } from "office-ui-fabric-react";
 import { FabricStyles } from "../../FabricStyles";
-import { generateBinaryStats, IBinaryStats } from "../../StatisticsUtils";
+import { ILabeledStatistic, generateMetrics } from "../../StatisticsUtils";
 
 export interface IModelPerformanceTabProps {
     chartProps: IGenericChartProps;
@@ -75,7 +75,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             this.props.cohorts,
             this.state.selectedCohortIndex
         );
-        const metricsList = (this.generateMetrics() as IBinaryStats[]).reverse();
+        const metricsList = (this.generateMetrics()).reverse();
         const height = Math.max(400, 160 *  metricsList.length) + "px";
         const cohortOptions: IDropdownOption[] = this.props.chartProps.yAxis.property !== Cohort.CohortKey ?
             this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
@@ -142,11 +142,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     )}
                                     {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.accuracy, stats.accuracy.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.precision, stats.precision.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.recall, stats.recall.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.fpr, stats.falsePositiveRate.toPrecision(3))}</Text>
-                                            <Text block >{localization.formatString(localization.ModelPerformance.fnr, stats.falseNegativeRate.toPrecision(3 ))}</Text>
+                                            {stats.map(labeledStat => {
+                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toPrecision(3))}</Text>;
+                                            })}
                                         </div>)
                                     })}
                                 </div>
@@ -385,31 +383,25 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         return plotlyProps;
     };
 
-    private generateMetrics(): any[] {
-        let yValues: any[];
-        if (this.props.metadata.modelType === ModelTypes.binary) {
-            let binaryOutcomes: number[];
-            if (this.props.chartProps.yAxis.property === Cohort.CohortKey) {
-                return this.props.cohorts.map(cohort => {
-                    binaryOutcomes = cohort.unwrap(JointDataset.ClassificationError);
-                    return generateBinaryStats(binaryOutcomes);
-                })
-            } else {
-                const cohort = this.props.cohorts[this.state.selectedCohortIndex];
-                binaryOutcomes = cohort.unwrap(JointDataset.ClassificationError);
-                yValues = cohort.unwrap(this.props.chartProps.yAxis.property, true);            }
-                const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
-                const treatAsCategorical = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
-                    !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
-                return sortedCategoricalValues.map((label, labelIndex) => {
-                    const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
-                    
-                    const filteredOutcomes = binaryOutcomes.filter((value, index) => {
-                        return yValues[index] === matchingIndex;
-                    });
-                    return generateBinaryStats(filteredOutcomes);
-                })
+    private generateMetrics(): ILabeledStatistic[][] {
+        if (this.props.chartProps.yAxis.property === Cohort.CohortKey) {
+            const indexes = this.props.cohorts.map(cohort => cohort.unwrap(JointDataset.IndexLabel));
+            return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);
+        } else {
+            const cohort = this.props.cohorts[this.state.selectedCohortIndex];
+            const yValues = cohort.unwrap(this.props.chartProps.yAxis.property, true);
+            const indexArray = cohort.unwrap(JointDataset.IndexLabel);
+            const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
+            const treatAsCategorical = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
+                !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
+            const indexes = sortedCategoricalValues.map((label, labelIndex) => {
+                const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
+                
+                return indexArray.filter((unused, index) => {
+                    return yValues[index] === matchingIndex;
+                });
+            });
+            return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);
         }
-        return [];
     }
 }
