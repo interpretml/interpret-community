@@ -7,13 +7,10 @@
 import collections.abc
 import pytest
 import logging
-import json
 import numpy as np
 import pandas as pd
 
 from interpret_community.common.constants import ExplainParams
-from interpret_community.mimic.mimic_explainer import MimicExplainer
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.explanation.explanation import save_explanation, load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
