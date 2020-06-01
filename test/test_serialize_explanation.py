@@ -14,7 +14,7 @@ import pandas as pd
 from interpret_community.common.constants import ExplainParams
 from interpret_community.mimic.mimic_explainer import MimicExplainer
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.explanation.explanation import save_explanation, load_explanation, _save_explanation, _load_explanation
+from interpret_community.explanation.explanation import save_explanation, load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
@@ -35,23 +35,60 @@ def iris_svm_model(iris):
 @pytest.mark.usefixtures('clean_dir')
 class TestSerializeExplanation(object):
 
-    def test_json_serialize_mimic_no_features(self, iris, iris_svm_model):
-        explainer = MimicExplainer(iris_svm_model,
-                                   iris[DatasetConstants.X_TRAIN],
-                                   LGBMExplainableModel,
-                                   max_num_of_augmentations=10,
-                                   classes=iris[DatasetConstants.CLASSES].tolist())
-        explanation = explainer.explain_global()
-        verify_serialization(explanation)
-        verify_serialization_mlflow(explanation)
+    # def test_json_serialize_mimic_no_features(self, iris, iris_svm_model):
+    #     explainer = MimicExplainer(iris_svm_model,
+    #                                iris[DatasetConstants.X_TRAIN],
+    #                                LGBMExplainableModel,
+    #                                max_num_of_augmentations=10,
+    #                                classes=iris[DatasetConstants.CLASSES].tolist())
+    #     explanation = explainer.explain_global()
+    #     verify_serialization(explanation)
+    #     verify_serialization_mlflow(explanation)
 
-    def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
+    # def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
+    #     explainer = tabular_explainer(iris_svm_model,
+    #                                   iris[DatasetConstants.X_TRAIN],
+    #                                   features=iris[DatasetConstants.FEATURES])
+    #     explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
+    #     verify_serialization(explanation)
+    #     verify_serialization_mlflow(explanation)
+
+    def test_save_explanation(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
-        verify_serialization(explanation)
-        verify_serialization_mlflow(explanation)
+        save_explanation(explanation, 'brand/new/path')
+
+    def test_save_and_load_explanation_local_only(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
+        path = 'brand/new/path'
+        save_explanation(explanation, path)
+        loaded_explanation = load_explanation(path)
+        _assert_explanation_equivalence(explanation, loaded_explanation)
+
+    def test_save_and_load_explanation_global_only(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
+        path = 'brand/new/path'
+        save_explanation(explanation, path)
+        loaded_explanation = load_explanation(path)
+        _assert_explanation_equivalence(explanation, loaded_explanation)
+
+    def test_save_and_load_explanation_global_and_local(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
+        path = 'brand/new/path'
+        save_explanation(explanation, path)
+        loaded_explanation = load_explanation(path)
+        _assert_explanation_equivalence(explanation, loaded_explanation)
 
 
 def _assert_explanation_equivalence(actual, expected):
