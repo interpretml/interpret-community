@@ -47,30 +47,21 @@ class TestSerializeExplanation(object):
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
-        path = 'brand/new/path'
-        save_explanation(explanation, path)
-        loaded_explanation = load_explanation(path)
-        _assert_explanation_equivalence(explanation, loaded_explanation)
+        verify_serialization(explanation)
 
     def test_save_and_load_explanation_global_only(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
-        path = 'brand/new/path'
-        save_explanation(explanation, path)
-        loaded_explanation = load_explanation(path)
-        _assert_explanation_equivalence(explanation, loaded_explanation)
+        verify_serialization(explanation)
 
     def test_save_and_load_explanation_global_and_local(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
-        path = 'brand/new/path'
-        save_explanation(explanation, path)
-        loaded_explanation = load_explanation(path)
-        _assert_explanation_equivalence(explanation, loaded_explanation)
+        verify_serialization(explanation)
 
 
 def _assert_explanation_equivalence(actual, expected):
@@ -104,19 +95,7 @@ def _assert_explanation_equivalence(actual, expected):
 # exposed outside this module to allow any test involving an explanation to
 # incorporate serialization testing
 def verify_serialization(explanation):
-    paramkeys = ['MODEL_TYPE', 'MODEL_TASK', 'METHOD', 'FEATURES', 'CLASSES']
-    log_items = dict()
-    for paramkey in paramkeys:
-        param = getattr(ExplainParams, paramkey)
-        value = getattr(explanation, param, None)
-        if value is not None:
-            if isinstance(value, np.ndarray):
-                log_items[param] = value.tolist()
-            else:
-                log_items[param] = value
-    comment = json.dumps(log_items)
-    test_logger.setLevel(logging.INFO)
-    test_logger.info("validating serialization of explanation:\n%s", comment)
-    expljson = save_explanation(explanation)
-    deserialized_explanation = load_explanation(expljson)
-    _assert_explanation_equivalence(deserialized_explanation, explanation)
+    path = 'brand/new/path'
+    save_explanation(explanation, path)
+    loaded_explanation = load_explanation(path)
+    _assert_explanation_equivalence(explanation, loaded_explanation)

@@ -1712,7 +1712,7 @@ def save_explanation(explanation, path, exist_ok=False):
                 value = value.original_dataset.tolist()
                 metadata = 'DatasetWrapper'
             elif isinstance(value, DenseData):
-                value = value.original_dataset.tolist()
+                value = value.data
                 metadata = 'DenseData'
             elif isinstance(value, np.ndarray):
                 value = value.tolist()
@@ -1732,7 +1732,7 @@ def save_explanation(explanation, path, exist_ok=False):
     classification = ClassesMixin._does_quack(explanation)
     is_raw = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_raw
     is_eng = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_engineered
-    feature_quack = FeatureImportanceExplanation._does_quack
+    num_features = 0 if not FeatureImportanceExplanation._does_quack(explanation) else explanation.num_features
     prop_dict = {
         ExplainParams.EXPLANATION_ID: explanation.id,
         ExplainType.MODEL: ExplainType.CLASSIFICATION if classification else ExplainType.REGRESSION,
@@ -1746,7 +1746,7 @@ def save_explanation(explanation, path, exist_ok=False):
         ExplainType.LOCAL: LocalExplanation._does_quack(explanation),
         ExplainParams.NUM_CLASSES: 1 if not ClassesMixin._does_quack(explanation) else explanation.num_classes,
         ExplainParams.NUM_EXAMPLES: 0 if not LocalExplanation._does_quack(explanation) else explanation.num_examples,
-        ExplainParams.NUM_FEATURES: 0 if not feature_quack(explanation) else explanation.num_features,
+        ExplainParams.NUM_FEATURES: num_features,
         'serialization_version': 1,
     }
 
@@ -1762,7 +1762,7 @@ def _get_value_from_file(file_var):
     if meta == 'DataFrame':
         return pd.DataFrame(data)
     elif meta == 'DatasetWrapper' or meta == 'DenseData':
-        return DatasetWrapper(data)
+        return DenseData(data)
     elif meta == 'ndarray':
         return np.array(data)
     elif meta == 'list':
@@ -1816,6 +1816,7 @@ def load_explanation(path):
         metadata = json.load(f)
         is_global = metadata[ExplainType.GLOBAL]
         is_local = metadata[ExplainType.LOCAL]
+
     if is_local and is_global:
         local_kwargs = _get_kwargs(path, shared_params + local_params)
         local_explanation = _create_local_explanation(**local_kwargs)
