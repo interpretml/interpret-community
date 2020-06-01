@@ -10,14 +10,15 @@ import json
 import pandas as pd
 import gc
 import os
-import scipy as sp
+from scipy.sparse import issparse
 
 from abc import ABCMeta, abstractmethod
 
 from shap.common import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
 
-from ..common.explanation_utils import _sort_values, _order_imp
+from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \
+    _sort_feature_list_multiclass
 from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
     ExplainType, ModelTask, Defaults, InterpretData
 from ..dataset.dataset_wrapper import DatasetWrapper
@@ -375,7 +376,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: bool
         """
         local_vals = self._local_importance_values
-        return sp.sparse.issparse(local_vals) or (isinstance(local_vals, list) and sp.sparse.issparse(local_vals[0]))
+        return issparse(local_vals) or (isinstance(local_vals, list) and issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -576,7 +577,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         if not hasattr(explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
             return False
         is_list = isinstance(explanation.local_importance_values, list)
-        is_sparse = sp.sparse.issparse(explanation.local_importance_values)
+        is_sparse = issparse(explanation.local_importance_values)
         if not is_list and not is_sparse:
             return False
         if not hasattr(explanation, ExplainParams.NUM_EXAMPLES):
@@ -662,16 +663,18 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[str] or list[int]
         """
         if self._ranked_global_names is None and self._features is not None:
-            self._ranked_global_names = _sort_values(self._features, self._global_importance_rank)
+            self._ranked_global_names = _sort_feature_list_single(self._features, self._global_importance_rank)
 
         if self._ranked_global_names is not None:
             ranked_global_names = self._ranked_global_names
         else:
             ranked_global_names = self._global_importance_rank
 
+        if hasattr(ranked_global_names, 'tolist'):
+            ranked_global_names = ranked_global_names.tolist()
         if top_k is not None:
-            return ranked_global_names[:top_k].tolist()
-        return ranked_global_names.tolist()
+            ranked_global_names = ranked_global_names[:top_k]
+        return ranked_global_names
 
     def get_ranked_global_values(self, top_k=None):
         """Get global feature importance sorted from highest to lowest.
@@ -682,11 +685,14 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[float]
         """
         if self._ranked_global_values is None:
-            self._ranked_global_values = _sort_values(self._global_importance_values,
-                                                      self._global_importance_rank)
+            self._ranked_global_values = _sort_feature_list_single(self._global_importance_values,
+                                                                   self._global_importance_rank)
+        ranked_global_values = self._ranked_global_values
+        if hasattr(ranked_global_values, 'tolist'):
+            ranked_global_values = ranked_global_values.tolist()
         if top_k is not None:
-            return self._ranked_global_values[:top_k].tolist()
-        return self._ranked_global_values.tolist()
+            ranked_global_values = ranked_global_values[:top_k]
+        return ranked_global_values
 
     def get_raw_explanation(self, feature_maps, raw_feature_names=None):
         """Get raw explanation given input feature maps.
@@ -1071,16 +1077,21 @@ class PerClassMixin(ClassesMixin):
         :rtype: list[list[str]] or list[list[int]]
         """
         if self._ranked_per_class_names is None and self._features is not None:
-            self._ranked_per_class_names = _sort_values(self._features, self._per_class_rank)
+            self._ranked_per_class_names = _sort_feature_list_multiclass(self._features, self._per_class_rank)
 
         if self._ranked_per_class_names is not None:
             ranked_per_class_names = self._ranked_per_class_names
         else:
             ranked_per_class_names = self._per_class_rank
 
-        if top_k is not None:
-            ranked_per_class_names = ranked_per_class_names[:, :top_k]
-        return ranked_per_class_names.tolist()
+        if hasattr(ranked_per_class_names, 'tolist'):
+            if top_k is not None:
+                ranked_per_class_names = ranked_per_class_names[:, :top_k]
+            return ranked_per_class_names.tolist()
+        else:
+            if top_k is not None:
+                ranked_per_class_names = list(map(lambda x: x[:top_k], ranked_per_class_names))
+            return ranked_per_class_names
 
     def get_ranked_per_class_values(self, top_k=None):
         """Get per class feature importance sorted from highest to lowest.
@@ -1583,7 +1594,7 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
         local_importance_values = local_explanation_row._local_importance_values
         # in-place abs
-        if sp.sparse.issparse(local_importance_values):
+        if issparse(local_importance_values):
             local_importance_values = abs(local_importance_values)
         else:
             np.abs(local_importance_values, out=local_importance_values)

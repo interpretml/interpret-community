@@ -5,7 +5,7 @@
 # Common tests for tabular explainers
 from enum import Enum
 import numpy as np
-import scipy as sp
+from scipy.sparse import csr_matrix
 import shap
 import pandas as pd
 import pytest
@@ -487,7 +487,7 @@ class VerifyTabularTests(object):
         if summarize_background:
             _, cols = x_train.shape
             shape = 1, cols
-            background = sp.sparse.csr_matrix(shape, dtype=x_train.dtype)
+            background = csr_matrix(shape, dtype=x_train.dtype)
         else:
             background = x_train
 

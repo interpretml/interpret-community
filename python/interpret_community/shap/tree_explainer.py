@@ -238,6 +238,11 @@ class TreeExplainer(PureStructuredModelExplainer):
             self._logger.debug('Expected values available on explainer')
             expected_values = np.array(self.explainer.expected_value)
         classification = isinstance(shap_values, list)
+        if str(type(self.model)).endswith("XGBClassifier'>") and not classification:
+            # workaround for XGBoost binary classifier output from SHAP
+            classification = True
+            shap_values = np.array((-shap_values, shap_values))
+            expected_values = np.array((-expected_values, expected_values))
         if classification and self._shap_values_output == ShapValuesOutput.PROBABILITY:
             # Re-scale shap values to probabilities for classification case
             shap_values = _scale_tree_shap(shap_values, expected_values,

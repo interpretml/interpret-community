@@ -154,7 +154,6 @@ export class EbmExplanation extends React.PureComponent<IEbmProps, IEbmState> {
                 </div>
                 <AccessibleChart
                     plotlyProps={plotlyProps}
-                    sharedSelectionContext={undefined}
                     theme={this.props.theme}
                 />
             </div>

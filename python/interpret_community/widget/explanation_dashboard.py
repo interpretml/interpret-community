@@ -19,32 +19,32 @@ except ModuleNotFoundError:
     raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
                        "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
-"""Explanation Dashboard Class.
-
-:param explanation: An object that represents an explanation.
-:type explanation: ExplanationMixin
-:param model: An object that represents a model. It is assumed that for the classification case
-    it has a method of predict_proba() returning the prediction probabilities for each
-    class and for the regression case a method of predict() returning the prediction value.
-:type model: object
-:param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
-    used to build the explanation. Overwrites any existing dataset on the explanation object.
-:type dataset: numpy.array or list[][]
-:param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
-    explanation object.
-:type true_y: numpy.array or list[]
-:param classes: The class names.
-:type classes: numpy.array or list[]
-:param features: Feature names.
-:type features: numpy.array or list[]
-:param port: The port to use on locally hosted service.
-:type port: number
-:param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
-:type use_cdn: boolean
-"""
-
 
 class ExplanationDashboard:
+    """Explanation Dashboard Class.
+
+    :param explanation: An object that represents an explanation.
+    :type explanation: ExplanationMixin
+    :param model: An object that represents a model. It is assumed that for the classification case
+        it has a method of predict_proba() returning the prediction probabilities for each
+        class and for the regression case a method of predict() returning the prediction value.
+    :type model: object
+    :param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
+        used to build the explanation. Overwrites any existing dataset on the explanation object.
+    :type dataset: numpy.array or list[][]
+    :param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
+        explanation object.
+    :type true_y: numpy.array or list[]
+    :param classes: The class names.
+    :type classes: numpy.array or list[]
+    :param features: Feature names.
+    :type features: numpy.array or list[]
+    :param port: The port to use on locally hosted service.
+    :type port: int
+    :param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
+    :type use_cdn: bool
+    """
+
     service = None
     explanations = {}
     model_count = 0
@@ -124,6 +124,7 @@ class ExplanationDashboard:
             domain_suffix = result["domainsuffix"]
             return "https://{}-{}.{}".format(instance_name, self.port, domain_suffix)
 
+        @staticmethod
         def _local_port_available(ip, port, rais=True):
             """
             Borrowed from:
@@ -133,10 +134,6 @@ class ExplanationDashboard:
                 backlog = 5
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.bind((ip, port))
-                sock.listen(backlog)
-                sock.close()
-                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-                sock.bind(("::1", port))
                 sock.listen(backlog)
                 sock.close()
             except socket.error:  # pragma: no cover

@@ -1,43 +1,46 @@
 import * as _ from 'lodash';
 import * as Plotly from 'plotly.js-dist';
 import { PlotlyHTMLElement, Layout } from 'plotly.js-dist';
+import { ITheme } from "@uifabric/styling";
 import * as React from 'react';
 import uuidv4 from 'uuid/v4';
 import { formatValue } from './DisplayFormatters';
 import { PlotlyThemes, IPlotlyTheme } from './PlotlyThemes';
-
 import { IPlotlyProperty } from './IPlotlyProperty';
-import {SelectionContext} from './SelectionContext';
+
 
 type SelectableChartType = 'scatter' | 'multi-line' | 'non-selectable';
 
 const s = require('./AccessibleChart.css');
+
+export interface IPlotlyAnimateProps {
+    props: Partial<IPlotlyProperty>;
+    animationAttributes?: any;
+}
+
 export interface AccessibleChartProps {
     plotlyProps: IPlotlyProperty;
-    theme: string;
+    theme: string | ITheme;
     themeOverride?: Partial<IPlotlyTheme>;
-    sharedSelectionContext: SelectionContext;
     relayoutArg?: Partial<Layout>;
+    animateArg?: IPlotlyAnimateProps;
     localizedStrings?: any;
-    onSelection?: (chartID: string, selectionIds: string[], plotlyProps: IPlotlyProperty) => void;
+    onClickHandler?: (data: any) => void;
 }
 
 export class AccessibleChart extends React.Component<AccessibleChartProps> {
     public guid: string = uuidv4();
     private timer: number;
-    private subscriptionId: string;
     private plotlyRef: PlotlyHTMLElement;
     private isClickHandled: boolean = false;
 
     constructor(props: AccessibleChartProps) {
         super(props);
-        this.onChartClick = this.onChartClick.bind(this);
     }
 
     public componentDidMount(): void {
         if (this.hasData()) {
             this.resetRenderTimer();
-            this.subscribeToSelections();
         }
     }
 
@@ -47,22 +50,14 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
             this.hasData()
         ) {
             this.resetRenderTimer();
-            if (this.plotSelectionType(prevProps.plotlyProps) !== this.plotSelectionType(this.props.plotlyProps)) {
-                // The callback differs based on chart type, if the chart is now a different type, un and re subscribe.
-                if (this.subscriptionId && this.props.sharedSelectionContext) {
-                    this.props.sharedSelectionContext.unsubscribe(this.subscriptionId);
-                }
-                this.subscribeToSelections();
-            }
-        } else if (!_.isEqual(this.props.relayoutArg, prevProps.relayoutArg) && this.guid) {
+        } else if (this.props.relayoutArg && !_.isEqual(this.props.relayoutArg, prevProps.relayoutArg) && this.guid) {
             Plotly.relayout(this.guid, this.props.relayoutArg);
+        } else if (this.props.animateArg && !_.isEqual(this.props.animateArg, prevProps.animateArg) && this.guid) {
+            (Plotly as any).animate(this.guid, this.props.animateArg.props, this.props.animateArg.animationAttributes);
         }
     }
 
     public componentWillUnmount(): void {
-        if (this.subscriptionId && this.props.sharedSelectionContext) {
-            this.props.sharedSelectionContext.unsubscribe(this.subscriptionId);
-        }
         if (this.timer) {
             window.clearTimeout(this.timer);
         }
@@ -92,16 +87,6 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
         );
     }
 
-    private subscribeToSelections(): void {
-        if (this.props.sharedSelectionContext && this.props.onSelection) {
-            this.subscriptionId = this.props.sharedSelectionContext.subscribe({
-                selectionCallback: selections => {
-                    this.props.onSelection(this.guid, selections, this.props.plotlyProps);
-                }
-            });
-        }
-    }
-
     private resetRenderTimer(): void {
         if (this.timer) {
             window.clearTimeout(this.timer);
@@ -111,58 +96,12 @@ export class AccessibleChart extends React.Component<AccessibleChartProps> {
             : _.cloneDeep(this.props.plotlyProps);
         this.timer = window.setTimeout(async () => {
             this.plotlyRef = await Plotly.react(this.guid, themedProps.data, themedProps.layout, themedProps.config);
-            if (this.props.sharedSelectionContext && this.props.onSelection) {
-                this.props.onSelection(this.guid, this.props.sharedSelectionContext.selectedIds, this.props.plotlyProps);
-            }
-
-            if (!this.isClickHandled) {
+            if (!this.isClickHandled && this.props.onClickHandler) {
                 this.isClickHandled = true;
-                this.plotlyRef.on('plotly_click', this.onChartClick);
+                this.plotlyRef.on('plotly_click', this.props.onClickHandler);
             }
             this.setState({ loading: false });
         }, 0);
-    }
-
-    private onChartClick(data: any): void {
-        const selectionType = this.plotSelectionType(this.props.plotlyProps);
-        if (selectionType !== 'non-selectable' && this.props.sharedSelectionContext) {
-            if (this.props.sharedSelectionContext === undefined) {
-                return;
-            }
-            const clickedId =
-                selectionType === 'multi-line'
-                    ? (data.points[0].data as any).customdata[0]
-                    : (data.points[0] as any).customdata;
-            const selections: string[] = this.props.sharedSelectionContext.selectedIds.slice();
-            const existingIndex = selections.indexOf(clickedId);
-            if (existingIndex !== -1) {
-                selections.splice(existingIndex, 1);
-            } else {
-                selections.push(clickedId);
-            }
-            this.props.sharedSelectionContext.onSelect(selections);
-        }
-    }
-
-    private plotSelectionType(plotlyProps: IPlotlyProperty): SelectableChartType {
-        if (plotlyProps.data.length > 0 && plotlyProps.data[0] && (((plotlyProps.data[0].type as any) === 'scatter') || (plotlyProps.data[0].type as any) === 'scattergl')) {
-            if (
-                plotlyProps.data.length > 1 &&
-                plotlyProps.data.every(trace => {
-                    const customdata = (trace as any).customdata;
-                    return customdata && customdata.length === 1;
-                })
-            ) {
-                return 'multi-line';
-            }
-            if (
-                (plotlyProps.data[0].mode as string).includes('markers') &&
-                (plotlyProps.data[0] as any).customdata !== undefined
-            ) {
-                return 'scatter';
-            }
-        }
-        return 'non-selectable';
     }
 
     private createTableWithPlotlyData(data: Plotly.Data[]): React.ReactNode {

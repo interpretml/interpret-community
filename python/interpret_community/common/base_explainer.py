@@ -53,7 +53,7 @@ class LocalExplainer(ChainedIdentity):
     def explain_local(self, evaluation_examples, **kwargs):
         """Abstract method to explain local instances.
 
-        :param evaluation_examples: The evaluation examples
+        :param evaluation_examples: The evaluation examples.
         :type evaluation_examples: object
         :return: A model explanation object containing the local explanation.
         :rtype: LocalExplanation

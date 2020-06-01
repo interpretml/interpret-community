@@ -1,6 +1,7 @@
 import { IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
 import { IPivotStyles } from "office-ui-fabric-react/lib/Pivot";
 import { ITextFieldStyles } from "office-ui-fabric-react/lib/TextField";
+import { IStyle, getTheme } from "@uifabric/styling";
 
 export interface IRGBColor {
     r: number;
@@ -55,6 +56,23 @@ export class FabricStyles {
         }
     }
 
+    public static missingParameterPlaceholder: IStyle = {
+        height: "300px",
+        width: "100%"
+    };
+
+    public static missingParameterPlaceholderSpacer: IStyle = {
+        margin: "25px auto 0 auto",
+        maxWidth: "400px",
+        padding: "23px",
+        width:"fit-content",
+        boxShadow: getTheme().effects.elevation4
+    };
+
+    public static faintText: IStyle = {
+        fontWeight: "350" as any,
+    }
+
     public static plotlyColorPalette: IRGBColor[] =  [
         {r: 31, g: 119, b: 180},  // muted blue
         {r: 255, g: 127, b: 14},  // safety orange
@@ -80,6 +98,37 @@ export class FabricStyles {
         '#bcbd22',  // curry yellow-green
         '#17becf'   // blue-teal
     ];
+
+    // public static fabricColorPalette: string[] = [
+    //     "#0078d4",
+    //     "#00188f",
+    //     "#00A2ad",
+    //     "#4b003f",
+    //     "#917edb",
+    //     "#001d3f",
+    //     "#e3008c",
+    //     "#022f22",
+    //     "#ef6950",
+    //     "#502006"
+    // ];
+
+    public static fabricColorPalette: string[] = [
+        '#1f77b4',  // muted blue
+        '#ff7f0e',  // safety orange
+        '#2ca02c',  // cooked asparagus green
+        '#d62728',  // brick red
+        '#9467bd',  // muted purple
+        '#8c564b',  // chestnut brown
+        '#e377c2',  // raspberry yogurt pink
+        '#7f7f7f',  // middle gray
+        '#bcbd22',  // curry yellow-green
+        '#17becf'   // blue-teal
+    ];
+
+    public static fabricColorInactiveSeries: string = "#949494";
+
+    public static chartAxisColor: string = "#979797";
+    public static fontFamilies = "Segoe UI, Segoe UI Web (West European),  Roboto, Helvetica Neue, sans-serif";
 
     public static verticalTabsStyle: Partial<IPivotStyles> = {
         root: {
