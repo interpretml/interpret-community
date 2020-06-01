@@ -35,24 +35,6 @@ def iris_svm_model(iris):
 @pytest.mark.usefixtures('clean_dir')
 class TestSerializeExplanation(object):
 
-    # def test_json_serialize_mimic_no_features(self, iris, iris_svm_model):
-    #     explainer = MimicExplainer(iris_svm_model,
-    #                                iris[DatasetConstants.X_TRAIN],
-    #                                LGBMExplainableModel,
-    #                                max_num_of_augmentations=10,
-    #                                classes=iris[DatasetConstants.CLASSES].tolist())
-    #     explanation = explainer.explain_global()
-    #     verify_serialization(explanation)
-    #     verify_serialization_mlflow(explanation)
-
-    # def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
-    #     explainer = tabular_explainer(iris_svm_model,
-    #                                   iris[DatasetConstants.X_TRAIN],
-    #                                   features=iris[DatasetConstants.FEATURES])
-    #     explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
-    #     verify_serialization(explanation)
-    #     verify_serialization_mlflow(explanation)
-
     def test_save_explanation(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
@@ -137,23 +119,4 @@ def verify_serialization(explanation):
     test_logger.info("validating serialization of explanation:\n%s", comment)
     expljson = save_explanation(explanation)
     deserialized_explanation = load_explanation(expljson)
-    _assert_explanation_equivalence(deserialized_explanation, explanation)
-
-
-def verify_serialization_mlflow(explanation):
-    # paramkeys = ['MODEL_TYPE', 'MODEL_TASK', 'METHOD', 'FEATURES', 'CLASSES']
-    # log_items = dict()
-    # for paramkey in paramkeys:
-    #     param = getattr(ExplainParams, paramkey)
-    #     value = getattr(explanation, param, None)
-    #     if value is not None:
-    #         if isinstance(value, np.ndarray):
-    #             log_items[param] = value.tolist()
-    #         else:
-    #             log_items[param] = value
-    # comment = json.dumps(log_items)
-    # test_logger.setLevel(logging.INFO)
-    # test_logger.info("validating serialization of explanation:\n%s", comment)
-    _save_explanation(explanation, 'temp')
-    deserialized_explanation = _load_explanation('temp/explanation.json')
     _assert_explanation_equivalence(deserialized_explanation, explanation)
