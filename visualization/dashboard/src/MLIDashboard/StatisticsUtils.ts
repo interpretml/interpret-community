@@ -61,9 +61,9 @@ const generateBinaryStats: (outcomes: number[]) => ILabeledStatistic[] = (outcom
 const generateRegressionStats: (trueYs: number[], predYs: number[], errors: number[]) => ILabeledStatistic[] =
     (trueYs: number[], predYs: number[], errors: number[]): ILabeledStatistic[] => {
     const count = trueYs.length;
-    const residualSumOfSquares = errors.reduce((prev, curr) => {return prev + curr*curr}, 0);
-    const avgY = trueYs.reduce((prev, curr) => {return prev + curr}, 0)/count;
-    const totalSumOfSquares = trueYs.reduce((prev, curr) => {return prev + (curr - avgY)*(curr - avgY)},0)
+    const residualSumOfSquares = errors.reduce((prev, curr) => {return prev + curr * curr}, 0);
+    const avgY = trueYs.reduce((prev, curr) => {return prev + curr}, 0) / count;
+    const totalSumOfSquares = trueYs.reduce((prev, curr) => {return prev + (curr - avgY) * (curr - avgY)},0)
     return [
         {
             label: localization.Statistics.mse,
