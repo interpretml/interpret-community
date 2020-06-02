@@ -835,6 +835,7 @@ class ExpectedValuesMixin(object):
         :param expected_values: The expected values of the model.
         :type expected_values: np.array
         """
+        print(kwargs.keys())
         super(ExpectedValuesMixin, self).__init__(**kwargs)
         self._expected_values = expected_values
 
@@ -1783,7 +1784,6 @@ def _get_kwargs(path, params, local_explanation=None):
         param_list = [
             ExplainParams.METHOD,
             ExplainParams.MODEL_TASK,
-            ExplainParams.NUM_CLASSES,
             ExplainParams.NUM_FEATURES,
             ExplainParams.IS_RAW,
             ExplainParams.IS_ENG,
@@ -1792,7 +1792,10 @@ def _get_kwargs(path, params, local_explanation=None):
         for param in param_list:
             kwargs[param] = metadata[param]
         kwargs[ExplainParams.MODEL_TYPE] = metadata[ExplainType.MODEL_CLASS]
-        kwargs[ExplainParams.CLASSIFICATION] = metadata[ExplainType.MODEL] == ExplainType.CLASSIFICATION
+        classification = metadata[ExplainType.MODEL] == ExplainType.CLASSIFICATION
+        kwargs[ExplainParams.CLASSIFICATION] = classification
+        if classification:
+            kwargs[ExplainParams.NUM_CLASSES] = metadata[ExplainParams.NUM_CLASSES]
         if local_explanation is not None:
             kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
     return kwargs
