@@ -1407,8 +1407,8 @@ def _create_global_explanation(local_explanation=None, expected_values=None,
     :param local_explanation: The local explanation information to include with global,
         can be done when the global explanation is a summary of local explanations.
     :type local_explanation: LocalExplanation
-        :param expected_values: The expected values of the model.
-        :type expected_values: list
+    :param expected_values: The expected values of the model.
+    :type expected_values: list
     :param classification: Indicates if this is a classification or regression explanation.
     :type classification: bool
     :param explanation_id: If specified, puts the global explanation under a preexisting explanation object.
@@ -1689,6 +1689,7 @@ def save_explanation(explanation, path, exist_ok=False):
                         'Please pass in a new directory or set exists_ok=True.')
     os.makedirs(path, exist_ok=True)
 
+    # TODO replace with set of params from below
     uploadable_properties = [
         ExplainParams.FEATURES,
         ExplainParams.LOCAL_IMPORTANCE_VALUES,
@@ -1820,7 +1821,7 @@ def load_explanation(path):
     if is_local and is_global:
         local_kwargs = _get_kwargs(path, shared_params + local_params)
         local_explanation = _create_local_explanation(**local_kwargs)
-        global_kwargs = _get_kwargs(path, global_params, local_explanation=local_explanation)
+        global_kwargs = _get_kwargs(path, shared_params + global_params, local_explanation=local_explanation)
         return _create_global_explanation(**global_kwargs)
     elif is_local:
         local_kwargs = _get_kwargs(path, shared_params + local_params)
