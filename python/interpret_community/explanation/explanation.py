@@ -835,7 +835,6 @@ class ExpectedValuesMixin(object):
         :param expected_values: The expected values of the model.
         :type expected_values: np.array
         """
-        print(kwargs.keys())
         super(ExpectedValuesMixin, self).__init__(**kwargs)
         self._expected_values = expected_values
 
