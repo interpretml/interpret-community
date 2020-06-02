@@ -882,11 +882,11 @@ class VerifyTabularTests(object):
         else:
             explainer = self.create_explainer(pipeline, imp_train_X)
         explanation = explainer.explain_global(imp_X.transform(df_test_X))
-        verify_serialization(explanation)
+        verify_serialization(explanation, exist_ok=True)
 
     def validate_explanation(self, explanation, is_multiclass=False, is_probability=False,
                              is_regression=False, model_output=None):
-        verify_serialization(explanation)
+        verify_serialization(explanation, exist_ok=True)
         if is_regression:
             for idx, row in enumerate(explanation.local_importance_values):
                 features = np.array(row)
