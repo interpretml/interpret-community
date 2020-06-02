@@ -161,8 +161,17 @@ import { createTheme } from "@uifabric/styling";
         this.setState({showNewDash: +event.target.value})
       }
 
-      generateRandomScore(data) {
-        return Promise.resolve(data.map(x => Math.random()));
+      generateRandomScore(data, signal) {
+        let promise = new Promise((resolve, reject) => {
+          let timeout = setTimeout(() => {resolve(
+            data.map(x => Math.random()))}, 300);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timeout);
+            reject(new DOMException('Aborted', 'AbortError'));
+          });
+        });
+
+        return promise;
       }
 
       generateRandomProbs(classDimensions, data, signal) {
@@ -237,7 +246,9 @@ import { createTheme } from "@uifabric/styling";
                           globalFeatureImportance: data.globalExplanation,
                           ebmGlobalExplanation: data.ebmData
                         }}
-                        requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
+                        requestPredictions={classDimension === 1 ? 
+                          this.generateRandomScore :
+                          this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         theme={theme}
                         locale={this.state.language}

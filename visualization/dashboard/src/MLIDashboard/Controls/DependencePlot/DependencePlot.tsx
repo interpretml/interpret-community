@@ -8,7 +8,7 @@ import { IconButton, Button, DefaultButton } from "office-ui-fabric-react/lib/Bu
 import { Transform } from "plotly.js-dist";
 import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplanationDashboard";
 import { JointDataset, ColumnCategories } from "../../JointDataset";
-import { IExplanationModelMetadata } from "../../IExplanationContext";
+import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { localization } from "../../../Localization/localization";
 import _ from "lodash";
@@ -79,6 +79,9 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
             </div>);
         }
         const plotlyProps = this.generatePlotlyProps();
+        const yAxisLabel = this.props.metadata.modelType === ModelTypes.regression ? 
+            this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label :
+            this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label + " : " + this.props.metadata.classNames[0];
         return (
             <div className={classNames.DependencePlot}>
                 <div className={classNames.chartWithAxes}>
@@ -86,7 +89,7 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
                                 <Text variant={"medium"} block>{localization.DependencePlot.featureImportanceOf}</Text>
-                                <Text variant={"medium"}>{this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label + " : " + this.props.metadata.classNames[0]}</Text>
+                                <Text variant={"medium"}>{yAxisLabel}</Text>
                             </div>
                         </div>
                         <div className={classNames.chart}>
