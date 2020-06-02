@@ -121,6 +121,24 @@ export class JointDataset {
         return result;
     }
 
+    // set the appropriate error value in the keyed column
+    public static setErrorMetrics(row: {[key: string]: any}, modelType: ModelTypes): void {
+        if (modelType === ModelTypes.regression) {
+            row[JointDataset.RegressionError] = row[JointDataset.TrueYLabel] - row[JointDataset.PredictedYLabel];
+            return;
+        }
+        if (modelType === ModelTypes.binary) {
+            // sum pred and 2*true to map to ints 0 - 3,
+            // 0: TN
+            // 1: FP
+            // 2: FN
+            // 3: TP
+            const predictionCategory = 2 * row[JointDataset.TrueYLabel] + row[JointDataset.PredictedYLabel];
+            row[JointDataset.ClassificationError] = predictionCategory;
+            return;
+        }
+    }
+
     constructor(args: IJointDatasetArgs) {
         this._modelMeta = args.metadata;
         if (args.dataset && args.dataset.length > 0) {
@@ -241,10 +259,11 @@ export class JointDataset {
         }
         // include error columns if applicable
         if (this.hasPredictedY && this.hasTrueY) {
+            this.dataDict.forEach(row => {
+                JointDataset.setErrorMetrics(row, this._modelMeta.modelType);
+            });
+            // Set appropriate metadata
             if (args.metadata.modelType === ModelTypes.regression) {
-                this.dataDict.forEach(row => {
-                    row[JointDataset.RegressionError] = row[JointDataset.TrueYLabel] - row[JointDataset.PredictedYLabel];
-                });
                 const regressionErrorArray = this.dataDict.map(row => row[JointDataset.RegressionError]);
                 this.metaDict[JointDataset.RegressionError] = {
                     label: localization.Columns.regressionError,
@@ -260,15 +279,6 @@ export class JointDataset {
                 };
             }
             if (args.metadata.modelType === ModelTypes.binary) {
-                this.dataDict.forEach(row => {
-                    // sum pred and 2*true to map to ints 0 - 3,
-                    // 0: TN
-                    // 1: FP
-                    // 2: FN
-                    // 3: TP
-                    const predictionCategory = 2 * row[JointDataset.TrueYLabel] + row[JointDataset.PredictedYLabel];
-                    row[JointDataset.ClassificationError] = predictionCategory;
-                });
                 this.metaDict[JointDataset.ClassificationError] = {
                     label: localization.Columns.classificationOutcome,
                     abbridgedLabel: localization.Columns.classificationOutcome,
@@ -296,6 +306,10 @@ export class JointDataset {
 
     public getRow(index: number): {[key: string]: number} {
         return {...this.dataDict[index]}
+    }
+
+    public unwrap(key: string, binVector?: number[]): any[] {
+        return JointDataset.unwrap(this.dataDict, key, binVector);
     }
 
     public setTreatAsCategorical(key: string, value: boolean): void {
