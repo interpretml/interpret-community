@@ -507,6 +507,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div>
                 </div>
             } else {
+                const yAxisLabels: string[] = [localization.featureImportance];
+                if (this.props.metadata.modelType !== ModelTypes.regression) {
+                    yAxisLabels.push(localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string);
+                }
                 const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
                 secondaryPlot = (<div className={classNames.featureImportanceArea}>
                     <div className={classNames.featureImportanceControls}>
@@ -525,10 +529,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     <div className={classNames.featureImportanceChartAndLegend}>
                         <FeatureImportanceBar
                             jointDataset={this.props.jointDataset}
-                            yAxisLabels={[
-                                localization.featureImportance,
-                                localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string
-                            ]}
+                            yAxisLabels={yAxisLabels}
                             chartType={ChartTypes.Bar}
                             sortArray={this.state.sortArray}
                             startingK={this.state.startingK}
@@ -600,8 +601,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private buildExistingPredictionLabels(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
-        if (this.props.metadata.modelType === ModelTypes.binary) {
+        if (this.props.metadata.modelType !== ModelTypes.regression) {
             const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);
+            const trueClass = this.props.jointDataset.hasTrueY ?
+                row[JointDataset.TrueYLabel] : undefined;
             const predictedClass = this.props.jointDataset.hasPredictedY ?
                 row[JointDataset.PredictedYLabel] : undefined;
             const predictedClassName = predictedClass !== undefined ?
@@ -611,18 +614,31 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 row[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
                 undefined;
             return (<div className={classNames.predictedBlock}>
+                    {trueClass !== undefined && 
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueClass, 
+                        this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass])}</Text>)}
                     {predictedClass !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(3))}</Text>)}
                 </div>);
         } else {
-            return <div></div>
-        }
+            const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);
+            const trueValue = this.props.jointDataset.hasTrueY ?
+                row[JointDataset.TrueYLabel] : undefined;
+            const predictedValue = this.props.jointDataset.hasPredictedY ?
+                row[JointDataset.PredictedYLabel] : undefined;
+            return (<div className={classNames.predictedBlock}>
+                {trueValue !== undefined && 
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueValue, trueValue)}</Text>)}
+                {predictedValue !== undefined &&
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedValue, predictedValue.toPrecision(3))}</Text>)}
+            </div>);
+    }
     }
 
     private buildCustomPredictionLabels(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
-        if (this.props.metadata.modelType === ModelTypes.binary) {
+        if (this.props.metadata.modelType !== ModelTypes.regression) {
             const predictedClass = this.props.jointDataset.hasPredictedY ?
                 this.temporaryPoint[JointDataset.PredictedYLabel] : undefined;
             const predictedClassName = predictedClass !== undefined ?
@@ -642,7 +658,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, localization.WhatIfTab.loading)}</Text>)}
                 </div>);
         } else {
-            return <div></div>
+            const predictedValue = this.props.jointDataset.hasPredictedY ?
+                this.temporaryPoint[JointDataset.PredictedYLabel] : undefined;
+            return (<div className={classNames.customPredictBlock}>
+                {this.props.jointDataset.hasPredictedY && predictedValue !== undefined &&
+                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, predictedValue.toPrecision(3))}</Text>)}
+                {this.props.jointDataset.hasPredictedY && predictedValue === undefined &&
+                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, localization.WhatIfTab.loading)}</Text>)}
+            </div>);
         }
     }
 
@@ -714,9 +737,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             editingData[key] = newValue;
         } else {
             const asNumber = +newValue;
-            if (!Number.isFinite(asNumber)) {
-                alert('thats no number')
-            }
             editingData[key] = asNumber;
         }
         this.forceUpdate();
@@ -878,11 +898,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         }
                     }
                     fetchingReference[JointDataset.PredictedYLabel] = predictedClass;
-                    this.setState({request: undefined});
                 } else {
                     // prediction is a scalar, no probabilities
-                    fetchingReference[JointDataset.PredictedYLabel] = fetchedData[0]
+                    fetchingReference[JointDataset.PredictedYLabel] = fetchedData[0];
                 }
+                if (this.props.jointDataset.hasTrueY) {
+                    JointDataset.setErrorMetrics(fetchingReference, this.props.metadata.modelType);
+                }
+                this.setState({request: undefined});
             } catch (err) {
                 if (err.name === 'AbortError') {
                     return;
