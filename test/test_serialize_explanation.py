@@ -7,13 +7,11 @@
 import collections.abc
 import pytest
 import logging
-import json
 import numpy as np
 import pandas as pd
+import os
 
 from interpret_community.common.constants import ExplainParams
-from interpret_community.mimic.mimic_explainer import MimicExplainer
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.explanation.explanation import save_explanation, load_explanation
 from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
@@ -35,20 +33,32 @@ def iris_svm_model(iris):
 @pytest.mark.usefixtures('clean_dir')
 class TestSerializeExplanation(object):
 
-    def test_json_serialize_mimic_no_features(self, iris, iris_svm_model):
-        explainer = MimicExplainer(iris_svm_model,
-                                   iris[DatasetConstants.X_TRAIN],
-                                   LGBMExplainableModel,
-                                   max_num_of_augmentations=10,
-                                   classes=iris[DatasetConstants.CLASSES].tolist())
-        explanation = explainer.explain_global()
-        verify_serialization(explanation)
-
-    def test_json_serialize_local_explanation_classification(self, iris, tabular_explainer, iris_svm_model):
+    def test_save_explanation(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
+        save_explanation(explanation, 'brand/new/path')
+
+    def test_save_and_load_explanation_local_only(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
+        verify_serialization(explanation)
+
+    def test_save_and_load_explanation_global_only(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
+        verify_serialization(explanation)
+
+    def test_save_and_load_explanation_global_and_local(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
         verify_serialization(explanation)
 
 
@@ -82,20 +92,10 @@ def _assert_explanation_equivalence(actual, expected):
 # tests to verify that the de-serialized result is equivalent to the original
 # exposed outside this module to allow any test involving an explanation to
 # incorporate serialization testing
-def verify_serialization(explanation):
-    paramkeys = ['MODEL_TYPE', 'MODEL_TASK', 'METHOD', 'FEATURES', 'CLASSES']
-    log_items = dict()
-    for paramkey in paramkeys:
-        param = getattr(ExplainParams, paramkey)
-        value = getattr(explanation, param, None)
-        if value is not None:
-            if isinstance(value, np.ndarray):
-                log_items[param] = value.tolist()
-            else:
-                log_items[param] = value
-    comment = json.dumps(log_items)
-    test_logger.setLevel(logging.INFO)
-    test_logger.info("validating serialization of explanation:\n%s", comment)
-    expljson = save_explanation(explanation)
-    deserialized_explanation = load_explanation(expljson)
-    _assert_explanation_equivalence(deserialized_explanation, explanation)
+def verify_serialization(explanation, extra_path=None, exist_ok=False):
+    path = 'brand/new/path'
+    if extra_path is not None:
+        path = os.path.join(path, extra_path)
+    save_explanation(explanation, path, exist_ok=exist_ok)
+    loaded_explanation = load_explanation(path)
+    _assert_explanation_equivalence(explanation, loaded_explanation)
