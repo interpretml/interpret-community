@@ -9,6 +9,7 @@ import pytest
 import logging
 import numpy as np
 import pandas as pd
+import os
 
 from interpret_community.common.constants import ExplainParams
 from interpret_community.explanation.explanation import save_explanation, load_explanation
@@ -91,8 +92,10 @@ def _assert_explanation_equivalence(actual, expected):
 # tests to verify that the de-serialized result is equivalent to the original
 # exposed outside this module to allow any test involving an explanation to
 # incorporate serialization testing
-def verify_serialization(explanation):
+def verify_serialization(explanation, extra_path=None, exist_ok=False):
     path = 'brand/new/path'
-    save_explanation(explanation, path)
+    if extra_path is not None:
+        path = os.path.join(path, extra_path)
+    save_explanation(explanation, path, exist_ok=exist_ok)
     loaded_explanation = load_explanation(path)
     _assert_explanation_equivalence(explanation, loaded_explanation)
