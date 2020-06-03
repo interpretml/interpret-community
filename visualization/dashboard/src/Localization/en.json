@@ -312,7 +312,10 @@
         "numberOfDatapoints": "Number of datapoints",
         "_numberOfDatapoints.comment": "some charts will always show the count of the number of rows in a group, this is the axis label on the chart",
         "xValue": "X-value",
-        "_xValue.comment":"label for x value button on chart"
+        "_xValue.comment":"label for x value button on chart",
+        "rowIndex": "Row index",
+        "_rowIndex.comment": "the index of a row in a dataset",
+        "featureImportance": "Feature importance"
     },
     "DatasetExplorer": {
         "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",
@@ -355,7 +358,7 @@
         "_showLabel.comment": "label on button to pick what additional chart to show",
         "featureImportancePlot": "Feature importance plot",
         "_featureImportancePlot.comment": "name of a plot type showing the importance of each feature in making a decision",
-        "icePlot": "ICE plot",
+        "icePlot": "Individual conditional expectation (ICE) plot",
         "_icePlot.comment": "name of a plot type named Individual Conditional Expectation (ICE)",
         "featureImportanceLackingParameters": "Provide local feature importances to see how each feature impacts individual predictions.",
         "_featureImportanceLackingParameters.comment": "placeholder if no local feature importances passed in",

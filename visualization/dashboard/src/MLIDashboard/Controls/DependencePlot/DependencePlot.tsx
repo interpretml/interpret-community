@@ -154,10 +154,11 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
             }
             const rawX = cohort.unwrap(this.props.chartProps.xAxis.property);
+            const xLabel = jointData.metaDict[this.props.chartProps.xAxis.property].label;
             if (this.props.chartProps.xAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither;});
-                hovertemplate += "x: %{customdata.X}<br>";
+                hovertemplate += xLabel + ": %{customdata.X}<br>";
                 rawX.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[this.props.chartProps.xAxis.property].isCategorical) {
@@ -169,7 +170,7 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 });
             } else {
                 plotlyProps.data[0].x = rawX;
-                hovertemplate += "x: %{x}<br>";
+                hovertemplate += xLabel + ": %{x}<br>";
             }
         }
         if (this.props.chartProps.yAxis) {
@@ -180,10 +181,11 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
             }
             const rawY = cohort.unwrap(this.props.chartProps.yAxis.property);
+            const yLabel = localization.Charts.featureImportance;
             if (this.props.chartProps.yAxis.options.dither) {
                 const dithered = cohort.unwrap(JointDataset.DitherLabel);
                 plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
-                hovertemplate += "y: %{customdata.Y}<br>";
+                hovertemplate += yLabel + ": %{customdata.Y}<br>";
                 rawY.forEach((val, index) => {
                     // If categorical, show string value in tooltip
                     if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
@@ -194,39 +196,14 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 });
             } else {
                 plotlyProps.data[0].y = rawY;
-                hovertemplate += "y: %{y}<br>";
+                hovertemplate += yLabel + ": %{y}<br>";
             }
         }
-        if (this.props.chartProps.colorAxis) {
-            const isBinned = this.props.chartProps.colorAxis.options && this.props.chartProps.colorAxis.options.bin;
-            const rawColor = cohort.unwrap(this.props.chartProps.colorAxis.property, isBinned);
-            // handle binning to categories later
-            if (jointData.metaDict[this.props.chartProps.colorAxis.property].isCategorical || isBinned) {
-                const styles = jointData.metaDict[this.props.chartProps.colorAxis.property].sortedCategoricalValues.map((label, index) => {
-                    return {
-                        target: index,
-                        value: { name: label}
-                    };
-                });
-                plotlyProps.data[0].transforms = [{
-                    type: "groupby",
-                    groups: rawColor,
-                    styles
-                }];
-                plotlyProps.layout.showlegend = true;
-            } else {
-                plotlyProps.data[0].marker = {
-                    color: rawColor,
-                    colorbar: {
-                        title: {
-                            side: "right",
-                            text: "placeholder"
-                        } as any
-                    },
-                    colorscale: "Bluered"
-                };
-            }
-        }
+        const indecies = cohort.unwrap(JointDataset.IndexLabel, false);
+        indecies.forEach((absoluteIndex, i) => {
+            customdata[i]["AbsoluteIndex"] = absoluteIndex;
+        });
+        hovertemplate += localization.Charts.rowIndex + ": %{customdata.AbsoluteIndex}<br>"
         hovertemplate += "<extra></extra>";
         plotlyProps.data[0].customdata = customdata as any;
         plotlyProps.data[0].hovertemplate = hovertemplate;

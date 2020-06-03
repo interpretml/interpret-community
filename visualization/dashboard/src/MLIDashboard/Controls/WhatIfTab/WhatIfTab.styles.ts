@@ -239,13 +239,12 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         choiceGroup: {
             fontSize: "14px",
-            paddingLeft: "30px",
-            width: "230px",
+            paddingLeft: "30px"
 
         },
         choiceGroupFlexContainer: {
             display: "inline-flex",
-            width: "300px",
+            width: "500px",
             justifyContent: "space-between"
         },
         panelIconAndLabel: {
