@@ -542,6 +542,9 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         hovertemplate += yName + ": %{y}<br>";
                     }
                 }
+                if (chartProps.colorAxis) {
+                    hovertemplate += jointData.metaDict[chartProps.colorAxis.property].abbridgedLabel + ": %{customdata.Color}<br>";
+                }
                 hovertemplate += localization.Charts.rowIndex + ": %{customdata.AbsoluteIndex}<br>";
                 break;
             }
@@ -587,6 +590,18 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             .sortedCategoricalValues[val];
                     } else {
                         customdata[index]["Y"] = val;
+                    }
+                });
+            }
+            const colorAxis = chartProps.colorAxis;
+            if (colorAxis && colorAxis.property) {
+                const rawColor = cohort.unwrap(chartProps.colorAxis.property);
+                rawColor.forEach((val, index) => {
+                    if (jointData.metaDict[colorAxis.property].treatAsCategorical) {
+                        customdata[index]["Color"] = jointData.metaDict[colorAxis.property]
+                            .sortedCategoricalValues[val];
+                    } else {
+                        customdata[index]["Color"] = val.toPrecision(4);
                     }
                 });
             }
