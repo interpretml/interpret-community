@@ -28,6 +28,7 @@ export interface IDatasetExplorerTabStyles {
     missingParametersPlaceholder: IStyle;
     missingParametersPlaceholderSpacer: IStyle;
     faintText: IStyle;
+    smallItalic: IStyle;
 }
 
 export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplorerTabStyles> = () => {
@@ -167,6 +168,7 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
         },
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
-        faintText: [FabricStyles.faintText]
+        faintText: [FabricStyles.faintText],
+        smallItalic: [FabricStyles.placeholderItalic],
     });
 };

@@ -100,8 +100,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             <div className={classNames.rotatedVerticalBox}>
                                 <div>
                                     <Text block variant="mediumPlus" className={classNames.boldText}>{
-                                        this.props.chartProps.chartType === ChartTypes.Histogram ?
-                                        localization.Charts.numberOfDatapoints : localization.Charts.yValue}</Text>
+                                        localization.Charts.yValue}</Text>
                                     <DefaultButton 
                                         onClick={this.setYOpen.bind(this, true)}
                                         id={this._yButtonId}
@@ -155,7 +154,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         <div className={classNames.paddingDiv}></div>
                         <div className={classNames.horizontalAxis}>
                             <div>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{
+                                    this.props.chartProps.chartType === ChartTypes.Histogram ?
+                                    localization.Charts.numberOfDatapoints : localization.Charts.xValue}</Text>
                                 <DefaultButton 
                                     onClick={this.setXOpen.bind(this, true)}
                                     id={this._xButtonId}

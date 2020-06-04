@@ -136,6 +136,10 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         const legend = this.buildColorLegend(classNames);
         const cohortLength = this.props.cohorts[this.state.selectedCohortIndex].rowCount;
         const canRenderChart = cohortLength < NewExplanationDashboard.ROW_ERROR_SIZE || this.props.chartProps.chartType !== ChartTypes.Scatter;
+        const yAxisCategories = [ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome];
+        if (this.props.chartProps.chartType !== ChartTypes.Scatter) {
+            yAxisCategories.push(ColumnCategories.none);
+        }
         const isHistogram = this.props.chartProps.chartType !== ChartTypes.Scatter && (
             this.props.chartProps.yAxis === undefined ||
             this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical);
@@ -172,7 +176,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                     {(this.state.yDialogOpen) && (
                                         <AxisConfigDialog 
                                             jointDataset={this.props.jointDataset}
-                                            orderedGroupTitles={[ColumnCategories.index, ColumnCategories.dataset, ColumnCategories.outcome]}
+                                            orderedGroupTitles={yAxisCategories}
                                             selectedColumn={this.props.chartProps.yAxis}
                                             canBin={false}
                                             mustBin={false}
@@ -280,6 +284,9 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
     private onChartTypeChange(event: React.SyntheticEvent<HTMLElement>, item: IChoiceGroupOption): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.chartType = item.key as ChartTypes;
+        if (newProps.yAxis.property === ColumnCategories.none) {
+            newProps.yAxis = this.generateDefaultYAxis();
+        }
         this.props.onChange(newProps);
     }
 
@@ -345,10 +352,13 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
                     const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property, true));
                     colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
+            } else {
+                // continuous color, handled by plotly for now
+                return;
             }
         } else {
             const colorAxis = this.props.chartProps.yAxis;
-            if (this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical) {
+            if (this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical && colorAxis.property !== ColumnCategories.none) {
                 this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
                 const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property));
                 colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
@@ -364,6 +374,9 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     <Text nowrap variant={"medium"} className={classNames.legendLabel}>{name}</Text>
                 </div>)
             })}
+            {colorSeries.length === 0 && (
+                <Text variant={"xSmall"} className={classNames.smallItalic}>{localization.DatasetExplorer.noColor}</Text>
+            )}
         </div>)
     }
 
@@ -481,7 +494,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         ]
                     }
                 ];
-                if (chartProps.yAxis) {
+                if (chartProps.yAxis && chartProps.yAxis.property !== ColumnCategories.none) {
                     const rawColor = cohort.unwrap(chartProps.yAxis.property, true);
                     const styles = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues.map((label, index) => {
                         return {
@@ -505,33 +518,39 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
             }
         }
         plotlyProps.data[0].customdata = this.buildCustomData(jointData, chartProps, cohort);
-        plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(chartProps);
+        plotlyProps.data[0].hovertemplate = this.buildHoverTemplate(jointData, chartProps);
         return plotlyProps;
     }
 
-    private static buildHoverTemplate(chartProps: IGenericChartProps): string {
+    private static buildHoverTemplate(jointData: JointDataset, chartProps: IGenericChartProps): string {
         let hovertemplate = "";
+        const xName = jointData.metaDict[chartProps.xAxis.property].abbridgedLabel;
+        const yName = jointData.metaDict[chartProps.yAxis.property].abbridgedLabel;
         switch(chartProps.chartType) {
             case ChartTypes.Scatter: {
                 if (chartProps.xAxis) {
                     if (chartProps.xAxis.options.dither) {
-                        hovertemplate += "x: %{customdata.X}<br>";
+                        hovertemplate += xName + ": %{customdata.X}<br>";
                     } else {
-                        hovertemplate += "x: %{x}<br>";
+                        hovertemplate += xName + ": %{x}<br>";
                     }
                 }
                 if (chartProps.yAxis) {
                     if (chartProps.yAxis.options.dither) {
-                        hovertemplate += "y: %{customdata.Y}<br>";
+                        hovertemplate += yName + ": %{customdata.Y}<br>";
                     } else {
-                        hovertemplate += "y: %{y}<br>";
+                        hovertemplate += yName + ": %{y}<br>";
                     }
                 }
+                hovertemplate += localization.Charts.rowIndex + ": %{customdata.AbsoluteIndex}<br>";
                 break;
             }
             case ChartTypes.Histogram: {
-                hovertemplate += "x: %{text}<br>";
-                hovertemplate += "count: %{y}<br>";
+                hovertemplate += xName + ": %{text}<br>";
+                if (chartProps.yAxis.property !== ColumnCategories.none && jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                    hovertemplate += yName + ": %{customdata.Y}<br>";
+                }
+                hovertemplate += localization.formatString(localization.Charts.countTooltipPrefix, "%{y}<br>");;
             }
         }
         hovertemplate += "<extra></extra>";
@@ -571,28 +590,32 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     }
                 });
             }
+            const indices = cohort.unwrap(JointDataset.IndexLabel, false);
+            indices.forEach((absoluteIndex, i) => {
+                customdata[i]["AbsoluteIndex"] = absoluteIndex;
+            });
+        }
+        if (chartProps.chartType === ChartTypes.Histogram &&
+            chartProps.yAxis.property !== ColumnCategories.none) {
+            const yMeta = jointData.metaDict[chartProps.yAxis.property];
+            if (yMeta.isCategorical) {
+                const rawY = cohort.unwrap(chartProps.yAxis.property);
+                rawY.forEach((val, index) => {
+                    customdata[index]["Y"] = yMeta.sortedCategoricalValues[val];
+                });
+            }
         }
         return customdata;
     }
 
     private generateDefaultChartAxes(): void {
-        let maxIndex: number = 0;
-        let maxVal: number = Number.MIN_SAFE_INTEGER;
-        const yKey = JointDataset.DataLabelRoot + maxIndex.toString();
-        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Histogram,
             xAxis: {
                 property: JointDataset.IndexLabel,
                 options: {}
             },
-            yAxis: {
-                property: yKey,
-                options: {
-                    dither: yIsDithered,
-                    bin: false
-                }
-            },
+            yAxis: this.generateDefaultYAxis(),
             colorAxis: {
                 property: this.props.jointDataset.hasPredictedY ?
                     JointDataset.PredictedYLabel : JointDataset.IndexLabel,
@@ -600,6 +623,18 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
             }
         }
         this.props.onChange(chartProps);
+    }
+
+    private generateDefaultYAxis(): ISelectorConfig {
+        const yKey = JointDataset.DataLabelRoot + "0";
+        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
+        return {
+            property: yKey,
+            options: {
+                dither: yIsDithered,
+                bin: false
+            }
+        };
     }
 
     private scatterSelection(guid: string, selections: string[], plotlyProps: IPlotlyProperty): void {
