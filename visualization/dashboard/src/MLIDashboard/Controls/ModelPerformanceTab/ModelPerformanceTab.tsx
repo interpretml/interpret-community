@@ -142,7 +142,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
                                             {stats.map(labeledStat => {
-                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toPrecision(3))}</Text>;
+                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>;
                                             })}
                                         </div>)
                                     })}

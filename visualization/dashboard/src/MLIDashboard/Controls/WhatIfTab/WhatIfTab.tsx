@@ -1,6 +1,6 @@
 import { IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import _ from "lodash";
-import { AccessibleChart, IPlotlyProperty, PlotlyMode } from "mlchartlib";
+import { AccessibleChart, IPlotlyProperty, PlotlyMode, IData } from "mlchartlib";
 import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox  } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
@@ -620,7 +620,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     {predictedClass !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
                     {predictedProb !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toPrecision(3))}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
                 </div>);
         } else {
             const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);
@@ -632,7 +632,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 {trueValue !== undefined && 
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueValue, trueValue)}</Text>)}
                 {predictedValue !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedValue, predictedValue.toPrecision(3))}</Text>)}
+                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedValue, predictedValue.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
             </div>);
     }
     }
@@ -653,7 +653,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     {this.props.jointDataset.hasPredictedY && predictedClass === undefined &&
                     (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, localization.WhatIfTab.loading)}</Text>)}
                     {this.props.jointDataset.hasPredictedProbabilities && predictedProb !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toPrecision(3))}</Text>)}
+                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
                     {this.props.jointDataset.hasPredictedProbabilities && predictedProb === undefined &&
                     (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, localization.WhatIfTab.loading)}</Text>)}
                 </div>);
@@ -662,7 +662,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 this.temporaryPoint[JointDataset.PredictedYLabel] : undefined;
             return (<div className={classNames.customPredictBlock}>
                 {this.props.jointDataset.hasPredictedY && predictedValue !== undefined &&
-                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, predictedValue.toPrecision(3))}</Text>)}
+                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, predictedValue.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
                 {this.props.jointDataset.hasPredictedY && predictedValue === undefined &&
                 (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, localization.WhatIfTab.loading)}</Text>)}
             </div>);
@@ -969,21 +969,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 _.set(plotlyProps, "layout.xaxis.ticktext", xLabels);
                 _.set(plotlyProps, "layout.xaxis.tickvals", xLabelIndexes);
             }
-            const rawX = cohort.unwrap(chartProps.xAxis.property);
-            const customX = JointDataset.unwrap(this.state.customPoints, chartProps.xAxis.property);
-            const tempX = JointDataset.unwrap([this.temporaryPoint], chartProps.xAxis.property);
-            if (chartProps.xAxis.options.dither) {
-                const dithered = cohort.unwrap(JointDataset.DitherLabel);
-                const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
-                const tempDithered = JointDataset.unwrap([this.temporaryPoint], JointDataset.DitherLabel);
-                plotlyProps.data[0].x = dithered.map((dither, index) => { return rawX[index] + dither; });
-                plotlyProps.data[1].x = customDithered.map((dither, index) => { return customX[index] + dither; });
-                plotlyProps.data[2].x = tempDithered.map((dither, index) => { return tempX[index] + dither; })
-            } else {
-                plotlyProps.data[0].x = rawX;
-                plotlyProps.data[1].x = customX;
-                plotlyProps.data[2].x = tempX;
-            }
         }
         if (chartProps.yAxis) {
             if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
@@ -992,84 +977,63 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
             }
-            const rawY = cohort.unwrap(chartProps.yAxis.property);
-            const customY = JointDataset.unwrap(this.state.customPoints, chartProps.yAxis.property);
-            const tempY = JointDataset.unwrap([this.temporaryPoint], chartProps.yAxis.property);
-            if (chartProps.yAxis.options.dither) {
-                const dithered = cohort.unwrap(JointDataset.DitherLabel);
-                const customDithered = JointDataset.unwrap(this.state.customPoints, JointDataset.DitherLabel);
-                const tempDithered = JointDataset.unwrap([this.temporaryPoint], JointDataset.DitherLabel);
-                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither; });
-                plotlyProps.data[1].y = customDithered.map((dither, index) => { return customY[index] + dither; });
-                plotlyProps.data[2].y = tempDithered.map((dither, index) => { return tempY[index] + dither; })
-            } else {
-                plotlyProps.data[0].y = rawY;
-                plotlyProps.data[1].y = customY;
-                plotlyProps.data[2].y = tempY;
-            }
         }
 
-
-        plotlyProps.data[0].customdata = WhatIfTab.buildCustomData(jointData, chartProps, cohort);
-        plotlyProps.data[0].hovertemplate = WhatIfTab.buildHoverTemplate(chartProps);
+        this.generateDataTrace(cohort.filteredData, chartProps, plotlyProps.data[0]);
+        this.generateDataTrace(this.state.customPoints, chartProps, plotlyProps.data[1]);
+        this.generateDataTrace([this.temporaryPoint], chartProps, plotlyProps.data[2]);
         return plotlyProps;
     }
 
-    private static buildHoverTemplate(chartProps: IGenericChartProps): string {
-        let hovertemplate = "";
-        if (chartProps.xAxis) {
-            if (chartProps.xAxis.options.dither) {
-                hovertemplate += "x: %{customdata.X}<br>";
-            } else {
-                hovertemplate += "x: %{x}<br>";
-            }
-        }
-        if (chartProps.yAxis) {
-            if (chartProps.yAxis.options.dither) {
-                hovertemplate += "y: %{customdata.Y}<br>";
-            } else {
-                hovertemplate += "y: %{y}<br>";
-            }
-        }
-        hovertemplate += "<extra></extra>";
-        return hovertemplate;
-    }
-
-    private static buildCustomData(jointData: JointDataset, chartProps: IGenericChartProps, cohort: Cohort): Array<any> {
-        const customdata = cohort.unwrap(JointDataset.IndexLabel).map(val => {
+    private generateDataTrace(dictionary: Array<{[key: string]: number}>, chartProps: IGenericChartProps, trace: IData): void {
+        const customdata = JointDataset.unwrap(dictionary, JointDataset.IndexLabel).map(val => {
             const dict = {};
             dict[JointDataset.IndexLabel] = val;
             return dict;
         });
-        if (chartProps.chartType === ChartTypes.Scatter) {
-            const xAxis = chartProps.xAxis;
-            if (xAxis && xAxis.property && xAxis.options.dither) {
-                const rawX = cohort.unwrap(chartProps.xAxis.property);
-                rawX.forEach((val, index) => {
-                    // If categorical, show string value in tooltip
-                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
-                        customdata[index]["X"] = jointData.metaDict[chartProps.xAxis.property]
-                            .sortedCategoricalValues[val];
-                    } else {
-                        customdata[index]["X"] = val;
-                    }
+        let hovertemplate = "";
+        if (chartProps.xAxis) {
+            const metaX = this.props.jointDataset.metaDict[chartProps.xAxis.property];
+            const rawX = JointDataset.unwrap(dictionary, chartProps.xAxis.property);
+            if (metaX.isCategorical) {
+                hovertemplate += metaX.abbridgedLabel + ": %{customdata.X}<br>";
+                rawX.map((val, index) => {
+                    customdata[index]["X"] = metaX.sortedCategoricalValues[val]
                 });
-            }
-            const yAxis = chartProps.yAxis;
-            if (yAxis && yAxis.property && yAxis.options.dither) {
-                const rawY = cohort.unwrap(chartProps.yAxis.property);
-                rawY.forEach((val, index) => {
-                    // If categorical, show string value in tooltip
-                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
-                        customdata[index]["Y"] = jointData.metaDict[chartProps.yAxis.property]
-                            .sortedCategoricalValues[val];
-                    } else {
-                        customdata[index]["Y"] = val;
-                    }
-                });
+                if (chartProps.xAxis.options.dither) {
+                    const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel);
+                    trace.x = dither.map((ditherVal, index) => { return rawX[index] + ditherVal; });
+                } else {
+                    trace.x = rawX;
+                }
+            } else {
+                hovertemplate += metaX.abbridgedLabel + ": %{x}<br>";
+                trace.x = rawX;
             }
         }
-        return customdata;
+        if (chartProps.yAxis) {
+            const metaY = this.props.jointDataset.metaDict[chartProps.yAxis.property];
+            const rawY = JointDataset.unwrap(dictionary, chartProps.yAxis.property);
+            if (metaY.isCategorical) {
+                hovertemplate += metaY.abbridgedLabel + ": %{customdata.Y}<br>";
+                rawY.map((val, index) => {
+                    customdata[index]["Y"] = metaY.sortedCategoricalValues[val]
+                });
+                if (chartProps.yAxis.options.dither) {
+                    const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel);
+                    trace.y = dither.map((ditherVal, index) => { return rawY[index] + ditherVal; });
+                } else {
+                    trace.y = rawY;
+                }
+            } else {
+                hovertemplate += metaY.abbridgedLabel + ": %{y}<br>";
+                trace.y = rawY;
+            }
+        }
+        hovertemplate += localization.Charts.rowIndex + ": %{customdata.Index}<br>";
+        hovertemplate += "<extra></extra>";
+        trace.customdata = customdata as any;
+        trace.hovertemplate = hovertemplate;
     }
 
     private generateDefaultChartAxes(): void {

@@ -184,7 +184,7 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
             const yLabel = localization.Charts.featureImportance;
             plotlyProps.data[0].y = rawY;
             rawY.forEach((val, index) => {
-                customdata[index]["Yformatted"] = val.toPrecision(4);
+                customdata[index]["Yformatted"] = val.toLocaleString(undefined, {maximumFractionDigits: 3});
             })
             hovertemplate += yLabel + ": %{customdata.Yformatted}<br>";
 

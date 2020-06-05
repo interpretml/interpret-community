@@ -351,7 +351,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 colorAxis.options.bin || this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical)) {
                     this.props.cohorts[this.state.selectedCohortIndex].sort(colorAxis.property)
                     const includedIndexes = _.uniq(this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property, true));
-                    colorSeries = includedIndexes.map(category => this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]);
+                    colorSeries = this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues;
             } else {
                 // continuous color, handled by plotly for now
                 return;
@@ -576,7 +576,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         customdata[index]["X"] = jointData.metaDict[chartProps.xAxis.property]
                             .sortedCategoricalValues[val];
                     } else {
-                        customdata[index]["X"] = val;
+                        customdata[index]["X"] = (val as number).toLocaleString(undefined, {maximumFractionDigits: 3});
                     }
                 });
             }
@@ -589,7 +589,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         customdata[index]["Y"] = jointData.metaDict[chartProps.yAxis.property]
                             .sortedCategoricalValues[val];
                     } else {
-                        customdata[index]["Y"] = val;
+                        customdata[index]["Y"] = (val as number).toLocaleString(undefined, {maximumFractionDigits: 3});
                     }
                 });
             }
@@ -601,7 +601,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         customdata[index]["Color"] = jointData.metaDict[colorAxis.property]
                             .sortedCategoricalValues[val];
                     } else {
-                        customdata[index]["Color"] = val.toPrecision(4);
+                        customdata[index]["Color"] = val.toLocaleString(undefined, {maximumFractionDigits: 3});
                     }
                 });
             }

@@ -319,7 +319,12 @@
         "_rowIndex.comment": "the index of a row in a dataset",
         "featureImportance": "Feature importance",
         "countTooltipPrefix": "Count: {0}",
-        "_countTooltipPrefix.comment": "on hover, show the prefix followed by the total number of points"
+        "_countTooltipPrefix.comment": "on hover, show the prefix followed by the total number of points",
+        "featurePrefix": "Feature",
+        "_featurePrefix.comment": "label shown before feature name in tooltip",
+        "importancePrefix": "Importance",
+        "_importance.comment": "label shown before importance value in tooltip",
+        "cohort": "Cohort"
     },
     "DatasetExplorer": {
         "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",

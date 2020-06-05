@@ -130,9 +130,9 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         const xText = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         if (this.props.chartType === ChartTypes.Bar) {
             baseSeries.layout.barmode = 'group';
-            let hovertemplate = "Feature: %{text}<br>";
-            hovertemplate += "Importance: %{customdate.Yformatted}<br>";
-            hovertemplate += "Cohort: %{customdata.Name}<br>";
+            let hovertemplate = localization.Charts.featurePrefix + ": %{text}<br>";
+            hovertemplate += localization.Charts.importancePrefix + ": %{customdata.Yformatted}<br>";
+            hovertemplate += localization.Charts.cohort + ": %{customdata.Name}<br>";
             hovertemplate += "<extra></extra>";
             
             const x = sortedIndexVector.map((unused, index) => index);
@@ -145,8 +145,12 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                     name: series.name,
                     customdata: sortedIndexVector.map(unused => {
                          return {
-                             "Name": series.name, 
-                            "Yformatted": sortedIndexVector.map(index => series.unsortedAggregateY[index].toPrecision(4))};}),
+                            "Name": series.name, 
+                            "Yformatted": sortedIndexVector.map(index => {
+                                return series.unsortedAggregateY[index].toLocaleString(undefined, {maximumFractionDigits: 3});
+                            }
+                        )};
+                    }),
                     text: xText,
                     x,
                     y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
