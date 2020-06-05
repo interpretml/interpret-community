@@ -2,7 +2,7 @@ import os
 import pytest
 import mlflow
 
-from azureml.core import Workspace, Experiment, Run
+# from azureml.core import Workspace, Experiment, Run
 
 from common_utils import create_sklearn_random_forest_classifier
 
@@ -20,6 +20,7 @@ class TestMlflow(object):
         assert True
 
     def test_basic_upload(self, iris, tabular_explainer):
+        TEST_EXPLANATION = 'test_explanation'
         x_train = iris[DatasetConstants.X_TRAIN]
         x_test = iris[DatasetConstants.X_TEST]
         y_train = iris[DatasetConstants.Y_TRAIN]
@@ -31,15 +32,14 @@ class TestMlflow(object):
         mlflow.set_experiment('test_experiment')
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
-            _log_explanation('test_explanation', global_explanation)
-            os.mkdir('test_explanation')
-            download_path = client.download_artifacts(run.info.run_uuid, '', dst_path='test_explanation')
+            _log_explanation(TEST_EXPLANATION, global_explanation)
+            os.mkdir(TEST_EXPLANATION)
+            download_path = client.download_artifacts(run.info.run_uuid, '', dst_path=TEST_EXPLANATION)
         downloaded_explanation = load_explanation(download_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation)
 
-    def test_upload_to_azure(self, iris, tabular_explainer):
-        ws = Workspace.from_config()
-        mlflow.set_tracking_uri(ws.get_mlflow_tracking_uri())
+    def test_upload_to_tracking_store(self, iris, tabular_explainer):
+        mlflow.set_tracking_uri('sqlite:///mlflowtest.db')
         x_train = iris[DatasetConstants.X_TRAIN]
         x_test = iris[DatasetConstants.X_TEST]
         y_train = iris[DatasetConstants.Y_TRAIN]
@@ -51,13 +51,8 @@ class TestMlflow(object):
         mlflow.set_experiment('test_experiment')
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
-            _log_explanation('test_explanation', global_explanation)
-            os.mkdir('test_explanation')
-            download_path = client.download_artifacts(run.info.run_uuid, '', dst_path='test_explanation')
+            _log_explanation(TEST_EXPLANATION, global_explanation)
+            os.mkdir(TEST_EXPLANATION)
+            download_path = client.download_artifacts(run.info.run_uuid, '', dst_path=TEST_EXPLANATION)
         downloaded_explanation_mlflow = load_explanation(download_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
-        azure_experiment = Experiment(ws, 'test_experiment')
-        azure_run = Run(azure_experiment, run.info.run_uuid)
-        azure_run.download_files(prefix='test_explanation', output_directory='azure_download')
-        downloaded_explanation_azure = load_explanation('test_explanation')
-        _assert_explanation_equivalence(global_explanation, downloaded_explanation_azure)
