@@ -180,24 +180,14 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
                 _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
             }
-            const rawY = cohort.unwrap(this.props.chartProps.yAxis.property);
+            const rawY: number[] = cohort.unwrap(this.props.chartProps.yAxis.property);
             const yLabel = localization.Charts.featureImportance;
-            if (this.props.chartProps.yAxis.options.dither) {
-                const dithered = cohort.unwrap(JointDataset.DitherLabel);
-                plotlyProps.data[0].y = dithered.map((dither, index) => { return rawY[index] + dither;});
-                hovertemplate += yLabel + ": %{customdata.Y}<br>";
-                rawY.forEach((val, index) => {
-                    // If categorical, show string value in tooltip
-                    if (jointData.metaDict[this.props.chartProps.yAxis.property].isCategorical) {
-                        customdata[index]["Y"] = jointData.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues[val];
-                    } else {
-                        customdata[index]["Y"] = val;
-                    }
-                });
-            } else {
-                plotlyProps.data[0].y = rawY;
-                hovertemplate += yLabel + ": %{y}<br>";
-            }
+            plotlyProps.data[0].y = rawY;
+            rawY.forEach((val, index) => {
+                customdata[index]["Yformatted"] = val.toPrecision(4);
+            })
+            hovertemplate += yLabel + ": %{customdata.Yformatted}<br>";
+
         }
         const indecies = cohort.unwrap(JointDataset.IndexLabel, false);
         indecies.forEach((absoluteIndex, i) => {

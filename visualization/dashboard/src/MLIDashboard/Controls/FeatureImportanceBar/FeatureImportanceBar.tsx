@@ -127,21 +127,34 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             } as any
         };
 
+        const xText = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         if (this.props.chartType === ChartTypes.Bar) {
             baseSeries.layout.barmode = 'group';
+            let hovertemplate = "Feature: %{text}<br>";
+            hovertemplate += "Importance: %{customdate.Yformatted}<br>";
+            hovertemplate += "Cohort: %{customdata.Name}<br>";
+            hovertemplate += "<extra></extra>";
+            
             const x = sortedIndexVector.map((unused, index) => index);
 
             this.props.unsortedSeries.forEach((series, seriesIndex) => {
                 baseSeries.data.push({
+                    hoverinfo: 'all',
                     orientation: 'v',
                     type: 'bar',
                     name: series.name,
+                    customdata: sortedIndexVector.map(unused => {
+                         return {
+                             "Name": series.name, 
+                            "Yformatted": sortedIndexVector.map(index => series.unsortedAggregateY[index].toPrecision(4))};}),
+                    text: xText,
                     x,
                     y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
                     marker: {
                         color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
                             FabricStyles.fabricColorPalette[series.colorIndex] : FabricStyles.fabricColorPalette[series.colorIndex])
-                    }
+                    },
+                    hovertemplate
                 } as any);
                 
             });
@@ -172,13 +185,9 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             });
         }
 
-
-        
-
-        const ticktext = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         const tickvals = sortedIndexVector.map((val, index) => index);
 
-        _.set(baseSeries, 'layout.xaxis.ticktext', ticktext);
+        _.set(baseSeries, 'layout.xaxis.ticktext', xText);
         _.set(baseSeries, 'layout.xaxis.tickvals', tickvals);
         return baseSeries;
     }
