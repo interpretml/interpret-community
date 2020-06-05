@@ -32,7 +32,6 @@ class TestMlflow(object):
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             _log_explanation('test_explanation', global_explanation)
-            artifacts = client.list_artifacts(run.info.run_uuid)
             os.mkdir('test_explanation')
             download_path = client.download_artifacts(run.info.run_uuid, '', dst_path='test_explanation')
         downloaded_explanation = load_explanation(download_path)
@@ -53,7 +52,6 @@ class TestMlflow(object):
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             _log_explanation('test_explanation', global_explanation)
-            artifacts = client.list_artifacts(run.info.run_uuid)
             os.mkdir('test_explanation')
             download_path = client.download_artifacts(run.info.run_uuid, '', dst_path='test_explanation')
         downloaded_explanation_mlflow = load_explanation(download_path)
