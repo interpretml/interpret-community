@@ -12,6 +12,9 @@ from constants import owner_email_tools_and_ux, DatasetConstants
 from test_serialize_explanation import _assert_explanation_equivalence
 
 
+TEST_EXPLANATION = 'test_explanation'
+
+
 @pytest.mark.owner(email=owner_email_tools_and_ux)
 @pytest.mark.usefixtures('clean_dir')
 class TestMlflow(object):
@@ -20,7 +23,6 @@ class TestMlflow(object):
         assert True
 
     def test_basic_upload(self, iris, tabular_explainer):
-        TEST_EXPLANATION = 'test_explanation'
         x_train = iris[DatasetConstants.X_TRAIN]
         x_test = iris[DatasetConstants.X_TEST]
         y_train = iris[DatasetConstants.Y_TRAIN]
