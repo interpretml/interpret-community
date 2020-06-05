@@ -2,8 +2,6 @@ import os
 import pytest
 import mlflow
 
-# from azureml.core import Workspace, Experiment, Run
-
 from common_utils import create_sklearn_random_forest_classifier
 
 from interpret_community.mlflow.mlflow import _log_explanation
@@ -13,6 +11,7 @@ from test_serialize_explanation import _assert_explanation_equivalence
 
 
 TEST_EXPLANATION = 'test_explanation'
+TEST_EXPERIMENT = 'test_experiment'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -31,7 +30,7 @@ class TestMlflow(object):
 
         explainer = tabular_explainer(model, x_train)
         global_explanation = explainer.explain_global(x_test)
-        mlflow.set_experiment('test_experiment')
+        mlflow.set_experiment(TEST_EXPERIMENT)
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             _log_explanation(TEST_EXPLANATION, global_explanation)
@@ -50,7 +49,7 @@ class TestMlflow(object):
 
         explainer = tabular_explainer(model, x_train)
         global_explanation = explainer.explain_global(x_test)
-        mlflow.set_experiment('test_experiment')
+        mlflow.set_experiment(TEST_EXPERIMENT)
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             _log_explanation(TEST_EXPLANATION, global_explanation)
