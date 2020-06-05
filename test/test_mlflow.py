@@ -39,7 +39,7 @@ class TestMlflow(object):
         _assert_explanation_equivalence(global_explanation, downloaded_explanation)
 
     def test_upload_to_azure(self, iris, tabular_explainer):
-        ws = Workspace(subscription_id='5f08d643-1910-4a38-a7c7-84a39d4f42e0', resource_group='wamartin', workspace_name='wamartinws')
+        ws = Workspace.from_config()
         mlflow.set_tracking_uri(ws.get_mlflow_tracking_uri())
         x_train = iris[DatasetConstants.X_TRAIN]
         x_test = iris[DatasetConstants.X_TEST]
