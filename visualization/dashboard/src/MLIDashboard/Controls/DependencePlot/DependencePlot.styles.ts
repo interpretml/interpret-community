@@ -73,7 +73,7 @@ export const dependencePlotStyles: () => IProcessedStyleSet<IDependencePlotStyle
         },
         secondaryChartPlacolderBox: {
             height: "400px",
-            width: "100%"
+            flex: 1
         },
         secondaryChartPlacolderSpacer: {
             margin: "25px auto 0 auto",
