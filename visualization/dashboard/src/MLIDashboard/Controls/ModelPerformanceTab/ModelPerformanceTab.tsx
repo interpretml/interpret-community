@@ -100,8 +100,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             <div className={classNames.rotatedVerticalBox}>
                                 <div>
                                     <Text block variant="mediumPlus" className={classNames.boldText}>{
-                                        this.props.chartProps.chartType === ChartTypes.Histogram ?
-                                        localization.Charts.numberOfDatapoints : localization.Charts.yValue}</Text>
+                                        localization.Charts.yValue}</Text>
                                     <DefaultButton 
                                         onClick={this.setYOpen.bind(this, true)}
                                         id={this._yButtonId}
@@ -143,7 +142,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
                                         return (<div className={classNames.statsBox}>
                                             {stats.map(labeledStat => {
-                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toPrecision(3))}</Text>;
+                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>;
                                             })}
                                         </div>)
                                     })}
@@ -155,7 +154,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         <div className={classNames.paddingDiv}></div>
                         <div className={classNames.horizontalAxis}>
                             <div>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{localization.Charts.xValue}</Text>
+                                <Text block variant="mediumPlus" className={classNames.boldText}>{
+                                    this.props.chartProps.chartType === ChartTypes.Histogram ?
+                                    localization.Charts.numberOfDatapoints : localization.Charts.xValue}</Text>
                                 <DefaultButton 
                                     onClick={this.setXOpen.bind(this, true)}
                                     id={this._xButtonId}

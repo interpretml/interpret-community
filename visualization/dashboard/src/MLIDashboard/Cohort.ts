@@ -7,9 +7,9 @@ export class Cohort {
     private static _cohortIndex: number = 0;
 
     public rowCount: number = 0;
+    public filteredData: Array<{[key: string]: number}>;
     private readonly cohortIndex: number;
     private mutateCount: number = 0;
-    private filteredData: Array<{[key: string]: number}>;
     private cachedAverageImportance: number[];
     private cachedTransposedLocalFeatureImportances: number[][];
     private currentSortKey: string | undefined;

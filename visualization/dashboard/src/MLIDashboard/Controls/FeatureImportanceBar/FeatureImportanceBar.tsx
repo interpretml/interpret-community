@@ -127,21 +127,39 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             } as any
         };
 
+        const xText = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         if (this.props.chartType === ChartTypes.Bar) {
             baseSeries.layout.barmode = 'group';
+            let hovertemplate = this.props.unsortedSeries[0].unsortedFeatureValues ?
+                "%{text}: %{customdata.Yvalue}<br>" :
+                localization.Charts.featurePrefix + ": %{text}<br>";
+            hovertemplate += localization.Charts.importancePrefix + ": %{customdata.Yformatted}<br>";
+            hovertemplate += "%{customdata.Name}<br>";
+            hovertemplate += "<extra></extra>";
+
             const x = sortedIndexVector.map((unused, index) => index);
 
             this.props.unsortedSeries.forEach((series, seriesIndex) => {
                 baseSeries.data.push({
+                    hoverinfo: 'all',
                     orientation: 'v',
                     type: 'bar',
                     name: series.name,
+                    customdata: sortedIndexVector.map(index => {
+                        return {
+                           "Name": series.name, 
+                           "Yformatted": series.unsortedAggregateY[index].toLocaleString(undefined, {maximumFractionDigits: 3}),
+                           "Yvalue": series.unsortedFeatureValues ? series.unsortedFeatureValues[index] : undefined
+                       };
+                   }),
+                   text: xText,
                     x,
                     y: sortedIndexVector.map(index => series.unsortedAggregateY[index]),
                     marker: {
                         color: sortedIndexVector.map(index => (index === this.props.selectedFeatureIndex && seriesIndex === this.props.selectedSeriesIndex) ?
                             FabricStyles.fabricColorPalette[series.colorIndex] : FabricStyles.fabricColorPalette[series.colorIndex])
-                    }
+                    },
+                    hovertemplate
                 } as any);
                 
             });
@@ -172,13 +190,9 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
             });
         }
 
-
-        
-
-        const ticktext = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         const tickvals = sortedIndexVector.map((val, index) => index);
 
-        _.set(baseSeries, 'layout.xaxis.ticktext', ticktext);
+        _.set(baseSeries, 'layout.xaxis.ticktext', xText);
         _.set(baseSeries, 'layout.xaxis.tickvals', tickvals);
         return baseSeries;
     }

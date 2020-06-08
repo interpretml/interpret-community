@@ -61,6 +61,12 @@ export class FabricStyles {
         width: "100%"
     };
 
+    public static placeholderItalic: IStyle = {
+        fontStyle: "italic",
+        padding: "0 0 5px 5px",
+        color: getTheme().semanticColors.disabledBodyText
+    }
+
     public static missingParameterPlaceholderSpacer: IStyle = {
         margin: "25px auto 0 auto",
         maxWidth: "400px",

@@ -21,7 +21,8 @@ export enum ColumnCategories {
     dataset = 'dataset',
     index = "index",
     explanation = 'explanation',
-    cohort = 'cohort'
+    cohort = 'cohort',
+    none = 'none'
 }
 
 export enum ClassificationEnum {
@@ -412,6 +413,13 @@ export class JointDataset {
             treatAsCategorical: true,
             category: ColumnCategories.cohort
         };
+        this.metaDict[ColumnCategories.none] = {
+            label: localization.Columns.none,
+            abbridgedLabel: localization.Columns.none,
+            isCategorical: true,
+            treatAsCategorical: true,
+            category: ColumnCategories.none
+        }
     }
 
     // project the 3d array based on the selected vector weights. Costly to do, so avoid when possible.

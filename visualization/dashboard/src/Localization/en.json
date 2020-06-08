@@ -234,7 +234,9 @@
         "falsePositive": "False positive",
         "falseNegative": "False negative",
         "dataset": "Dataset",
-        "predictedProbabilities": "Prediction probabilities"
+        "predictedProbabilities": "Prediction probabilities",
+        "none": "Count",
+        "_none.comment": "option to not have data on this axis, instead just counts number of points" 
     },
     "WhatIf": {
         "closeAriaLabel": "Close",
@@ -312,7 +314,17 @@
         "numberOfDatapoints": "Number of datapoints",
         "_numberOfDatapoints.comment": "some charts will always show the count of the number of rows in a group, this is the axis label on the chart",
         "xValue": "X-value",
-        "_xValue.comment":"label for x value button on chart"
+        "_xValue.comment":"label for x value button on chart",
+        "rowIndex": "Row index",
+        "_rowIndex.comment": "the index of a row in a dataset",
+        "featureImportance": "Feature importance",
+        "countTooltipPrefix": "Count: {0}",
+        "_countTooltipPrefix.comment": "on hover, show the prefix followed by the total number of points",
+        "featurePrefix": "Feature",
+        "_featurePrefix.comment": "label shown before feature name in tooltip",
+        "importancePrefix": "Importance",
+        "_importance.comment": "label shown before importance value in tooltip",
+        "cohort": "Cohort"
     },
     "DatasetExplorer": {
         "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",
@@ -326,7 +338,9 @@
         "chartType": "Chart type",
         "_chartType.comment": "label for dropdown to select chart format",
         "missingParameters": "This tab requires an evaluation dataset be supplied.",
-        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided"
+        "_missingPArameters.comment": "Show a message if the required dataset parameter is not provided",
+        "noColor": "None",
+        "_noColor.comment": "placeholder text when no color axis picked"
     },
     "DependencePlot": {
         "featureImportanceOf": "Feature importance of",
@@ -355,7 +369,7 @@
         "_showLabel.comment": "label on button to pick what additional chart to show",
         "featureImportancePlot": "Feature importance plot",
         "_featureImportancePlot.comment": "name of a plot type showing the importance of each feature in making a decision",
-        "icePlot": "ICE plot",
+        "icePlot": "Individual conditional expectation (ICE) plot",
         "_icePlot.comment": "name of a plot type named Individual Conditional Expectation (ICE)",
         "featureImportanceLackingParameters": "Provide local feature importances to see how each feature impacts individual predictions.",
         "_featureImportanceLackingParameters.comment": "placeholder if no local feature importances passed in",
@@ -457,7 +471,8 @@
         "groupByCohort": "Group by cohort",
         "_groupByCohort.comment": "if user selects to group by cohort, no further parameters to set, just show a message to fill space",
         "selectClass": "Select class",
-        "_selectClass.comment": "label for dropdown listing all classes"
+        "_selectClass.comment": "label for dropdown listing all classes",
+        "countHelperText": "A histogram of the number of points"
     },
     "ValidationErrors": {
         "predictedProbability": "Predicted probability",

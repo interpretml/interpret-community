@@ -17,6 +17,7 @@ import { multiIcePlotStyles } from "./MultiICEPlot.styles";
 export interface IMultiICEPlotProps {
     invokeModel?: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
     datapoints: Array<string | number>[];
+    rowNames: string[];
     colors: string[];
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
@@ -39,7 +40,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             return localization.IcePlot.predictedProbability + ":<br>" + metadata.classNames[0];
         }
     }
-    private static buildPlotlyProps(metadata: IExplanationModelMetadata, featureName: string, colors: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
+    private static buildPlotlyProps(metadata: IExplanationModelMetadata, featureName: string, colors: string[], rowNames: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
         if (yData === undefined || xData === undefined || yData.length === 0 || yData.some(row => row === undefined)) {
             return undefined;
         }
@@ -47,15 +48,27 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
             const transposedY: number[][] = Array.isArray(singleRow[0]) ?
                 ModelExplanationUtils.transpose2DArray((singleRow)) :
                 [singleRow] as any;
+            const predictionLabel = metadata.modelType === ModelTypes.regression ?
+                localization.IcePlot.prediction :
+                localization.IcePlot.predictedProbability + ": " + metadata.classNames[0]
+            const hovertemplate = `%{customdata.Name}<br>${featureName}: %{x}<br>${predictionLabel}: %{customdata.Yformatted}<br><extra></extra>`;
             return {
                 mode: rangeType === RangeTypes.categorical ? PlotlyMode.markers : PlotlyMode.linesMarkers,
                 type: 'scatter',
+                hovertemplate,
+                hoverinfo: "all",
                 x: xData,
                 y: transposedY[0],
                 marker: {
                     color: colors[rowIndex]
                 },
-                name: "row"
+                name: rowNames[rowIndex],
+                customdata: transposedY[0].map(predY => {
+                    return {
+                        "Name": rowNames[rowIndex],
+                        "Yformatted": predY.toLocaleString(undefined, {maximumFractionDigits: 3})
+                    };
+                })
             }
         }) as any;
         return {
@@ -136,6 +149,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                 this.props.metadata, 
                 this.props.jointDataset.metaDict[this.props.feature].label,
                 this.props.colors,
+                this.props.rowNames,
                 this.state.rangeView.type,
                 this.state.xAxisArray, 
                 this.state.yAxes);
