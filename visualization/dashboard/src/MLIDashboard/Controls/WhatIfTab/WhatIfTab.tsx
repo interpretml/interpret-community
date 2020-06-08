@@ -113,6 +113,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private testableDatapoints: any[][] = [];
     private temporaryPoint: { [key: string]: any };
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
+    private testableDatapointNames: string[] = [];
     private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
         const key = JointDataset.DataLabelRoot + index.toString();
@@ -212,6 +213,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 }
             }).filter(item => !!item);
             const includedColors = this.includedFeatureImportance.map(item => FabricStyles.fabricColorPalette[item.colorIndex]);
+            const includedNames = this.includedFeatureImportance.map(item => item.name);
             const includedRows = this.state.pointIsActive.map((isActive, i) => {
                 if (isActive) {
                     return this.selectedDatapoints[i];
@@ -219,12 +221,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }).filter(item => !!item);
             const includedCustomRows = this.state.customPointIsActive.map((isActive, i) => {
                 if (isActive) {
-                    includedColors.push(FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + i + 1])
+                    includedColors.push(FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + i + 1]);
+                    includedNames.push(this.state.customPoints[i][WhatIfTab.namePath]);
                     return this.customDatapoints[i];
                 }
             }).filter(item => !!item);
             this.testableDatapoints = [...includedRows, ...includedCustomRows];
             this.testableDatapointColors = includedColors;
+            this.testableDatapointNames = includedNames;
             this.forceUpdate();
         }
         this.setState({ sortingSeriesIndex, sortArray })
@@ -562,6 +566,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             invokeModel={this.props.invokeModel}
                             datapoints={this.testableDatapoints}
                             colors={this.testableDatapointColors}
+                            rowNames={this.testableDatapointNames}
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
                             feature={this.state.selectedFeatureKey}
@@ -727,7 +732,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState(prevState => {
             const customPoints = [...prevState.customPoints];
             customPoints.splice(index, 1);
-            return { customPoints };
+            const customPointIsActive = [...prevState.customPointIsActive];
+            customPointIsActive.splice(index, 1);
+            return { customPoints, customPointIsActive };
         });
     }
 
