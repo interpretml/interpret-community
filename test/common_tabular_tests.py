@@ -142,7 +142,7 @@ class VerifyTabularTests(object):
         else:
             global_explanation = explainer.explain_global(x_test)
             local_explanation = explainer.explain_local(x_test)
-            verify_serialization(local_explanation)
+            verify_serialization(local_explanation, extra_path='local', exist_ok=True)
             feat_imps_local = np.array(local_explanation.local_importance_values)
             assert feat_imps_local.shape[-1] == len(feature_names)
             assert local_explanation.num_features == len(feature_names)
@@ -168,7 +168,7 @@ class VerifyTabularTests(object):
 
         assert feat_imps_global.shape[-1] == len(feature_names)
 
-        verify_serialization(global_explanation)
+        verify_serialization(global_explanation, extra_path='global', exist_ok=True)
 
     def _verify_explain_model_transformations_regression(self, transformations_type, get_transformations,
                                                          create_model, true_labels_required,
@@ -882,11 +882,11 @@ class VerifyTabularTests(object):
         else:
             explainer = self.create_explainer(pipeline, imp_train_X)
         explanation = explainer.explain_global(imp_X.transform(df_test_X))
-        verify_serialization(explanation)
+        verify_serialization(explanation, exist_ok=True)
 
     def validate_explanation(self, explanation, is_multiclass=False, is_probability=False,
                              is_regression=False, model_output=None):
-        verify_serialization(explanation)
+        verify_serialization(explanation, exist_ok=True)
         if is_regression:
             for idx, row in enumerate(explanation.local_importance_values):
                 features = np.array(row)
