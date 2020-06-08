@@ -130,9 +130,11 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
         const xText = sortedIndexVector.map(i =>this.props.unsortedX[i]);
         if (this.props.chartType === ChartTypes.Bar) {
             baseSeries.layout.barmode = 'group';
-            let hovertemplate = localization.Charts.featurePrefix + ": %{text}<br>";
+            let hovertemplate = this.props.unsortedSeries[0].unsortedFeatureValues ?
+                "%{text}: %{customdata.Yvalue}<br>" :
+                localization.Charts.featurePrefix + ": %{text}<br>";
             hovertemplate += localization.Charts.importancePrefix + ": %{customdata.Yformatted}<br>";
-            hovertemplate += localization.Charts.cohort + ": %{customdata.Name}<br>";
+            hovertemplate += "%{customdata.Name}<br>";
             hovertemplate += "<extra></extra>";
             
             const x = sortedIndexVector.map((unused, index) => index);
@@ -143,13 +145,12 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                     orientation: 'v',
                     type: 'bar',
                     name: series.name,
-                    customdata: sortedIndexVector.map(unused => {
+                    customdata: sortedIndexVector.map(index => {
                          return {
                             "Name": series.name, 
-                            "Yformatted": sortedIndexVector.map(index => {
-                                return series.unsortedAggregateY[index].toLocaleString(undefined, {maximumFractionDigits: 3});
-                            }
-                        )};
+                            "Yformatted": series.unsortedAggregateY[index].toLocaleString(undefined, {maximumFractionDigits: 3}),
+                            "Yvalue": series.unsortedFeatureValues ? series.unsortedFeatureValues[index] : undefined
+                        };
                     }),
                     text: xText,
                     x,
