@@ -131,7 +131,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                         theme={getTheme() as any}
                                     />
                                 </div>
-                                <div className={classNames.rightPanel}>
+                                {this.props.metadata.modelType !== ModelTypes.multiclass && <div className={classNames.rightPanel}>
                                     {!this.props.jointDataset.hasTrueY && (
                                         <div className={classNames.missingParametersPlaceholder}>
                                             <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
@@ -146,7 +146,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                             })}
                                         </div>)
                                     })}
-                                </div>
+                                </div>}
                             </div>
                         </div>
                     </div>

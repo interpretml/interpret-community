@@ -26,6 +26,7 @@ export const generateMetrics: (jointDataset: JointDataset, selectionIndexes: num
             return generateRegressionStats(trueYSubset, predYSubset, errorsSubset);
         });
     }
+    return [];
 }
 
 const generateBinaryStats: (outcomes: number[]) => ILabeledStatistic[] = (outcomes: number[]): ILabeledStatistic[] => {

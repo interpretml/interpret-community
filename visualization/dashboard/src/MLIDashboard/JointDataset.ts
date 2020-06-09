@@ -377,7 +377,7 @@ export class JointDataset {
         });
         this.binDict[key] = array;
         meta.sortedCategoricalValues = labelArray;
-    } 
+    }
 
     private initializeDataDictIfNeeded(arr: any[]): void {
         if (arr === undefined) {
@@ -423,7 +423,7 @@ export class JointDataset {
     }
 
     // project the 3d array based on the selected vector weights. Costly to do, so avoid when possible.
-    private buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
+    public buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
         const featuresMinArray = new Array(this.rawLocalImportance[0].length).fill(Number.MAX_SAFE_INTEGER);
         const featuresMaxArray = new Array(this.rawLocalImportance[0].length).fill(Number.MIN_SAFE_INTEGER);
         switch(this._modelMeta.modelType) {
@@ -479,7 +479,8 @@ export class JointDataset {
         }
         this.rawLocalImportance[0].forEach((classArray, featureIndex) => {
             const featureLabel = this._modelMeta.featureNames[featureIndex];
-            this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
+            const key = JointDataset.ReducedLocalImportanceRoot + featureIndex.toString();
+            this.metaDict[key] = {
                 label: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 abbridgedLabel: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 isCategorical: false,
@@ -490,6 +491,7 @@ export class JointDataset {
                 },
                 category: ColumnCategories.explanation
             };
+            this.binDict[key] = undefined;
         });
     }
 
