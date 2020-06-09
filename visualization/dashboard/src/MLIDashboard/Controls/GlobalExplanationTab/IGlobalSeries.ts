@@ -1,5 +1,3 @@
-
-
 export interface IGlobalSeries {
     unsortedAggregateY: number[];
     // feature x row, given how lookup is done

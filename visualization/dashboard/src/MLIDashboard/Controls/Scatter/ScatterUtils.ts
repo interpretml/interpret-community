@@ -1,19 +1,19 @@
-import _ from "lodash";
-import * as memoize from "memoize-one";
-import { AccessorMappingFunctionNames, ChartBuilder, IPlotlyProperty, PlotlyMode, SelectionContext } from "mlchartlib";
-import { IComboBoxOption, IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
-import { DropdownMenuItemType, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { localization } from "../../../Localization/localization";
-import { IDashboardContext } from "../../ExplanationDashboard";
-import { FabricStyles } from "../../FabricStyles";
-import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
-import { HelpMessageDict } from "../../Interfaces";
-import { PlotlyUtils } from "../../SharedComponents";
+import _ from 'lodash';
+import * as memoize from 'memoize-one';
+import { AccessorMappingFunctionNames, ChartBuilder, IPlotlyProperty, PlotlyMode, SelectionContext } from 'mlchartlib';
+import { IComboBoxOption, IComboBoxStyles } from 'office-ui-fabric-react/lib/ComboBox';
+import { DropdownMenuItemType, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
+import { localization } from '../../../Localization/localization';
+import { IDashboardContext } from '../../ExplanationDashboard';
+import { FabricStyles } from '../../FabricStyles';
+import { IExplanationContext, IExplanationModelMetadata, ModelTypes } from '../../IExplanationContext';
+import { HelpMessageDict } from '../../Interfaces';
+import { PlotlyUtils } from '../../SharedComponents';
 
 export interface IScatterProps {
     plotlyProps: IPlotlyProperty;
     selectionContext: SelectionContext;
-    selectedRow: number;                 
+    selectedRow: number;
     theme?: string;
     messages?: HelpMessageDict;
     dashboardContext: IDashboardContext;
@@ -32,52 +32,51 @@ export interface IProjectedData {
 }
 
 export class ScatterUtils {
-
     private static baseScatterProperties: IPlotlyProperty = {
         config: { displaylogo: false, responsive: true, displayModeBar: false },
         data: [
             {
                 datapointLevelAccessors: {
                     customdata: {
-                        path: ["Index"],
-                        plotlyPath: "customdata"
+                        path: ['Index'],
+                        plotlyPath: 'customdata',
                     },
                     text: {
                         mapFunction: AccessorMappingFunctionNames.stringifyText,
                         path: [],
-                        plotlyPath: "text"
-                    }
+                        plotlyPath: 'text',
+                    },
                 },
-                hoverinfo: "text",
+                hoverinfo: 'text',
                 mode: PlotlyMode.markers,
-                type: "scattergl"
-            }
+                type: 'scattergl',
+            },
         ],
         layout: {
-            dragmode:false,
+            dragmode: false,
             autosize: true,
             font: {
-                size: 10
+                size: 10,
             },
             margin: {
-                t: 10
+                t: 10,
             },
-            hovermode: "closest",
+            hovermode: 'closest',
             showlegend: false,
             yaxis: {
-                automargin: true
+                automargin: true,
             },
-        } as any
+        } as any,
     };
 
     public static defaultDataExpPlotlyProps(exp: IExplanationContext): IPlotlyProperty {
-        let maxIndex: number = 0;
+        let maxIndex = 0;
         let maxVal: number = Number.MIN_SAFE_INTEGER;
 
         if (exp.globalExplanation && exp.globalExplanation.perClassFeatureImportances) {
             // Find the top metric
             exp.globalExplanation.perClassFeatureImportances
-                .map(classArray => classArray.reduce((a, b) => a + b), 0)
+                .map((classArray) => classArray.reduce((a, b) => a + b), 0)
                 .forEach((val, index) => {
                     if (val >= maxVal) {
                         maxIndex = index;
@@ -87,63 +86,62 @@ export class ScatterUtils {
         }
 
         if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
-            exp.globalExplanation.flattenedFeatureImportances
-                .forEach((val, index) => {
-                    if (val >= maxVal) {
-                        maxIndex = index;
-                        maxVal = val;
-                    }
-                });
+            exp.globalExplanation.flattenedFeatureImportances.forEach((val, index) => {
+                if (val >= maxVal) {
+                    maxIndex = index;
+                    maxVal = val;
+                }
+            });
         }
 
         const props = _.cloneDeep(ScatterUtils.baseScatterProperties);
         const hasPredictedY = exp.testDataset.predictedY !== undefined;
         const xAccessor = `Index`;
-        const yAccessor = `TrainingData[${maxIndex}]`; 
-        const colorAccessor = hasPredictedY ? "PredictedY" : "Index";
+        const yAccessor = `TrainingData[${maxIndex}]`;
+        const colorAccessor = hasPredictedY ? 'PredictedY' : 'Index';
         const colorOption = {
             key: colorAccessor,
             text: hasPredictedY ? localization.ExplanationScatter.predictedY : localization.ExplanationScatter.index,
             data: {
                 isCategorical: hasPredictedY && exp.modelMetadata.modelType !== ModelTypes.regression,
-                sortProperty: (hasPredictedY && exp.modelMetadata.modelType !== ModelTypes.regression) ? "PredictedYClassIndex" : undefined
-            }};
+                sortProperty:
+                    hasPredictedY && exp.modelMetadata.modelType !== ModelTypes.regression
+                        ? 'PredictedYClassIndex'
+                        : undefined,
+            },
+        };
         const modelData = exp.modelMetadata;
-        const colorbarTitle = ScatterUtils.formatItemTextForAxis(colorOption, modelData)
+        const colorbarTitle = ScatterUtils.formatItemTextForAxis(colorOption, modelData);
         PlotlyUtils.setColorProperty(props, colorOption, modelData, colorbarTitle);
-        props.data[0].yAccessor = yAccessor
-        props.data[0].xAccessor = xAccessor
-        props.data[0].datapointLevelAccessors!["text"].path = [xAccessor, yAccessor, colorAccessor];
-        props.data[0].datapointLevelAccessors!["text"].mapArgs = [
+        props.data[0].yAccessor = yAccessor;
+        props.data[0].xAccessor = xAccessor;
+        props.data[0].datapointLevelAccessors!['text'].path = [xAccessor, yAccessor, colorAccessor];
+        props.data[0].datapointLevelAccessors!['text'].mapArgs = [
             localization.ExplanationScatter.index,
             modelData.featureNames[maxIndex],
-            localization.ExplanationScatter.predictedY];
+            localization.ExplanationScatter.predictedY,
+        ];
 
-        _.set(props, "layout.xaxis.title.text", localization.ExplanationScatter.index);
-        _.set(
-            props,
-            "layout.yaxis.title.text",
-            modelData.featureNames[maxIndex]
-        );
+        _.set(props, 'layout.xaxis.title.text', localization.ExplanationScatter.index);
+        _.set(props, 'layout.yaxis.title.text', modelData.featureNames[maxIndex]);
 
         return props;
     }
 
     public static defaultExplanationPlotlyProps(exp: IExplanationContext): IPlotlyProperty {
-        let maxIndex: number = 0;
-        let secondIndex: number = 0;
+        let maxIndex = 0;
+        let secondIndex = 0;
         let maxVal: number = Number.MIN_SAFE_INTEGER;
 
         // Find the top two metrics
         if (exp.globalExplanation && exp.globalExplanation.flattenedFeatureImportances) {
-            exp.globalExplanation.flattenedFeatureImportances
-                .forEach((val, index) => {
-                    if (val >= maxVal) {
-                        secondIndex = maxIndex;
-                        maxIndex = index;
-                        maxVal = val;
-                    }
-                });
+            exp.globalExplanation.flattenedFeatureImportances.forEach((val, index) => {
+                if (val >= maxVal) {
+                    secondIndex = maxIndex;
+                    maxIndex = index;
+                    maxVal = val;
+                }
+            });
         }
 
         const props = _.cloneDeep(ScatterUtils.baseScatterProperties);
@@ -154,91 +152,121 @@ export class ScatterUtils {
             key: colorAccessor,
             text: exp.modelMetadata.featureNames[secondIndex],
             data: {
-                isCategorical: exp.modelMetadata.featureIsCategorical[secondIndex]
-            }};
+                isCategorical: exp.modelMetadata.featureIsCategorical[secondIndex],
+            },
+        };
         const modelData = exp.modelMetadata;
-        const colorbarTitle = ScatterUtils.formatItemTextForAxis(colorOption, modelData)
+        const colorbarTitle = ScatterUtils.formatItemTextForAxis(colorOption, modelData);
         PlotlyUtils.setColorProperty(props, colorOption, modelData, colorbarTitle);
         props.data[0].xAccessor = xAccessor;
         props.data[0].yAccessor = yAccessor;
-        props.data[0].datapointLevelAccessors!["text"].path = [xAccessor, yAccessor, colorAccessor];
-        props.data[0].datapointLevelAccessors!["text"].mapArgs = [
+        props.data[0].datapointLevelAccessors!['text'].path = [xAccessor, yAccessor, colorAccessor];
+        props.data[0].datapointLevelAccessors!['text'].mapArgs = [
             localization.formatString(localization.ExplanationScatter.dataLabel, modelData.featureNames[maxIndex]),
-            localization.formatString(localization.ExplanationScatter.importanceLabel, modelData.featureNames[maxIndex]),
-            localization.formatString(localization.ExplanationScatter.dataLabel, modelData.featureNames[secondIndex])];
+            localization.formatString(
+                localization.ExplanationScatter.importanceLabel,
+                modelData.featureNames[maxIndex],
+            ),
+            localization.formatString(localization.ExplanationScatter.dataLabel, modelData.featureNames[secondIndex]),
+        ];
 
-        const yAxisLabel = modelData.modelType === ModelTypes.binary ?
-            localization.formatString(localization.ExplanationScatter.importanceLabel, modelData.featureNames[maxIndex]) + ` : ${modelData.classNames[0]}` :
-            localization.formatString(localization.ExplanationScatter.importanceLabel, modelData.featureNames[maxIndex]);
+        const yAxisLabel =
+            modelData.modelType === ModelTypes.binary
+                ? localization.formatString(
+                      localization.ExplanationScatter.importanceLabel,
+                      modelData.featureNames[maxIndex],
+                  ) + ` : ${modelData.classNames[0]}`
+                : localization.formatString(
+                      localization.ExplanationScatter.importanceLabel,
+                      modelData.featureNames[maxIndex],
+                  );
+        _.set(props, 'layout.yaxis.title.text', yAxisLabel);
         _.set(
             props,
-            "layout.yaxis.title.text",
-            yAxisLabel
-        );
-        _.set(
-            props,
-            "layout.xaxis.title.text",
-            localization.formatString(localization.ExplanationScatter.dataLabel, modelData.featureNames[maxIndex])
+            'layout.xaxis.title.text',
+            localization.formatString(localization.ExplanationScatter.dataLabel, modelData.featureNames[maxIndex]),
         );
 
         return props;
     }
 
-    public static populatePlotlyProps: (data: IProjectedData[], plotlyProps: IPlotlyProperty) => IPlotlyProperty
-        = (memoize as any).default(
+    public static populatePlotlyProps: (
+        data: IProjectedData[],
+        plotlyProps: IPlotlyProperty,
+    ) => IPlotlyProperty = (memoize as any).default(
         (data: IProjectedData[], plotlyProps: IPlotlyProperty): IPlotlyProperty => {
             const result = _.cloneDeep(plotlyProps);
             result.data = result.data
-                .map(series => ChartBuilder.buildPlotlySeries(series, data) as any)
+                .map((series) => ChartBuilder.buildPlotlySeries(series, data) as any)
                 .reduce((prev, curr) => {
                     prev.push(...curr);
                     return prev;
                 }, []);
             return result as any;
         },
-        _.isEqual
+        _.isEqual,
     );
 
-    public static buildOptions: (explanationContext: IExplanationContext, includeFeatureImportance: boolean) => IDropdownOption[]
-        = (memoize as any).default(
+    public static buildOptions: (
+        explanationContext: IExplanationContext,
+        includeFeatureImportance: boolean,
+    ) => IDropdownOption[] = (memoize as any).default(
         (explanationContext: IExplanationContext, includeFeatureImportance: boolean): IDropdownOption[] => {
             const result: IDropdownOption[] = [];
             if (includeFeatureImportance) {
-                result.push({key: "Header0", text: localization.featureImportance, itemType: DropdownMenuItemType.Header});
+                result.push({
+                    key: 'Header0',
+                    text: localization.featureImportance,
+                    itemType: DropdownMenuItemType.Header,
+                });
                 explanationContext.modelMetadata.featureNames.forEach((featureName, index) => {
                     result.push({
                         key: `LocalExplanation[${index}]`,
-                        text: localization.formatString(localization.ExplanationScatter.importanceLabel, featureName) as string,
-                        data: {isCategorical: false, isFeatureImportance: true}
+                        text: localization.formatString(
+                            localization.ExplanationScatter.importanceLabel,
+                            featureName,
+                        ) as string,
+                        data: { isCategorical: false, isFeatureImportance: true },
                     });
                 });
             }
-            result.push({ key: "divider1", text: "-", itemType: DropdownMenuItemType.Divider });
-            result.push({ key: "Header1", text: localization.ExplanationScatter.dataGroupLabel, itemType: DropdownMenuItemType.Header });
+            result.push({ key: 'divider1', text: '-', itemType: DropdownMenuItemType.Divider });
+            result.push({
+                key: 'Header1',
+                text: localization.ExplanationScatter.dataGroupLabel,
+                itemType: DropdownMenuItemType.Header,
+            });
             explanationContext.modelMetadata.featureNames.forEach((featureName, index) => {
                 result.push({
                     key: `TrainingData[${index}]`,
-                    text: includeFeatureImportance ? 
-                        localization.formatString(localization.ExplanationScatter.dataLabel, featureName) as string :
-                        featureName,
-                    data: {isCategorical: explanationContext.modelMetadata.featureIsCategorical[index]}
+                    text: includeFeatureImportance
+                        ? (localization.formatString(localization.ExplanationScatter.dataLabel, featureName) as string)
+                        : featureName,
+                    data: { isCategorical: explanationContext.modelMetadata.featureIsCategorical[index] },
                 });
             });
             result.push({
                 key: `Index`,
                 text: localization.ExplanationScatter.index,
-                data: {isCategorical: false}
+                data: { isCategorical: false },
             });
-            result.push({ key: "divider2", text: "-", itemType: DropdownMenuItemType.Divider });
-            result.push({ key: "Header2", text: localization.ExplanationScatter.output, itemType: DropdownMenuItemType.Header });
+            result.push({ key: 'divider2', text: '-', itemType: DropdownMenuItemType.Divider });
+            result.push({
+                key: 'Header2',
+                text: localization.ExplanationScatter.output,
+                itemType: DropdownMenuItemType.Header,
+            });
             if (explanationContext.testDataset.predictedY) {
                 result.push({
                     key: `PredictedY`,
                     text: localization.ExplanationScatter.predictedY,
                     data: {
                         isCategorical: explanationContext.modelMetadata.modelType !== ModelTypes.regression,
-                        sortProperty: explanationContext.modelMetadata.modelType !== ModelTypes.regression ? "PredictedYClassIndex" : undefined
-                    }
+                        sortProperty:
+                            explanationContext.modelMetadata.modelType !== ModelTypes.regression
+                                ? 'PredictedYClassIndex'
+                                : undefined,
+                    },
                 });
             }
             if (explanationContext.testDataset.probabilityY) {
@@ -249,8 +277,11 @@ export class ScatterUtils {
                     }
                     result.push({
                         key: `ProbabilityY[${index}]`,
-                        text: localization.formatString(localization.ExplanationScatter.probabilityLabel, className) as string,
-                        data: {isCategorical: false}
+                        text: localization.formatString(
+                            localization.ExplanationScatter.probabilityLabel,
+                            className,
+                        ) as string,
+                        data: { isCategorical: false },
                     });
                 });
             }
@@ -258,23 +289,24 @@ export class ScatterUtils {
                 result.push({
                     key: `TrueY`,
                     text: localization.ExplanationScatter.trueY,
-                    data :{
+                    data: {
                         isCategorical: explanationContext.modelMetadata.modelType !== ModelTypes.regression,
-                        sortProperty: explanationContext.modelMetadata.modelType !== ModelTypes.regression ? "TrueYClassIndex" : undefined
-                    }
+                        sortProperty:
+                            explanationContext.modelMetadata.modelType !== ModelTypes.regression
+                                ? 'TrueYClassIndex'
+                                : undefined,
+                    },
                 });
             }
             return result;
-        }
+        },
     );
 
     // The chartBuilder util works best with arrays of objects, rather than an object with array props.
     // Just re-zipper to form;
-    public static projectData: (explanationContext: IExplanationContext) => IProjectedData[]
-    = (memoize as any).default(
+    public static projectData: (explanationContext: IExplanationContext) => IProjectedData[] = (memoize as any).default(
         (explanationContext: IExplanationContext): IProjectedData[] => {
-            return explanationContext.testDataset.dataset.map((featuresArray, rowIndex)=> {
-
+            return explanationContext.testDataset.dataset.map((featuresArray, rowIndex) => {
                 const result: IProjectedData = {
                     TrainingData: featuresArray,
                     Index: rowIndex.toString(),
@@ -306,74 +338,99 @@ export class ScatterUtils {
                 return result;
             });
         },
-        _.isEqual
+        _.isEqual,
     );
 
-    public static updateNewXAccessor(props: IScatterProps, plotlyProps: IPlotlyProperty, item: IComboBoxOption, id: string): void {
+    public static updateNewXAccessor(
+        props: IScatterProps,
+        plotlyProps: IPlotlyProperty,
+        item: IComboBoxOption,
+        id: string,
+    ): void {
         if (item.key !== plotlyProps.data[0].xAccessor) {
             plotlyProps.data[0].xAccessor = item.key.toString();
             ScatterUtils.updateTooltipArgs(plotlyProps, item.key.toString(), item.text, 0);
-            _.set(plotlyProps, "layout.xaxis.title.text", ScatterUtils.formatItemTextForAxis(
-                item, 
-                props.dashboardContext.explanationContext.modelMetadata));
+            _.set(
+                plotlyProps,
+                'layout.xaxis.title.text',
+                ScatterUtils.formatItemTextForAxis(item, props.dashboardContext.explanationContext.modelMetadata),
+            );
             props.onChange(plotlyProps, id);
         }
     }
 
-    public static updateNewYAccessor(props: IScatterProps, plotlyProps: IPlotlyProperty, item: IComboBoxOption, id: string): void {
+    public static updateNewYAccessor(
+        props: IScatterProps,
+        plotlyProps: IPlotlyProperty,
+        item: IComboBoxOption,
+        id: string,
+    ): void {
         if (item.key !== plotlyProps.data[0].yAccessor) {
             plotlyProps.data[0].yAccessor = item.key.toString();
             ScatterUtils.updateTooltipArgs(plotlyProps, item.key.toString(), item.text, 1);
-            _.set(plotlyProps, "layout.yaxis.title.text", ScatterUtils.formatItemTextForAxis(
-                item, 
-                props.dashboardContext.explanationContext.modelMetadata));
+            _.set(
+                plotlyProps,
+                'layout.yaxis.title.text',
+                ScatterUtils.formatItemTextForAxis(item, props.dashboardContext.explanationContext.modelMetadata),
+            );
             props.onChange(plotlyProps, id);
         }
     }
 
-    public static updateColorAccessor(props: IScatterProps, plotlyProps: IPlotlyProperty, item: IComboBoxOption, id: string): void {
-        const colorbarTitle = ScatterUtils.formatItemTextForAxis(item, props.dashboardContext.explanationContext.modelMetadata)
-        PlotlyUtils.setColorProperty(plotlyProps, item, props.dashboardContext.explanationContext.modelMetadata, colorbarTitle);
+    public static updateColorAccessor(
+        props: IScatterProps,
+        plotlyProps: IPlotlyProperty,
+        item: IComboBoxOption,
+        id: string,
+    ): void {
+        const colorbarTitle = ScatterUtils.formatItemTextForAxis(
+            item,
+            props.dashboardContext.explanationContext.modelMetadata,
+        );
+        PlotlyUtils.setColorProperty(
+            plotlyProps,
+            item,
+            props.dashboardContext.explanationContext.modelMetadata,
+            colorbarTitle,
+        );
         ScatterUtils.updateTooltipArgs(plotlyProps, item.key.toString(), item.text, 2);
         props.onChange(plotlyProps, id);
     }
 
     public static getselectedColorOption(plotlyProps: IPlotlyProperty, options: IDropdownOption[]): string | undefined {
-        let foundOption = options.find(
-            option => _.isEqual([option.key], _.get(plotlyProps.data[0], "datapointLevelAccessors.color.path"))
+        let foundOption = options.find((option) =>
+            _.isEqual([option.key], _.get(plotlyProps.data[0], 'datapointLevelAccessors.color.path')),
         );
         if (foundOption !== undefined) {
             return foundOption.key.toString();
         }
-        if(plotlyProps.data[0].groupBy === undefined ||
-            plotlyProps.data[0].groupBy!.length < 1
-        ) {
+        if (plotlyProps.data[0].groupBy === undefined || plotlyProps.data[0].groupBy!.length < 1) {
             return undefined;
         }
-        foundOption = options.find(option => option.key === plotlyProps.data[0].groupBy![0]);
+        foundOption = options.find((option) => option.key === plotlyProps.data[0].groupBy![0]);
         return foundOption ? foundOption.key.toString() : undefined;
     }
 
     public static updatePropsForSelections(plotlyProps: IPlotlyProperty, selectedRow: number): IPlotlyProperty {
         if (selectedRow === undefined) {
-            plotlyProps.data.forEach(trace => {
+            plotlyProps.data.forEach((trace) => {
                 _.set(trace, 'marker.line.width', [0]);
-                _.set(trace, 'selectedpoints', null); 
+                _.set(trace, 'selectedpoints', null);
             });
             return _.cloneDeep(plotlyProps);
         }
         const selection = selectedRow !== undefined ? selectedRow.toString() : undefined;
-        plotlyProps.data.forEach(trace => {
-            let selectedIndexes: number[] = [];
+        plotlyProps.data.forEach((trace) => {
+            const selectedIndexes: number[] = [];
             let newWidths: number[] = [0];
             if ((trace as any).customdata) {
-                const customData = ((trace as any).customdata as string[]);
-                newWidths =  new Array(customData.length).fill(0);
+                const customData = (trace as any).customdata as string[];
+                newWidths = new Array(customData.length).fill(0);
 
                 customData.forEach((id, index) => {
                     if (selection === id) {
                         selectedIndexes.push(index);
-                        newWidths[index] = 2
+                        newWidths[index] = 2;
                     }
                 });
             }
@@ -385,8 +442,8 @@ export class ScatterUtils {
     }
 
     private static updateTooltipArgs(props: IPlotlyProperty, accessor: string, label: string, index: number): void {
-        props.data[0].datapointLevelAccessors["text"].mapArgs[index] = label;
-        props.data[0].datapointLevelAccessors["text"].path[index] = accessor;
+        props.data[0].datapointLevelAccessors['text'].mapArgs[index] = label;
+        props.data[0].datapointLevelAccessors['text'].path[index] = accessor;
     }
 
     private static formatItemTextForAxis(item: IDropdownOption, modelMetadata: IExplanationModelMetadata): string {

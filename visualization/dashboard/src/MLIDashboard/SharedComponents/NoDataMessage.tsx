@@ -1,15 +1,16 @@
-import React from "react";
-import { localization } from "../../Localization/localization";
-import { IHelpMessage } from "../Interfaces/IStringsParam";
+import React from 'react';
+import { localization } from '../../Localization/localization';
+import { IHelpMessage } from '../Interfaces/IStringsParam';
 require('./NoDataMessage.css');
 
-export class NoDataMessage extends React.PureComponent <{explanationStrings?: IHelpMessage[]}> {
+export class NoDataMessage extends React.PureComponent<{ explanationStrings?: IHelpMessage[] }> {
     public render(): React.ReactNode {
-        
-        return <div className='centered'>
-            <div className='primary-message'>{localization.BarChart.noData}</div>
-            {this.renderExplanationStrings()}
-        </div>
+        return (
+            <div className="centered">
+                <div className="primary-message">{localization.BarChart.noData}</div>
+                {this.renderExplanationStrings()}
+            </div>
+        );
     }
 
     private renderExplanationStrings(): React.ReactNode {
@@ -18,8 +19,8 @@ export class NoDataMessage extends React.PureComponent <{explanationStrings?: IH
             return;
         }
         const children = this.props.explanationStrings.map((message, index) => {
-            return <span key={index}>{message.displayText}</span>
-        })
-        return (<div className='secondary-message'>{children}</div>)
+            return <span key={index}>{message.displayText}</span>;
+        });
+        return <div className="secondary-message">{children}</div>;
     }
 }
