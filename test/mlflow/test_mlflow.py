@@ -39,8 +39,8 @@ class TestMlflow(object):
         downloaded_explanation = load_explanation(download_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation)
 
-    def test_upload_to_tracking_store(self, iris, tabular_explainer):
-        mlflow.set_tracking_uri('sqlite:///mlflowtest.db')
+    def test_upload_to_tracking_store(self, iris, tabular_explainer, tracking_uri):
+        mlflow.set_tracking_uri(tracking_uri)
         x_train = iris[DatasetConstants.X_TRAIN]
         x_test = iris[DatasetConstants.X_TEST]
         y_train = iris[DatasetConstants.Y_TRAIN]
