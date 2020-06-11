@@ -268,7 +268,9 @@
         "aggregateFeatureImportance": "Aggregate Feature Importance",
         "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances",
         "missingParameters": "This tab requires the local feature importance parameter be supplied.",
-        "_missingPArameters.comment": "Show a message if the required feature importance parameter is not provided"
+        "_missingParameters.comment": "Show a message if the required feature importance parameter is not provided",
+        "weightOptions": "Class importance weights",
+        "_weightOptions.comment": "Weight how different importance values are used in the average https://en.wikipedia.org/wiki/Weighted_arithmetic_mean"
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",

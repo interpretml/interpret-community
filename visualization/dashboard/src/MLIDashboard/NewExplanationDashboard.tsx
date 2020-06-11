@@ -21,6 +21,7 @@ import { DatasetExplorerTab } from "./Controls/DatasetExplorerTab/DatasetExplore
 import { ValidateProperties } from "./ValidateProperties";
 import { MessageBar, MessageBarType, Text, Link } from "office-ui-fabric-react";
 import { CohortEditor, ICohort } from "./Controls/CohortEditor/CohortEditor";
+import { WeightVectorOption, WeightVectors } from "./IWeightedDropdownContext";
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -39,6 +40,7 @@ export interface INewExplanationDashboardState {
     validationWarnings: string[];
     showingDatasizeWarning: boolean;
     editingCohortIndex?: number;
+    selectedWeightVector: WeightVectorOption;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
@@ -251,12 +253,15 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             globalImportance: globalProps.globalImportance,
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
             sortVector: undefined,
-            showingDatasizeWarning: jointDataset.datasetRowCount > NewExplanationDashboard.ROW_WARNING_SIZE
+            showingDatasizeWarning: jointDataset.datasetRowCount > NewExplanationDashboard.ROW_WARNING_SIZE,
+            selectedWeightVector: modelMetadata.modelType === ModelTypes.multiclass ? WeightVectors.absAvg : 0
         };
     }
 
     private pivotItems: IPivotItemProps[] = [];
     private pivotRef: IPivot;
+    private weightVectorOptions: WeightVectorOption[] = [];
+    private weightVectorLabels = {};
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
@@ -275,11 +280,22 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         this.closeCohortEditor = this.closeCohortEditor.bind(this);
         this.clearSizeWarning = this.clearSizeWarning.bind(this);
         this.cloneAndOpenCohort = this.cloneAndOpenCohort.bind(this);
+        this.onWeightVectorChange = this.onWeightVectorChange.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
         this.state = NewExplanationDashboard.buildInitialExplanationContext(_.cloneDeep(props));
         this.validatePredictMethod();
+        this.weightVectorLabels = {
+            [WeightVectors.absAvg]: localization.absoluteAverage
+        };
+        if (this.state.modelMetadata.modelType === ModelTypes.multiclass) {
+            this.weightVectorOptions.push(WeightVectors.absAvg);
+        }
+        this.state.modelMetadata.classNames.forEach((name, index) => {
+            this.weightVectorLabels[index] = name;
+            this.weightVectorOptions.push(index);
+        });
         
         this.pivotItems.push({headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance});
         this.pivotItems.push({headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration});
@@ -388,6 +404,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     onDependenceChange={this.onDependenceChange}
                                     cohorts={this.state.cohorts}
                                     cohortIDs={cohortIDs}
+                                    selectedWeightVector={this.state.selectedWeightVector}
+                                    weightOptions={this.weightVectorOptions}
+                                    weightLabels={this.weightVectorLabels}
+                                    onWeightChange={this.onWeightVectorChange}
                                 />
                             )}
                             {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
@@ -455,6 +475,11 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
         const prevCohorts = [...this.state.cohorts];
         prevCohorts[this.state.editingCohortIndex] = newCohort;
         this.setState({cohorts: prevCohorts, editingCohortIndex: undefined});
+    }
+
+    private onWeightVectorChange(weightOption: WeightVectorOption): void {
+        this.state.jointDataset.buildLocalFlattenMatrix(weightOption);
+        this.setState({selectedWeightVector: weightOption});
     }
 
     private deleteCohort(): void {

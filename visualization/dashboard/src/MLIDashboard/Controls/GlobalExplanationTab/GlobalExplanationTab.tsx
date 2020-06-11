@@ -1,6 +1,6 @@
 import React from "react";
 import { JointDataset } from "../../JointDataset";
-import { IExplanationModelMetadata } from "../../IExplanationContext";
+import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
 import { BarChart, LoadingSpinner } from "../../SharedComponents";
 import { IPlotlyProperty, AccessibleChart } from "mlchartlib";
 import { localization } from "../../../Localization/localization";
@@ -22,6 +22,7 @@ import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
 import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
+import { WeightVectorOption, WeightVectors } from "../../IWeightedDropdownContext";
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -40,8 +41,12 @@ export interface IGlobalExplanationTabProps {
     isGlobalDerivedFromLocal: boolean;
     cohorts: Cohort[];
     cohortIDs: string[];
+    selectedWeightVector: WeightVectorOption;
+    weightOptions: WeightVectorOption[];
+    weightLabels: any;
     onChange: (props: IGlobalBarSettings) => void;
     onDependenceChange: (props: IGenericChartProps) => void;
+    onWeightChange: (option: WeightVectorOption) => void;
 }
 
 export interface IGlobalExplanationtabState {
@@ -63,6 +68,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         {key: ChartTypes.Bar, text: localization.FeatureImportanceWrapper.barText},
         {key: ChartTypes.Box, text: localization.FeatureImportanceWrapper.boxText}
     ];
+    private weightOptions: IDropdownOption[];
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
     private readonly _chartConfigId = "chart-connfig-button";
@@ -88,6 +94,14 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         if (this.props.globalBarSettings === undefined) {
             this.setDefaultSettings(props);
         }
+        if (this.props.metadata.modelType === ModelTypes.multiclass) {
+            this.weightOptions = this.props.weightOptions.map(option =>{
+                return {
+                    text: this.props.weightLabels[option],
+                    key: option
+                };
+            });
+        }
         this.buildGlobalSeries();
         this.buildActiveCohortSeries(this.state.sortArray);
         this.handleFeatureSelection = this.handleFeatureSelection.bind(this);
@@ -98,10 +112,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.toggleCalloutOpen = this.toggleCalloutOpen.bind(this);
         this.closeCallout = this.closeCallout.bind(this);
         this.onChartTypeChange = this.onChartTypeChange.bind(this);
+        this.setWeightOption = this.setWeightOption.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
-        if (this.props.cohorts !== prevProps.cohorts) {
+        if (this.props.cohorts !== prevProps.cohorts || this.props.selectedWeightVector !== prevProps.selectedWeightVector) {
             this.updateIncludedCohortsOnCohortEdit();
         }
     }
@@ -220,6 +235,17 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         selectedKey={this.state.sortingSeriesIndex}
                         onChange={this.setSortIndex}
                     />
+                    {this.props.metadata.modelType === ModelTypes.multiclass && (
+                        <div>
+                            <Text variant={"medium"} className={classNames.cohortLegend}>{localization.GlobalTab.weightOptions}</Text>
+                            <Dropdown 
+                                styles={{ dropdown: { width: 150 } }}
+                                options={this.weightOptions}
+                                selectedKey={this.props.selectedWeightVector}
+                                onChange={this.setWeightOption}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
             <div className={classNames.secondaryChartAndLegend}>
@@ -345,6 +371,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         const newIndex = item.key as number;
         const sortArray = ModelExplanationUtils.getSortIndices(this.cohortSeries[newIndex].unsortedAggregateY).reverse()
         this.setState({sortingSeriesIndex: newIndex, sortArray});
+    }
+
+    private setWeightOption(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        const newIndex = item.key as WeightVectorOption;
+        this.props.cohorts.forEach(cohort => cohort.clearCachedImportances());
+        this.props.onWeightChange(newIndex);
     }
 
     private onXSet(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
