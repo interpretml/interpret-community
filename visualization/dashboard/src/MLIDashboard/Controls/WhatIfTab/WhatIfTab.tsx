@@ -20,15 +20,20 @@ import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
 import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
 import { InteractiveLegend } from "../InteractiveLegend";
 import { IWhatIfTabStyles, whatIfTabStyles } from "./WhatIfTab.styles";
+import { WeightVectorOption } from "../../IWeightedDropdownContext";
 
 export interface IWhatIfTabProps {
     jointDataset: JointDataset;
     metadata: IExplanationModelMetadata;
     cohorts: Cohort[];
     chartProps: IGenericChartProps;
+    selectedWeightVector: WeightVectorOption;
+    weightOptions: WeightVectorOption[];
+    weightLabels: any;
     onChange: (config: IGenericChartProps) => void;
     invokeModel: (data: any[], abortSignal: AbortSignal) => Promise<any[]>;
     editCohort: (index: number) => void;
+    onWeightChange: (option: WeightVectorOption) => void;
 }
 
 export interface IWhatIfTabState {
@@ -114,6 +119,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private temporaryPoint: { [key: string]: any };
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
     private testableDatapointNames: string[] = [];
+    private weightOptions: IDropdownOption[];
     private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
         const key = JointDataset.DataLabelRoot + index.toString();
@@ -125,6 +131,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         
         if (!this.props.jointDataset.hasDataset) {
             return;
+        }
+        if (this.props.metadata.modelType === ModelTypes.multiclass) {
+            this.weightOptions = this.props.weightOptions.map(option =>{
+                return {
+                    text: this.props.weightLabels[option],
+                    key: option
+                };
+            });
         }
         this.state = {
             isPanelOpen: this.props.invokeModel !== undefined,
@@ -167,6 +181,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setSecondaryChart = this.setSecondaryChart.bind(this);
         this.setSelectedIndex = this.setSelectedIndex.bind(this);
         this.onFeatureSelected = this.onFeatureSelected.bind(this);
+        this.setWeightOption = this.setWeightOption.bind(this);
+        this.setSortIndex = this.setSortIndex.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -174,10 +190,11 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         let sortingSeriesIndex = this.state.sortingSeriesIndex;
         let sortArray = this.state.sortArray;
         const selectionsAreEqual = _.isEqual(this.state.selectedPointsIndexes, prevState.selectedPointsIndexes);
+        const weightVectorsAreEqual = this.props.selectedWeightVector === prevProps.selectedWeightVector;
         const activePointsAreEqual = _.isEqual(this.state.pointIsActive, prevState.pointIsActive);
         const customPointsAreEqual = this.state.customPoints === prevState.customPoints;
         const customActivePointsAreEqual = _.isEqual(this.state.customPointIsActive, prevState.customPointIsActive);
-        if (!selectionsAreEqual) {
+        if (!selectionsAreEqual || !weightVectorsAreEqual) {
             this.selectedFeatureImportance = this.state.selectedPointsIndexes.map((rowIndex, colorIndex) => {
                 const row = this.props.jointDataset.getRow(rowIndex);
                 return {
@@ -199,6 +216,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 } else {
                     sortingSeriesIndex = undefined;
                 }
+            } else if (!weightVectorsAreEqual) {
+                sortArray = ModelExplanationUtils.getSortIndices(this.selectedFeatureImportance[0].unsortedAggregateY).reverse();
             }
         }
         if (!customPointsAreEqual) {
@@ -206,7 +225,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 return JointDataset.datasetSlice(row, this.props.jointDataset.metaDict, this.props.jointDataset.datasetFeatureCount);
             });
         }
-        if (!selectionsAreEqual || !activePointsAreEqual || !customPointsAreEqual || !customActivePointsAreEqual) {
+        if (!selectionsAreEqual || !activePointsAreEqual || !customPointsAreEqual || !customActivePointsAreEqual || !weightVectorsAreEqual) {
             this.includedFeatureImportance = this.state.pointIsActive.map((isActive, i) => {
                 if (isActive) {
                     return this.selectedFeatureImportance[i];
@@ -497,6 +516,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private buildSecondaryArea(classNames: IProcessedStyleSet<IWhatIfTabStyles>): React.ReactNode {
         let secondaryPlot: React.ReactNode;
+        const featureImportanceSortOptions: IDropdownOption[] = this.includedFeatureImportance.map((item, index) => {
+            return {
+                key: index,
+                text: item.name
+            }
+        });
         if (this.state.secondaryChartChoice === WhatIfTab.featureImportanceKey) {
             if (!this.props.jointDataset.hasLocalExplanations) {
                 secondaryPlot = <div className={classNames.missingParametersPlaceholder}>
@@ -514,7 +539,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             } else {
                 const yAxisLabels: string[] = [localization.featureImportance];
                 if (this.props.metadata.modelType !== ModelTypes.regression) {
-                    yAxisLabels.push(localization.formatString(localization.WhatIfTab.classLabel, this.props.metadata.classNames[0]) as string);
+                    yAxisLabels.push(this.props.weightLabels[this.props.selectedWeightVector] as string);
                 }
                 const maxStartingK = Math.max(0, this.props.jointDataset.localExplanationFeatureCount - this.state.topK);
                 secondaryPlot = (<div className={classNames.featureImportanceArea}>
@@ -542,7 +567,26 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             unsortedSeries={this.includedFeatureImportance}
                             topK={this.state.topK}
                         />
-                        <div className={classNames.featureImportanceLegend}> </div>
+                        <div className={classNames.featureImportanceLegend}>
+                            <Text variant={"medium"} className={classNames.cohortPickerLabel}>{localization.GlobalTab.sortBy}</Text>
+                            <Dropdown 
+                                styles={{ dropdown: { width: 150 } }}
+                                options={featureImportanceSortOptions}
+                                selectedKey={this.state.sortingSeriesIndex}
+                                onChange={this.setSortIndex}
+                            />
+                            {this.props.metadata.modelType === ModelTypes.multiclass && (
+                                <div>
+                                    <Text variant={"medium"} className={classNames.cohortPickerLabel}>{localization.GlobalTab.weightOptions}</Text>
+                                    <Dropdown 
+                                        styles={{ dropdown: { width: 150 } }}
+                                        options={this.weightOptions}
+                                        selectedKey={this.props.selectedWeightVector}
+                                        onChange={this.setWeightOption}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>);
             }
@@ -697,8 +741,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         const newIndex = item.key as number;
-        const sortArray = ModelExplanationUtils.getSortIndices(this.selectedFeatureImportance[newIndex].unsortedAggregateY).reverse()
+        const sortArray = ModelExplanationUtils.getSortIndices(this.includedFeatureImportance[newIndex].unsortedAggregateY).reverse()
         this.setState({ sortingSeriesIndex: newIndex, sortArray });
+    }
+
+    private setWeightOption(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        const newIndex = item.key as WeightVectorOption;
+        this.props.onWeightChange(newIndex);
     }
 
     private setSecondaryChart(event: React.SyntheticEvent<HTMLElement>, item: IChoiceGroupOption): void {

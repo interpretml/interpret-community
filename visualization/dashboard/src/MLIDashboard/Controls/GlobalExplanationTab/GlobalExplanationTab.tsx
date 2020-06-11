@@ -377,7 +377,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
     private setWeightOption(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         const newIndex = item.key as WeightVectorOption;
-        this.props.cohorts.forEach(cohort => cohort.clearCachedImportances());
         this.props.onWeightChange(newIndex);
     }
 

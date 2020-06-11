@@ -293,7 +293,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
             this.weightVectorOptions.push(WeightVectors.absAvg);
         }
         this.state.modelMetadata.classNames.forEach((name, index) => {
-            this.weightVectorLabels[index] = name;
+            this.weightVectorLabels[index] = localization.formatString(localization.WhatIfTab.classLabel, name);
             this.weightVectorOptions.push(index);
         });
         
@@ -419,6 +419,10 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
                                     chartProps={this.state.whatIfChartConfig}
                                     invokeModel={this.state.requestPredictions}
                                     editCohort={this.openCohort}
+                                    selectedWeightVector={this.state.selectedWeightVector}
+                                    weightOptions={this.weightVectorOptions}
+                                    weightLabels={this.weightVectorLabels}
+                                    onWeightChange={this.onWeightVectorChange}
                                 />
                             )}
                         </div>
@@ -479,6 +483,7 @@ export class NewExplanationDashboard extends React.PureComponent<IExplanationDas
 
     private onWeightVectorChange(weightOption: WeightVectorOption): void {
         this.state.jointDataset.buildLocalFlattenMatrix(weightOption);
+        this.state.cohorts.forEach(cohort => cohort.clearCachedImportances());
         this.setState({selectedWeightVector: weightOption});
     }
 
