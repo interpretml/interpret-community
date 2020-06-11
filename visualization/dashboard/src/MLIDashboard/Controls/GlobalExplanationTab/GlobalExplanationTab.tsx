@@ -256,6 +256,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     jointDataset={this.props.jointDataset}
                     metadata={this.props.metadata}
                     onChange={this.props.onDependenceChange}
+                    selectedWeight={this.props.selectedWeightVector}
+                    selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
                 />
                 <div className={classNames.legendAndSort}>
                     <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.viewDependencePlotFor}</Text>
