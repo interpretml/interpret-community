@@ -48,6 +48,7 @@ export interface IWhatIfTabStyles {
     customPredictBlock: IStyle;
     featureSearch: IStyle;
     iceFeatureSelection: IStyle;
+    iceClassSelection: IStyle;
     disclaimerWrapper: IStyle;
     panelPlaceholderWrapper: IStyle;
     errorText: IStyle;
@@ -272,6 +273,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         iceFeatureSelection: {
             margin: "43px 10px 10px 0",
+        },
+        iceClassSelection: {
+            margin: "10px 10px 10px 0",
         },
         disclaimerWrapper: {
             padding: "5px 15px 10px 26px"

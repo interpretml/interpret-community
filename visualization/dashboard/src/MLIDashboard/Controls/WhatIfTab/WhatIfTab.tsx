@@ -56,6 +56,7 @@ export interface IWhatIfTabState {
     sortingSeriesIndex: number;
     secondaryChartChoice: string;
     selectedFeatureKey: string;
+    selectedICEClass: number;
 }
 
 interface ISelectedRowInfo {
@@ -125,6 +126,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const key = JointDataset.DataLabelRoot + index.toString();
         return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
     });
+    private classOptions: IDropdownOption[] = this.props.metadata.classNames.map((name, index) => {
+        return {key: index, text: name};
+    });
 
     constructor(props: IWhatIfTabProps) {
         super(props);
@@ -159,7 +163,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             sortingSeriesIndex: undefined,
             secondaryChartChoice: WhatIfTab.featureImportanceKey,
             selectedFeatureKey: JointDataset.DataLabelRoot + "0",
-            showSelectionWarning: false
+            showSelectionWarning: false,
+            selectedICEClass: 0
         };
 
         if (props.chartProps === undefined) {
@@ -183,6 +188,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.onFeatureSelected = this.onFeatureSelected.bind(this);
         this.setWeightOption = this.setWeightOption.bind(this);
         this.setSortIndex = this.setSortIndex.bind(this);
+        this.onICEClassSelected = this.onICEClassSelected.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -615,6 +621,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             jointDataset={this.props.jointDataset}
                             metadata={this.props.metadata}
                             feature={this.state.selectedFeatureKey}
+                            selectedClass={this.state.selectedICEClass}
                         />
                         <div className={classNames.featureImportanceLegend}>
                             <ComboBox
@@ -627,6 +634,16 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 selectedKey={this.state.selectedFeatureKey }
                                 useComboBoxAsMenuWidth={true}
                             />
+                            {this.props.metadata.modelType === ModelTypes.multiclass && <ComboBox
+                                autoComplete={"on"}
+                                className={classNames.iceClassSelection}
+                                options={this.classOptions}
+                                onChange={this.onICEClassSelected}
+                                label={localization.WhatIfTab.classPickerLabel}
+                                ariaLabel="class picker"
+                                selectedKey={this.state.selectedICEClass }
+                                useComboBoxAsMenuWidth={true}
+                            />}
                         </div>
                     </div>
                 </div>);
@@ -737,6 +754,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
         this.setState({ selectedFeatureKey: item.key as string});
+    }
+
+    private onICEClassSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
+        this.setState({ selectedICEClass: item.key as number});
     }
 
     private setSortIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
