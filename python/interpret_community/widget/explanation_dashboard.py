@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from jinja2 import Environment, PackageLoader
 from IPython.display import display, HTML
@@ -18,6 +18,28 @@ try:
 except ModuleNotFoundError:
     raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
                        "'pip install gevent' or 'pip install interpret-community[visualization]'")
+
+
+NBVM_FILE_PATH = "/mnt/azmnt/.nbvm"
+CREDENTIALED_VM = 'credentialed_vm'
+LOCALHOST = 'localhost'
+
+
+def _get_nbvm():
+    if not (os.path.exists(NBVM_FILE_PATH) and os.path.isfile(NBVM_FILE_PATH)):
+        return None
+    # regex to find items of the form key=value where value will be part of a url
+    # the keys of interest to us are "instance" and domainsuffix"
+    envre = re.compile(r'''^([^\s=]+)=(?:[\s"']*)(.+?)(?:[\s"']*)$''')
+    result = {}
+    with open(NBVM_FILE_PATH) as nbvm_variables:
+        for line in nbvm_variables:
+            match = envre.match(line)
+            if match is not None:
+                result[match.group(1)] = match.group(2)
+    if "instance" not in result or "domainsuffix" not in result:
+        return None
+    return result
 
 
 class ExplanationDashboard:
@@ -47,6 +69,10 @@ class ExplanationDashboard:
     :type port: int
     :param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
     :type use_cdn: bool
+    :param public_ip: Optional. If running on a remote vm, the external public ip address of the VM.
+    :type public_ip: str
+    :param with_credentials: Optional. If running on a remote vm, sets up CORS policy both on client and server.
+    :type with_credentials: bool
     """
 
     service = None
@@ -59,18 +85,66 @@ class ExplanationDashboard:
     default_template = env.get_template("inlineDashboard.html")
 
     class DashboardService:
-        app = Flask(__name__)
-        CORS(app)
 
-        def __init__(self, port):
+        def __init__(self, port, public_ip, with_credentials=False):
+            app = Flask(__name__)
+            self.nbvm = _get_nbvm()
+            if self.nbvm is None and not with_credentials:
+                self.cors = CORS(app)
+                self.with_credentials = False
+                self.ip = LOCALHOST
+                self.env = 'local'
+            elif self.nbvm is not None:
+                # Note: for debugging CORS set logging.getLogger('flask_cors').level = logging.DEBUG
+                instance_name = self.nbvm["instance"]
+                domain_suffix = self.nbvm["domainsuffix"]
+                nbvm_origin1 = "https://{}.{}".format(instance_name, domain_suffix)
+                nbvm_origin2 = "https://{}-{}.{}".format(instance_name, port, domain_suffix)
+                nbvm_origins = [nbvm_origin1, nbvm_origin2]
+                headers = ['Content-Type']
+                # Support credentials for notebook VM scenario
+                self.cors = CORS(app, origins=nbvm_origins, expose_headers=headers, supports_credentials=True)
+                self.with_credentials = True
+                self.ip = LOCALHOST
+                self.env = 'azure'
+            else:
+                if public_ip is not None:
+                    self.ip = public_ip
+                else:
+                    # Attempt to get the ip, but this may fail since it may not get the external ip of
+                    # the machine, just the private ip
+                    host_name = socket.gethostname()
+                    self.ip = socket.gethostbyname(host_name)
+                origin = "https://{}:{}".format(self.ip, port)
+                headers = ['Content-Type']
+                self.cors = CORS(app, origins=[origin], expose_headers=headers, supports_credentials=True)
+                self.with_credentials = True
+                self.env = CREDENTIALED_VM
+
+            @app.route('/')
+            def hello():
+                return "No global list view supported at this time."
+
+            @app.route('/<id>')
+            def explanation_visual(id):
+                if id in ExplanationDashboard.explanations:
+                    return generate_inline_html(ExplanationDashboard.explanations[id], None)
+                else:
+                    return "Unknown model id."
+
+            @app.route('/<id>/predict', methods=['POST'])
+            def predict(id):
+                data = request.get_json(force=True)
+                if id in ExplanationDashboard.explanations:
+                    return jsonify(ExplanationDashboard.explanations[id].on_predict(data))
+
+            self.app = app
             self.port = port
-            self.ip = 'localhost'
-            self.env = "local"
             self.use_cdn = True
             if self.port is None:
                 # Try 100 different ports
                 for port in range(5000, 5100):
-                    available = ExplanationDashboard.DashboardService._local_port_available(self.ip, port, rais=False)
+                    available = ExplanationDashboard.DashboardService._local_port_available(port, rais=False)
                     if available:
                         self.port = port
                         return
@@ -80,13 +154,17 @@ class ExplanationDashboard:
                     error_message.format(port)
                 )
             else:
-                ExplanationDashboard.DashboardService._local_port_available(self.ip, self.port)
+                ExplanationDashboard.DashboardService._local_port_available(self.port)
 
         def run(self):
             class devnull:
                 write = lambda _: None  # noqa: E731
-
-            server = WSGIServer((self.ip, self.port), self.app, log=devnull)
+            ip = LOCALHOST
+            # Note: for credentialed VM we need to use the private IP address
+            if self.env == CREDENTIALED_VM:
+                host_name = socket.gethostname()
+                ip = socket.gethostbyname(host_name)
+            server = WSGIServer((ip, self.port), self.app, log=devnull)
             self.app.config["server"] = server
             server.serve_forever()
 
@@ -100,37 +178,25 @@ class ExplanationDashboard:
             env = EnvironmentDetector()
             detected_envs = env.detect()
             in_cloud_env = is_cloud_env(detected_envs)
+            result = _get_nbvm()
             # First handle known cloud environments
-            nbvm_file_path = "/mnt/azmnt/.nbvm"
-            if not (os.path.exists(nbvm_file_path) and os.path.isfile(nbvm_file_path)):
+            if result is None:
                 # special case azure, since the azure sdk can set this env setting on local runs
                 if not in_cloud_env or "azureml_vm" in detected_envs:
                     return "http://{0}:{1}".format(
                         self.ip,
                         self.port)
-                # all non-specified cloud environments are not handled
-                self.env = "cloud"
+                # all non-specified, non-credentialed cloud environments are not handled
+                if not self.with_credentials:
+                    self.env = 'cloud'
                 return None
-            self.env = "cloud"
-            # regex to find items of the form key=value where value will be part of a url
-            # the keys of interest to us are "instance" and domainsuffix"
-            envre = re.compile(r'''^([^\s=]+)=(?:[\s"']*)(.+?)(?:[\s"']*)$''')
-            result = {}
-            with open(nbvm_file_path) as nbvm_variables:
-                for line in nbvm_variables:
-                    match = envre.match(line)
-                    if match is not None:
-                        result[match.group(1)] = match.group(2)
 
-            if "instance" not in result or "domainsuffix" not in result:
-                return None
-            self.env = "azure"
             instance_name = result["instance"]
             domain_suffix = result["domainsuffix"]
             return "https://{}-{}.{}".format(instance_name, self.port, domain_suffix)
 
         @staticmethod
-        def _local_port_available(ip, port, rais=True):
+        def _local_port_available(port, rais=True):
             """
             Borrowed from:
             https://stackoverflow.com/questions/19196105/how-to-check-if-a-network-port-is-open-on-linux
@@ -138,7 +204,7 @@ class ExplanationDashboard:
             try:
                 backlog = 5
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.bind((ip, port))
+                sock.bind((LOCALHOST, port))
                 sock.listen(backlog)
                 sock.close()
             except socket.error:  # pragma: no cover
@@ -152,26 +218,9 @@ class ExplanationDashboard:
                     return False
             return True
 
-        @app.route('/')
-        def hello():
-            return "No global list view supported at this time."
-
-        @app.route('/<id>')
-        def explanation_visual(id):
-            if id in ExplanationDashboard.explanations:
-                return generate_inline_html(ExplanationDashboard.explanations[id], None)
-            else:
-                return "Unknown model id."
-
-        @app.route('/<id>/predict', methods=['POST'])
-        def predict(id):
-            data = request.get_json(force=True)
-            if id in ExplanationDashboard.explanations:
-                return ExplanationDashboard.explanations[id].on_predict(data)
-
     def __init__(self, explanation, model=None, *, dataset=None,
                  true_y=None, classes=None, features=None, port=None, use_cdn=True,
-                 datasetX=None, trueY=None, locale=None):
+                 datasetX=None, trueY=None, locale=None, public_ip=None, with_credentials=False):
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
             dataset = datasetX
@@ -182,7 +231,7 @@ class ExplanationDashboard:
         local_url = None
         if not ExplanationDashboard.service:
             try:
-                ExplanationDashboard.service = ExplanationDashboard.DashboardService(port)
+                ExplanationDashboard.service = ExplanationDashboard.DashboardService(port, public_ip, with_credentials)
                 self._thread = threading.Thread(target=ExplanationDashboard.service.run, daemon=True)
                 self._thread.start()
             except Exception as e:
@@ -198,15 +247,13 @@ class ExplanationDashboard:
             local_url = "{0}/{1}".format(
                 base_url,
                 str(ExplanationDashboard.model_count))
-        explanation_input =\
-            ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
+        with_credentials = ExplanationDashboard.service.with_credentials
+        explanation_input = ExplanationDashboardInput(explanation, model, dataset, true_y, classes,
+                                                      features, predict_url, locale, with_credentials)
         # Due to auth, predict is only available in separate tab in cloud after login
-        if ExplanationDashboard.service.env == "local":
+        if ExplanationDashboard.service.env != "cloud":
             explanation_input.enable_predict_url()
         html = generate_inline_html(explanation_input, local_url)
-        if ExplanationDashboard.service.env == "azure":
-            explanation_input.enable_predict_url()
-
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
 
         if "DATABRICKS_RUNTIME_VERSION" in os.environ:

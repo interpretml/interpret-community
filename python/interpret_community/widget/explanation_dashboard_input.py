@@ -42,7 +42,8 @@ class ExplanationDashboardInput:
             classes=None,
             features=None,
             predict_url=None,
-            locale=None):
+            locale=None,
+            with_credentials=False):
         """Initialize the Explanation Dashboard Input.
 
         :param explanation: An object that represents an explanation.
@@ -62,8 +63,11 @@ class ExplanationDashboardInput:
         :type classes: numpy.array or list[]
         :param features: Feature names.
         :type features: numpy.array or list[]
+        :param with_credentials: If true, adds authentication on client and server.
+        :type with_credentials: bool
         """
         self._model = model
+        self._with_credentials = with_credentials
         self._is_classifier = model is not None and hasattr(model, SKLearn.PREDICT_PROBA) and \
             model.predict_proba is not None
         self._dataframeColumns = None
@@ -198,6 +202,7 @@ class ExplanationDashboardInput:
     def enable_predict_url(self):
         if self._model is not None:
             self.dashboard_input[ExplanationDashboardInterface.PREDICTION_URL] = self._predict_url
+            self.dashboard_input[ExplanationDashboardInterface.WITH_CREDENTIALS] = self._with_credentials
 
     def on_predict(self, data):
         try:
