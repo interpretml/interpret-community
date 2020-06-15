@@ -18,3 +18,4 @@ flask-cors
 jinja2
 mlflow
 nbformat
+papermill
