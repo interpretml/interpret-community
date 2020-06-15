@@ -20,7 +20,6 @@ def _load_pyfunc(path):
 
 
 def log_explanation(name, explanation):
-# def log_model(path, model):
     try:
         import mlflow.pyfunc
     except ImportError as e:
@@ -35,7 +34,7 @@ def log_explanation(name, explanation):
                      "channels": ["defaults"],
                      "dependencies": ["pip",
                                       {"pip": [
-                                        "interpret-community=={}".format(interpret_community.VERSION),
+                                        # "interpret-community=={}".format(interpret_community.VERSION),
                                         "cloudpickle=={}".format(pickle.__version__)]
                                       }
                                      ]
