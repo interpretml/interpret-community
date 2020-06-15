@@ -1,12 +1,12 @@
 import { IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import _ from "lodash";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode, IData } from "mlchartlib";
-import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox  } from "office-ui-fabric-react";
+import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox, ITooltipProps, TooltipHost, TooltipDelay, DirectionalHint  } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import React from "react";
+import React, { ReactNode } from "react";
 import { localization } from "../../../Localization/localization";
 import { Cohort } from "../../Cohort";
 import { FabricStyles } from "../../FabricStyles";
@@ -74,6 +74,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private static readonly namePath = "Name";
     private static readonly IceKey = "ice";
     private static readonly featureImportanceKey = "feature-importance";
+    private static readonly basePredictionTooltipIds = "predict-tooltip";
+    private static readonly whatIfPredictionTooltipIds = "whatif-predict-tooltip";
     private static readonly secondaryPlotChoices: IChoiceGroupOption[] = [
         {key: WhatIfTab.featureImportanceKey, text: localization.WhatIfTab.featureImportancePlot},
         {key: WhatIfTab.IceKey, text: localization.WhatIfTab.icePlot}
@@ -677,17 +679,51 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             const predictedClassName = predictedClass !== undefined ?
                 this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[predictedClass] :
                 undefined;
-            const predictedProb = this.props.jointDataset.hasPredictedProbabilities ?
-                row[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
-                undefined;
+            if (this.props.jointDataset.hasPredictedProbabilities) {
+                const predictedProb = row[JointDataset.ProbabilityYRoot + predictedClass.toString()];
+                const predictedProbs = JointDataset.predictProbabilitySlice(row, this.props.metadata.classNames.length)
+                const sortedProbs = ModelExplanationUtils.getSortIndices(predictedProbs).reverse().slice(0, 5);
+                const probTooltips = sortedProbs.map(index => {
+                    const prob = predictedProbs[index];
+                    const className = this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[index];
+                    return <Text block variant="small">{className + ": " + prob.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                });
+                const tooltipProps: ITooltipProps = {
+                    onRenderContent: () => (
+                        <div>
+                            {probTooltips}
+                        </div>
+                    ),
+                };
+                return (<div className={classNames.predictedBlock}>
+                        {trueClass !== undefined && 
+                        (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueClass, 
+                            this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass])}</Text>)}
+                        <TooltipHost
+                            tooltipProps={tooltipProps}
+                            delay={TooltipDelay.zero}
+                            id={WhatIfTab.basePredictionTooltipIds}
+                            directionalHint={DirectionalHint.bottomCenter}
+                            styles={{ root: { display: 'inline-block' } }}
+                        >
+                            <DefaultButton >
+                                <div className={classNames.tooltipDiv }>
+                                <Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>
+                                <Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}
+                                </Text>
+                                </div>
+                            </DefaultButton>
+                        </TooltipHost>
+                            
+                    </div>);
+            }
+            
             return (<div className={classNames.predictedBlock}>
                     {trueClass !== undefined && 
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueClass, 
                         this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass])}</Text>)}
                     {predictedClass !== undefined &&
                     (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
-                    {predictedProb !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
                 </div>);
         } else {
             const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);

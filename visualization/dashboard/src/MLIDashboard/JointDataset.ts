@@ -122,6 +122,14 @@ export class JointDataset {
         return result;
     }
 
+    public static predictProbabilitySlice(row: {[key: string]: any}, length: number): number[] {
+        const result: number[] = new Array(length);
+        for(let i: number = 0; i < length; i++) {
+            result[i] = row[JointDataset.ProbabilityYRoot + i.toString()];
+        }
+        return result;
+    }
+
     // set the appropriate error value in the keyed column
     public static setErrorMetrics(row: {[key: string]: any}, modelType: ModelTypes): void {
         if (modelType === ModelTypes.regression) {

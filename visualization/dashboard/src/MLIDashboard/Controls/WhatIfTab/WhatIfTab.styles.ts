@@ -52,6 +52,7 @@ export interface IWhatIfTabStyles {
     disclaimerWrapper: IStyle;
     panelPlaceholderWrapper: IStyle;
     errorText: IStyle;
+    tooltipDiv: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -286,6 +287,11 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         }],
         errorText: {
             color: theme.semanticColors.errorText
+        },
+        tooltipDiv: {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start"
         }
     });
 }
