@@ -1,4 +1,4 @@
-import { IProcessedStyleSet, getTheme, mergeStyleSets, IStyle } from "@uifabric/styling";
+import { IProcessedStyleSet, getTheme, mergeStyleSets, IStyle } from '@uifabric/styling';
 
 export interface IMultiIcePlotStyles {
     iceWrapper: IStyle;
@@ -12,27 +12,27 @@ export const multiIcePlotStyles: () => IProcessedStyleSet<IMultiIcePlotStyles> =
     const theme = getTheme();
     return mergeStyleSets<IMultiIcePlotStyles>({
         iceWrapper: {
-            display: "flex",
-            flexDirection: "column",
-            flex: "1",
-            justifyContent: "stretch"
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1',
+            justifyContent: 'stretch',
         },
         controlArea: {
-            display: "flex",
-            padding: "10px 15px 3px 67px",
-            justifyContent: "space-between"
+            display: 'flex',
+            padding: '10px 15px 3px 67px',
+            justifyContent: 'space-between',
         },
         parameterList: {
-            display: "flex",
-            flex: "1"
+            display: 'flex',
+            flex: '1',
         },
         placeholder: {
-            margin: "auto",
-            padding: "40px",
-            fontSize: "25px"     
+            margin: 'auto',
+            padding: '40px',
+            fontSize: '25px',
         },
         chartWrapper: {
-            flex: "1"
-        }
+            flex: '1',
+        },
     });
-}
+};

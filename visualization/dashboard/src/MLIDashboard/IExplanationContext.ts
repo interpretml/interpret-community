@@ -1,10 +1,10 @@
-import { IModelMetadata } from "mlchartlib";
-import { JointDataset } from "./JointDataset";
+import { IModelMetadata } from 'mlchartlib';
+import { JointDataset } from './JointDataset';
 
 export enum ModelTypes {
     regression = 'regression',
     binary = 'binary',
-    multiclass = 'multiclass'
+    multiclass = 'multiclass',
 }
 
 export interface IExplanationContext {
@@ -20,8 +20,8 @@ export interface IExplanationContext {
     inputError?: string;
 }
 
-// The interface containing either the local explanations matrix, 
-// or information on the fetcing of the local explanation. 
+// The interface containing either the local explanations matrix,
+// or information on the fetcing of the local explanation.
 export interface ILocalExplanation {
     values?: number[][][];
     flattenedValues?: number[][];
@@ -57,7 +57,11 @@ export interface IFeatureValueExplanation {
 
 export interface IExplanationGenerators {
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
-    requestLocalFeatureExplanations?: (request: any[], abortSignal: AbortSignal, explanationAlgorithm?: string) => Promise<any[]>;
+    requestLocalFeatureExplanations?: (
+        request: any[],
+        abortSignal: AbortSignal,
+        explanationAlgorithm?: string,
+    ) => Promise<any[]>;
 }
 
 export interface ITestDataset {

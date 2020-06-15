@@ -1,16 +1,24 @@
-import { FontSizes, FontWeights, getTheme, IProcessedStyleSet, IStyle, mergeStyleSets, ICalloutContentStyles } from "office-ui-fabric-react";
+import {
+    FontSizes,
+    FontWeights,
+    getTheme,
+    IProcessedStyleSet,
+    IStyle,
+    mergeStyleSets,
+    ICalloutContentStyles,
+} from 'office-ui-fabric-react';
 
 export interface IAxisControlDialogStyles {
-    wrapper:IStyle;
-    leftHalf:IStyle;
-    rightHalf:IStyle;
-    detailedList:IStyle;
-    spinButton:IStyle;
+    wrapper: IStyle;
+    leftHalf: IStyle;
+    rightHalf: IStyle;
+    detailedList: IStyle;
+    spinButton: IStyle;
     selectButton: IStyle;
-    featureText:IStyle;
-    filterHeader:IStyle;
-    featureComboBox:IStyle;
-    treatCategorical:IStyle;
+    featureText: IStyle;
+    filterHeader: IStyle;
+    featureComboBox: IStyle;
+    treatCategorical: IStyle;
     statsArea: IStyle;
 }
 
@@ -19,66 +27,66 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
     return mergeStyleSets<IAxisControlDialogStyles>({
         wrapper: {
             flex: 1,
-            width: "100%",
-            display: "flex",
-            flexDirection: "row",
-            padding: "30px 40px 25px 30px",
-            boxSizing: "border-box"
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '30px 40px 25px 30px',
+            boxSizing: 'border-box',
         },
         leftHalf: {
-            width: "213px",
-            height: "100%"
+            width: '213px',
+            height: '100%',
         },
         rightHalf: {
-            boxSizing: "border-box",
-            marginLeft: "25px",
-            padding: "20px 25px",
-            display: "inline-flex",
-            width: "255px",
-            height: "100%",
-            flexDirection: "column",
+            boxSizing: 'border-box',
+            marginLeft: '25px',
+            padding: '20px 25px',
+            display: 'inline-flex',
+            width: '255px',
+            height: '100%',
+            flexDirection: 'column',
             background: theme.semanticColors.bodyBackgroundChecked,
-            borderRadius: "5px"
+            borderRadius: '5px',
         },
         filterHeader: {
             fontWeight: FontWeights.semibold,
             fontSize: FontSizes.medium,
-            color: theme.semanticColors.bodyTextChecked
+            color: theme.semanticColors.bodyTextChecked,
         },
         detailedList: {
-            height: "100%",
-            width: "100%",
-            overflowX: "visible"
+            height: '100%',
+            width: '100%',
+            overflowX: 'visible',
         },
         featureText: {
             color: theme.semanticColors.bodySubtext,
         },
         featureComboBox: {
-            width: "180px",
-            height: "56px",
-            marginBottom: "10px"
+            width: '180px',
+            height: '56px',
+            marginBottom: '10px',
         },
         treatCategorical: {
-            width: "180px",
-            height: "20px",
-            marginBottom: "10px"
+            width: '180px',
+            height: '20px',
+            marginBottom: '10px',
         },
         spinButton: {
-            width:"55px",
-            height:"36px",
+            width: '55px',
+            height: '36px',
         },
         selectButton: {
-            marginRight:"27px",
-            marginBottom: "15px",
-            height:"32px",
-            width:"70px",
-            alignSelf:"flex-end"
+            marginRight: '27px',
+            marginBottom: '15px',
+            height: '32px',
+            width: '70px',
+            alignSelf: 'flex-end',
         },
         statsArea: {
-            display: "flex",
-            padding: "3px 20px 3px 0",
-            justifyContent: "space-between"
-        }
+            display: 'flex',
+            padding: '3px 20px 3px 0',
+            justifyContent: 'space-between',
+        },
     });
 };
 
@@ -94,14 +102,14 @@ export const axisControlCallout: () => ICalloutContentStyles = () => {
             overflowY: 'visible',
             width: '560px',
             height: 'fit-content',
-            minHeight: "340px",
+            minHeight: '340px',
             left: '450px',
             top: '250px',
             //elevation64 is used for dialogs/panels
             boxShadow: theme.effects.elevation64,
             borderRadius: '2px',
-            display: "flex",
-            flexDirection: "column"
-        }
+            display: 'flex',
+            flexDirection: 'column',
+        },
     };
 };

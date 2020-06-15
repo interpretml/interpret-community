@@ -1,10 +1,10 @@
-import _ from "lodash";
-import React from "react";
-import { localization } from "../../Localization/localization";
-import { FeatureEditingTile, PredictionLabel, NoDataMessage } from "../SharedComponents";
-import { ICategoricalRange } from "mlchartlib";
-import { IExplanationContext } from "../IExplanationContext";
-import { HelpMessageDict } from "../Interfaces";
+import _ from 'lodash';
+import React from 'react';
+import { localization } from '../../Localization/localization';
+import { FeatureEditingTile, PredictionLabel, NoDataMessage } from '../SharedComponents';
+import { ICategoricalRange } from 'mlchartlib';
+import { IExplanationContext } from '../IExplanationContext';
+import { HelpMessageDict } from '../Interfaces';
 
 require('./PerturbationExploration.css');
 
@@ -18,7 +18,7 @@ export interface IPerturbationExplorationProps {
 
 export interface IPerturbationExplorationState {
     // the dictionary of edited values, keyed on the feature inedex
-    perturbedDictionary: {[key: number]: any};
+    perturbedDictionary: { [key: number]: any };
     // the dictionary of validation errors
     featureErrors: boolean[];
     prediction?: number;
@@ -27,14 +27,16 @@ export interface IPerturbationExplorationState {
     errorMessage?: string;
 }
 
-export class PerturbationExploration extends  React.Component<IPerturbationExplorationProps, IPerturbationExplorationState> {
-
+export class PerturbationExploration extends React.Component<
+    IPerturbationExplorationProps,
+    IPerturbationExplorationState
+> {
     constructor(props: IPerturbationExplorationProps) {
         super(props);
         this.state = {
             perturbedDictionary: {},
             featureErrors: new Array(props.explanationContext.modelMetadata.featureNames.length),
-            abortController: undefined
+            abortController: undefined,
         };
         this.onValueEdit = this.onValueEdit.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 500);
@@ -50,58 +52,83 @@ export class PerturbationExploration extends  React.Component<IPerturbationExplo
                 featureErrors: new Array(this.props.explanationContext.modelMetadata.featureNames.length),
                 abortController: undefined,
                 prediction: undefined,
-                predictionProbabilities: undefined
-            })
+                predictionProbabilities: undefined,
+            });
         }
     }
 
     public render(): React.ReactNode {
         if (this.props.invokeModel === undefined) {
             const explanationStrings = this.props.messages ? this.props.messages.PredictorReq : undefined;
-            return <NoDataMessage explanationStrings={explanationStrings}/>;
+            return <NoDataMessage explanationStrings={explanationStrings} />;
         }
-        const hasErrors = this.state.featureErrors.some(val => val);
+        const hasErrors = this.state.featureErrors.some((val) => val);
         return (
             <div className="flex-wrapper">
-                {(this.props.explanationContext.testDataset.predictedY !== undefined) &&
-                <div className="label-group">
-                    <div className="label-group-label">Base:</div>
-                    <div className="flex-full">
-                        <PredictionLabel
-                            prediction={this.props.explanationContext.testDataset.predictedY[this.props.datapointIndex]}
-                            classNames={this.props.explanationContext.modelMetadata.classNames}
-                            modelType={this.props.explanationContext.modelMetadata.modelType}
-                            predictedProbabilities={this.props.explanationContext.testDataset.probabilityY ? 
-                                this.props.explanationContext.testDataset.probabilityY[this.props.datapointIndex] :  undefined}
-                        />
+                {this.props.explanationContext.testDataset.predictedY !== undefined && (
+                    <div className="label-group">
+                        <div className="label-group-label">Base:</div>
+                        <div className="flex-full">
+                            <PredictionLabel
+                                prediction={
+                                    this.props.explanationContext.testDataset.predictedY[this.props.datapointIndex]
+                                }
+                                classNames={this.props.explanationContext.modelMetadata.classNames}
+                                modelType={this.props.explanationContext.modelMetadata.modelType}
+                                predictedProbabilities={
+                                    this.props.explanationContext.testDataset.probabilityY
+                                        ? this.props.explanationContext.testDataset.probabilityY[
+                                              this.props.datapointIndex
+                                          ]
+                                        : undefined
+                                }
+                            />
+                        </div>
                     </div>
-                </div>}
-                {(this.state.abortController && !hasErrors) && <div className="loading-message">{localization.PerturbationExploration.loadingMessage}</div>}
-                {(this.state.errorMessage) && <div className="loading-message"> {this.state.errorMessage}</div>}
-                {(hasErrors) && <div className="loading-message">{localization.IcePlot.topLevelErrorMessage}</div>}
-                {(!hasErrors && this.state.prediction !== undefined && this.state.abortController === undefined) && <div className="label-group">
-                    <div className="label-group-label">{localization.PerturbationExploration.perturbationLabel}</div>
-                    <div className="flex-full">
-                        <PredictionLabel
-                            prediction={this.state.prediction}
-                            classNames={this.props.explanationContext.modelMetadata.classNames}
-                            modelType={this.props.explanationContext.modelMetadata.modelType}
-                            predictedProbabilities={this.state.predictionProbabilities}
-                        />
+                )}
+                {this.state.abortController && !hasErrors && (
+                    <div className="loading-message">{localization.PerturbationExploration.loadingMessage}</div>
+                )}
+                {this.state.errorMessage && <div className="loading-message"> {this.state.errorMessage}</div>}
+                {hasErrors && <div className="loading-message">{localization.IcePlot.topLevelErrorMessage}</div>}
+                {!hasErrors && this.state.prediction !== undefined && this.state.abortController === undefined && (
+                    <div className="label-group">
+                        <div className="label-group-label">
+                            {localization.PerturbationExploration.perturbationLabel}
+                        </div>
+                        <div className="flex-full">
+                            <PredictionLabel
+                                prediction={this.state.prediction}
+                                classNames={this.props.explanationContext.modelMetadata.classNames}
+                                modelType={this.props.explanationContext.modelMetadata.modelType}
+                                predictedProbabilities={this.state.predictionProbabilities}
+                            />
+                        </div>
                     </div>
-                </div>}
+                )}
                 <div className="tile-scroller">
-                    {_.cloneDeep(this.props.explanationContext.testDataset.dataset[this.props.datapointIndex]).map((featureValue, featureIndex) => {
-                        return (<FeatureEditingTile 
-                            key={featureIndex}
-                            index={featureIndex}
-                            featureName={this.props.explanationContext.modelMetadata.featureNames[featureIndex]}
-                            defaultValue={featureValue}
-                            onEdit={this.onValueEdit}
-                            enumeratedValues={(this.props.explanationContext.modelMetadata.featureRanges[featureIndex] as ICategoricalRange).uniqueValues}
-                            rangeType={this.props.explanationContext.modelMetadata.featureRanges[featureIndex].rangeType}
-                        />);
-                    })}
+                    {_.cloneDeep(this.props.explanationContext.testDataset.dataset[this.props.datapointIndex]).map(
+                        (featureValue, featureIndex) => {
+                            return (
+                                <FeatureEditingTile
+                                    key={featureIndex}
+                                    index={featureIndex}
+                                    featureName={this.props.explanationContext.modelMetadata.featureNames[featureIndex]}
+                                    defaultValue={featureValue}
+                                    onEdit={this.onValueEdit}
+                                    enumeratedValues={
+                                        (this.props.explanationContext.modelMetadata.featureRanges[
+                                            featureIndex
+                                        ] as ICategoricalRange).uniqueValues
+                                    }
+                                    rangeType={
+                                        this.props.explanationContext.modelMetadata.featureRanges[featureIndex]
+                                            .rangeType
+                                    }
+                                />
+                            );
+                        },
+                    )}
                 </div>
             </div>
         );
@@ -114,11 +141,10 @@ export class PerturbationExploration extends  React.Component<IPerturbationExplo
         // unset in the case that the user reverts.
         if (val === this.props.explanationContext.testDataset.dataset[this.props.datapointIndex][featureIndex]) {
             perturbedDictionary[featureIndex] = undefined;
-        }
-        else {
+        } else {
             perturbedDictionary[featureIndex] = val;
         }
-        this.setState({perturbedDictionary, featureErrors}, () => { 
+        this.setState({ perturbedDictionary, featureErrors }, () => {
             this.fetchData();
         });
     }
@@ -128,11 +154,11 @@ export class PerturbationExploration extends  React.Component<IPerturbationExplo
             this.state.abortController.abort();
         }
         // skip if there are any errors.
-        if (this.state.featureErrors.some(val => val)) {
+        if (this.state.featureErrors.some((val) => val)) {
             return;
         }
         const data = _.cloneDeep(this.props.explanationContext.testDataset.dataset[this.props.datapointIndex]);
-        for (var key of Object.keys(this.state.perturbedDictionary)) {
+        for (const key of Object.keys(this.state.perturbedDictionary)) {
             const index = +key;
             if (this.state.perturbedDictionary[index] !== undefined) {
                 data[index] = this.state.perturbedDictionary[index];
@@ -140,7 +166,7 @@ export class PerturbationExploration extends  React.Component<IPerturbationExplo
         }
         const abortController = new AbortController();
         const promise = this.props.invokeModel([data], abortController.signal);
-        this.setState({abortController, errorMessage: undefined}, async () => {
+        this.setState({ abortController, errorMessage: undefined }, async () => {
             try {
                 const fetchedData = await promise;
                 if (abortController.signal.aborted) {
@@ -156,16 +182,25 @@ export class PerturbationExploration extends  React.Component<IPerturbationExplo
                             maxProb = predictionVector[i];
                         }
                     }
-                    this.setState({prediction: predictedClass, predictionProbabilities: predictionVector, abortController: undefined});
+                    this.setState({
+                        prediction: predictedClass,
+                        predictionProbabilities: predictionVector,
+                        abortController: undefined,
+                    });
                 } else {
-                    this.setState({prediction: fetchedData[0], abortController: undefined});
+                    this.setState({ prediction: fetchedData[0], abortController: undefined });
                 }
-            } catch(err) {
+            } catch (err) {
                 if (err.name === 'AbortError') {
                     return;
                 }
                 if (err.name === 'PythonError') {
-                    this.setState({errorMessage: localization.formatString(localization.IcePlot.errorPrefix, err.message) as string})
+                    this.setState({
+                        errorMessage: localization.formatString(
+                            localization.IcePlot.errorPrefix,
+                            err.message,
+                        ) as string,
+                    });
                 }
             }
         });
