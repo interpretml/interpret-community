@@ -45,6 +45,12 @@ steps:
     displayName: "Run flake8"
 
   - bash: |
+      cd ./visualization/dashboard
+      yarn lintci
+      cd ../..
+    displayName: "Run visualization linter"
+
+  - bash: |
       source activate interp
       pip freeze > $(System.DefaultWorkingDirectory)/pip_freeze.txt \ &&
       python -m pytest -m "not notebooks" test --junitxml=./TEST-TEST.xml
