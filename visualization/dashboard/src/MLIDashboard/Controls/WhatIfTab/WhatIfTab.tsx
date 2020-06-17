@@ -70,6 +70,7 @@ interface ISelectedRowInfo {
 
 export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabState> {
     private static readonly MAX_SELECTION = 2;
+    private static readonly MAX_CLASSES_TOOLTIP = 5;
     private static readonly colorPath = "Color";
     private static readonly namePath = "Name";
     private static readonly IceKey = "ice";
@@ -682,61 +683,102 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             if (this.props.jointDataset.hasPredictedProbabilities) {
                 const predictedProb = row[JointDataset.ProbabilityYRoot + predictedClass.toString()];
                 const predictedProbs = JointDataset.predictProbabilitySlice(row, this.props.metadata.classNames.length)
-                const sortedProbs = ModelExplanationUtils.getSortIndices(predictedProbs).reverse().slice(0, 5);
-                const probTooltips = sortedProbs.map(index => {
-                    const prob = predictedProbs[index];
+                const sortedProbs = ModelExplanationUtils.getSortIndices(predictedProbs).reverse().slice(0, WhatIfTab.MAX_CLASSES_TOOLTIP);
+                const tooltipClasses = sortedProbs.map(index => {
                     const className = this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[index];
-                    return <Text block variant="small">{className + ": " + prob.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                    return <Text block variant="small">{className}</Text>;
                 });
+                const tooltipProbs = sortedProbs.map(index => {
+                    const prob = predictedProbs[index];
+                    return <Text block variant="small">{prob.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                });
+                const tooltipTitle = predictedProbs.length > WhatIfTab.MAX_CLASSES_TOOLTIP ? localization.WhatIfTab.tooltipTitleMany : localization.WhatIfTab.tooltipTitleFew;
                 const tooltipProps: ITooltipProps = {
                     onRenderContent: () => (
-                        <div>
-                            {probTooltips}
+                        <div className={classNames.tooltipWrapper}>                            
+                            <div className={classNames.tooltipTitle}>                    
+                                <Text variant="large">{tooltipTitle}</Text>
+                            </div>
+                            <div className={classNames.tooltipTable}>
+                                <div className={classNames.tooltipColumn}>
+                                    <Text className={classNames.boldText}>{localization.WhatIfTab.classPickerLabel}</Text>
+                                    {tooltipClasses}
+                                </div>
+                                <div className={classNames.tooltipColumn}>
+                                    <Text block className={classNames.boldText}>{localization.WhatIfTab.probabilityLabel}</Text>
+                                    {tooltipProbs}
+                                </div>
+                            </div>
                         </div>
                     ),
                 };
-                return (<div className={classNames.predictedBlock}>
-                        {trueClass !== undefined && 
-                        (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueClass, 
-                            this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass])}</Text>)}
+                return (
+                    <div className={classNames.predictedBlock}>
                         <TooltipHost
                             tooltipProps={tooltipProps}
                             delay={TooltipDelay.zero}
                             id={WhatIfTab.basePredictionTooltipIds}
-                            directionalHint={DirectionalHint.bottomCenter}
+                            directionalHint={DirectionalHint.leftCenter}
                             styles={{ root: { display: 'inline-block' } }}
                         >
-                            <DefaultButton >
-                                <div className={classNames.tooltipDiv }>
-                                <Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>
-                                <Text block variant="small">{localization.formatString(localization.WhatIfTab.probability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}
-                                </Text>
-                                </div>
-                            </DefaultButton>
+                            <IconButton className={classNames.tooltipHost} iconProps={{ iconName: 'More' }}></IconButton>
                         </TooltipHost>
-                            
+                        <div>
+                            {trueClass !== undefined && 
+                            (<div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.trueClass}</Text>
+                                <Text variant="small">{this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass]}</Text>
+                            </div>)}
+                            <div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.predictedClass}</Text>
+                                <Text variant="small">{predictedClassName}</Text>
+                            </div>
+                            <div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.probability}</Text>
+                                <Text variant="small">{predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>
+                            </div>
+                        </div>
                     </div>);
             }
             
-            return (<div className={classNames.predictedBlock}>
-                    {trueClass !== undefined && 
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueClass, 
-                        this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass])}</Text>)}
-                    {predictedClass !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedClass, predictedClassName)}</Text>)}
-                </div>);
+            return (
+                <div className={classNames.predictedBlock}>
+                    <div>
+                        {trueClass !== undefined && 
+                        (<div>
+                            <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.trueClass}</Text>
+                            <Text variant="small">{this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[trueClass]}</Text>
+                        </div>)}
+                        {predictedClass !== undefined &&
+                        (<div>
+                            <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.predictedClass}</Text>
+                            <Text variant="small">{predictedClassName}</Text>
+                        </div>)}
+                    </div>
+                </div>    
+            );
         } else {
             const row = this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex);
             const trueValue = this.props.jointDataset.hasTrueY ?
                 row[JointDataset.TrueYLabel] : undefined;
             const predictedValue = this.props.jointDataset.hasPredictedY ?
                 row[JointDataset.PredictedYLabel] : undefined;
-            return (<div className={classNames.predictedBlock}>
-                {trueValue !== undefined && 
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.trueValue, trueValue)}</Text>)}
-                {predictedValue !== undefined &&
-                    (<Text block variant="small">{localization.formatString(localization.WhatIfTab.predictedValue, predictedValue.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
-            </div>);
+            return (
+                <div className={classNames.predictedBlock}>
+                    <div>
+                        {trueValue !== undefined && 
+                            (<div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.trueValue}</Text>
+                                <Text variant="small">{trueValue}</Text>
+                            </div>)}
+                        {predictedValue !== undefined &&
+                            (<div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.predictedValue}</Text>
+                                <Text variant="small">{predictedValue.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>
+                            </div>)}
+                    </div>
+                </div>
+            );
     }
     }
 
@@ -750,24 +792,105 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             const predictedProb = this.props.jointDataset.hasPredictedProbabilities && predictedClass !== undefined ?
                 this.temporaryPoint[JointDataset.ProbabilityYRoot + predictedClass.toString()] :
                 undefined;
-            return (<div className={classNames.customPredictBlock}>
-                    {this.props.jointDataset.hasPredictedY && predictedClass !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, predictedClassName)}</Text>)}
-                    {this.props.jointDataset.hasPredictedY && predictedClass === undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedClass, localization.WhatIfTab.loading)}</Text>)}
-                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb !== undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
-                    {this.props.jointDataset.hasPredictedProbabilities && predictedProb === undefined &&
-                    (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newProbability, localization.WhatIfTab.loading)}</Text>)}
-                </div>);
+            if (predictedProb !== undefined) {
+                const basePredictedProbs = JointDataset.predictProbabilitySlice(
+                    this.props.jointDataset.getRow(this.state.selectedWhatIfRootIndex), 
+                    this.props.metadata.classNames.length);
+                const predictedProbs = JointDataset.predictProbabilitySlice(this.temporaryPoint, this.props.metadata.classNames.length);
+                const sortedProbs = ModelExplanationUtils.getSortIndices(predictedProbs).reverse().slice(0, WhatIfTab.MAX_CLASSES_TOOLTIP);
+                const tooltipClasses = sortedProbs.map(index => {
+                    const className = this.props.jointDataset.metaDict[JointDataset.PredictedYLabel].sortedCategoricalValues[index];
+                    return <Text block variant="small">{className}</Text>;
+                });
+                const tooltipProbs = sortedProbs.map(index => {
+                    const prob = predictedProbs[index];
+                    return <Text block variant="small">{prob.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                });
+                const tooltipDeltas = sortedProbs.map(index => {
+                    const delta = predictedProbs[index] - basePredictedProbs[index];
+                    if (delta < 0) {
+                        return <Text className={classNames.negativeNumber} block variant="small">{delta.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                    }
+                    if (delta > 0) {
+                        return <Text className={classNames.positiveNumber} block variant="small">{"+" + delta.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>;
+                    }
+                    return <Text block variant="small">0</Text>;
+                });
+                const tooltipTitle = predictedProbs.length > WhatIfTab.MAX_CLASSES_TOOLTIP ? localization.WhatIfTab.tooltipTitleMany : localization.WhatIfTab.tooltipTitleFew;
+                const tooltipProps: ITooltipProps = {
+                    onRenderContent: () => (
+                        <div className={classNames.tooltipWrapper}>        
+                            <div className={classNames.tooltipTitle}>                    
+                                <Text variant="large">{localization.WhatIfTab.whatIfTooltipTitle}</Text>
+                            </div>
+                            <div className={classNames.tooltipTable}>
+                                <div className={classNames.tooltipColumn}>
+                                    <Text className={classNames.boldText}>{localization.WhatIfTab.classPickerLabel}</Text>
+                                    {tooltipClasses}
+                                </div>
+                                <div className={classNames.tooltipColumn}>
+                                    <Text block className={classNames.boldText}>{localization.WhatIfTab.probabilityLabel}</Text>
+                                    {tooltipProbs}
+                                </div>
+                                <div className={classNames.tooltipColumn}>
+                                    <Text block className={classNames.boldText}>{localization.WhatIfTab.deltaLabel}</Text>
+                                    {tooltipDeltas}
+                                </div>
+                            </div>
+                        </div>
+                    ),
+                };
+                return (
+                    <div className={classNames.predictedBlock}>
+                        <TooltipHost
+                            tooltipProps={tooltipProps}
+                            delay={TooltipDelay.zero}
+                            id={WhatIfTab.whatIfPredictionTooltipIds}
+                            directionalHint={DirectionalHint.leftCenter}
+                            styles={{ root: { display: 'inline-block' } }}
+                        >
+                            <IconButton className={classNames.tooltipHost} iconProps={{ iconName: 'More' }}></IconButton>
+                        </TooltipHost>
+                        <div>
+                            <div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newPredictedClass}</Text>
+                                <Text variant="small">{predictedClassName}</Text>
+                            </div>
+                            <div>
+                                <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newProbability}</Text>
+                                <Text variant="small">{predictedProb.toLocaleString(undefined, {maximumFractionDigits: 3})}</Text>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+            // loading predictions, show placeholders
+            return (
+                <div className={classNames.predictedBlock}>
+                    <div>
+                        <IconButton className={classNames.tooltipHost} iconProps={{ iconName: 'More' }} disabled={true}></IconButton>
+                    </div>
+                    <div>
+                        <div>
+                            {/* <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newPredictedClass}</Text> */}
+                            <Text variant="small">{localization.WhatIfTab.loading}</Text>
+                        </div>
+                        <div>
+                            {/* <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newProbability}</Text> */}
+                            <Text variant="small">{localization.WhatIfTab.loading}</Text>
+                        </div>
+                    </div>
+                </div>
+            );
         } else {
-            const predictedValue = this.props.jointDataset.hasPredictedY ?
-                this.temporaryPoint[JointDataset.PredictedYLabel] : undefined;
+            const predictedValueString = this.temporaryPoint[JointDataset.PredictedYLabel] !== undefined ?
+                this.temporaryPoint[JointDataset.PredictedYLabel].toLocaleString(undefined, {maximumFractionDigits: 3}) :
+                localization.WhatIfTab.loading;
             return (<div className={classNames.customPredictBlock}>
-                {this.props.jointDataset.hasPredictedY && predictedValue !== undefined &&
-                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, predictedValue.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>)}
-                {this.props.jointDataset.hasPredictedY && predictedValue === undefined &&
-                (<Text block variant="small" className={classNames.boldText}>{localization.formatString(localization.WhatIfTab.newPredictedValue, localization.WhatIfTab.loading)}</Text>)}
+                <div>
+                    <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newPredictedValue}</Text>
+                    <Text variant="small">{predictedValueString}</Text>
+                </div>
             </div>);
         }
     }
