@@ -15,7 +15,7 @@ TEST_EXPERIMENT = 'test_experiment'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+# @pytest.mark.usefixtures('clean_dir')
 class TestMlflow(object):
 
     def test_working(self):
