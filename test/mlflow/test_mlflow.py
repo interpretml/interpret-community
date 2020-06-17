@@ -10,8 +10,9 @@ from constants import owner_email_tools_and_ux, DatasetConstants
 from test_serialize_explanation import _assert_explanation_equivalence
 
 
-TEST_EXPLANATION = 'test_explanation'
+TEST_DOWNLOAD = 'test_download'
 TEST_EXPERIMENT = 'test_experiment'
+TEST_EXPLANATION = 'test_explanation'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -72,7 +73,9 @@ class TestMlflow(object):
         client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             log_explanation(TEST_EXPLANATION, global_explanation)
-            os.mkdir(TEST_EXPLANATION)
-            download_path = client.download_artifacts(run.info.run_uuid, '', dst_path=TEST_EXPLANATION)
-        downloaded_explanation_mlflow = load_explanation(download_path)
+            os.makedirs(TEST_DOWNLOAD, exist_ok=True)
+            run_id = run.info.run_id
+            download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
+        full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data')
+        downloaded_explanation_mlflow = load_explanation(full_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
