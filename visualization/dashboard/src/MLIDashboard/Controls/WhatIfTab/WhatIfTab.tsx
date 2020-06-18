@@ -132,7 +132,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             text: meta.abbridgedLabel, 
             data: {
                 categoricalOptions: options,
-                fullLabel: meta.label
+                fullLabel: meta.label.toLowerCase()
             }
         };
     });
