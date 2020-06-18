@@ -1,7 +1,7 @@
 import { IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import _ from "lodash";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode, IData } from "mlchartlib";
-import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox, ITooltipProps, TooltipHost, TooltipDelay, DirectionalHint, Callout  } from "office-ui-fabric-react";
+import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox, ITooltipProps, TooltipHost, TooltipDelay, DirectionalHint, Callout, IComboBoxOption  } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
@@ -45,7 +45,7 @@ export interface IWhatIfTabState {
     showSelectionWarning: boolean;
     customPoints: Array<{ [key: string]: any }>;
     selectedCohortIndex: number;
-    filteredFeatureList: Array<{ key: string, label: string }>;
+    filteredFeatureList: IDropdownOption[];
     request?: AbortController;
     selectedPointsIndexes: number[];
     pointIsActive: boolean[];
@@ -109,13 +109,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private readonly _xButtonId = "x-button-id";
     private readonly _yButtonId = "y-button-id";
 
-    private readonly featureList: Array<{ key: string, label: string }> = new Array(this.props.jointDataset.datasetFeatureCount)
-        .fill(0).map((unused, colIndex) => {
-            const key = JointDataset.DataLabelRoot + colIndex.toString();
-            const meta = this.props.jointDataset.metaDict[key];
-            return { key, label: meta.label.toLowerCase() };
-        });
-
     private includedFeatureImportance: IGlobalSeries[] = [];
     private selectedFeatureImportance: IGlobalSeries[] = [];
     private selectedDatapoints: any[][] = [];
@@ -128,7 +121,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount).fill(0)
         .map((unused, index) => {
         const key = JointDataset.DataLabelRoot + index.toString();
-        return {key, text: this.props.jointDataset.metaDict[key].abbridgedLabel};
+        const meta = this.props.jointDataset.metaDict[key];
+        const options: IDropdownOption[] = meta.isCategorical ?
+            meta.sortedCategoricalValues.map((optionText, index) => {
+                return {key: index, text: optionText};
+            }) :
+            undefined;
+        return {
+            key, 
+            text: meta.abbridgedLabel, 
+            data: {
+                categoricalOptions: options,
+                fullLabel: meta.label
+            }
+        };
     });
     private classOptions: IDropdownOption[] = this.props.metadata.classNames.map((name, index) => {
         return {key: index, text: name};
@@ -157,7 +163,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             customPoints: [],
             selectedCohortIndex: 0,
             request: undefined,
-            filteredFeatureList: this.featureList,
+            filteredFeatureList: this.featuresOption,
             selectedPointsIndexes: [],
             pointIsActive: [],
             customPointIsActive: [],
@@ -353,14 +359,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                         <div className={classNames.featureList}>
                             {this.state.filteredFeatureList.map(item => {
                                 const metaInfo = this.props.jointDataset.metaDict[item.key];
-                                if (metaInfo.isCategorical) {
-                                    const options: IDropdownOption[] = metaInfo.sortedCategoricalValues.map((text, key) => {
-                                        return {key, text};
-                                    })
-                                    return <Dropdown 
+                                if (item.data && item.data.categoricalOptions) {
+                                    return <ComboBox 
                                         label={metaInfo.abbridgedLabel}
+                                        autoComplete={"on"}
+                                        allowFreeform={true}
                                         selectedKey={this.temporaryPoint[item.key]}
-                                        options={options}
+                                        options={item.data.categoricalOptions}
                                         onChange={this.setCustomRowPropertyDropdown.bind(this, item.key)}
                                     />
                                 }
@@ -1017,9 +1022,19 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.fetchData(editingData);
     }
 
-    private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        const editingData = this.temporaryPoint;
-        editingData[key] = item.key;
+    private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<IComboBox>, option?: IComboBoxOption, index?: number, value?: string): void {
+        const editingData = this.temporaryPoint; 
+        if (option) {
+            // User selected/de-selected an existing option
+            editingData[key] = option.key;
+        } 
+        else if (value !== undefined) {
+            // User typed a freeform option
+            const featureOption = this.featuresOption.find(feature => feature.key === key);
+            featureOption.data.categoricalOptions.push({key: value, text: value});
+            editingData[key] = value;
+        }
+        
         this.forceUpdate();
         this.fetchData(editingData);
     }
@@ -1091,10 +1106,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private filterFeatures(event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void {
         if (newValue === undefined || newValue === null || !/\S/.test(newValue)) {
-            this.setState({ filteredFeatureList: this.featureList });
+            this.setState({ filteredFeatureList: this.featuresOption });
         }
-        const filteredFeatureList = this.featureList.filter(item => {
-            return item.label.includes(newValue.toLowerCase());
+        const filteredFeatureList = this.featuresOption.filter(item => {
+            return item.data.fullLabel.includes(newValue.toLowerCase());
         });
         this.setState({ filteredFeatureList });
     }
