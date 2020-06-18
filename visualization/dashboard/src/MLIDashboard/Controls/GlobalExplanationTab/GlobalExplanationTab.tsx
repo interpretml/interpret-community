@@ -59,6 +59,7 @@ export interface IGlobalExplanationtabState {
     selectedFeatureIndex?: number;
     calloutVisible: boolean;
     dependenceTooltipVisible: boolean;
+    crossClassInfoVisible: boolean;
     chartType: ChartTypes;
 }
 
@@ -87,6 +88,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             seriesIsActive: props.cohorts.map(unused => true),
             calloutVisible: false,
             dependenceTooltipVisible: false,
+            crossClassInfoVisible: false,
             chartType: ChartTypes.Bar
         };
 
@@ -116,6 +118,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.onChartTypeChange = this.onChartTypeChange.bind(this);
         this.setWeightOption = this.setWeightOption.bind(this);
         this.toggleDependencePlotTooltip = this.toggleDependencePlotTooltip.bind(this);
+        this.toggleCrossClassInfo = this.toggleCrossClassInfo.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -233,20 +236,50 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     />
                     <Text variant={"medium"} className={classNames.cohortLegend}>{localization.GlobalTab.sortBy}</Text>
                     <Dropdown 
-                        styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
                         selectedKey={this.state.sortingSeriesIndex}
                         onChange={this.setSortIndex}
                     />
                     {this.props.metadata.modelType === ModelTypes.multiclass && (
                         <div>
-                            <Text variant={"medium"} className={classNames.cohortLegend}>{localization.GlobalTab.weightOptions}</Text>
+                            <div className={classNames.multiclassWeightLabel}>
+                                <Text 
+                                    variant={"medium"}
+                                    className={classNames.multiclassWeightLabelText}>
+                                        {localization.GlobalTab.weightOptions}</Text>
+                                <IconButton
+                                    id={'cross-class-weight-info'}
+                                    iconProps={{ iconName: 'Info' }}
+                                    title={localization.CrossClass.info}
+                                    onClick={this.toggleCrossClassInfo}
+                                />
+                            </div>
                             <Dropdown 
-                                styles={{ dropdown: { width: 150 } }}
                                 options={this.weightOptions}
                                 selectedKey={this.props.selectedWeightVector}
                                 onChange={this.setWeightOption}
                             />
+                            {this.state.crossClassInfoVisible && (
+                            <Callout
+                                target={'#cross-class-weight-info'}
+                                setInitialFocus={true}
+                                onDismiss={this.toggleCrossClassInfo}
+                                directionalHint={DirectionalHint.leftCenter}
+                                role="alertdialog">
+                                <div className={classNames.calloutWrapper}>
+                                    <div className={classNames.calloutHeader}>
+                                        <Text className={classNames.calloutTitle}>{localization.CrossClass.crossClassWeights}</Text>
+                                    </div>
+                                    <div className={classNames.calloutInner}>
+                                        <Text>{localization.CrossClass.overviewInfo}</Text>
+                                        <ul>
+                                            <li><Text>{localization.CrossClass.absoluteValInfo}</Text></li>
+                                            <li><Text>{localization.CrossClass.enumeratedClassInfo}</Text></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </Callout>
+                            )}
                         </div>
                     )}
                 </div>
@@ -263,11 +296,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         setInitialFocus={true}
                         onDismiss={this.toggleDependencePlotTooltip}
                         role="alertdialog">
-                        <div className={classNames.dependencePlotCallout}>
-                            <div className={classNames.dependenceCalloutHeader}>
-                                <Text className={classNames.dependenceCalloutTitle}>{localization.GlobalTab.dependencePlotTitle}</Text>
+                        <div className={classNames.calloutWrapper}>
+                            <div className={classNames.calloutHeader}>
+                                <Text className={classNames.calloutTitle}>{localization.GlobalTab.dependencePlotTitle}</Text>
                             </div>
-                            <div className={classNames.dependenceCalloutInner}>
+                            <div className={classNames.calloutInner}>
                                 <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
                             </div>
                         </div>
@@ -285,16 +318,18 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
                 />
                 <div className={classNames.legendAndSort}>
-                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.viewDependencePlotFor}</Text>
-                    {featureOptions && (<Dropdown 
-                        styles={{ dropdown: { width: 150 } }}
+                    <Text variant={"medium"} block className={classNames.cohortLegend}>{localization.GlobalTab.viewDependencePlotFor}</Text>
+                    {featureOptions && (<ComboBox 
+                        useComboBoxAsMenuWidth={true}
                         options={featureOptions}
+                        allowFreeform={false}
+                        autoComplete={"on"}
+                        placeholder={localization.GlobalTab.dependencePlotFeatureSelectPlaceholder}
                         selectedKey={this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined}
                         onChange={this.onXSet}
                     />)}
-                    <Text variant={"mediumPlus"} block className={classNames.cohortLegend}>{localization.GlobalTab.datasetCohortSelector}</Text>
+                    <Text variant={"medium"} block className={classNames.cohortLegendWithTop}>{localization.GlobalTab.datasetCohortSelector}</Text>
                     {cohortOptions && (<Dropdown 
-                        styles={{ dropdown: { width: 150 } }}
                         options={cohortOptions}
                         selectedKey={this.state.selectedCohortIndex}
                         onChange={this.setSelectedCohort}
@@ -321,7 +356,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private toggleDependencePlotTooltip(): void {
-        this.setState({dependenceTooltipVisible: !this.state.dependenceTooltipVisible})
+        this.setState({dependenceTooltipVisible: !this.state.dependenceTooltipVisible});
+    }
+
+    private toggleCrossClassInfo(): void {
+        this.setState({crossClassInfoVisible: !this.state.crossClassInfoVisible});
     }
 
     private closeCallout(): void {
@@ -409,7 +448,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.props.onWeightChange(newIndex);
     }
 
-    private onXSet(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+    private onXSet(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
         const key = item.key as string;
         const index = this.props.jointDataset.metaDict[key].index;
         this.handleFeatureSelection(this.state.selectedCohortIndex, index);

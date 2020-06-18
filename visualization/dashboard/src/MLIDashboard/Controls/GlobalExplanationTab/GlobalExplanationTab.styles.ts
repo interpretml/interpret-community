@@ -22,11 +22,14 @@ export interface IGlobalTabStyles {
     chartEditorButton: IStyle;
     callout: IStyle;
     boldText: IStyle;
-    dependencePlotCallout: IStyle;
-    dependenceCalloutHeader: IStyle;
-    dependenceCalloutTitle: IStyle;
-    dependenceCalloutInner: IStyle;
+    calloutWrapper: IStyle;
+    calloutHeader: IStyle;
+    calloutTitle: IStyle;
+    calloutInner: IStyle;
     dependencePlotInfoButton: IStyle;
+    multiclassWeightLabel: IStyle;
+    multiclassWeightLabelText: IStyle;
+    cohortLegendWithTop: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -117,27 +120,27 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
             fontWeight: "600",
             paddingBottom: "5px"
         },
-        dependencePlotCallout: {
-          maxWidth: "300px"  
-        },
-        dependenceCalloutHeader: {
-            padding: '18px 24px 12px',
-        },
-        dependenceCalloutTitle: [
-            theme.fonts.xLarge,
-            {
-              margin: 0,
-              fontWeight: FontWeights.semilight,
-            }
-        ,],
-        dependenceCalloutInner: {
-            height: '100%',
-            padding: '0 24px 20px',
-        },
+        calloutWrapper: [FabricStyles.calloutWrapper],
+        calloutHeader: [FabricStyles.calloutHeader],
+        calloutTitle: [FabricStyles.calloutTitle],
+        calloutInner: [FabricStyles.calloutInner],
         dependencePlotInfoButton: {
             width: 'fit-content',
-            margin: '5px 200px 5px auto'
+            margin: '5px 200px 5px auto',
             padding: '10px'
+        },
+        multiclassWeightLabel: {
+            display: "inline-flex",
+            paddingTop: "10px"
+        },
+        multiclassWeightLabelText: {
+            paddingTop: "5px",
+            fontWeight: "600",
+        },
+        cohortLegendWithTop: {
+            fontWeight: "600",
+            paddingBottom: "10px",
+            paddingTop: "10px"
         }
     });
 };

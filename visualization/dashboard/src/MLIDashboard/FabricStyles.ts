@@ -2,6 +2,7 @@ import { IComboBoxStyles } from "office-ui-fabric-react/lib/ComboBox";
 import { IPivotStyles } from "office-ui-fabric-react/lib/Pivot";
 import { ITextFieldStyles } from "office-ui-fabric-react/lib/TextField";
 import { IStyle, getTheme } from "@uifabric/styling";
+import { FontWeights } from "office-ui-fabric-react";
 
 export interface IRGBColor {
     r: number;
@@ -59,6 +60,26 @@ export class FabricStyles {
     public static missingParameterPlaceholder: IStyle = {
         height: "300px",
         width: "100%"
+    };
+
+    public static calloutWrapper: IStyle = {
+        maxWidth: "300px"  
+    };
+    
+    public static calloutHeader: IStyle = {
+        padding: '18px 24px 12px',
+    };
+
+    public static calloutTitle: IStyle = [
+        getTheme().fonts.xLarge,
+        {
+            margin: 0,
+            fontWeight: FontWeights.semilight,
+        }
+    ,];
+    public static calloutInner: IStyle = {
+        height: '100%',
+        padding: '0 24px 20px',
     };
 
     public static chartEditorButton: IStyle = {

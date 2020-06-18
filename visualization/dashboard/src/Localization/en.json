@@ -75,7 +75,8 @@
         "_predictedClassInfo.comment": "explains predicted class weight",
         "enumeratedClassInfo": "Enumerated class names: Shows only the specified class's feature importance values across all data points.",
         "_enumeratedClassInfo.comment": "explains the weights for selecting a single class",
-        "close": "Close"
+        "close": "Close",
+        "crossClassWeights": "Cross class weights"
     },
     "AggregateImportance": {
         "scaledFeatureValue": "Scaled Feature Value",
@@ -273,7 +274,8 @@
         "_weightOptions.comment": "Weight how different importance values are used in the average https://en.wikipedia.org/wiki/Weighted_arithmetic_mean",
         "dependencePlotPrompt": "How to read this chart",
         "dependencePlotTitle": "Dependence Plots",
-        "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort."
+        "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort.",
+        "dependencePlotFeatureSelectPlaceholder": "Select feature"
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",

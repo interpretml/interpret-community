@@ -59,6 +59,12 @@ export interface IWhatIfTabStyles {
     negativeNumber: IStyle;
     positiveNumber: IStyle;
     tooltipWrapper: IStyle;
+    multiclassWeightLabel: IStyle;
+    multiclassWeightLabelText: IStyle;
+    calloutWrapper: IStyle;
+    calloutHeader: IStyle;
+    calloutTitle: IStyle;
+    calloutInner: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -330,6 +336,18 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         },
         tooltipWrapper: {
             padding: "10px 15px"
-        }
+        },
+        multiclassWeightLabel: {
+            display: "inline-flex",
+            paddingTop: "10px"
+        },
+        multiclassWeightLabelText: {
+            paddingTop: "5px",
+            fontWeight: "600",
+        },
+        calloutWrapper: [FabricStyles.calloutWrapper],
+        calloutHeader: [FabricStyles.calloutHeader],
+        calloutTitle: [FabricStyles.calloutTitle],
+        calloutInner: [FabricStyles.calloutInner],
     });
 }

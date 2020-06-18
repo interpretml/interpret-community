@@ -1,7 +1,7 @@
 import { IProcessedStyleSet, getTheme } from "@uifabric/styling";
 import _ from "lodash";
 import { AccessibleChart, IPlotlyProperty, PlotlyMode, IData } from "mlchartlib";
-import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox, ITooltipProps, TooltipHost, TooltipDelay, DirectionalHint  } from "office-ui-fabric-react";
+import { ChoiceGroup, IChoiceGroupOption, Icon, Slider, Text, ComboBox, IComboBox, ITooltipProps, TooltipHost, TooltipDelay, DirectionalHint, Callout  } from "office-ui-fabric-react";
 import { DefaultButton, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import { SearchBox } from "office-ui-fabric-react/lib/SearchBox";
@@ -57,6 +57,7 @@ export interface IWhatIfTabState {
     secondaryChartChoice: string;
     selectedFeatureKey: string;
     selectedICEClass: number;
+    crossClassInfoVisible: boolean;
 }
 
 interface ISelectedRowInfo {
@@ -167,7 +168,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             secondaryChartChoice: WhatIfTab.featureImportanceKey,
             selectedFeatureKey: JointDataset.DataLabelRoot + "0",
             showSelectionWarning: false,
-            selectedICEClass: 0
+            selectedICEClass: 0,
+            crossClassInfoVisible: false
         };
 
         if (props.chartProps === undefined) {
@@ -192,6 +194,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setWeightOption = this.setWeightOption.bind(this);
         this.setSortIndex = this.setSortIndex.bind(this);
         this.onICEClassSelected = this.onICEClassSelected.bind(this);
+        this.toggleCrossClassInfo = this.toggleCrossClassInfo.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -586,15 +589,45 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             />
                             {this.props.metadata.modelType === ModelTypes.multiclass && (
                                 <div>
-                                    <Text variant={"medium"} className={classNames.cohortPickerLabel}>{localization.GlobalTab.weightOptions}</Text>
-                                    <Dropdown 
-                                        styles={{ dropdown: { width: 150 } }}
-                                        options={this.weightOptions}
-                                        selectedKey={this.props.selectedWeightVector}
-                                        onChange={this.setWeightOption}
+                                <div className={classNames.multiclassWeightLabel}>
+                                    <Text 
+                                        variant={"medium"}
+                                        className={classNames.multiclassWeightLabelText}>
+                                            {localization.GlobalTab.weightOptions}</Text>
+                                    <IconButton
+                                        id={'cross-class-weight-info'}
+                                        iconProps={{ iconName: 'Info' }}
+                                        title={localization.CrossClass.info}
+                                        onClick={this.toggleCrossClassInfo}
                                     />
                                 </div>
-                            )}
+                                <Dropdown 
+                                    options={this.weightOptions}
+                                    selectedKey={this.props.selectedWeightVector}
+                                    onChange={this.setWeightOption}
+                                />
+                                {this.state.crossClassInfoVisible && (
+                                <Callout
+                                    target={'#cross-class-weight-info'}
+                                    setInitialFocus={true}
+                                    onDismiss={this.toggleCrossClassInfo}
+                                    directionalHint={DirectionalHint.leftCenter}
+                                    role="alertdialog">
+                                    <div className={classNames.calloutWrapper}>
+                                        <div className={classNames.calloutHeader}>
+                                            <Text className={classNames.calloutTitle}>{localization.CrossClass.crossClassWeights}</Text>
+                                        </div>
+                                        <div className={classNames.calloutInner}>
+                                            <Text>{localization.CrossClass.overviewInfo}</Text>
+                                            <ul>
+                                                <li><Text>{localization.CrossClass.absoluteValInfo}</Text></li>
+                                                <li><Text>{localization.CrossClass.enumeratedClassInfo}</Text></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </Callout>
+                                )}
+                            </div>)}
                         </div>
                     </div>
                 </div>);
@@ -936,6 +969,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setSelectedIndex(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
         this.setTemporaryPointToCopyOfDatasetPoint(item.key as number);
+    }
+
+    private toggleCrossClassInfo(): void {
+        this.setState({crossClassInfoVisible: !this.state.crossClassInfoVisible});
     }
 
     private setTemporaryPointToCopyOfDatasetPoint(index: number): void {
