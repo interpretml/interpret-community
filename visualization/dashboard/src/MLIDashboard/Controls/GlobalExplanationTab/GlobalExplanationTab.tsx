@@ -21,7 +21,7 @@ import { GlobalViolinPlot } from "../GlobalViolinPlot";
 import { globalTabStyles } from "./GlobalExplanationTab.styles";
 import { IGlobalSeries } from "./IGlobalSeries";
 import { InteractiveLegend } from "../InteractiveLegend";
-import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup, IChoiceGroupOption } from "office-ui-fabric-react";
+import { Icon, Text, IconButton, DirectionalHint, Callout, ChoiceGroup, IChoiceGroupOption, CommandBarButton } from "office-ui-fabric-react";
 import { WeightVectorOption, WeightVectors } from "../../IWeightedDropdownContext";
 
 export interface IGlobalBarSettings {
@@ -58,6 +58,7 @@ export interface IGlobalExplanationtabState {
     selectedCohortIndex: number;
     selectedFeatureIndex?: number;
     calloutVisible: boolean;
+    dependenceTooltipVisible: boolean;
     chartType: ChartTypes;
 }
 
@@ -85,6 +86,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 this.props.cohorts[0].calculateAverageImportance()).reverse(),
             seriesIsActive: props.cohorts.map(unused => true),
             calloutVisible: false,
+            dependenceTooltipVisible: false,
             chartType: ChartTypes.Bar
         };
 
@@ -113,6 +115,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.closeCallout = this.closeCallout.bind(this);
         this.onChartTypeChange = this.onChartTypeChange.bind(this);
         this.setWeightOption = this.setWeightOption.bind(this);
+        this.toggleDependencePlotTooltip = this.toggleDependencePlotTooltip.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -248,6 +251,28 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     )}
                 </div>
             </div>
+            <CommandBarButton
+                iconProps={{iconName: "Info"}}
+                id='dependence-plot-info'
+                className={classNames.dependencePlotInfoButton}
+                text={localization.GlobalTab.dependencePlotPrompt}
+                onClick={this.toggleDependencePlotTooltip}/>
+            {this.state.dependenceTooltipVisible && (
+                    <Callout
+                        target={'#dependence-plot-info'}
+                        setInitialFocus={true}
+                        onDismiss={this.toggleDependencePlotTooltip}
+                        role="alertdialog">
+                        <div className={classNames.dependencePlotCallout}>
+                            <div className={classNames.dependenceCalloutHeader}>
+                                <Text className={classNames.dependenceCalloutTitle}>{localization.GlobalTab.dependencePlotTitle}</Text>
+                            </div>
+                            <div className={classNames.dependenceCalloutInner}>
+                                <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
+                            </div>
+                        </div>
+                    </Callout>
+                    )}
             <div className={classNames.secondaryChartAndLegend}>
                 <DependencePlot 
                     chartProps={this.props.dependenceProps}
@@ -293,6 +318,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
     private toggleCalloutOpen(): void {
         this.setState({calloutVisible: !this.state.calloutVisible});
+    }
+
+    private toggleDependencePlotTooltip(): void {
+        this.setState({dependenceTooltipVisible: !this.state.dependenceTooltipVisible})
     }
 
     private closeCallout(): void {

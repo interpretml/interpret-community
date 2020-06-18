@@ -1,4 +1,4 @@
-import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme } from "office-ui-fabric-react";
+import { IStyle, mergeStyleSets, IProcessedStyleSet, ITheme, getTheme, FontWeights } from "office-ui-fabric-react";
 import { FabricStyles } from "../../FabricStyles";
 
 export interface IGlobalTabStyles {
@@ -22,6 +22,11 @@ export interface IGlobalTabStyles {
     chartEditorButton: IStyle;
     callout: IStyle;
     boldText: IStyle;
+    dependencePlotCallout: IStyle;
+    dependenceCalloutHeader: IStyle;
+    dependenceCalloutTitle: IStyle;
+    dependenceCalloutInner: IStyle;
+    dependencePlotInfoButton: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -97,16 +102,9 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
         faintText: [FabricStyles.faintText],
-        chartEditorButton: {
-            color: theme.semanticColors.buttonText,
-            backgroundColor: theme.semanticColors.buttonBackground,
-            borderWidth: "1px",
-            borderStyle: "solid",
-            borderColor: theme.semanticColors.buttonBorder,
-            position: "absolute",
-            right: "210px",
-            zIndex: 10
-        },
+        chartEditorButton: [FabricStyles.chartEditorButton, {
+            right: "210px"
+        }],
         callout: {
             width: "200px",
             boxSizing:"border-box",
@@ -118,6 +116,28 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         boldText: {
             fontWeight: "600",
             paddingBottom: "5px"
+        },
+        dependencePlotCallout: {
+          maxWidth: "300px"  
+        },
+        dependenceCalloutHeader: {
+            padding: '18px 24px 12px',
+        },
+        dependenceCalloutTitle: [
+            theme.fonts.xLarge,
+            {
+              margin: 0,
+              fontWeight: FontWeights.semilight,
+            }
+        ,],
+        dependenceCalloutInner: {
+            height: '100%',
+            padding: '0 24px 20px',
+        },
+        dependencePlotInfoButton: {
+            width: 'fit-content',
+            margin: '5px 200px 5px auto'
+            padding: '10px'
         }
     });
 };

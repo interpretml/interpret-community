@@ -61,6 +61,16 @@ export class FabricStyles {
         width: "100%"
     };
 
+    public static chartEditorButton: IStyle = {
+        color: getTheme().semanticColors.accentButtonText,
+        backgroundColor: getTheme().semanticColors.accentButtonBackground,
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: getTheme().semanticColors.buttonBorder,
+        position: "absolute",
+        zIndex: 10
+    }
+
     public static placeholderItalic: IStyle = {
         fontStyle: "italic",
         padding: "0 0 5px 5px",

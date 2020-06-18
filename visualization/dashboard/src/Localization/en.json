@@ -270,7 +270,10 @@
         "missingParameters": "This tab requires the local feature importance parameter be supplied.",
         "_missingParameters.comment": "Show a message if the required feature importance parameter is not provided",
         "weightOptions": "Class importance weights",
-        "_weightOptions.comment": "Weight how different importance values are used in the average https://en.wikipedia.org/wiki/Weighted_arithmetic_mean"
+        "_weightOptions.comment": "Weight how different importance values are used in the average https://en.wikipedia.org/wiki/Weighted_arithmetic_mean",
+        "dependencePlotPrompt": "How to read this chart",
+        "dependencePlotTitle": "Dependence Plots",
+        "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort."
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",
