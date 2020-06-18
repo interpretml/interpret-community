@@ -76,6 +76,6 @@ class TestMlflow(object):
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
             download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data')
+        full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data', 'explanation')
         downloaded_explanation_mlflow = load_explanation(full_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)

@@ -27,8 +27,8 @@ def log_explanation(name, explanation):
     import cloudpickle as pickle
 
     with TemporaryDirectory() as tempdir:
-        path = tempdir
-        save_explanation(explanation, path)
+        path = os.path.join(tempdir, 'explanation')
+        save_explanation(explanation, path, exist_ok=True)
 
         conda_env = {"name": "mlflow-env",
                      "channels": ["defaults"],
@@ -42,4 +42,5 @@ def log_explanation(name, explanation):
         conda_path = os.path.join(tempdir, "conda.yaml")  # TODO Open issue and bug fix for dict support
         with open(conda_path, "w") as stream:
             yaml.dump(conda_env, stream)
-        mlflow.pyfunc.log_model(explanation.id, loader_module="interpret_community.mlflow.mlflow", data_path=path, conda_env=conda_path)
+        mlflow.pyfunc.log_model(explanation.id, loader_module="interpret_community.mlflow", data_path=path, conda_env=conda_path)
+        # mlflow.pyfunc.add_to_model(explanation.id, loader_module="interpret_community.mlflow.mlflow")
