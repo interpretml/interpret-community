@@ -111,6 +111,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private includedFeatureImportance: IGlobalSeries[] = [];
     private selectedFeatureImportance: IGlobalSeries[] = [];
+    private validationErrors: {[key: string]: string} = {};
+    private stringifedValues: {[key: string]: string} = {};
     private selectedDatapoints: any[][] = [];
     private customDatapoints: any[][] = [];
     private testableDatapoints: any[][] = [];
@@ -181,7 +183,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
-        this.temporaryPoint = this.createCopyOfFirstRow();
+        this.createCopyOfFirstRow();
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -371,9 +373,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                 }
                                 return <TextField
                                     label={metaInfo.abbridgedLabel}
-                                    value={this.temporaryPoint[item.key].toString()}
-                                    onChange={this.setCustomRowProperty.bind(this, item.key, this.props.jointDataset.metaDict[item.key].treatAsCategorical)}
+                                    value={this.stringifedValues[item.key]}
+                                    onChange={this.setCustomRowProperty.bind(this, item.key, false) }
                                     styles={{ fieldGroup: { width: 100 } }}
+                                    errorMessage={this.validationErrors[item.key]}
                                 />
                             })}
                         </div>
@@ -984,7 +987,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.temporaryPoint = this.props.jointDataset.getRow(index);
         this.temporaryPoint[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, index) as string;
         this.temporaryPoint[WhatIfTab.colorPath] = FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + this.state.customPoints.length];
-
+        Object.keys(this.temporaryPoint).forEach(key => {
+            this.stringifedValues[key] = this.temporaryPoint[key].toString();
+            this.validationErrors[key] = undefined;
+        })
         this.setState({
             selectedWhatIfRootIndex: index,
             editingDataCustomIndex: undefined
@@ -993,6 +999,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setTemporaryPointToCustomPoint(index: number): void {
         this.temporaryPoint = _.cloneDeep(this.state.customPoints[index]);
+        Object.keys(this.temporaryPoint).forEach(key => {
+            this.stringifedValues[key] = this.temporaryPoint[key].toString();
+            this.validationErrors[key] = undefined;
+        })
         this.setState({
             selectedWhatIfRootIndex: this.temporaryPoint[JointDataset.IndexLabel],
             editingDataCustomIndex: index
@@ -1012,14 +1022,23 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private setCustomRowProperty(key: string, isString: boolean, event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void {
         const editingData = this.temporaryPoint;
+        this.stringifedValues[key] = newValue;
         if (isString) {
             editingData[key] = newValue;
         } else {
             const asNumber = +newValue;
-            editingData[key] = asNumber;
+            // because " " evaluates to 0 in js
+            const isWhitespaceOnly = /^\s*$/.test(newValue)
+            if (Number.isNaN(asNumber) || isWhitespaceOnly) {
+                this.validationErrors[key] = localization.WhatIfTab.nonNumericValue;    
+                this.forceUpdate();
+            } else {
+                editingData[key] = asNumber;
+                this.validationErrors[key] = undefined;
+                this.forceUpdate();
+                this.fetchData(editingData);
+            }
         }
-        this.forceUpdate();
-        this.fetchData(editingData);
     }
 
     private setCustomRowPropertyDropdown(key: string, event: React.FormEvent<IComboBox>, option?: IComboBoxOption, index?: number, value?: string): void {
@@ -1057,15 +1076,18 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setState({ editingDataCustomIndex, customPoints, customPointIsActive});
     }
 
-    private createCopyOfFirstRow(): { [key: string]: any } {
+    private createCopyOfFirstRow(): void {
         const indexes = this.getDefaultSelectedPointIndexes(this.props.cohorts[this.state.selectedCohortIndex]);
         if (indexes.length === 0) {
             return undefined;
         }
-        const customData = this.props.jointDataset.getRow(indexes[0]) as any;
-        customData[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, indexes[0]) as string;
-        customData[WhatIfTab.colorPath] = FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + this.state.customPoints.length];
-        return customData;
+        this.temporaryPoint = this.props.jointDataset.getRow(indexes[0]) as any;
+        this.temporaryPoint[WhatIfTab.namePath] = localization.formatString(localization.WhatIf.defaultCustomRootName, indexes[0]) as string;
+        this.temporaryPoint[WhatIfTab.colorPath] = FabricStyles.fabricColorPalette[WhatIfTab.MAX_SELECTION + this.state.customPoints.length];
+        Object.keys(this.temporaryPoint).forEach(key => {
+            this.stringifedValues[key] = this.temporaryPoint[key].toString();
+            this.validationErrors[key] = undefined;
+        });
     }
 
     private toggleActivation(index: number): void {
