@@ -1,11 +1,11 @@
-import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
-import React from "react";
-import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
-import { localization } from "../../../Localization/localization";
-import { FabricStyles } from "../../FabricStyles";
-import {  ScatterUtils, IScatterProps } from "./ScatterUtils";
-import _ from "lodash";
-import { NoDataMessage, LoadingSpinner } from "../../SharedComponents";
+import { ComboBox, IComboBox, IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
+import React from 'react';
+import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from 'mlchartlib';
+import { localization } from '../../../Localization/localization';
+import { FabricStyles } from '../../FabricStyles';
+import { ScatterUtils, IScatterProps } from './ScatterUtils';
+import _ from 'lodash';
+import { NoDataMessage, LoadingSpinner } from '../../SharedComponents';
 require('./Scatter.css');
 
 export const DataScatterId = 'data_scatter_id';
@@ -25,12 +25,13 @@ export class DataExploration extends React.PureComponent<IScatterProps> {
     public render(): React.ReactNode {
         if (this.props.dashboardContext.explanationContext.testDataset) {
             const projectedData = ScatterUtils.projectData(this.props.dashboardContext.explanationContext);
-            this.plotlyProps = this.props.plotlyProps !== undefined ?
-                _.cloneDeep(this.props.plotlyProps) :
-                ScatterUtils.defaultDataExpPlotlyProps(this.props.dashboardContext.explanationContext);
+            this.plotlyProps =
+                this.props.plotlyProps !== undefined
+                    ? _.cloneDeep(this.props.plotlyProps)
+                    : ScatterUtils.defaultDataExpPlotlyProps(this.props.dashboardContext.explanationContext);
             const dropdownOptions = ScatterUtils.buildOptions(this.props.dashboardContext.explanationContext, false);
             const initialColorOption = ScatterUtils.getselectedColorOption(this.plotlyProps, dropdownOptions);
-            let plotProps = ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps))
+            let plotProps = ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps));
             plotProps = ScatterUtils.updatePropsForSelections(plotProps, this.props.selectedRow);
             return (
                 <div className="explanation-chart">
@@ -80,7 +81,7 @@ export class DataExploration extends React.PureComponent<IScatterProps> {
             );
         }
         const explanationStrings = this.props.messages ? this.props.messages.TestReq : undefined;
-        return <NoDataMessage explanationStrings={explanationStrings}/>;
+        return <NoDataMessage explanationStrings={explanationStrings} />;
     }
 
     private handleClick(data: any): void {

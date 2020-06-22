@@ -1,16 +1,16 @@
-import _ from "lodash";
-import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
-import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
-import { Slider } from "office-ui-fabric-react/lib/Slider";
-import React from "react";
-import { localization } from "../../../Localization/localization";
-import { FabricStyles } from "../../FabricStyles";
-import { ModelTypes } from "../../IExplanationContext";
-import { ModelExplanationUtils } from "../../ModelExplanationUtils";
-import { NoDataMessage, LoadingSpinner, FeatureKeys, FeatureSortingKey, BarChart } from "../../SharedComponents";
-import { IGlobalFeatureImportanceProps } from "./FeatureImportanceWrapper";
-import { Callout } from "office-ui-fabric-react/lib/Callout";
-import { DefaultButton, IconButton } from "office-ui-fabric-react/lib/Button";
+import _ from 'lodash';
+import { ComboBox, IComboBox, IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
+import { IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
+import { Slider } from 'office-ui-fabric-react/lib/Slider';
+import React from 'react';
+import { localization } from '../../../Localization/localization';
+import { FabricStyles } from '../../FabricStyles';
+import { ModelTypes } from '../../IExplanationContext';
+import { ModelExplanationUtils } from '../../ModelExplanationUtils';
+import { NoDataMessage, LoadingSpinner, FeatureKeys, FeatureSortingKey, BarChart } from '../../SharedComponents';
+import { IGlobalFeatureImportanceProps } from './FeatureImportanceWrapper';
+import { Callout } from 'office-ui-fabric-react/lib/Callout';
+import { DefaultButton, IconButton } from 'office-ui-fabric-react/lib/Button';
 
 require('./FeatureImportanceBar.css');
 
@@ -19,11 +19,14 @@ export interface IFeatureImportanceBarState {
     isCalloutVisible: boolean;
 }
 
-export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImportanceProps, IFeatureImportanceBarState> {
+export class FeatureImportanceBar extends React.PureComponent<
+    IGlobalFeatureImportanceProps,
+    IFeatureImportanceBarState
+> {
     private sortOptions: IDropdownOption[];
     private readonly _iconId = 'icon-id';
 
-    constructor(props:IGlobalFeatureImportanceProps) {
+    constructor(props: IGlobalFeatureImportanceProps) {
         super(props);
         this.sortOptions = this.buildSortOptions();
         this.onSortSelect = this.onSortSelect.bind(this);
@@ -33,32 +36,36 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
         this.onIconClick = this.onIconClick.bind(this);
         this.state = {
             selectedSorting: FeatureKeys.absoluteGlobal,
-            isCalloutVisible: false
+            isCalloutVisible: false,
         };
     }
 
     public render(): React.ReactNode {
         const expContext = this.props.dashboardContext.explanationContext;
-        const globalExplanation = expContext.globalExplanation
-        if (globalExplanation !== undefined && 
+        const globalExplanation = expContext.globalExplanation;
+        if (
+            globalExplanation !== undefined &&
             (globalExplanation.flattenedFeatureImportances !== undefined ||
-                globalExplanation.perClassFeatureImportances !== undefined)) {
+                globalExplanation.perClassFeatureImportances !== undefined)
+        ) {
             const featuresByClassMatrix = this.getFeatureByClassMatrix();
-            let sortVector = this.getSortVector(featuresByClassMatrix);
+            const sortVector = this.getSortVector(featuresByClassMatrix);
 
             return (
                 <div className="feature-bar-explanation-chart">
                     <div className="top-controls">
-                        {(this.props.chartTypeOptions && this.props.chartTypeOptions.length > 1) &&<ComboBox
-                            label={localization.FeatureImportanceWrapper.chartType}
-                            className="pathSelector"
-                            selectedKey={this.props.config.displayMode}
-                            onChange={this.setChart}
-                            options={this.props.chartTypeOptions}
-                            ariaLabel={"chart type picker"}
-                            useComboBoxAsMenuWidth={true}
-                            styles={FabricStyles.smallDropdownStyle}
-                        />}
+                        {this.props.chartTypeOptions && this.props.chartTypeOptions.length > 1 && (
+                            <ComboBox
+                                label={localization.FeatureImportanceWrapper.chartType}
+                                className="pathSelector"
+                                selectedKey={this.props.config.displayMode}
+                                onChange={this.setChart}
+                                options={this.props.chartTypeOptions}
+                                ariaLabel={'chart type picker'}
+                                useComboBoxAsMenuWidth={true}
+                                styles={FabricStyles.smallDropdownStyle}
+                            />
+                        )}
                         <div className="slider-control">
                             <div className="slider-label">
                                 <span className="label-text">{localization.AggregateImportance.topKFeatures}</span>
@@ -81,26 +88,29 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 ariaLabel={localization.AggregateImportance.topKFeatures}
                             />
                         </div>
-                        {(this.sortOptions.length > 0) && <ComboBox
+                        {this.sortOptions.length > 0 && (
+                            <ComboBox
                                 className="pathSelector"
                                 label={localization.BarChart.sortBy}
                                 selectedKey={this.state.selectedSorting}
                                 onChange={this.onSortSelect}
                                 options={this.sortOptions}
-                                ariaLabel={"sort selector"}
+                                ariaLabel={'sort selector'}
                                 useComboBoxAsMenuWidth={true}
                                 styles={FabricStyles.smallDropdownStyle}
-                            />}
+                            />
+                        )}
                     </div>
                     {this.state.isCalloutVisible && (
                         <Callout
                             target={'#' + this._iconId}
                             setInitialFocus={true}
                             onDismiss={this.onDismiss}
-                            role="alertdialog">
+                            role="alertdialog"
+                        >
                             <div className="callout-info">
                                 <div className="class-weight-info">
-                                    <span>{localization.CrossClass.overviewInfo}</span> 
+                                    <span>{localization.CrossClass.overviewInfo}</span>
                                     <ul>
                                         <li>{localization.CrossClass.absoluteValInfo}</li>
                                         <li>{localization.CrossClass.predictedClassInfo}</li>
@@ -110,7 +120,7 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                                 <DefaultButton onClick={this.onDismiss}>{localization.CrossClass.close}</DefaultButton>
                             </div>
                         </Callout>
-                        )}
+                    )}
                     <BarChart
                         theme={this.props.theme}
                         intercept={this.props.dashboardContext.explanationContext.globalExplanation.intercepts}
@@ -118,18 +128,17 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
                         sortedIndexVector={sortVector}
                         topK={this.props.config.topK}
                         modelMetadata={expContext.modelMetadata}
-                        barmode='stack'
+                        barmode="stack"
                     />
                 </div>
-            )
-
+            );
         }
         if (expContext.localExplanation && expContext.localExplanation.percentComplete !== undefined) {
-            return <LoadingSpinner/>;
+            return <LoadingSpinner />;
         }
-        
-        const explanationStrings = this.props.messages ? this.props.messages.LocalOrGlobalAndTestReq: undefined;
-        return <NoDataMessage explanationStrings={explanationStrings}/>;
+
+        const explanationStrings = this.props.messages ? this.props.messages.LocalOrGlobalAndTestReq : undefined;
+        return <NoDataMessage explanationStrings={explanationStrings} />;
     }
 
     private getSortVector(featureByClassMatrix: number[][]): number[] {
@@ -140,20 +149,31 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
     }
 
     private getFeatureByClassMatrix(): number[][] {
-        return this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances || 
-        this.props.dashboardContext.explanationContext.globalExplanation.flattenedFeatureImportances
-            .map(value => [value]);
+        return (
+            this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances ||
+            this.props.dashboardContext.explanationContext.globalExplanation.flattenedFeatureImportances.map(
+                (value) => [value],
+            )
+        );
     }
 
     private buildSortOptions(): IDropdownOption[] {
-        if (this.props.dashboardContext.explanationContext.modelMetadata.modelType !== ModelTypes.multiclass ||
+        if (
+            this.props.dashboardContext.explanationContext.modelMetadata.modelType !== ModelTypes.multiclass ||
             this.props.dashboardContext.explanationContext.globalExplanation === undefined ||
-            this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances === undefined) {
+            this.props.dashboardContext.explanationContext.globalExplanation.perClassFeatureImportances === undefined
+        ) {
             return [];
         }
-        const result: IDropdownOption[] = [{key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal}];
-        result.push(...this.props.dashboardContext.explanationContext.modelMetadata.classNames
-            .map((className, index) => ({key: index, text: className})));
+        const result: IDropdownOption[] = [
+            { key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal },
+        ];
+        result.push(
+            ...this.props.dashboardContext.explanationContext.modelMetadata.classNames.map((className, index) => ({
+                key: index,
+                text: className,
+            })),
+        );
         return result;
     }
 
@@ -170,11 +190,11 @@ export class FeatureImportanceBar extends React.PureComponent<IGlobalFeatureImpo
     }
 
     private onSortSelect(event: React.FormEvent<IComboBox>, item: IComboBoxOption): void {
-        this.setState({selectedSorting: item.key as any})
+        this.setState({ selectedSorting: item.key as any });
     }
 
     private onIconClick(): void {
-        this.setState({isCalloutVisible: !this.state.isCalloutVisible});
+        this.setState({ isCalloutVisible: !this.state.isCalloutVisible });
     }
 
     private onDismiss(): void {
