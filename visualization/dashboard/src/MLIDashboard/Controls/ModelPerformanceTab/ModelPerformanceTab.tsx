@@ -1,20 +1,20 @@
-import React from "react";
-import { IGenericChartProps, ISelectorConfig, ChartTypes } from "../../NewExplanationDashboard";
-import { JointDataset, ColumnCategories } from "../../JointDataset";
-import { IExplanationModelMetadata, ModelTypes } from "../../IExplanationContext";
-import { Cohort } from "../../Cohort";
-import { mergeStyleSets, getTheme, ITheme } from "@uifabric/styling";
-import _ from "lodash";
-import { DefaultButton } from "office-ui-fabric-react/lib/Button";
-import { localization } from "../../../Localization/localization";
-import { AxisConfigDialog } from "../AxisConfigurationDialog/AxisConfigDialog";
-import { AccessibleChart, IPlotlyProperty } from "mlchartlib";
-import { Transform } from "plotly.js-dist";
-import { IDropdownOption, Dropdown } from "office-ui-fabric-react/lib/Dropdown";
-import { modelPerformanceTabStyles } from "./ModelPerformanceTab.styles";
-import { Icon, Text } from "office-ui-fabric-react";
-import { FabricStyles } from "../../FabricStyles";
-import { ILabeledStatistic, generateMetrics } from "../../StatisticsUtils";
+import React from 'react';
+import { IGenericChartProps, ISelectorConfig, ChartTypes } from '../../NewExplanationDashboard';
+import { JointDataset, ColumnCategories } from '../../JointDataset';
+import { IExplanationModelMetadata, ModelTypes } from '../../IExplanationContext';
+import { Cohort } from '../../Cohort';
+import { mergeStyleSets, getTheme, ITheme } from '@uifabric/styling';
+import _ from 'lodash';
+import { DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { localization } from '../../../Localization/localization';
+import { AxisConfigDialog } from '../AxisConfigurationDialog/AxisConfigDialog';
+import { AccessibleChart, IPlotlyProperty } from 'mlchartlib';
+import { Transform } from 'plotly.js-dist';
+import { IDropdownOption, Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
+import { modelPerformanceTabStyles } from './ModelPerformanceTab.styles';
+import { Icon, Text } from 'office-ui-fabric-react';
+import { FabricStyles } from '../../FabricStyles';
+import { ILabeledStatistic, generateMetrics } from '../../StatisticsUtils';
 
 export interface IModelPerformanceTabProps {
     chartProps: IGenericChartProps;
@@ -32,16 +32,15 @@ export interface IModelPerformanceTabState {
 }
 
 export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTabProps, IModelPerformanceTabState> {
-
-    private readonly _xButtonId = "x-button-id";
-    private readonly _yButtonId = "y-button-id";
+    private readonly _xButtonId = 'x-button-id';
+    private readonly _yButtonId = 'y-button-id';
 
     constructor(props: IModelPerformanceTabProps) {
         super(props);
         this.state = {
             xDialogOpen: false,
             yDialogOpen: false,
-            selectedCohortIndex: 0
+            selectedCohortIndex: 0,
         };
         if (!this.props.jointDataset.hasPredictedY) {
             return;
@@ -60,61 +59,86 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         const classNames = modelPerformanceTabStyles();
         if (!this.props.jointDataset.hasPredictedY) {
             return (
-            <div className={classNames.missingParametersPlaceholder}>
-                <div className={classNames.missingParametersPlaceholderSpacer}>
-                    <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingParameters}</Text>
+                <div className={classNames.missingParametersPlaceholder}>
+                    <div className={classNames.missingParametersPlaceholderSpacer}>
+                        <Text variant="large" className={classNames.faintText}>
+                            {localization.ModelPerformance.missingParameters}
+                        </Text>
+                    </div>
                 </div>
-            </div>);
+            );
         }
         if (this.props.chartProps === undefined) {
-            return (<div/>);
+            return <div />;
         }
         const plotlyProps = ModelPerformanceTab.generatePlotlyProps(
             this.props.jointDataset,
             this.props.chartProps,
             this.props.cohorts,
-            this.state.selectedCohortIndex
+            this.state.selectedCohortIndex,
         );
-        const metricsList = (this.generateMetrics()).reverse();
-        const height = Math.max(400, 160 *  metricsList.length) + "px";
-        const cohortOptions: IDropdownOption[] = this.props.chartProps.yAxis.property !== Cohort.CohortKey ?
-            this.props.cohorts.map((cohort, index) => {return {key: index, text: cohort.name};}) : undefined;
+        const metricsList = this.generateMetrics().reverse();
+        const height = Math.max(400, 160 * metricsList.length) + 'px';
+        const cohortOptions: IDropdownOption[] =
+            this.props.chartProps.yAxis.property !== Cohort.CohortKey
+                ? this.props.cohorts.map((cohort, index) => {
+                      return { key: index, text: cohort.name };
+                  })
+                : undefined;
         return (
             <div className={classNames.page}>
                 <div className={classNames.infoWithText}>
-                    <Icon iconName="Info" className={classNames.infoIcon}/>
-                    <Text variant="medium" className={classNames.helperText}>{localization.ModelPerformance.helperText}</Text>
+                    <Icon iconName="Info" className={classNames.infoIcon} />
+                    <Text variant="medium" className={classNames.helperText}>
+                        {localization.ModelPerformance.helperText}
+                    </Text>
                 </div>
-                {cohortOptions && (<div className={classNames.cohortPickerWrapper}>
-                    <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>{localization.ModelPerformance.cohortPickerLabel}</Text>
-                    <Dropdown 
-                        styles={{ dropdown: { width: 150 } }}
-                        options={cohortOptions}
-                        selectedKey={this.state.selectedCohortIndex}
-                        onChange={this.setSelectedCohort}
-                    />
-                </div>)}
+                {cohortOptions && (
+                    <div className={classNames.cohortPickerWrapper}>
+                        <Text variant="mediumPlus" className={classNames.cohortPickerLabel}>
+                            {localization.ModelPerformance.cohortPickerLabel}
+                        </Text>
+                        <Dropdown
+                            styles={{ dropdown: { width: 150 } }}
+                            options={cohortOptions}
+                            selectedKey={this.state.selectedCohortIndex}
+                            onChange={this.setSelectedCohort}
+                        />
+                    </div>
+                )}
                 <div className={classNames.chartWithAxes}>
                     <div className={classNames.chartWithVertical}>
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
                                 <div>
-                                    <Text block variant="mediumPlus" className={classNames.boldText}>{
-                                        localization.Charts.yValue}</Text>
-                                    <DefaultButton 
+                                    <Text block variant="mediumPlus" className={classNames.boldText}>
+                                        {localization.Charts.yValue}
+                                    </Text>
+                                    <DefaultButton
                                         onClick={this.setYOpen.bind(this, true)}
                                         id={this._yButtonId}
-                                        text={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].abbridgedLabel}
-                                        title={this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label}
+                                        text={
+                                            this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
+                                                .abbridgedLabel
+                                        }
+                                        title={
+                                            this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].label
+                                        }
                                     />
                                 </div>
-                                {(this.state.yDialogOpen) && (
-                                    <AxisConfigDialog 
+                                {this.state.yDialogOpen && (
+                                    <AxisConfigDialog
                                         jointDataset={this.props.jointDataset}
                                         orderedGroupTitles={[ColumnCategories.cohort, ColumnCategories.dataset]}
                                         selectedColumn={this.props.chartProps.yAxis}
-                                        canBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
-                                        mustBin={this.props.chartProps.chartType === ChartTypes.Histogram || this.props.chartProps.chartType === ChartTypes.Box}
+                                        canBin={
+                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                            this.props.chartProps.chartType === ChartTypes.Box
+                                        }
+                                        mustBin={
+                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                            this.props.chartProps.chartType === ChartTypes.Box
+                                        }
                                         canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
                                         onAccept={this.onYSet}
                                         onCancel={this.setYOpen.bind(this, false)}
@@ -124,28 +148,39 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                             </div>
                         </div>
                         <div className={classNames.scrollableWrapper}>
-                            <div className={classNames.scrollContent} style={{height}}>
+                            <div className={classNames.scrollContent} style={{ height }}>
                                 <div className={classNames.chart}>
-                                    <AccessibleChart
-                                        plotlyProps={plotlyProps}
-                                        theme={getTheme() as any}
-                                    />
+                                    <AccessibleChart plotlyProps={plotlyProps} theme={getTheme() as any} />
                                 </div>
                                 <div className={classNames.rightPanel}>
                                     {!this.props.jointDataset.hasTrueY && (
                                         <div className={classNames.missingParametersPlaceholder}>
                                             <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
-                                                <Text variant="large" className={classNames.faintText}>{localization.ModelPerformance.missingTrueY}</Text>
+                                                <Text variant="large" className={classNames.faintText}>
+                                                    {localization.ModelPerformance.missingTrueY}
+                                                </Text>
                                             </div>
                                         </div>
                                     )}
-                                    {this.props.jointDataset.hasTrueY && metricsList.map(stats => {
-                                        return (<div className={classNames.statsBox}>
-                                            {stats.map(labeledStat => {
-                                                return <Text block >{localization.formatString(labeledStat.label, labeledStat.stat.toLocaleString(undefined, {maximumFractionDigits: 3}))}</Text>;
-                                            })}
-                                        </div>)
-                                    })}
+                                    {this.props.jointDataset.hasTrueY &&
+                                        metricsList.map((stats) => {
+                                            return (
+                                                <div className={classNames.statsBox}>
+                                                    {stats.map((labeledStat) => {
+                                                        return (
+                                                            <Text block>
+                                                                {localization.formatString(
+                                                                    labeledStat.label,
+                                                                    labeledStat.stat.toLocaleString(undefined, {
+                                                                        maximumFractionDigits: 3,
+                                                                    }),
+                                                                )}
+                                                            </Text>
+                                                        );
+                                                    })}
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>
@@ -154,18 +189,23 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         <div className={classNames.paddingDiv}></div>
                         <div className={classNames.horizontalAxis}>
                             <div>
-                                <Text block variant="mediumPlus" className={classNames.boldText}>{
-                                    this.props.chartProps.chartType === ChartTypes.Histogram ?
-                                    localization.Charts.numberOfDatapoints : localization.Charts.xValue}</Text>
-                                <DefaultButton 
+                                <Text block variant="mediumPlus" className={classNames.boldText}>
+                                    {this.props.chartProps.chartType === ChartTypes.Histogram
+                                        ? localization.Charts.numberOfDatapoints
+                                        : localization.Charts.xValue}
+                                </Text>
+                                <DefaultButton
                                     onClick={this.setXOpen.bind(this, true)}
                                     id={this._xButtonId}
-                                    text={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].abbridgedLabel}
+                                    text={
+                                        this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property]
+                                            .abbridgedLabel
+                                    }
                                     title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
                                 />
                             </div>
-                            {(this.state.xDialogOpen) && (
-                                <AxisConfigDialog 
+                            {this.state.xDialogOpen && (
+                                <AxisConfigDialog
                                     jointDataset={this.props.jointDataset}
                                     orderedGroupTitles={[ColumnCategories.outcome]}
                                     selectedColumn={this.props.chartProps.xAxis}
@@ -182,35 +222,37 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 </div>
             </div>
         );
-    } 
+    }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
-        this.setState({selectedCohortIndex: item.key as number});
+        this.setState({ selectedCohortIndex: item.key as number });
     }
 
     private readonly setXOpen = (val: boolean): void => {
         if (val && this.state.xDialogOpen === false) {
-            this.setState({xDialogOpen: true});
+            this.setState({ xDialogOpen: true });
             return;
         }
-        this.setState({xDialogOpen: false});
-    }
+        this.setState({ xDialogOpen: false });
+    };
 
     private readonly setYOpen = (val: boolean): void => {
         if (val && this.state.yDialogOpen === false) {
-            this.setState({yDialogOpen: true});
+            this.setState({ yDialogOpen: true });
             return;
         }
-        this.setState({yDialogOpen: false});
-    }
+        this.setState({ yDialogOpen: false });
+    };
 
     private onXSet(value: ISelectorConfig): void {
         const newProps = _.cloneDeep(this.props.chartProps);
         newProps.xAxis = value;
-        newProps.chartType = this.props.jointDataset.metaDict[value.property].treatAsCategorical ? ChartTypes.Histogram : ChartTypes.Box;
+        newProps.chartType = this.props.jointDataset.metaDict[value.property].treatAsCategorical
+            ? ChartTypes.Histogram
+            : ChartTypes.Box;
 
         this.props.onChange(newProps);
-        this.setState({xDialogOpen: false})
+        this.setState({ xDialogOpen: false });
     }
 
     private onYSet(value: ISelectorConfig): void {
@@ -218,13 +260,13 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         newProps.yAxis = value;
 
         this.props.onChange(newProps);
-        this.setState({yDialogOpen: false})
+        this.setState({ yDialogOpen: false });
     }
 
     private generateDefaultChartAxes(): void {
         let bestModelMetricKey: string;
         if (this.props.metadata.modelType === ModelTypes.binary && this.props.jointDataset.hasPredictedProbabilities) {
-            bestModelMetricKey = JointDataset.ProbabilityYRoot + "0";
+            bestModelMetricKey = JointDataset.ProbabilityYRoot + '0';
         } else if (this.props.metadata.modelType === ModelTypes.regression) {
             if (this.props.jointDataset.hasPredictedY && this.props.jointDataset.hasTrueY) {
                 bestModelMetricKey = JointDataset.RegressionError;
@@ -236,26 +278,33 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         } // not handling multiclass at this time
 
         const chartProps: IGenericChartProps = {
-            chartType: this.props.jointDataset.metaDict[bestModelMetricKey].isCategorical ? ChartTypes.Histogram : ChartTypes.Box,
+            chartType: this.props.jointDataset.metaDict[bestModelMetricKey].isCategorical
+                ? ChartTypes.Histogram
+                : ChartTypes.Box,
             yAxis: {
                 property: Cohort.CohortKey,
-                options: {}
+                options: {},
             },
             xAxis: {
                 property: bestModelMetricKey,
                 options: {
-                    bin: false
-                }
-            }
-        }
+                    bin: false,
+                },
+            },
+        };
         this.props.onChange(chartProps);
     }
 
-    private static generatePlotlyProps(jointData: JointDataset, chartProps: IGenericChartProps, cohorts: Cohort[], selectedCohortIndex: number): IPlotlyProperty {
+    private static generatePlotlyProps(
+        jointData: JointDataset,
+        chartProps: IGenericChartProps,
+        cohorts: Cohort[],
+        selectedCohortIndex: number,
+    ): IPlotlyProperty {
         // In this view, y will always be categorical (including a binned numberic variable), and could be
         // iterations over the cohorts. We can set y and the y labels before the rest of the char properties.
         const plotlyProps: IPlotlyProperty = {
-            config: { displaylogo: false, responsive: true, displayModeBar: false},
+            config: { displaylogo: false, responsive: true, displayModeBar: false },
             data: [{}],
             layout: {
                 dragmode: false,
@@ -265,30 +314,30 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                     t: 25,
                     b: 20,
                 },
-                hovermode: "closest",
+                hovermode: 'closest',
                 showlegend: false,
                 yaxis: {
                     automargin: true,
                     color: FabricStyles.chartAxisColor,
                     tickfont: {
                         family: FabricStyles.fontFamilies,
-                        size: 11
+                        size: 11,
                     },
-                    showline: true
+                    showline: true,
                 },
                 xaxis: {
-                    side: "bottom",
+                    side: 'bottom',
                     mirror: true,
                     color: FabricStyles.chartAxisColor,
                     tickfont: {
                         family: FabricStyles.fontFamilies,
-                        size: 11
+                        size: 11,
                     },
                     showline: true,
                     showgrid: true,
-                    gridcolor: "#e5e5e5"
-                }
-            } as any
+                    gridcolor: '#e5e5e5',
+                },
+            } as any,
         };
         let rawX: number[];
         let rawY: number[];
@@ -300,7 +349,10 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             yLabels = [];
             yLabelIndexes = [];
             cohorts.forEach((cohort, cohortIndex) => {
-                const cohortXs = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
+                const cohortXs = cohort.unwrap(
+                    chartProps.xAxis.property,
+                    chartProps.chartType === ChartTypes.Histogram,
+                );
                 const cohortY = new Array(cohortXs.length).fill(cohortIndex);
                 rawX.push(...cohortXs);
                 rawY.push(...cohortY);
@@ -316,65 +368,65 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         }
 
         // The buonding box for the labels on y axis are too small, add some white space as buffer
-        yLabels = yLabels.map(val => {
+        yLabels = yLabels.map((val) => {
             const len = val.length;
-            let result = " ";
-            for (let i=0; i < len; i += 5){
-                result += " ";
+            let result = ' ';
+            for (let i = 0; i < len; i += 5) {
+                result += ' ';
             }
-            return result + val
+            return result + val;
         });
-        plotlyProps.data[0].hoverinfo = "all";
+        plotlyProps.data[0].hoverinfo = 'all';
         plotlyProps.data[0].orientation = 'h';
         switch (chartProps.chartType) {
             case ChartTypes.Box: {
                 plotlyProps.layout.hovermode = false;
-                plotlyProps.data[0].type = "box" as any;
+                plotlyProps.data[0].type = 'box' as any;
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[0].marker = {
-                    color: FabricStyles.fabricColorPalette[0]
-                }
-                _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
-                _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
+                    color: FabricStyles.fabricColorPalette[0],
+                };
+                _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
+                _.set(plotlyProps, 'layout.yaxis.tickvals', yLabelIndexes);
                 break;
             }
             case ChartTypes.Histogram: {
                 // for now, treat all bar charts as histograms, the issue with plotly implemented histogram is
                 // it tries to bin the data passed to it(we'd like to apply the user specified bins.)
                 // We also use the selected Y property as the series prop, since all histograms will just be a count.
-                plotlyProps.data[0].type = "bar";
+                plotlyProps.data[0].type = 'bar';
                 const x = new Array(rawY.length).fill(1);
-                plotlyProps.data[0].text = rawY.map(index => yLabels[index]);
+                plotlyProps.data[0].text = rawY.map((index) => yLabels[index]);
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[0].x = x;
                 plotlyProps.data[0].marker = {};
-                _.set(plotlyProps, "layout.yaxis.ticktext", yLabels);
-                _.set(plotlyProps, "layout.yaxis.tickvals", yLabelIndexes);
-                const styles = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues.map((label, index) => {
-                    return {
-                        target: index,
-                        value: { 
-                            name: label,
-                            marker: {
-                                color: FabricStyles.fabricColorPalette[index]
-                            }
-                        }
-                    };
-                });
+                _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
+                _.set(plotlyProps, 'layout.yaxis.tickvals', yLabelIndexes);
+                const styles = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues.map(
+                    (label, index) => {
+                        return {
+                            target: index,
+                            value: {
+                                name: label,
+                                marker: {
+                                    color: FabricStyles.fabricColorPalette[index],
+                                },
+                            },
+                        };
+                    },
+                );
                 const transforms: Partial<Transform>[] = [
                     {
-                        type: "aggregate",
+                        type: 'aggregate',
                         groups: rawY,
-                        aggregations: [
-                          {target: "x", func: "sum"},
-                        ]
+                        aggregations: [{ target: 'x', func: 'sum' }],
                     },
                     {
-                        type: "groupby",
+                        type: 'groupby',
                         groups: rawX,
-                        styles
-                    }
+                        styles,
+                    },
                 ];
                 plotlyProps.layout.showlegend = true;
                 plotlyProps.data[0].transforms = transforms;
@@ -382,22 +434,24 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             }
         }
         return plotlyProps;
-    };
+    }
 
     private generateMetrics(): ILabeledStatistic[][] {
         if (this.props.chartProps.yAxis.property === Cohort.CohortKey) {
-            const indexes = this.props.cohorts.map(cohort => cohort.unwrap(JointDataset.IndexLabel));
+            const indexes = this.props.cohorts.map((cohort) => cohort.unwrap(JointDataset.IndexLabel));
             return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);
         } else {
             const cohort = this.props.cohorts[this.state.selectedCohortIndex];
             const yValues = cohort.unwrap(this.props.chartProps.yAxis.property, true);
             const indexArray = cohort.unwrap(JointDataset.IndexLabel);
-            const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].sortedCategoricalValues;
-            const treatAsCategorical = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
+            const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
+                .sortedCategoricalValues;
+            const treatAsCategorical =
+                this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
                 !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
             const indexes = sortedCategoricalValues.map((label, labelIndex) => {
                 const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
-                
+
                 return indexArray.filter((unused, index) => {
                     return yValues[index] === matchingIndex;
                 });
