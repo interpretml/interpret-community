@@ -23,7 +23,7 @@ export interface IMultiICEPlotProps {
     metadata: IExplanationModelMetadata;
     feature: string;
     selectedClass: number;
-} 
+}
 
 export interface IMultiICEPlotState {
     yAxes: number[][] | number[][][];
@@ -38,19 +38,38 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
         if (metadata.modelType === ModelTypes.regression) {
             return localization.IcePlot.prediction;
         }
-        return localization.IcePlot.predictedProbability + "<br>" + localization.formatString(localization.WhatIfTab.classLabel, metadata.classNames[selectedClass]); 
+        return (
+            localization.IcePlot.predictedProbability +
+            '<br>' +
+            localization.formatString(localization.WhatIfTab.classLabel, metadata.classNames[selectedClass])
+        );
     }
-    private static buildPlotlyProps(metadata: IExplanationModelMetadata, featureName: string, selectedClass: number, colors: string[], rowNames: string[], rangeType: RangeTypes, xData?: Array<number | string>,  yData?: number[][] | number[][][]): IPlotlyProperty | undefined {
-        if (yData === undefined || xData === undefined || yData.length === 0 || yData.some(row => row === undefined)) {
+    private static buildPlotlyProps(
+        metadata: IExplanationModelMetadata,
+        featureName: string,
+        selectedClass: number,
+        colors: string[],
+        rowNames: string[],
+        rangeType: RangeTypes,
+        xData?: Array<number | string>,
+        yData?: number[][] | number[][][],
+    ): IPlotlyProperty | undefined {
+        if (
+            yData === undefined ||
+            xData === undefined ||
+            yData.length === 0 ||
+            yData.some((row) => row === undefined)
+        ) {
             return undefined;
         }
         const data: Data[] = (yData as number[][][]).map((singleRow, rowIndex) => {
-            const transposedY: number[][] = Array.isArray(singleRow[0]) ?
-                ModelExplanationUtils.transpose2DArray((singleRow)) :
-                [singleRow] as any;
-            const predictionLabel = metadata.modelType === ModelTypes.regression ?
-                localization.IcePlot.prediction :
-                localization.IcePlot.predictedProbability + ": " + metadata.classNames[selectedClass]
+            const transposedY: number[][] = Array.isArray(singleRow[0])
+                ? ModelExplanationUtils.transpose2DArray(singleRow)
+                : ([singleRow] as any);
+            const predictionLabel =
+                metadata.modelType === ModelTypes.regression
+                    ? localization.IcePlot.prediction
+                    : localization.IcePlot.predictedProbability + ': ' + metadata.classNames[selectedClass];
             const hovertemplate = `%{customdata.Name}<br>${featureName}: %{x}<br>${predictionLabel}: %{customdata.Yformatted}<br><extra></extra>`;
             return {
                 mode: rangeType === RangeTypes.categorical ? PlotlyMode.markers : PlotlyMode.linesMarkers,
@@ -63,7 +82,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                     color: colors[rowIndex],
                 },
                 name: rowNames[rowIndex],
-                customdata: transposedY[selectedClass].map(predY => {
+                customdata: transposedY[selectedClass].map((predY) => {
                     return {
                         Name: rowNames[rowIndex],
                         Yformatted: predY.toLocaleString(undefined, { maximumFractionDigits: 3 }),
@@ -89,7 +108,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                 showlegend: false,
                 yaxis: {
                     automargin: true,
-                    title: MultiICEPlot.buildYAxis(metadata, selectedClass)
+                    title: MultiICEPlot.buildYAxis(metadata, selectedClass),
                 },
                 xaxis: {
                     title: featureName,

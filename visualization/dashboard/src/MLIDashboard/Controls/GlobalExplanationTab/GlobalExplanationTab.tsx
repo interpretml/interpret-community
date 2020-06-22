@@ -109,10 +109,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             this.setDefaultSettings(props);
         }
         if (this.props.metadata.modelType === ModelTypes.multiclass) {
-            this.weightOptions = this.props.weightOptions.map(option =>{
+            this.weightOptions = this.props.weightOptions.map((option) => {
                 return {
                     text: this.props.weightLabels[option],
-                    key: option
+                    key: option,
                 };
             });
         }
@@ -132,7 +132,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
-        if (this.props.cohorts !== prevProps.cohorts || this.props.selectedWeightVector !== prevProps.selectedWeightVector) {
+        if (
+            this.props.cohorts !== prevProps.cohorts ||
+            this.props.selectedWeightVector !== prevProps.selectedWeightVector
+        ) {
             this.updateIncludedCohortsOnCohortEdit();
         }
     }
@@ -269,106 +272,128 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                                 };
                             })}
                         />
-                        <Text variant={"medium"} className={classNames.cohortLegend}>{localization.GlobalTab.sortBy}</Text>
-                    <Dropdown 
-                        options={cohortOptions}
-                        selectedKey={this.state.sortingSeriesIndex}
-                        onChange={this.setSortIndex}
-                    />
-                    {this.props.metadata.modelType === ModelTypes.multiclass && (
-                        <div>
-                            <div className={classNames.multiclassWeightLabel}>
-                                <Text 
-                                    variant={"medium"}
-                                    className={classNames.multiclassWeightLabelText}>
-                                        {localization.GlobalTab.weightOptions}</Text>
-                                <IconButton
-                                    id={'cross-class-weight-info'}
-                                    iconProps={{ iconName: 'Info' }}
-                                    title={localization.CrossClass.info}
-                                    onClick={this.toggleCrossClassInfo}
-                                />
-                            </div>
-                            <Dropdown 
-                                options={this.weightOptions}
-                                selectedKey={this.props.selectedWeightVector}
-                                onChange={this.setWeightOption}
-                            />
-                            {this.state.crossClassInfoVisible && (
-                            <Callout
-                                target={'#cross-class-weight-info'}
-                                setInitialFocus={true}
-                                onDismiss={this.toggleCrossClassInfo}
-                                directionalHint={DirectionalHint.leftCenter}
-                                role="alertdialog">
-                                <div className={classNames.calloutWrapper}>
-                                    <div className={classNames.calloutHeader}>
-                                        <Text className={classNames.calloutTitle}>{localization.CrossClass.crossClassWeights}</Text>
-                                    </div>
-                                    <div className={classNames.calloutInner}>
-                                        <Text>{localization.CrossClass.overviewInfo}</Text>
-                                        <ul>
-                                            <li><Text>{localization.CrossClass.absoluteValInfo}</Text></li>
-                                            <li><Text>{localization.CrossClass.enumeratedClassInfo}</Text></li>
-                                        </ul>
-                                    </div>
+                        <Text variant={'medium'} className={classNames.cohortLegend}>
+                            {localization.GlobalTab.sortBy}
+                        </Text>
+                        <Dropdown
+                            options={cohortOptions}
+                            selectedKey={this.state.sortingSeriesIndex}
+                            onChange={this.setSortIndex}
+                        />
+                        {this.props.metadata.modelType === ModelTypes.multiclass && (
+                            <div>
+                                <div className={classNames.multiclassWeightLabel}>
+                                    <Text variant={'medium'} className={classNames.multiclassWeightLabelText}>
+                                        {localization.GlobalTab.weightOptions}
+                                    </Text>
+                                    <IconButton
+                                        id={'cross-class-weight-info'}
+                                        iconProps={{ iconName: 'Info' }}
+                                        title={localization.CrossClass.info}
+                                        onClick={this.toggleCrossClassInfo}
+                                    />
                                 </div>
-                            </Callout>
-                            )}
-                        </div>
-                    )}
+                                <Dropdown
+                                    options={this.weightOptions}
+                                    selectedKey={this.props.selectedWeightVector}
+                                    onChange={this.setWeightOption}
+                                />
+                                {this.state.crossClassInfoVisible && (
+                                    <Callout
+                                        target={'#cross-class-weight-info'}
+                                        setInitialFocus={true}
+                                        onDismiss={this.toggleCrossClassInfo}
+                                        directionalHint={DirectionalHint.leftCenter}
+                                        role="alertdialog"
+                                    >
+                                        <div className={classNames.calloutWrapper}>
+                                            <div className={classNames.calloutHeader}>
+                                                <Text className={classNames.calloutTitle}>
+                                                    {localization.CrossClass.crossClassWeights}
+                                                </Text>
+                                            </div>
+                                            <div className={classNames.calloutInner}>
+                                                <Text>{localization.CrossClass.overviewInfo}</Text>
+                                                <ul>
+                                                    <li>
+                                                        <Text>{localization.CrossClass.absoluteValInfo}</Text>
+                                                    </li>
+                                                    <li>
+                                                        <Text>{localization.CrossClass.enumeratedClassInfo}</Text>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </Callout>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <CommandBarButton
-                iconProps={{iconName: "Info"}}
-                id='dependence-plot-info'
-                className={classNames.dependencePlotInfoButton}
-                text={localization.GlobalTab.dependencePlotPrompt}
-                onClick={this.toggleDependencePlotTooltip}/>
-            {this.state.dependenceTooltipVisible && (
+                <CommandBarButton
+                    iconProps={{ iconName: 'Info' }}
+                    id="dependence-plot-info"
+                    className={classNames.dependencePlotInfoButton}
+                    text={localization.GlobalTab.dependencePlotPrompt}
+                    onClick={this.toggleDependencePlotTooltip}
+                />
+                {this.state.dependenceTooltipVisible && (
                     <Callout
                         target={'#dependence-plot-info'}
                         setInitialFocus={true}
                         onDismiss={this.toggleDependencePlotTooltip}
-                        role="alertdialog">
+                        role="alertdialog"
+                    >
                         <div className={classNames.calloutWrapper}>
                             <div className={classNames.calloutHeader}>
-                                <Text className={classNames.calloutTitle}>{localization.GlobalTab.dependencePlotTitle}</Text>
+                                <Text className={classNames.calloutTitle}>
+                                    {localization.GlobalTab.dependencePlotTitle}
+                                </Text>
                             </div>
                             <div className={classNames.calloutInner}>
                                 <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
                             </div>
                         </div>
                     </Callout>
-                    )}
-            <div className={classNames.secondaryChartAndLegend}>
-                <DependencePlot 
-                    chartProps={this.props.dependenceProps}
-                    cohortIndex={this.state.selectedCohortIndex}
-                    cohort={this.props.cohorts[this.state.selectedCohortIndex]}
-                    jointDataset={this.props.jointDataset}
-                    metadata={this.props.metadata}
-                    onChange={this.props.onDependenceChange}
-                    selectedWeight={this.props.selectedWeightVector}
-                    selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
-                />
-                <div className={classNames.legendAndSort}>
-                    <Text variant={"medium"} block className={classNames.cohortLegend}>{localization.GlobalTab.viewDependencePlotFor}</Text>
-                    {featureOptions && (<ComboBox 
-                        useComboBoxAsMenuWidth={true}
-                        options={featureOptions}
-                        allowFreeform={false}
-                        autoComplete={"on"}
-                        placeholder={localization.GlobalTab.dependencePlotFeatureSelectPlaceholder}
-                        selectedKey={this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined}
-                        onChange={this.onXSet}
-                    />)}
-                    <Text variant={"medium"} block className={classNames.cohortLegendWithTop}>{localization.GlobalTab.datasetCohortSelector}</Text>
-                    {cohortOptions && (<Dropdown 
-                        options={cohortOptions}
-                        selectedKey={this.state.selectedCohortIndex}
-                        onChange={this.setSelectedCohort}
-                    />)}
+                )}
+                <div className={classNames.secondaryChartAndLegend}>
+                    <DependencePlot
+                        chartProps={this.props.dependenceProps}
+                        cohortIndex={this.state.selectedCohortIndex}
+                        cohort={this.props.cohorts[this.state.selectedCohortIndex]}
+                        jointDataset={this.props.jointDataset}
+                        metadata={this.props.metadata}
+                        onChange={this.props.onDependenceChange}
+                        selectedWeight={this.props.selectedWeightVector}
+                        selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
+                    />
+                    <div className={classNames.legendAndSort}>
+                        <Text variant={'medium'} block className={classNames.cohortLegend}>
+                            {localization.GlobalTab.viewDependencePlotFor}
+                        </Text>
+                        {featureOptions && (
+                            <ComboBox
+                                useComboBoxAsMenuWidth={true}
+                                options={featureOptions}
+                                allowFreeform={false}
+                                autoComplete={'on'}
+                                placeholder={localization.GlobalTab.dependencePlotFeatureSelectPlaceholder}
+                                selectedKey={
+                                    this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined
+                                }
+                                onChange={this.onXSet}
+                            />
+                        )}
+                        <Text variant={'medium'} block className={classNames.cohortLegendWithTop}>
+                            {localization.GlobalTab.datasetCohortSelector}
+                        </Text>
+                        {cohortOptions && (
+                            <Dropdown
+                                options={cohortOptions}
+                                selectedKey={this.state.selectedCohortIndex}
+                                onChange={this.setSelectedCohort}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
@@ -392,11 +417,11 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private toggleDependencePlotTooltip(): void {
-        this.setState({dependenceTooltipVisible: !this.state.dependenceTooltipVisible});
+        this.setState({ dependenceTooltipVisible: !this.state.dependenceTooltipVisible });
     }
 
     private toggleCrossClassInfo(): void {
-        this.setState({crossClassInfoVisible: !this.state.crossClassInfoVisible});
+        this.setState({ crossClassInfoVisible: !this.state.crossClassInfoVisible });
     }
 
     private closeCallout(): void {

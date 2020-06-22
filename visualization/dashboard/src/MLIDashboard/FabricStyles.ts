@@ -1,6 +1,6 @@
 import { IComboBoxStyles } from 'office-ui-fabric-react/lib/ComboBox';
 import { IPivotStyles } from 'office-ui-fabric-react/lib/Pivot';
-import { FontWeights } from "office-ui-fabric-react";
+import { FontWeights } from 'office-ui-fabric-react';
 import { ITextFieldStyles } from 'office-ui-fabric-react/lib/TextField';
 import { IStyle, getTheme } from '@uifabric/styling';
 
@@ -61,9 +61,9 @@ export class FabricStyles {
     };
 
     public static calloutWrapper: IStyle = {
-        maxWidth: "300px"  
+        maxWidth: '300px',
     };
-    
+
     public static calloutHeader: IStyle = {
         padding: '18px 24px 12px',
     };
@@ -73,8 +73,8 @@ export class FabricStyles {
         {
             margin: 0,
             fontWeight: FontWeights.semilight,
-        }
-    ,];
+        },
+    ];
     public static calloutInner: IStyle = {
         height: '100%',
         padding: '0 24px 20px',
@@ -83,12 +83,12 @@ export class FabricStyles {
     public static chartEditorButton: IStyle = {
         color: getTheme().semanticColors.accentButtonText,
         backgroundColor: getTheme().semanticColors.accentButtonBackground,
-        borderWidth: "1px",
-        borderStyle: "solid",
+        borderWidth: '1px',
+        borderStyle: 'solid',
         borderColor: getTheme().semanticColors.buttonBorder,
-        position: "absolute",
-        zIndex: 10
-    }
+        position: 'absolute',
+        zIndex: 10,
+    };
 
     public static placeholderItalic: IStyle = {
         fontStyle: 'italic',

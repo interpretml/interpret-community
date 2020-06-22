@@ -104,9 +104,12 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
         faintText: [FabricStyles.faintText],
-        chartEditorButton: [FabricStyles.chartEditorButton, {
-            right: "210px",
-        }],
+        chartEditorButton: [
+            FabricStyles.chartEditorButton,
+            {
+                right: '210px',
+            },
+        ],
         callout: {
             width: '200px',
             boxSizing: 'border-box',
@@ -116,8 +119,8 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
             backgroundColor: theme.semanticColors.bodyBackground,
         },
         boldText: {
-            fontWeight: "600",
-            paddingBottom: "5px",
+            fontWeight: '600',
+            paddingBottom: '5px',
         },
         calloutWrapper: [FabricStyles.calloutWrapper],
         calloutHeader: [FabricStyles.calloutHeader],
@@ -126,20 +129,20 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         dependencePlotInfoButton: {
             width: 'fit-content',
             margin: '5px 200px 5px auto',
-            padding: '10px'
+            padding: '10px',
         },
         multiclassWeightLabel: {
-            display: "inline-flex",
-            paddingTop: "10px",
+            display: 'inline-flex',
+            paddingTop: '10px',
         },
         multiclassWeightLabelText: {
-            paddingTop: "5px",
-            fontWeight: "600",
+            paddingTop: '5px',
+            fontWeight: '600',
         },
         cohortLegendWithTop: {
-            fontWeight: "600",
-            paddingBottom: "10px",
-            paddingTop: "10px",
-        }
+            fontWeight: '600',
+            paddingBottom: '10px',
+            paddingTop: '10px',
+        },
     });
 };

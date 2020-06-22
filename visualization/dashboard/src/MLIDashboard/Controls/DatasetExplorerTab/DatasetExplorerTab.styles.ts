@@ -154,9 +154,12 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
             padding: '10px 20px',
             backgroundColor: theme.semanticColors.bodyBackground,
         },
-        chartEditorButton: [FabricStyles.chartEditorButton, {
-            right: "10px",
-        }],
+        chartEditorButton: [
+            FabricStyles.chartEditorButton,
+            {
+                right: '10px',
+            },
+        ],
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
         faintText: [FabricStyles.faintText],

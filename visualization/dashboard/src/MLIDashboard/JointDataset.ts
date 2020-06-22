@@ -126,9 +126,9 @@ export class JointDataset {
         return result;
     }
 
-    public static predictProbabilitySlice(row: {[key: string]: any}, length: number): number[] {
+    public static predictProbabilitySlice(row: { [key: string]: any }, length: number): number[] {
         const result: number[] = new Array(length);
-        for(let i: number = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             result[i] = row[JointDataset.ProbabilityYRoot + i.toString()];
         }
         return result;

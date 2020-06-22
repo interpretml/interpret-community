@@ -335,7 +335,7 @@ export class NewExplanationDashboard extends React.PureComponent<
         this.validatePredictMethod();
 
         this.weightVectorLabels = {
-            [WeightVectors.absAvg]: localization.absoluteAverage
+            [WeightVectors.absAvg]: localization.absoluteAverage,
         };
         if (this.state.modelMetadata.modelType === ModelTypes.multiclass) {
             this.weightVectorOptions.push(WeightVectors.absAvg);
@@ -552,8 +552,8 @@ export class NewExplanationDashboard extends React.PureComponent<
 
     private onWeightVectorChange(weightOption: WeightVectorOption): void {
         this.state.jointDataset.buildLocalFlattenMatrix(weightOption);
-        this.state.cohorts.forEach(cohort => cohort.clearCachedImportances());
-        this.setState({selectedWeightVector: weightOption});
+        this.state.cohorts.forEach((cohort) => cohort.clearCachedImportances());
+        this.setState({ selectedWeightVector: weightOption });
     }
 
     private deleteCohort(): void {

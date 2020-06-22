@@ -114,7 +114,7 @@ export class Cohort {
 
     private applyFilters(): void {
         this.clearCachedImportances();
-        this.filteredData = this.jointDataset.dataDict.filter((row) => 
+        this.filteredData = this.jointDataset.dataDict.filter((row) =>
             this.filters.every((filter) => {
                 const rowVal = row[filter.column];
                 switch (filter.method) {
