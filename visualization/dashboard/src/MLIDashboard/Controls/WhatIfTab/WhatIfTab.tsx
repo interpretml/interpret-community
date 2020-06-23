@@ -1213,11 +1213,9 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     </div>
                     <div>
                         <div>
-                            {/* <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newPredictedClass}</Text> */}
                             <Text variant="small">{localization.WhatIfTab.loading}</Text>
                         </div>
                         <div>
-                            {/* <Text className={classNames.boldText} variant="small">{localization.WhatIfTab.newProbability}</Text> */}
                             <Text variant="small">{localization.WhatIfTab.loading}</Text>
                         </div>
                     </div>
