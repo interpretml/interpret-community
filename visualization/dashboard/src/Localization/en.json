@@ -275,7 +275,8 @@
         "dependencePlotPrompt": "How to read this chart",
         "dependencePlotTitle": "Dependence Plots",
         "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort.",
-        "dependencePlotFeatureSelectPlaceholder": "Select feature"
+        "dependencePlotFeatureSelectPlaceholder": "Select feature",
+        "datasetRequired": "Dependence plots require the evaluation dataset and local feature importance array."
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",
@@ -534,5 +535,8 @@
         "_fpr.comment": "False positive rate, see https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers",
         "fnr": "FNR: {0}",
         "_fnr.comment": "False negative rate, see https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers"
+    },
+    "GlobalOnlyChart": {
+        "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances."
     }
 }

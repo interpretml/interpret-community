@@ -325,6 +325,9 @@ export class JointDataset {
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
             this.hasLocalExplanations = true;
         }
+        if (this.dataDict === undefined) {
+            this.initializeDataDictIfNeeded([]);
+        }
     }
 
     public getRow(index: number): { [key: string]: number } {

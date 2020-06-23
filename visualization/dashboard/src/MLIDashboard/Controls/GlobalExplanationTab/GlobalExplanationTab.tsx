@@ -32,6 +32,7 @@ import {
     CommandBarButton,
 } from 'office-ui-fabric-react';
 import { WeightVectorOption } from '../../IWeightedDropdownContext';
+import { GlobalOnlyChart } from '../GlobalOnlyChart/GlobalOnlyChart';
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -46,7 +47,7 @@ export interface IGlobalExplanationTabProps {
     jointDataset: JointDataset;
     dependenceProps: IGenericChartProps;
     metadata: IExplanationModelMetadata;
-    globalImportance?: number[];
+    globalImportance?: number[][];
     isGlobalDerivedFromLocal: boolean;
     cohorts: Cohort[];
     cohortIDs: string[];
@@ -82,10 +83,15 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private weightOptions: IDropdownOption[];
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
+    private readonly hasDataset = this.props.jointDataset.hasDataset;
     private readonly _chartConfigId = 'chart-connfig-button';
 
     constructor(props: IGlobalExplanationTabProps) {
         super(props);
+
+        if (!this.props.jointDataset.hasLocalExplanations) {
+            return;
+        }
 
         this.state = {
             startingK: 0,
@@ -102,9 +108,6 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             chartType: ChartTypes.Bar,
         };
 
-        if (!this.props.jointDataset.hasLocalExplanations) {
-            return;
-        }
         if (this.props.globalBarSettings === undefined) {
             this.setDefaultSettings(props);
         }
@@ -144,6 +147,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         const classNames = globalTabStyles();
 
         if (!this.props.jointDataset.hasLocalExplanations) {
+            if (this.props.globalImportance !== undefined) {
+                return <GlobalOnlyChart 
+                    metadata={this.props.metadata}
+                    globalImportance={this.props.globalImportance}
+                />
+            }
             return (
                 <div className={classNames.missingParametersPlaceholder}>
                     <div className={classNames.missingParametersPlaceholderSpacer}>
@@ -330,72 +339,84 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         )}
                     </div>
                 </div>
-                <CommandBarButton
-                    iconProps={{ iconName: 'Info' }}
-                    id="dependence-plot-info"
-                    className={classNames.dependencePlotInfoButton}
-                    text={localization.GlobalTab.dependencePlotPrompt}
-                    onClick={this.toggleDependencePlotTooltip}
-                />
-                {this.state.dependenceTooltipVisible && (
-                    <Callout
-                        target={'#dependence-plot-info'}
-                        setInitialFocus={true}
-                        onDismiss={this.toggleDependencePlotTooltip}
-                        role="alertdialog"
-                    >
-                        <div className={classNames.calloutWrapper}>
-                            <div className={classNames.calloutHeader}>
-                                <Text className={classNames.calloutTitle}>
-                                    {localization.GlobalTab.dependencePlotTitle}
-                                </Text>
-                            </div>
-                            <div className={classNames.calloutInner}>
-                                <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
-                            </div>
+                {!this.hasDataset && (
+                    <div className={classNames.missingParametersPlaceholder}>
+                        <div className={classNames.missingParametersPlaceholderSpacer}>
+                            <Text variant="large" className={classNames.faintText}>
+                                {localization.GlobalTab.datasetRequired}
+                            </Text>
                         </div>
-                    </Callout>
-                )}
-                <div className={classNames.secondaryChartAndLegend}>
-                    <DependencePlot
-                        chartProps={this.props.dependenceProps}
-                        cohortIndex={this.state.selectedCohortIndex}
-                        cohort={this.props.cohorts[this.state.selectedCohortIndex]}
-                        jointDataset={this.props.jointDataset}
-                        metadata={this.props.metadata}
-                        onChange={this.props.onDependenceChange}
-                        selectedWeight={this.props.selectedWeightVector}
-                        selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
-                    />
-                    <div className={classNames.legendAndSort}>
-                        <Text variant={'medium'} block className={classNames.cohortLegend}>
-                            {localization.GlobalTab.viewDependencePlotFor}
-                        </Text>
-                        {featureOptions && (
-                            <ComboBox
-                                useComboBoxAsMenuWidth={true}
-                                options={featureOptions}
-                                allowFreeform={false}
-                                autoComplete={'on'}
-                                placeholder={localization.GlobalTab.dependencePlotFeatureSelectPlaceholder}
-                                selectedKey={
-                                    this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined
-                                }
-                                onChange={this.onXSet}
-                            />
-                        )}
-                        <Text variant={'medium'} block className={classNames.cohortLegendWithTop}>
-                            {localization.GlobalTab.datasetCohortSelector}
-                        </Text>
-                        {cohortOptions && (
-                            <Dropdown
-                                options={cohortOptions}
-                                selectedKey={this.state.selectedCohortIndex}
-                                onChange={this.setSelectedCohort}
-                            />
-                        )}
                     </div>
-                </div>
+                )}
+                {this.hasDataset && (
+                <div>
+                    <CommandBarButton
+                        iconProps={{ iconName: 'Info' }}
+                        id="dependence-plot-info"
+                        className={classNames.dependencePlotInfoButton}
+                        text={localization.GlobalTab.dependencePlotPrompt}
+                        onClick={this.toggleDependencePlotTooltip}
+                    />
+                    {this.state.dependenceTooltipVisible && (
+                        <Callout
+                            target={'#dependence-plot-info'}
+                            setInitialFocus={true}
+                            onDismiss={this.toggleDependencePlotTooltip}
+                            role="alertdialog"
+                        >
+                            <div className={classNames.calloutWrapper}>
+                                <div className={classNames.calloutHeader}>
+                                    <Text className={classNames.calloutTitle}>
+                                        {localization.GlobalTab.dependencePlotTitle}
+                                    </Text>
+                                </div>
+                                <div className={classNames.calloutInner}>
+                                    <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
+                                </div>
+                            </div>
+                        </Callout>
+                    )}
+                    <div className={classNames.secondaryChartAndLegend}>
+                        <DependencePlot
+                            chartProps={this.props.dependenceProps}
+                            cohortIndex={this.state.selectedCohortIndex}
+                            cohort={this.props.cohorts[this.state.selectedCohortIndex]}
+                            jointDataset={this.props.jointDataset}
+                            metadata={this.props.metadata}
+                            onChange={this.props.onDependenceChange}
+                            selectedWeight={this.props.selectedWeightVector}
+                            selectedWeightLabel={this.props.weightLabels[this.props.selectedWeightVector]}
+                        />
+                        <div className={classNames.legendAndSort}>
+                            <Text variant={'medium'} block className={classNames.cohortLegend}>
+                                {localization.GlobalTab.viewDependencePlotFor}
+                            </Text>
+                            {featureOptions && (
+                                <ComboBox
+                                    useComboBoxAsMenuWidth={true}
+                                    options={featureOptions}
+                                    allowFreeform={false}
+                                    autoComplete={'on'}
+                                    placeholder={localization.GlobalTab.dependencePlotFeatureSelectPlaceholder}
+                                    selectedKey={
+                                        this.props.dependenceProps ? this.props.dependenceProps.xAxis.property : undefined
+                                    }
+                                    onChange={this.onXSet}
+                                />
+                            )}
+                            <Text variant={'medium'} block className={classNames.cohortLegendWithTop}>
+                                {localization.GlobalTab.datasetCohortSelector}
+                            </Text>
+                            {cohortOptions && (
+                                <Dropdown
+                                    options={cohortOptions}
+                                    selectedKey={this.state.selectedCohortIndex}
+                                    onChange={this.setSelectedCohort}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>)}
             </div>
         );
     }

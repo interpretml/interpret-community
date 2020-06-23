@@ -7,6 +7,7 @@ import {ibmDataInconsistent} from '../__mock_data/ibmDataInconsistent'
 import {irisGlobal} from '../__mock_data/irisGlobal';
 import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
+import {bostonDataGlobal} from '../__mock_data/bostonDataGlobal';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
@@ -111,6 +112,7 @@ import { createTheme } from "@uifabric/styling";
 
       static choices = [
         {label: 'bostonData', data: bostonData},
+        {label: 'bostonDataGlobal', data: bostonDataGlobal},
         {label: 'irisData', data: irisData},
         {label: 'irisGlobal', data: irisGlobal},
         {label: 'irisDataGlobal', data: irisDataGlobal},
