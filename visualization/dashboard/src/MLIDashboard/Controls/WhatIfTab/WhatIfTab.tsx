@@ -139,6 +139,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
     private testableDatapointNames: string[] = [];
     private weightOptions: IDropdownOption[];
+    private rowOptions: IDropdownOption[];
     private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount)
         .fill(0)
         .map((unused, index) => {
@@ -204,6 +205,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             this.generateDefaultChartAxes();
         }
         this.createCopyOfFirstRow();
+        this.buildRowOptions(0);
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -352,14 +354,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const canRenderChart =
             cohortLength < NewExplanationDashboard.ROW_ERROR_SIZE ||
             this.props.chartProps.chartType !== ChartTypes.Scatter;
-        const rowOptions: IDropdownOption[] = this.props.cohorts[this.state.selectedCohortIndex]
-            .unwrap(JointDataset.IndexLabel)
-            .map((index) => {
-                return {
-                    key: index,
-                    text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string,
-                };
-            });
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {
             return { key: index, text: cohort.name };
         });
@@ -410,7 +404,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                     </Text>
                                     <Dropdown
                                         label={localization.WhatIfTab.indexLabel}
-                                        options={rowOptions}
+                                        options={this.rowOptions}
                                         selectedKey={this.state.selectedWhatIfRootIndex}
                                         onChange={this.setSelectedIndex}
                                     />
@@ -1254,11 +1248,25 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.buildRowOptions(item.key as number);
         this.setState({
             selectedCohortIndex: item.key as number,
             selectedPointsIndexes: [],
             showSelectionWarning: false,
         });
+    }
+
+    private buildRowOptions(cohortIndex: number): void {
+        this.props.cohorts[cohortIndex].sort(JointDataset.IndexLabel);
+        this.rowOptions = this.props.cohorts[cohortIndex]
+            .unwrap(JointDataset.IndexLabel)
+            .map((index) => {
+                return {
+                    key: index,
+                    text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string,
+                };
+            })
+            .reverse();
     }
 
     private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
