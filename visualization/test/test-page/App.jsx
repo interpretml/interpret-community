@@ -7,6 +7,7 @@ import {ibmDataInconsistent} from '../__mock_data/ibmDataInconsistent'
 import {irisGlobal} from '../__mock_data/irisGlobal';
 import {irisDataGlobal} from '../__mock_data/irisDataGlobal';
 import {bostonData} from '../__mock_data/bostonData';
+import {bostonDataGlobal} from '../__mock_data/bostonDataGlobal';
 import {ebmData } from '../__mock_data/ebmData';
 import {irisNoData} from '../__mock_data/irisNoData';
 import {largeFeatureCount} from '../__mock_data/largeFeatureCount';
@@ -110,18 +111,19 @@ import { createTheme } from "@uifabric/styling";
       }
 
       static choices = [
-        {label: 'bostonData', data: bostonData},
-        {label: 'irisData', data: irisData},
-        {label: 'irisGlobal', data: irisGlobal},
-        {label: 'irisDataGlobal', data: irisDataGlobal},
-        {label: 'ibmData', data: ibmData},
-        {label: 'ibmDataInconsistent', data: ibmDataInconsistent},
-        {label: 'breastCancer', data: breastCancerData},
-        {label: 'ibmNoClass', data: ibmNoClass},
-        {label: 'irisNoFeature', data: irisNoFeatures},
-        {label: 'ebmData', data: ebmData},
-        {label: 'irisNoData', data: irisNoData},
-        {label: 'largeFeatureCount', data: largeFeatureCount}
+        {label: 'bostonData', data: bostonData, dim: 1},
+        {label: 'bostonDataGlobal', data: bostonDataGlobal, dim: 1},
+        {label: 'irisData', data: irisData, dim: 3},
+        {label: 'irisGlobal', data: irisGlobal, dim: 3},
+        {label: 'irisDataGlobal', data: irisDataGlobal, dim: 3},
+        {label: 'ibmData', data: ibmData, dim: 2},
+        {label: 'ibmDataInconsistent', data: ibmDataInconsistent, dim:2},
+        {label: 'breastCancer', data: breastCancerData, dim: 2},
+        {label: 'ibmNoClass', data: ibmNoClass, dim: 2},
+        {label: 'irisNoFeature', data: irisNoFeatures, dim: 3},
+        {label: 'ebmData', data: ebmData, dim: 2},
+        {label: 'irisNoData', data: irisNoData, dim: 3},
+        {label: 'largeFeatureCount', data: largeFeatureCount, dim: 2}
       ]
 
       static themeChoices = [
@@ -203,8 +205,7 @@ import { createTheme } from "@uifabric/styling";
         const data = _.cloneDeep(App.choices[this.state.value].data);
         const theme = App.themeChoices[this.state.themeIndex].data;
         // data.localExplanations = undefined;
-        const classDimension = data.localExplanations && Array.isArray(data.localExplanations.scores[0][0]) ?
-          data.localExplanations.scores.length : 1;
+        const classDimension = App.choices[this.state.value].dim;
         return (
           <div style={{backgroundColor: 'grey', height:'100%'}}>
             <label>

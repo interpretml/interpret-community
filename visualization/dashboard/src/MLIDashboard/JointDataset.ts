@@ -126,6 +126,14 @@ export class JointDataset {
         return result;
     }
 
+    public static predictProbabilitySlice(row: { [key: string]: any }, length: number): number[] {
+        const result: number[] = new Array(length);
+        for (let i = 0; i < length; i++) {
+            result[i] = row[JointDataset.ProbabilityYRoot + i.toString()];
+        }
+        return result;
+    }
+
     // set the appropriate error value in the keyed column
     public static setErrorMetrics(row: { [key: string]: any }, modelType: ModelTypes): void {
         if (modelType === ModelTypes.regression) {
@@ -317,6 +325,9 @@ export class JointDataset {
             this.buildLocalFlattenMatrix(WeightVectors.absAvg);
             this.hasLocalExplanations = true;
         }
+        if (this.dataDict === undefined) {
+            this.initializeDataDictIfNeeded([]);
+        }
     }
 
     public getRow(index: number): { [key: string]: number } {
@@ -442,7 +453,7 @@ export class JointDataset {
     }
 
     // project the 3d array based on the selected vector weights. Costly to do, so avoid when possible.
-    private buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
+    public buildLocalFlattenMatrix(weightVector: WeightVectorOption): void {
         const featuresMinArray = new Array(this.rawLocalImportance[0].length).fill(Number.MAX_SAFE_INTEGER);
         const featuresMaxArray = new Array(this.rawLocalImportance[0].length).fill(Number.MIN_SAFE_INTEGER);
         switch (this._modelMeta.modelType) {
@@ -501,7 +512,8 @@ export class JointDataset {
         }
         this.rawLocalImportance[0].forEach((classArray, featureIndex) => {
             const featureLabel = this._modelMeta.featureNames[featureIndex];
-            this.metaDict[JointDataset.ReducedLocalImportanceRoot + featureIndex.toString()] = {
+            const key = JointDataset.ReducedLocalImportanceRoot + featureIndex.toString();
+            this.metaDict[key] = {
                 label: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 abbridgedLabel: localization.formatString(localization.featureImportanceOf, featureLabel) as string,
                 isCategorical: false,
@@ -512,6 +524,7 @@ export class JointDataset {
                 },
                 category: ColumnCategories.explanation,
             };
+            this.binDict[key] = undefined;
         });
     }
 

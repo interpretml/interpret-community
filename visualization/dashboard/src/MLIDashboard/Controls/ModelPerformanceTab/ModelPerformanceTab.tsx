@@ -152,36 +152,38 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                 <div className={classNames.chart}>
                                     <AccessibleChart plotlyProps={plotlyProps} theme={getTheme() as any} />
                                 </div>
-                                <div className={classNames.rightPanel}>
-                                    {!this.props.jointDataset.hasTrueY && (
-                                        <div className={classNames.missingParametersPlaceholder}>
-                                            <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
-                                                <Text variant="large" className={classNames.faintText}>
-                                                    {localization.ModelPerformance.missingTrueY}
-                                                </Text>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {this.props.jointDataset.hasTrueY &&
-                                        metricsList.map((stats) => {
-                                            return (
-                                                <div className={classNames.statsBox}>
-                                                    {stats.map((labeledStat) => {
-                                                        return (
-                                                            <Text block>
-                                                                {localization.formatString(
-                                                                    labeledStat.label,
-                                                                    labeledStat.stat.toLocaleString(undefined, {
-                                                                        maximumFractionDigits: 3,
-                                                                    }),
-                                                                )}
-                                                            </Text>
-                                                        );
-                                                    })}
+                                {this.props.metadata.modelType !== ModelTypes.multiclass && (
+                                    <div className={classNames.rightPanel}>
+                                        {!this.props.jointDataset.hasTrueY && (
+                                            <div className={classNames.missingParametersPlaceholder}>
+                                                <div className={classNames.missingParametersPlaceholderNeutralSpacer}>
+                                                    <Text variant="large" className={classNames.faintText}>
+                                                        {localization.ModelPerformance.missingTrueY}
+                                                    </Text>
                                                 </div>
-                                            );
-                                        })}
-                                </div>
+                                            </div>
+                                        )}
+                                        {this.props.jointDataset.hasTrueY &&
+                                            metricsList.map((stats) => {
+                                                return (
+                                                    <div className={classNames.statsBox}>
+                                                        {stats.map((labeledStat) => {
+                                                            return (
+                                                                <Text block>
+                                                                    {localization.formatString(
+                                                                        labeledStat.label,
+                                                                        labeledStat.stat.toLocaleString(undefined, {
+                                                                            maximumFractionDigits: 3,
+                                                                        }),
+                                                                    )}
+                                                                </Text>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
