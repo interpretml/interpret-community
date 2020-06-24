@@ -228,6 +228,9 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
     }
 
     private selectPointFromChart(data: any): void {
+        if (this.props.onFeatureSelection === undefined) {
+            return;
+        }
         const trace = data.points[0];
         const featureNumber = this.props.sortArray[trace.x];
         this.props.onFeatureSelection(trace.curveNumber, featureNumber);

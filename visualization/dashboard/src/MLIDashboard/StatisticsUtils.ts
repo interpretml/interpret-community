@@ -34,6 +34,7 @@ export const generateMetrics: (
             return generateRegressionStats(trueYSubset, predYSubset, errorsSubset);
         });
     }
+    return [];
 };
 
 const generateBinaryStats: (outcomes: number[]) => ILabeledStatistic[] = (outcomes: number[]): ILabeledStatistic[] => {

@@ -75,7 +75,8 @@
         "_predictedClassInfo.comment": "explains predicted class weight",
         "enumeratedClassInfo": "Enumerated class names: Shows only the specified class's feature importance values across all data points.",
         "_enumeratedClassInfo.comment": "explains the weights for selecting a single class",
-        "close": "Close"
+        "close": "Close",
+        "crossClassWeights": "Cross class weights"
     },
     "AggregateImportance": {
         "scaledFeatureValue": "Scaled Feature Value",
@@ -268,7 +269,14 @@
         "aggregateFeatureImportance": "Aggregate Feature Importance",
         "_aggregateFeatureImportance.comment": "graph label for aggregated (summed and averaged) feature importances",
         "missingParameters": "This tab requires the local feature importance parameter be supplied.",
-        "_missingPArameters.comment": "Show a message if the required feature importance parameter is not provided"
+        "_missingParameters.comment": "Show a message if the required feature importance parameter is not provided",
+        "weightOptions": "Class importance weights",
+        "_weightOptions.comment": "Weight how importance values are averaged https://en.wikipedia.org/wiki/Weighted_arithmetic_mean",
+        "dependencePlotPrompt": "How to read this chart",
+        "dependencePlotTitle": "Dependence Plots",
+        "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort.",
+        "dependencePlotFeatureSelectPlaceholder": "Select feature",
+        "datasetRequired": "Dependence plots require the evaluation dataset and local feature importance array."
     },
     "CohortBanner": {
         "dataStatistics": "Data Statistics",
@@ -391,21 +399,21 @@
         "_whatIfNameLabel.comment": "label above text field where user can name their what-if hypothetical point",
         "featureValues": "Feature values",
         "_featureValues.comment": "header above the list of feature names (column names)",
-        "predictedClass": "Predicted class: {0}",
+        "predictedClass": "Predicted class: ",
         "_predictedClass.comment": "the predicted class for a row",
-        "predictedValue": "Predicted value: {0}",
+        "predictedValue": "Predicted value: ",
         "_predictedValue.comment": "the predicted value for a row",
-        "probability": "Probability: {0}",
+        "probability": "Probability: ",
         "_probability.comment": "the probability that the predicted class is correct",
-        "trueClass": "True class: {0}",
+        "trueClass": "True class: ",
         "_trueClass.comment": "prefix to actual label",
-        "trueValue": "True value: {0}",
+        "trueValue": "True value: ",
         "trueValue.comment": "prefix to actual label for regression",
-        "newPredictedClass": "New predicted class: {0}",
+        "newPredictedClass": "New predicted class: ",
         "_newPredictedClass.comment": "the prediction after the user changed features",
-        "newPredictedValue": "New predicted value: {0}",
+        "newPredictedValue": "New predicted value: ",
         "_newPredictedValue.comment": "the prediction after the user changed features",
-        "newProbability": "New probability: {0}",
+        "newProbability": "New probability: ",
         "_newProbability.comment": "the probability for the new prediction",
         "saveAsNewPoint": "Save as new point",
         "_saveAsNewPoint.comment": "button to save hypothetical point",
@@ -426,7 +434,16 @@
         "missingParameters": "This tab requires an evaluation dataset be supplied.",
         "_missingParameters.comment": "Show a message if the required dataset parameter is not provided",
         "selectionLimit": "Maximum of 3 selected points",
-        "_selectionLimit.comment": "A user can only select 3 points from a chart at a time, this message is displayed if they click a 4th"
+        "_selectionLimit.comment": "A user can only select 3 points from a chart at a time, this message is displayed if they click a 4th",
+        "classPickerLabel": "Class",
+        "tooltipTitleMany": "Top {0} predicted classes",
+        "_tooltipTitleMany.comment": "placeholder is the number of classes shown",
+        "whatIfTooltipTitle": "What-If predicted classes",
+        "tooltipTitleFew": "Predicted classes",
+        "probabilityLabel": "Probability",
+        "deltaLabel": "Delta",
+        "_deltaLabel.comment": "represents the change in a value",
+        "nonNumericValue": "Value should be numeric"
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
@@ -518,5 +535,8 @@
         "_fpr.comment": "False positive rate, see https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers",
         "fnr": "FNR: {0}",
         "_fnr.comment": "False negative rate, see https://en.wikipedia.org/wiki/Evaluation_of_binary_classifiers"
+    },
+    "GlobalOnlyChart": {
+        "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances."
     }
 }
