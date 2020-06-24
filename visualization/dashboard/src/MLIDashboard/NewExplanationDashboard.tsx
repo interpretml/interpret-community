@@ -249,14 +249,15 @@ export class NewExplanationDashboard extends React.PureComponent<
                     Array.isArray(dim1),
                 )
             ) {
-                result.globalImportance = props.precomputedExplanations.globalFeatureImportance
-                    .scores as number[][];
+                result.globalImportance = props.precomputedExplanations.globalFeatureImportance.scores as number[][];
                 result.globalImportanceIntercept = props.precomputedExplanations.globalFeatureImportance
                     .intercept as number[];
             } else {
-                result.globalImportance = (props.precomputedExplanations.globalFeatureImportance.scores as number[]).map((value) => [value]);
-                result.globalImportanceIntercept = [(props.precomputedExplanations.globalFeatureImportance
-                    .intercept as number)];
+                result.globalImportance = (props.precomputedExplanations.globalFeatureImportance
+                    .scores as number[]).map((value) => [value]);
+                result.globalImportanceIntercept = [
+                    props.precomputedExplanations.globalFeatureImportance.intercept as number,
+                ];
             }
         }
         return result;

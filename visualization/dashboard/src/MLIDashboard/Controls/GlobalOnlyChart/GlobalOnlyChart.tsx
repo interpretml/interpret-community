@@ -1,13 +1,13 @@
-import { IExplanationModelMetadata } from "../../IExplanationContext";
-import React from "react";
-import { IDropdownOption, Icon, Slider, Text } from "office-ui-fabric-react";
-import { ModelExplanationUtils } from "../../ModelExplanationUtils";
-import { localization } from "../../../Localization/localization";
-import { FeatureKeys } from "../../SharedComponents";
-import { globalTabStyles } from "../GlobalExplanationTab/GlobalExplanationTab.styles";
-import { FeatureImportanceBar } from "../FeatureImportanceBar/FeatureImportanceBar";
-import { ChartTypes } from "../../NewExplanationDashboard";
-import { IGlobalSeries } from "../GlobalExplanationTab/IGlobalSeries";
+import { IExplanationModelMetadata } from '../../IExplanationContext';
+import React from 'react';
+import { IDropdownOption, Icon, Slider, Text } from 'office-ui-fabric-react';
+import { ModelExplanationUtils } from '../../ModelExplanationUtils';
+import { localization } from '../../../Localization/localization';
+import { FeatureKeys } from '../../SharedComponents';
+import { globalTabStyles } from '../GlobalExplanationTab/GlobalExplanationTab.styles';
+import { FeatureImportanceBar } from '../FeatureImportanceBar/FeatureImportanceBar';
+import { ChartTypes } from '../../NewExplanationDashboard';
+import { IGlobalSeries } from '../GlobalExplanationTab/IGlobalSeries';
 
 export interface IGlobalOnlyChartProps {
     metadata: IExplanationModelMetadata;
@@ -23,34 +23,37 @@ export interface IGlobalOnlyChartState {
 
 export class GlobalOnlyChart extends React.PureComponent<IGlobalOnlyChartProps, IGlobalOnlyChartState> {
     private readonly featureDimension = this.props.metadata.featureNames.length;
-    private readonly perClassExplanationDimension =  (this.props.globalImportance &&  this.props.globalImportance[0]) ?
-        this.props.globalImportance[0].length : 0;
+    private readonly perClassExplanationDimension =
+        this.props.globalImportance && this.props.globalImportance[0] ? this.props.globalImportance[0].length : 0;
     private readonly minK = Math.min(4, this.featureDimension);
     private readonly maxK = Math.min(30, this.featureDimension);
-    private  classOptions: IDropdownOption[]; 
+    private classOptions: IDropdownOption[];
     // look into per_class importances when available.
-    // if explanation class dimension is singular, 
-    private readonly globalSeries: IGlobalSeries[] = this.perClassExplanationDimension === 1 ?
-        [{
-            name: localization.BarChart.absoluteGlobal,
-            unsortedAggregateY: this.props.globalImportance.map(classArray => classArray[0]),
-            colorIndex: 0,
-        }] :
-        this.props.metadata.classNames.map((name, index) => {
-        return {
-            name: name,
-            unsortedAggregateY: this.props.globalImportance.map(classArray => classArray[index]),
-            colorIndex: index,
-        }
-    });
+    // if explanation class dimension is singular,
+    private readonly globalSeries: IGlobalSeries[] =
+        this.perClassExplanationDimension === 1
+            ? [
+                  {
+                      name: localization.BarChart.absoluteGlobal,
+                      unsortedAggregateY: this.props.globalImportance.map((classArray) => classArray[0]),
+                      colorIndex: 0,
+                  },
+              ]
+            : this.props.metadata.classNames.map((name, index) => {
+                  return {
+                      name: name,
+                      unsortedAggregateY: this.props.globalImportance.map((classArray) => classArray[index]),
+                      colorIndex: index,
+                  };
+              });
 
     constructor(props: IGlobalOnlyChartProps) {
         super(props);
 
         this.classOptions = this.props.metadata.classNames.map((className, index) => {
-            return {key: index, text: className}
+            return { key: index, text: className };
         });
-        this.classOptions.unshift({ key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal })
+        this.classOptions.unshift({ key: FeatureKeys.absoluteGlobal, text: localization.BarChart.absoluteGlobal });
         this.state = {
             startingK: 0,
             topK: this.minK,
