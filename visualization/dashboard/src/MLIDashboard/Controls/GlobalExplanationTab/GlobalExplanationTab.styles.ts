@@ -22,6 +22,14 @@ export interface IGlobalTabStyles {
     chartEditorButton: IStyle;
     callout: IStyle;
     boldText: IStyle;
+    calloutWrapper: IStyle;
+    calloutHeader: IStyle;
+    calloutTitle: IStyle;
+    calloutInner: IStyle;
+    dependencePlotInfoButton: IStyle;
+    multiclassWeightLabel: IStyle;
+    multiclassWeightLabelText: IStyle;
+    cohortLegendWithTop: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
@@ -96,16 +104,12 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         missingParametersPlaceholder: [FabricStyles.missingParameterPlaceholder],
         missingParametersPlaceholderSpacer: [FabricStyles.missingParameterPlaceholderSpacer],
         faintText: [FabricStyles.faintText],
-        chartEditorButton: {
-            color: theme.semanticColors.buttonText,
-            backgroundColor: theme.semanticColors.buttonBackground,
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            borderColor: theme.semanticColors.buttonBorder,
-            position: 'absolute',
-            right: '210px',
-            zIndex: 10,
-        },
+        chartEditorButton: [
+            FabricStyles.chartEditorButton,
+            {
+                right: '210px',
+            },
+        ],
         callout: {
             width: '200px',
             boxSizing: 'border-box',
@@ -117,6 +121,28 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         boldText: {
             fontWeight: '600',
             paddingBottom: '5px',
+        },
+        calloutWrapper: [FabricStyles.calloutWrapper],
+        calloutHeader: [FabricStyles.calloutHeader],
+        calloutTitle: [FabricStyles.calloutTitle],
+        calloutInner: [FabricStyles.calloutInner],
+        dependencePlotInfoButton: {
+            width: 'fit-content',
+            margin: '5px 200px 5px auto',
+            padding: '10px',
+        },
+        multiclassWeightLabel: {
+            display: 'inline-flex',
+            paddingTop: '10px',
+        },
+        multiclassWeightLabelText: {
+            paddingTop: '5px',
+            fontWeight: '600',
+        },
+        cohortLegendWithTop: {
+            fontWeight: '600',
+            paddingBottom: '10px',
+            paddingTop: '10px',
         },
     });
 };

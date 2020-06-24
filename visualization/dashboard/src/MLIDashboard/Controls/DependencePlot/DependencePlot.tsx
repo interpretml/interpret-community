@@ -16,6 +16,7 @@ import { Cohort } from '../../Cohort';
 import { Text } from 'office-ui-fabric-react';
 import { FabricStyles } from '../../FabricStyles';
 import { dependencePlotStyles } from './DependencePlot.styles';
+import { WeightVectorOption } from '../../IWeightedDropdownContext';
 
 export interface IDependecePlotProps {
     chartProps: IGenericChartProps;
@@ -23,6 +24,8 @@ export interface IDependecePlotProps {
     cohort: Cohort;
     cohortIndex: number;
     metadata: IExplanationModelMetadata;
+    selectedWeight: WeightVectorOption;
+    selectedWeightLabel: string;
     onChange: (props: IGenericChartProps) => void;
 }
 
@@ -88,7 +91,7 @@ export class DependencePlot extends React.PureComponent<IDependecePlotProps> {
                 ? this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label
                 : this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label +
                   ' : ' +
-                  this.props.metadata.classNames[0];
+                  this.props.selectedWeightLabel;
         return (
             <div className={classNames.DependencePlot}>
                 <div className={classNames.chartWithAxes}>

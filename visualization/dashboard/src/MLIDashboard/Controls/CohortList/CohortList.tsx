@@ -72,6 +72,7 @@ export class CohortList extends React.PureComponent<ICohortListProps> {
                                             root: classNames.commandButton,
                                             menuIcon: classNames.menuIcon,
                                         }}
+                                        disabled={this.props.jointDataset.dataDict.length === 0}
                                         menuIconProps={{ iconName: 'More' }}
                                         menuProps={{
                                             items: [
@@ -102,6 +103,7 @@ export class CohortList extends React.PureComponent<ICohortListProps> {
                         );
                     })}
                     <PrimaryButton
+                        disabled={this.props.jointDataset.dataDict.length === 0}
                         onClick={this.props.editCohort.bind(this, this.props.cohorts.length)}
                         text={localization.CohortBanner.addCohort}
                     />
