@@ -106,10 +106,14 @@ export class Cohort {
         return this.cachedTransposedLocalFeatureImportances;
     }
 
-    private applyFilters(): void {
+    public clearCachedImportances(): void {
         this.cachedAverageImportance = undefined;
         this.cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
+    }
+
+    private applyFilters(): void {
+        this.clearCachedImportances();
         this.filteredData = this.jointDataset.dataDict.filter((row) =>
             this.filters.every((filter) => {
                 const rowVal = row[filter.column];

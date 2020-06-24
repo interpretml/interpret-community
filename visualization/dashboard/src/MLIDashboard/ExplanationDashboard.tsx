@@ -602,7 +602,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                         Array.isArray(dim1),
                     )
                 ) {
-                    return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
+                    return (props.precomputedExplanations.globalFeatureImportance.scores as number[][])[0].length;
                 }
             }
             if (

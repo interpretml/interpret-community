@@ -48,9 +48,23 @@ export interface IWhatIfTabStyles {
     customPredictBlock: IStyle;
     featureSearch: IStyle;
     iceFeatureSelection: IStyle;
+    iceClassSelection: IStyle;
     disclaimerWrapper: IStyle;
     panelPlaceholderWrapper: IStyle;
     errorText: IStyle;
+    tooltipColumn: IStyle;
+    tooltipTable: IStyle;
+    tooltipTitle: IStyle;
+    tooltipHost: IStyle;
+    negativeNumber: IStyle;
+    positiveNumber: IStyle;
+    tooltipWrapper: IStyle;
+    multiclassWeightLabel: IStyle;
+    multiclassWeightLabelText: IStyle;
+    calloutWrapper: IStyle;
+    calloutHeader: IStyle;
+    calloutTitle: IStyle;
+    calloutInner: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -253,6 +267,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         faintText: [FabricStyles.faintText],
         predictedBlock: {
             paddingTop: '5px',
+            display: 'flex',
+            flexDirection: 'row',
+            alignContent: 'stretch',
         },
         upperWhatIfPanel: {
             paddingLeft: '32px',
@@ -271,6 +288,9 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         iceFeatureSelection: {
             margin: '43px 10px 10px 0',
         },
+        iceClassSelection: {
+            margin: '10px 10px 10px 0',
+        },
         disclaimerWrapper: {
             padding: '5px 15px 10px 26px',
         },
@@ -284,5 +304,49 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         errorText: {
             color: theme.semanticColors.errorText,
         },
+        tooltipTable: {
+            display: 'flex',
+            flexDirection: 'row',
+        },
+        tooltipColumn: {
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 'auto',
+            alignItems: 'flex-start',
+            width: 'max-content',
+            minWidth: '60px',
+            maxWidth: '200px',
+            paddingRight: '10px',
+            boxSizing: 'border-box',
+        },
+        tooltipTitle: {
+            paddingBottom: '8px',
+        },
+        tooltipHost: {
+            height: '100%',
+            marginRight: '4px',
+            display: 'inline-block',
+        },
+        negativeNumber: {
+            color: theme.palette.red,
+        },
+        positiveNumber: {
+            color: theme.palette.green,
+        },
+        tooltipWrapper: {
+            padding: '10px 15px',
+        },
+        multiclassWeightLabel: {
+            display: 'inline-flex',
+            paddingTop: '10px',
+        },
+        multiclassWeightLabelText: {
+            paddingTop: '5px',
+            fontWeight: '600',
+        },
+        calloutWrapper: [FabricStyles.calloutWrapper],
+        calloutHeader: [FabricStyles.calloutHeader],
+        calloutTitle: [FabricStyles.calloutTitle],
+        calloutInner: [FabricStyles.calloutInner],
     });
 };

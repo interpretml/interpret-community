@@ -25,6 +25,7 @@ import { DatasetExplorerTab } from './Controls/DatasetExplorerTab/DatasetExplore
 import { ValidateProperties } from './ValidateProperties';
 import { MessageBar, MessageBarType, Text, Link } from 'office-ui-fabric-react';
 import { CohortEditor, ICohort } from './Controls/CohortEditor/CohortEditor';
+import { WeightVectors, WeightVectorOption } from './IWeightedDropdownContext';
 
 export interface INewExplanationDashboardState {
     cohorts: Cohort[];
@@ -36,19 +37,21 @@ export interface INewExplanationDashboardState {
     whatIfChartConfig: IGenericChartProps;
     globalBarConfig: IGlobalBarSettings;
     dependenceProps: IGenericChartProps;
-    globalImportanceIntercept: number;
-    globalImportance: number[];
+    globalImportanceIntercept: number[];
+    globalImportance: number[][];
     isGlobalImportanceDerivedFromLocal: boolean;
     sortVector: number[];
     validationWarnings: string[];
     showingDatasizeWarning: boolean;
     editingCohortIndex?: number;
+    selectedWeightVector: WeightVectorOption;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
 }
 
+// features x classes
 interface IGlobalExplanationProps {
-    globalImportanceIntercept: number;
-    globalImportance: number[];
+    globalImportanceIntercept: number[];
+    globalImportance: number[][];
     isGlobalImportanceDerivedFromLocal: boolean;
 }
 
@@ -196,7 +199,7 @@ export class NewExplanationDashboard extends React.PureComponent<
                         Array.isArray(dim1),
                     )
                 ) {
-                    return (props.precomputedExplanations.globalFeatureImportance.scores as number[][]).length;
+                    return (props.precomputedExplanations.globalFeatureImportance.scores as number[][])[0].length;
                 }
             }
             if (
@@ -246,14 +249,15 @@ export class NewExplanationDashboard extends React.PureComponent<
                     Array.isArray(dim1),
                 )
             ) {
-                result.globalImportance = (props.precomputedExplanations.globalFeatureImportance
-                    .scores as number[][]).map((classArray) => classArray.reduce((a, b) => a + b), 0);
-                result.globalImportanceIntercept = (props.precomputedExplanations.globalFeatureImportance
-                    .intercept as number[]).reduce((a, b) => a + b, 0);
-            } else {
-                result.globalImportance = props.precomputedExplanations.globalFeatureImportance.scores as number[];
+                result.globalImportance = props.precomputedExplanations.globalFeatureImportance.scores as number[][];
                 result.globalImportanceIntercept = props.precomputedExplanations.globalFeatureImportance
-                    .intercept as number;
+                    .intercept as number[];
+            } else {
+                result.globalImportance = (props.precomputedExplanations.globalFeatureImportance
+                    .scores as number[]).map((value) => [value]);
+                result.globalImportanceIntercept = [
+                    props.precomputedExplanations.globalFeatureImportance.intercept as number,
+                ];
             }
         }
         return result;
@@ -299,11 +303,14 @@ export class NewExplanationDashboard extends React.PureComponent<
             isGlobalImportanceDerivedFromLocal: globalProps.isGlobalImportanceDerivedFromLocal,
             sortVector: undefined,
             showingDatasizeWarning: jointDataset.datasetRowCount > NewExplanationDashboard.ROW_WARNING_SIZE,
+            selectedWeightVector: modelMetadata.modelType === ModelTypes.multiclass ? WeightVectors.absAvg : 0,
         };
     }
 
     private pivotItems: IPivotItemProps[] = [];
     private pivotRef: IPivot;
+    private weightVectorOptions: WeightVectorOption[] = [];
+    private weightVectorLabels = {};
     constructor(props: IExplanationDashboardProps) {
         super(props);
         NewExplanationDashboard.initializeIcons(props);
@@ -322,11 +329,23 @@ export class NewExplanationDashboard extends React.PureComponent<
         this.closeCohortEditor = this.closeCohortEditor.bind(this);
         this.clearSizeWarning = this.clearSizeWarning.bind(this);
         this.cloneAndOpenCohort = this.cloneAndOpenCohort.bind(this);
+        this.onWeightVectorChange = this.onWeightVectorChange.bind(this);
         if (this.props.locale) {
             localization.setLanguage(this.props.locale);
         }
         this.state = NewExplanationDashboard.buildInitialExplanationContext(_.cloneDeep(props));
         this.validatePredictMethod();
+
+        this.weightVectorLabels = {
+            [WeightVectors.absAvg]: localization.absoluteAverage,
+        };
+        if (this.state.modelMetadata.modelType === ModelTypes.multiclass) {
+            this.weightVectorOptions.push(WeightVectors.absAvg);
+        }
+        this.state.modelMetadata.classNames.forEach((name, index) => {
+            this.weightVectorLabels[index] = localization.formatString(localization.WhatIfTab.classLabel, name);
+            this.weightVectorOptions.push(index);
+        });
 
         this.pivotItems.push({ headerText: localization.modelPerformance, itemKey: globalTabKeys.modelPerformance });
         this.pivotItems.push({ headerText: localization.datasetExplorer, itemKey: globalTabKeys.dataExploration });
@@ -453,6 +472,10 @@ export class NewExplanationDashboard extends React.PureComponent<
                             onDependenceChange={this.onDependenceChange}
                             cohorts={this.state.cohorts}
                             cohortIDs={cohortIDs}
+                            selectedWeightVector={this.state.selectedWeightVector}
+                            weightOptions={this.weightVectorOptions}
+                            weightLabels={this.weightVectorLabels}
+                            onWeightChange={this.onWeightVectorChange}
                         />
                     )}
                     {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (
@@ -464,6 +487,10 @@ export class NewExplanationDashboard extends React.PureComponent<
                             chartProps={this.state.whatIfChartConfig}
                             invokeModel={this.state.requestPredictions}
                             editCohort={this.openCohort}
+                            selectedWeightVector={this.state.selectedWeightVector}
+                            weightOptions={this.weightVectorOptions}
+                            weightLabels={this.weightVectorLabels}
+                            onWeightChange={this.onWeightVectorChange}
                         />
                     )}
                 </div>
@@ -523,6 +550,12 @@ export class NewExplanationDashboard extends React.PureComponent<
         const prevCohorts = [...this.state.cohorts];
         prevCohorts[this.state.editingCohortIndex] = newCohort;
         this.setState({ cohorts: prevCohorts, editingCohortIndex: undefined });
+    }
+
+    private onWeightVectorChange(weightOption: WeightVectorOption): void {
+        this.state.jointDataset.buildLocalFlattenMatrix(weightOption);
+        this.state.cohorts.forEach((cohort) => cohort.clearCachedImportances());
+        this.setState({ selectedWeightVector: weightOption });
     }
 
     private deleteCohort(): void {
