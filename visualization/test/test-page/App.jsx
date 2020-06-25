@@ -252,6 +252,7 @@ import { createTheme } from "@uifabric/styling";
                           this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
                         theme={theme}
+                        explanationMethod="pfi"
                         locale={this.state.language}
                         key={new Date()}
                       />)}

@@ -157,6 +157,8 @@ export const dastasetExplorerTabStyles: () => IProcessedStyleSet<IDatasetExplore
         chartEditorButton: [
             FabricStyles.chartEditorButton,
             {
+                position: 'absolute',
+                zIndex: 10,
                 right: '10px',
             },
         ],

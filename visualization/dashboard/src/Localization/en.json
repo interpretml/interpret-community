@@ -253,7 +253,7 @@
     },
     "GlobalTab": {
         "_helperText.comment": "paragraph summarizing the view on this page and available actions",
-        "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances . Select up to three cohorts to see their feature importances side by side. Click on any of the features in the graph to see a density plot below of how values of the selected feature affect prediction.",
+        "helperText": "Explore the top-k important features that impact your overall model predictions (a.k.a. global explanation). Use the slider to show descending feature importance values. Select up to three cohorts to see their feature importance values side by side. Click on any of the feature bars in the graph to see how values of the selected feature impact model prediction.",
         "topAtoB": "Top {0}-{1} features",
         "_topAtoB.comment": "label on a slider, will tell user the index of the features they are currently seeing, like Top 5-10 features",
         "datasetCohorts": "Dataset cohorts",
@@ -335,7 +335,7 @@
         "cohort": "Cohort"
     },
     "DatasetExplorer": {
-        "helperText": "Learn about the over/underpresentation in your dataset. Create dataset cohorts above to analyze statistics along filters such as predicted outcome, dataset features and error groups. Use the x-axis and color selectors to further slice your dataset into more dimensions. Use the gear icon in the graph to change graph types.",
+        "helperText": "Explore your dataset statistics by selecting different filters along the X, Y, and color axis to slice your data into different dimensions. Create dataset cohorts above to analyze dataset statistics along filters such as predicted outcome, dataset features and error groups. Use the gear icon in the upper right-hand corner of the graph to change graph types.",
         "_helperText.comment": "paragraph summarizing the view on this page and what actions the user can take",
         "colorValue": "Color value",
         "_colorValue.comment": "label on button to set how data is mapped to color in chart",
@@ -357,7 +357,7 @@
         "_placeholder.comment": "placeholder text explaining how to activate this chart, by clicking on a neighboring chart."
     },
     "WhatIfTab": {
-        "helperText": "Select an individual datapoint by clicking on a datapoint in the scatterplot or by entering the datapoint index or feature values on the left panel to view its local feature importance values below",
+        "helperText": "You can select a datapoint by clicking on the scatterplot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. Create a hypothetical what-if datapoint by using the panel on the right to perturb features of a known datapoint. Feature importance values are based on many approximations and are not the \"cause\" of predictions. Without strict mathematical robustness of causal inference, we do not advise users to make real-life decisions based on this tool.",
         "_helperText.comment": "explains what is shown in this tab and what actions are available",
         "panelPlaceholder": "A model is required to make predictions for new data points.",
         "_panelPlaceholder.comment": "message shown to user when they did not give a model as inputs",
@@ -538,5 +538,17 @@
     },
     "GlobalOnlyChart": {
         "helperText": "Explore the top k important features that impact your overall model predictions. Use the slider to show descending feature importances."
+    },
+    "ExplanationSummary": {
+        "whatDoExplanationsMean": "What do these explanations mean?",
+        "clickHere": "Learn more",
+        "shapTitle": "Shapley values",
+        "shapDescription": "This explainer uses SHAP, which is a game-theory approach to explaining models, where the importance of features sets is measured by \"hiding\" those features from the model through marginalization. Click the link below to learn more.",
+        "limeTitle": "LIME (Local Interpretable Model-Agnostic Explanations)",
+        "limeDescription": "This explainer uses LIME, which provides a linear approximation of the model. To get an explanation, we do the following: perturb the instance, get model predictions, and use these predictions as labels to learn a sparse linear model that is locally faithful. The weights of this linear model are used as 'feature importances'. Click the link below to learn more.",
+        "mimicTitle": "Mimic (Global Surrogate Explanations)",
+        "mimicDescription": "This explainer is based on the idea of training global surrogate models to mimic blackbox models. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of any black box model as accurately as possible. Feature importance values are model-based feature importance values of your underlying surrogate model (LightGBM, or Linear Regression, or Stochastic Gradient Descent, or Decision Tree)",
+        "pfiTitle": "Permutation Feature Importance (PFI)",
+        "pfiDescription": "This explainer randomly shuffles data one feature at a time for the entire dataset and calculates how much the performance metric of interest changes (default performance metrics: F1 for binary classification, F1 Score with micro average for multiclass classification and mean absolute error for regression). The larger the change, the more important that feature is. This explainer can only explain the overall behavior of the underlying model but does not explain individual predictions. Feature importance value of a feature represents the delta in the performance of the model by perturbing that particular feature."
     }
 }
