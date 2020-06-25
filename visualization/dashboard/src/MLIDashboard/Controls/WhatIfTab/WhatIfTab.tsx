@@ -201,7 +201,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             showSelectionWarning: false,
             selectedICEClass: 0,
             crossClassInfoVisible: false,
-            iceTooltipVisible: false
+            iceTooltipVisible: false,
         };
 
         if (props.chartProps === undefined) {
@@ -859,7 +859,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                         <div className={classNames.calloutInner}>
                                             <Text>{localization.WhatIfTab.icePlotHelperText}</Text>
                                             <div className={classNames.calloutActions}>
-                                                <Link className={classNames.calloutLink} href={"https://christophm.github.io/interpretable-ml-book/ice.html#ice"} target="_blank">{localization.ExplanationSummary.clickHere}</Link>
+                                                <Link
+                                                    className={classNames.calloutLink}
+                                                    href={
+                                                        'https://christophm.github.io/interpretable-ml-book/ice.html#ice'
+                                                    }
+                                                    target="_blank"
+                                                >
+                                                    {localization.ExplanationSummary.clickHere}
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>

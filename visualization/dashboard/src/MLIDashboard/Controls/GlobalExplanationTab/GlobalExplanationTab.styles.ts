@@ -32,12 +32,12 @@ export interface IGlobalTabStyles {
     multiclassWeightLabel: IStyle;
     multiclassWeightLabelText: IStyle;
     cohortLegendWithTop: IStyle;
-    rightJustifiedContainer:  IStyle;
+    rightJustifiedContainer: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
     const theme = getTheme();
-    const rightMarginWidth = "200px";
+    const rightMarginWidth = '200px';
     return mergeStyleSets<IGlobalTabStyles>({
         page: {
             width: '100%',
@@ -111,7 +111,7 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         chartEditorButton: [
             FabricStyles.chartEditorButton,
             {
-                margin: "5px"
+                margin: '5px',
             },
         ],
         callout: {
@@ -157,16 +157,16 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         calloutLink: [
             theme.fonts.medium,
             {
-              color: theme.palette.neutralPrimary,
+                color: theme.palette.neutralPrimary,
             },
         ],
         rightJustifiedContainer: {
-            width: "100%",
+            width: '100%',
             paddingRight: rightMarginWidth,
-            boxSizing: "border-box",
-            display: "inline-flex",
-            flexDirection: "row",
-            justifyContent: "flex-end"
-        }
+            boxSizing: 'border-box',
+            display: 'inline-flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+        },
     });
 };

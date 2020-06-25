@@ -366,16 +366,16 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         calloutLink: [
             theme.fonts.medium,
             {
-              color: theme.palette.neutralPrimary,
+                color: theme.palette.neutralPrimary,
             },
         ],
         rightJustifiedContainer: {
-            width: "100%",
+            width: '100%',
             paddingRight: legendWidth,
-            boxSizing: "border-box",
-            display: "inline-flex",
-            flexDirection: "row",
-            justifyContent: "flex-end"
-        }
+            boxSizing: 'border-box',
+            display: 'inline-flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+        },
     });
 };

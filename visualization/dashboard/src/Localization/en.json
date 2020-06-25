@@ -336,7 +336,7 @@
         "howToRead": "How to read this chart"
     },
     "DatasetExplorer": {
-        "helperText": "Explore your dataset statistics by selecting different filters along the X, Y, and color axis to slice your data into different dimensions. Create dataset cohorts above to analyze dataset statistics along filters such as predicted outcome, dataset features and error groups. Use the gear icon in the upper right-hand corner of the graph to change graph types.",
+        "helperText": "Explore your dataset statistics by selecting different filters along the X, Y, and color axis to slice your data along different dimensions. Create dataset cohorts above to analyze dataset statistics with filters such as predicted outcome, dataset features and error groups. Use the gear icon in the upper right-hand corner of the graph to change graph types.",
         "_helperText.comment": "paragraph summarizing the view on this page and what actions the user can take",
         "colorValue": "Color value",
         "_colorValue.comment": "label on button to set how data is mapped to color in chart",
@@ -545,7 +545,7 @@
         "whatDoExplanationsMean": "What do these explanations mean?",
         "clickHere": "Learn more",
         "shapTitle": "Shapley values",
-        "shapDescription": "This explainer uses SHAP, which is a game-theory approach to explaining models, where the importance of features sets is measured by \"hiding\" those features from the model through marginalization. Click the link below to learn more.",
+        "shapDescription": "This explainer uses SHAP, which is a game theoretic approach to explaining models, where the importance of features sets is measured by \"hiding\" those features from the model through marginalization. Click the link below to learn more.",
         "limeTitle": "LIME (Local Interpretable Model-Agnostic Explanations)",
         "limeDescription": "This explainer uses LIME, which provides a linear approximation of the model. To get an explanation, we do the following: perturb the instance, get model predictions, and use these predictions as labels to learn a sparse linear model that is locally faithful. The weights of this linear model are used as 'feature importances'. Click the link below to learn more.",
         "mimicTitle": "Mimic (Global Surrogate Explanations)",

@@ -88,7 +88,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
     private readonly hasDataset = this.props.jointDataset.hasDataset;
-    private readonly explainerCalloutInfo = this.props.explanationMethod && ExplainerCalloutDictionary[this.props.explanationMethod];
+    private readonly explainerCalloutInfo =
+        this.props.explanationMethod && ExplainerCalloutDictionary[this.props.explanationMethod];
     private readonly _chartConfigId = 'chart-connfig-button';
 
     constructor(props: IGlobalExplanationTabProps) {
@@ -182,7 +183,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             const key = JointDataset.DataLabelRoot + i.toString();
             featureOptions.push({ key, text: this.props.jointDataset.metaDict[key].label });
         }
-        
+
         return (
             <div className={classNames.page}>
                 <div className={classNames.infoWithText}>
@@ -229,15 +230,21 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         >
                             <div className={classNames.calloutWrapper}>
                                 <div className={classNames.calloutHeader}>
-                                    <Text className={classNames.calloutTitle}>
-                                        {this.explainerCalloutInfo.title}
-                                    </Text>
+                                    <Text className={classNames.calloutTitle}>{this.explainerCalloutInfo.title}</Text>
                                 </div>
                                 <div className={classNames.calloutInner}>
                                     <Text>{this.explainerCalloutInfo.description}</Text>
-                                    {this.explainerCalloutInfo.linkUrl && <div className={classNames.calloutActions}>
-                                        <Link className={classNames.calloutLink} href={this.explainerCalloutInfo.linkUrl} target="_blank">{localization.ExplanationSummary.clickHere}</Link>
-                                    </div>}
+                                    {this.explainerCalloutInfo.linkUrl && (
+                                        <div className={classNames.calloutActions}>
+                                            <Link
+                                                className={classNames.calloutLink}
+                                                href={this.explainerCalloutInfo.linkUrl}
+                                                target="_blank"
+                                            >
+                                                {localization.ExplanationSummary.clickHere}
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </Callout>
@@ -491,7 +498,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     }
 
     private toggleExplanationTooltip(): void {
-        this.setState({explanationTooltipVisible: !this.state.explanationTooltipVisible });
+        this.setState({ explanationTooltipVisible: !this.state.explanationTooltipVisible });
     }
 
     private closeCallout(): void {
