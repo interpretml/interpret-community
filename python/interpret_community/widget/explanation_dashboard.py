@@ -19,6 +19,8 @@ except ModuleNotFoundError:
     raise RuntimeError("Error: gevent package is missing, please run 'conda install gevent' or"
                        "'pip install gevent' or 'pip install interpret-community[visualization]'")
 
+DATABRICKS = "databricks"
+
 
 class ExplanationDashboard:
     """Explanation Dashboard Class.
@@ -103,7 +105,9 @@ class ExplanationDashboard:
             # First handle known cloud environments
             nbvm_file_path = "/mnt/azmnt/.nbvm"
             if not (os.path.exists(nbvm_file_path) and os.path.isfile(nbvm_file_path)):
-                if not in_cloud_env:
+                if DATABRICKS in detected_envs:
+                    self.env = DATABRICKS
+                if not in_cloud_env or self.env == DATABRICKS:
                     return "http://{0}:{1}".format(
                         self.ip,
                         self.port)
@@ -200,11 +204,9 @@ class ExplanationDashboard:
         explanation_input =\
             ExplanationDashboardInput(explanation, model, dataset, true_y, classes, features, predict_url, locale)
         # Due to auth, predict is only available in separate tab in cloud after login
-        if ExplanationDashboard.service.env == "local":
+        if ExplanationDashboard.service.env != "cloud":
             explanation_input.enable_predict_url()
         html = generate_inline_html(explanation_input, local_url)
-        if ExplanationDashboard.service.env == "azure":
-            explanation_input.enable_predict_url()
 
         ExplanationDashboard.explanations[str(ExplanationDashboard.model_count)] = explanation_input
 
