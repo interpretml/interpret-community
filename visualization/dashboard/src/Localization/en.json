@@ -327,6 +327,7 @@
         "featureImportance": "Feature importance",
         "countTooltipPrefix": "Count: {0}",
         "_countTooltipPrefix.comment": "on hover, show the prefix followed by the total number of points",
+        "count": "Count",
         "featurePrefix": "Feature",
         "_featurePrefix.comment": "label shown before feature name in tooltip",
         "importancePrefix": "Importance",
