@@ -236,7 +236,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             <IconButton
                                 className={classNames.chartEditorButton}
                                 onClick={this.toggleCalloutOpen}
-                                iconProps={{ iconName: 'AreaChart' }}
+                                iconProps={{ iconName: 'Settings' }}
                                 id={this._chartConfigId}
                             />
                             {this.state.calloutVisible && (

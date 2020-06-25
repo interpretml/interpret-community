@@ -86,8 +86,6 @@ export class FabricStyles {
         borderWidth: '1px',
         borderStyle: 'solid',
         borderColor: getTheme().semanticColors.buttonBorder,
-        position: 'absolute',
-        zIndex: 10,
     };
 
     public static placeholderItalic: IStyle = {

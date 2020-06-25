@@ -15,8 +15,9 @@ import {
     DirectionalHint,
     Callout,
     IComboBoxOption,
+    Link,
 } from 'office-ui-fabric-react';
-import { DefaultButton, IconButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { DefaultButton, IconButton, PrimaryButton, CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
@@ -77,6 +78,7 @@ export interface IWhatIfTabState {
     selectedFeatureKey: string;
     selectedICEClass: number;
     crossClassInfoVisible: boolean;
+    iceTooltipVisible: boolean;
 }
 
 interface ISelectedRowInfo {
@@ -139,6 +141,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     private testableDatapointColors: string[] = FabricStyles.fabricColorPalette;
     private testableDatapointNames: string[] = [];
     private weightOptions: IDropdownOption[];
+    private rowOptions: IDropdownOption[];
     private featuresOption: IDropdownOption[] = new Array(this.props.jointDataset.datasetFeatureCount)
         .fill(0)
         .map((unused, index) => {
@@ -198,12 +201,14 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             showSelectionWarning: false,
             selectedICEClass: 0,
             crossClassInfoVisible: false,
+            iceTooltipVisible: false,
         };
 
         if (props.chartProps === undefined) {
             this.generateDefaultChartAxes();
         }
         this.createCopyOfFirstRow();
+        this.buildRowOptions(0);
         this.dismissPanel = this.dismissPanel.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.onXSet = this.onXSet.bind(this);
@@ -223,6 +228,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setSortIndex = this.setSortIndex.bind(this);
         this.onICEClassSelected = this.onICEClassSelected.bind(this);
         this.toggleCrossClassInfo = this.toggleCrossClassInfo.bind(this);
+        this.toggleICETooltip = this.toggleICETooltip.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -352,14 +358,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         const canRenderChart =
             cohortLength < NewExplanationDashboard.ROW_ERROR_SIZE ||
             this.props.chartProps.chartType !== ChartTypes.Scatter;
-        const rowOptions: IDropdownOption[] = this.props.cohorts[this.state.selectedCohortIndex]
-            .unwrap(JointDataset.IndexLabel)
-            .map((index) => {
-                return {
-                    key: index,
-                    text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string,
-                };
-            });
         const cohortOptions: IDropdownOption[] = this.props.cohorts.map((cohort, index) => {
             return { key: index, text: cohort.name };
         });
@@ -410,7 +408,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                     </Text>
                                     <Dropdown
                                         label={localization.WhatIfTab.indexLabel}
-                                        options={rowOptions}
+                                        options={this.rowOptions}
                                         selectedKey={this.state.selectedWhatIfRootIndex}
                                         onChange={this.setSelectedIndex}
                                     />
@@ -837,6 +835,45 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             } else {
                 secondaryPlot = (
                     <div className={classNames.featureImportanceArea}>
+                        <div className={classNames.rightJustifiedContainer}>
+                            <CommandBarButton
+                                iconProps={{ iconName: 'Info' }}
+                                id="explanation-info"
+                                className={classNames.infoButton}
+                                text={localization.Charts.howToRead}
+                                onClick={this.toggleICETooltip}
+                            />
+                            {this.state.iceTooltipVisible && (
+                                <Callout
+                                    target={'#explanation-info'}
+                                    setInitialFocus={true}
+                                    onDismiss={this.toggleICETooltip}
+                                    role="alertdialog"
+                                >
+                                    <div className={classNames.calloutWrapper}>
+                                        <div className={classNames.calloutHeader}>
+                                            <Text className={classNames.calloutTitle}>
+                                                {localization.WhatIfTab.icePlot}
+                                            </Text>
+                                        </div>
+                                        <div className={classNames.calloutInner}>
+                                            <Text>{localization.WhatIfTab.icePlotHelperText}</Text>
+                                            <div className={classNames.calloutActions}>
+                                                <Link
+                                                    className={classNames.calloutLink}
+                                                    href={
+                                                        'https://christophm.github.io/interpretable-ml-book/ice.html#ice'
+                                                    }
+                                                    target="_blank"
+                                                >
+                                                    {localization.ExplanationSummary.clickHere}
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Callout>
+                            )}
+                        </div>
                         <div className={classNames.featureImportanceChartAndLegend}>
                             <MultiICEPlot
                                 invokeModel={this.props.invokeModel}
@@ -1254,11 +1291,25 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
     }
 
     private setSelectedCohort(event: React.FormEvent<HTMLDivElement>, item: IDropdownOption): void {
+        this.buildRowOptions(item.key as number);
         this.setState({
             selectedCohortIndex: item.key as number,
             selectedPointsIndexes: [],
             showSelectionWarning: false,
         });
+    }
+
+    private buildRowOptions(cohortIndex: number): void {
+        this.props.cohorts[cohortIndex].sort(JointDataset.IndexLabel);
+        this.rowOptions = this.props.cohorts[cohortIndex]
+            .unwrap(JointDataset.IndexLabel)
+            .map((index) => {
+                return {
+                    key: index,
+                    text: localization.formatString(localization.WhatIfTab.rowLabel, index.toString()) as string,
+                };
+            })
+            .reverse();
     }
 
     private onFeatureSelected(event: React.FormEvent<IComboBox>, item: IDropdownOption): void {
@@ -1292,6 +1343,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private toggleCrossClassInfo(): void {
         this.setState({ crossClassInfoVisible: !this.state.crossClassInfoVisible });
+    }
+
+    private toggleICETooltip(): void {
+        this.setState({ iceTooltipVisible: !this.state.iceTooltipVisible });
     }
 
     private setTemporaryPointToCopyOfDatasetPoint(index: number): void {
