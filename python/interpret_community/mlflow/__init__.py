@@ -4,6 +4,6 @@
 
 """Module for interaction with MLflow."""
 
-from .mlflow import _log_explanation
+from .mlflow import _log_explanation, save_model, log_explanation
 
-__all__ = ['_log_explanation']
+__all__ = ['_log_explanation', 'save_model', 'log_explanation']

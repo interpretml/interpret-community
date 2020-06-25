@@ -1,10 +1,13 @@
 import os
 import pytest
 import mlflow
+import yaml
+from tempfile import TemporaryDirectory
+import cloudpickle as pickle
 
 from common_utils import create_sklearn_random_forest_classifier
 
-from interpret_community.mlflow.mlflow import _log_explanation, log_explanation
+from interpret_community.mlflow.mlflow import _log_explanation, log_explanation, save_model
 from interpret_community.explanation.explanation import load_explanation
 from constants import owner_email_tools_and_ux, DatasetConstants
 from test_serialize_explanation import _assert_explanation_equivalence
@@ -16,7 +19,7 @@ TEST_EXPLANATION = 'test_explanation'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-# @pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('clean_dir')
 class TestMlflow(object):
 
     def test_working(self):
@@ -76,6 +79,7 @@ class TestMlflow(object):
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
             download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data', 'explanation')
+        # full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data', 'explanation')
+        full_path = os.path.join(TEST_DOWNLOAD, 'test_explanation', 'data', 'exp')
         downloaded_explanation_mlflow = load_explanation(full_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
