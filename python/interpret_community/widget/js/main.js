@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { ExplanationDashboard } from 'interpret-dashboard';
+import { NewExplanationDashboard } from 'interpret-dashboard';
 
 const RenderDashboard = (divId, data) => {
   let generatePrediction = (postData) => {
@@ -20,7 +20,7 @@ const RenderDashboard = (divId, data) => {
     })
   }
 
-  ReactDOM.render(<ExplanationDashboard
+  ReactDOM.render(<NewExplanationDashboard
       modelInformation={{modelClass: 'blackbox'}}
       dataSummary={{featureNames: data.featureNames, classNames: data.classNames}}
       testData={data.trainingData}
@@ -39,4 +39,4 @@ const RenderDashboard = (divId, data) => {
     />, document.getElementById(divId));
 }
   
-export { RenderDashboard, ExplanationDashboard };
+export { RenderDashboard, NewExplanationDashboard };
