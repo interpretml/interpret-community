@@ -30,9 +30,11 @@ import {
     ChoiceGroup,
     IChoiceGroupOption,
     CommandBarButton,
+    Link,
 } from 'office-ui-fabric-react';
 import { WeightVectorOption } from '../../IWeightedDropdownContext';
 import { GlobalOnlyChart } from '../GlobalOnlyChart/GlobalOnlyChart';
+import { ExplainerCalloutDictionary } from '../ExplainerCallouts/ExplainerCalloutDictionary';
 
 export interface IGlobalBarSettings {
     topK: number;
@@ -54,6 +56,7 @@ export interface IGlobalExplanationTabProps {
     selectedWeightVector: WeightVectorOption;
     weightOptions: WeightVectorOption[];
     weightLabels: any;
+    explanationMethod?: string;
     onChange: (props: IGlobalBarSettings) => void;
     onDependenceChange: (props: IGenericChartProps) => void;
     onWeightChange: (option: WeightVectorOption) => void;
@@ -70,6 +73,7 @@ export interface IGlobalExplanationtabState {
     calloutVisible: boolean;
     dependenceTooltipVisible: boolean;
     crossClassInfoVisible: boolean;
+    explanationTooltipVisible: boolean;
     chartType: ChartTypes;
 }
 
@@ -84,6 +88,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
     private readonly minK = Math.min(4, this.props.jointDataset.localExplanationFeatureCount);
     private readonly maxK = Math.min(30, this.props.jointDataset.localExplanationFeatureCount);
     private readonly hasDataset = this.props.jointDataset.hasDataset;
+    private readonly explainerCalloutInfo =
+        this.props.explanationMethod && ExplainerCalloutDictionary[this.props.explanationMethod];
     private readonly _chartConfigId = 'chart-connfig-button';
 
     constructor(props: IGlobalExplanationTabProps) {
@@ -105,6 +111,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             calloutVisible: false,
             dependenceTooltipVisible: false,
             crossClassInfoVisible: false,
+            explanationTooltipVisible: false,
             chartType: ChartTypes.Bar,
         };
 
@@ -132,6 +139,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
         this.setWeightOption = this.setWeightOption.bind(this);
         this.toggleDependencePlotTooltip = this.toggleDependencePlotTooltip.bind(this);
         this.toggleCrossClassInfo = this.toggleCrossClassInfo.bind(this);
+        this.toggleExplanationTooltip = this.toggleExplanationTooltip.bind(this);
     }
 
     public componentDidUpdate(prevProps: IGlobalExplanationTabProps) {
@@ -175,6 +183,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
             const key = JointDataset.DataLabelRoot + i.toString();
             featureOptions.push({ key, text: this.props.jointDataset.metaDict[key].label });
         }
+
         return (
             <div className={classNames.page}>
                 <div className={classNames.infoWithText}>
@@ -202,23 +211,48 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                         showValue={false}
                     />
                 </div>
-                <div className={classNames.globalChartWithLegend}>
-                    <FeatureImportanceBar
-                        jointDataset={this.props.jointDataset}
-                        yAxisLabels={[localization.GlobalTab.aggregateFeatureImportance]}
-                        sortArray={this.state.sortArray}
-                        chartType={this.state.chartType}
-                        startingK={this.state.startingK}
-                        unsortedX={this.props.metadata.featureNamesAbridged}
-                        unsortedSeries={this.activeSeries}
-                        topK={this.state.topK}
-                        onFeatureSelection={this.handleFeatureSelection}
-                        selectedFeatureIndex={this.state.selectedFeatureIndex}
-                    />
+                <div className={classNames.rightJustifiedContainer}>
+                    {this.explainerCalloutInfo && (
+                        <CommandBarButton
+                            iconProps={{ iconName: 'Info' }}
+                            id="explanation-info"
+                            className={classNames.infoButton}
+                            text={localization.ExplanationSummary.whatDoExplanationsMean}
+                            onClick={this.toggleExplanationTooltip}
+                        />
+                    )}
+                    {this.state.explanationTooltipVisible && (
+                        <Callout
+                            target={'#explanation-info'}
+                            setInitialFocus={true}
+                            onDismiss={this.toggleExplanationTooltip}
+                            role="alertdialog"
+                        >
+                            <div className={classNames.calloutWrapper}>
+                                <div className={classNames.calloutHeader}>
+                                    <Text className={classNames.calloutTitle}>{this.explainerCalloutInfo.title}</Text>
+                                </div>
+                                <div className={classNames.calloutInner}>
+                                    <Text>{this.explainerCalloutInfo.description}</Text>
+                                    {this.explainerCalloutInfo.linkUrl && (
+                                        <div className={classNames.calloutActions}>
+                                            <Link
+                                                className={classNames.calloutLink}
+                                                href={this.explainerCalloutInfo.linkUrl}
+                                                target="_blank"
+                                            >
+                                                {localization.ExplanationSummary.clickHere}
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </Callout>
+                    )}
                     <IconButton
                         className={classNames.chartEditorButton}
                         onClick={this.toggleCalloutOpen}
-                        iconProps={{ iconName: 'AreaChart' }}
+                        iconProps={{ iconName: 'Settings' }}
                         id={this._chartConfigId}
                     />
                     {this.state.calloutVisible && (
@@ -263,6 +297,20 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                             />
                         </Callout>
                     )}
+                </div>
+                <div className={classNames.globalChartWithLegend}>
+                    <FeatureImportanceBar
+                        jointDataset={this.props.jointDataset}
+                        yAxisLabels={[localization.GlobalTab.aggregateFeatureImportance]}
+                        sortArray={this.state.sortArray}
+                        chartType={this.state.chartType}
+                        startingK={this.state.startingK}
+                        unsortedX={this.props.metadata.featureNamesAbridged}
+                        unsortedSeries={this.activeSeries}
+                        topK={this.state.topK}
+                        onFeatureSelection={this.handleFeatureSelection}
+                        selectedFeatureIndex={this.state.selectedFeatureIndex}
+                    />
                     <div className={classNames.legendAndSort}>
                         <Text variant={'mediumPlus'} block className={classNames.cohortLegend}>
                             {localization.GlobalTab.datasetCohorts}
@@ -349,32 +397,34 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                 )}
                 {this.hasDataset && (
                     <div>
-                        <CommandBarButton
-                            iconProps={{ iconName: 'Info' }}
-                            id="dependence-plot-info"
-                            className={classNames.dependencePlotInfoButton}
-                            text={localization.GlobalTab.dependencePlotPrompt}
-                            onClick={this.toggleDependencePlotTooltip}
-                        />
-                        {this.state.dependenceTooltipVisible && (
-                            <Callout
-                                target={'#dependence-plot-info'}
-                                setInitialFocus={true}
-                                onDismiss={this.toggleDependencePlotTooltip}
-                                role="alertdialog"
-                            >
-                                <div className={classNames.calloutWrapper}>
-                                    <div className={classNames.calloutHeader}>
-                                        <Text className={classNames.calloutTitle}>
-                                            {localization.GlobalTab.dependencePlotTitle}
-                                        </Text>
+                        <div className={classNames.rightJustifiedContainer}>
+                            <CommandBarButton
+                                iconProps={{ iconName: 'Info' }}
+                                id="dependence-plot-info"
+                                className={classNames.infoButton}
+                                text={localization.Charts.howToRead}
+                                onClick={this.toggleDependencePlotTooltip}
+                            />
+                            {this.state.dependenceTooltipVisible && (
+                                <Callout
+                                    target={'#dependence-plot-info'}
+                                    setInitialFocus={true}
+                                    onDismiss={this.toggleDependencePlotTooltip}
+                                    role="alertdialog"
+                                >
+                                    <div className={classNames.calloutWrapper}>
+                                        <div className={classNames.calloutHeader}>
+                                            <Text className={classNames.calloutTitle}>
+                                                {localization.GlobalTab.dependencePlotTitle}
+                                            </Text>
+                                        </div>
+                                        <div className={classNames.calloutInner}>
+                                            <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
+                                        </div>
                                     </div>
-                                    <div className={classNames.calloutInner}>
-                                        <Text>{localization.GlobalTab.dependencePlotHelperText}</Text>
-                                    </div>
-                                </div>
-                            </Callout>
-                        )}
+                                </Callout>
+                            )}
+                        </div>
                         <div className={classNames.secondaryChartAndLegend}>
                             <DependencePlot
                                 chartProps={this.props.dependenceProps}
@@ -445,6 +495,10 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
 
     private toggleCrossClassInfo(): void {
         this.setState({ crossClassInfoVisible: !this.state.crossClassInfoVisible });
+    }
+
+    private toggleExplanationTooltip(): void {
+        this.setState({ explanationTooltipVisible: !this.state.explanationTooltipVisible });
     }
 
     private closeCallout(): void {

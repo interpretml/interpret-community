@@ -345,6 +345,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         let rawY: number[];
         let yLabels: string[];
         let yLabelIndexes: number[];
+        const yAxisName = jointData.metaDict[chartProps.yAxis.property].label;
         if (chartProps.yAxis.property === Cohort.CohortKey) {
             rawX = [];
             rawY = [];
@@ -382,7 +383,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         plotlyProps.data[0].orientation = 'h';
         switch (chartProps.chartType) {
             case ChartTypes.Box: {
-                plotlyProps.layout.hovermode = false;
+                // Uncomment to turn off tooltips on box plots
+                // plotlyProps.layout.hovermode = false;
                 plotlyProps.data[0].type = 'box' as any;
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
@@ -400,6 +402,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 plotlyProps.data[0].type = 'bar';
                 const x = new Array(rawY.length).fill(1);
                 plotlyProps.data[0].text = rawY.map((index) => yLabels[index]);
+                plotlyProps.data[0].hoverinfo = 'all';
+                plotlyProps.data[0].hovertemplate = ` ${yAxisName}:%{y}<br> ${localization.Charts.count}: %{x}<br>`;
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[0].x = x;
                 plotlyProps.data[0].marker = {};
