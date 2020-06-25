@@ -67,7 +67,7 @@ def log_explanation(name, explanation):
                 "pip",
                 {
                     "pip": [
-                        # "interpret-community=={}".format(interpret_community.VERSION),
+                        "interpret-community=={}".format(interpret_community.__version__),
                         "cloudpickle=={}".format(pickle.__version__)]
                 }
             ]

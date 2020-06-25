@@ -6,10 +6,8 @@
 from setuptools import setup, find_packages
 import os
 import shutil
+import interpret_community
 
-_major = '0'
-_minor = '12'
-_patch = '1'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -18,7 +16,6 @@ LICENSE_FILE = 'LICENSE.txt'
 if os.path.exists('../LICENSE'):
     shutil.copyfile('../LICENSE', LICENSE_FILE)
 
-VERSION = '{}.{}.{}'.format(_major, _minor, _patch)
 
 
 CLASSIFIERS = [
@@ -72,7 +69,7 @@ with open(README_FILE, 'r', encoding='utf-8') as f:
 setup(
     name='interpret-community',
 
-    version=VERSION,
+    version=interpret_community.__version__,
 
     description='Microsoft Interpret Extensions SDK for Python',
     long_description=README,
