@@ -34,6 +34,7 @@ const RenderDashboard = (divId, data) => {
       }}
       requestPredictions={data.predictionUrl !== undefined ? generatePrediction : undefined}
       locale={data.locale}
+      explanationMethod={data.explanation_method}
       key={new Date()}
     />, document.getElementById(divId));
 }

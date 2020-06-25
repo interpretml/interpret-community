@@ -65,6 +65,10 @@ export interface IWhatIfTabStyles {
     calloutHeader: IStyle;
     calloutTitle: IStyle;
     calloutInner: IStyle;
+    calloutActions: IStyle;
+    calloutLink: IStyle;
+    infoButton: IStyle;
+    rightJustifiedContainer: IStyle;
 }
 
 export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () => {
@@ -348,5 +352,30 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         calloutHeader: [FabricStyles.calloutHeader],
         calloutTitle: [FabricStyles.calloutTitle],
         calloutInner: [FabricStyles.calloutInner],
+        infoButton: {
+            width: 'fit-content',
+            margin: '5px',
+            padding: '8px 10px',
+        },
+        calloutActions: {
+            position: 'relative',
+            marginTop: 20,
+            width: '100%',
+            whiteSpace: 'nowrap',
+        },
+        calloutLink: [
+            theme.fonts.medium,
+            {
+                color: theme.palette.neutralPrimary,
+            },
+        ],
+        rightJustifiedContainer: {
+            width: '100%',
+            paddingRight: legendWidth,
+            boxSizing: 'border-box',
+            display: 'inline-flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+        },
     });
 };

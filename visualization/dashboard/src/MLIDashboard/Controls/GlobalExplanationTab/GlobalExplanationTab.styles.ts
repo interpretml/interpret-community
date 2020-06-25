@@ -26,14 +26,18 @@ export interface IGlobalTabStyles {
     calloutHeader: IStyle;
     calloutTitle: IStyle;
     calloutInner: IStyle;
-    dependencePlotInfoButton: IStyle;
+    calloutActions: IStyle;
+    calloutLink: IStyle;
+    infoButton: IStyle;
     multiclassWeightLabel: IStyle;
     multiclassWeightLabelText: IStyle;
     cohortLegendWithTop: IStyle;
+    rightJustifiedContainer: IStyle;
 }
 
 export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () => {
     const theme = getTheme();
+    const rightMarginWidth = '200px';
     return mergeStyleSets<IGlobalTabStyles>({
         page: {
             width: '100%',
@@ -91,7 +95,7 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
             flexDirection: 'row',
         },
         legendAndSort: {
-            width: '200px',
+            width: rightMarginWidth,
             height: '100%',
         },
         cohortLegend: {
@@ -107,7 +111,7 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         chartEditorButton: [
             FabricStyles.chartEditorButton,
             {
-                right: '210px',
+                margin: '5px',
             },
         ],
         callout: {
@@ -126,10 +130,10 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
         calloutHeader: [FabricStyles.calloutHeader],
         calloutTitle: [FabricStyles.calloutTitle],
         calloutInner: [FabricStyles.calloutInner],
-        dependencePlotInfoButton: {
+        infoButton: {
             width: 'fit-content',
-            margin: '5px 200px 5px auto',
-            padding: '10px',
+            margin: '5px',
+            padding: '8px 10px',
         },
         multiclassWeightLabel: {
             display: 'inline-flex',
@@ -143,6 +147,26 @@ export const globalTabStyles: () => IProcessedStyleSet<IGlobalTabStyles> = () =>
             fontWeight: '600',
             paddingBottom: '10px',
             paddingTop: '10px',
+        },
+        calloutActions: {
+            position: 'relative',
+            marginTop: 20,
+            width: '100%',
+            whiteSpace: 'nowrap',
+        },
+        calloutLink: [
+            theme.fonts.medium,
+            {
+                color: theme.palette.neutralPrimary,
+            },
+        ],
+        rightJustifiedContainer: {
+            width: '100%',
+            paddingRight: rightMarginWidth,
+            boxSizing: 'border-box',
+            display: 'inline-flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
         },
     });
 };
