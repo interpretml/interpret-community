@@ -15,8 +15,9 @@ import {
     DirectionalHint,
     Callout,
     IComboBoxOption,
+    Link,
 } from 'office-ui-fabric-react';
-import { DefaultButton, IconButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { DefaultButton, IconButton, PrimaryButton, CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
@@ -77,6 +78,7 @@ export interface IWhatIfTabState {
     selectedFeatureKey: string;
     selectedICEClass: number;
     crossClassInfoVisible: boolean;
+    iceTooltipVisible: boolean;
 }
 
 interface ISelectedRowInfo {
@@ -199,6 +201,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             showSelectionWarning: false,
             selectedICEClass: 0,
             crossClassInfoVisible: false,
+            iceTooltipVisible: false
         };
 
         if (props.chartProps === undefined) {
@@ -225,6 +228,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.setSortIndex = this.setSortIndex.bind(this);
         this.onICEClassSelected = this.onICEClassSelected.bind(this);
         this.toggleCrossClassInfo = this.toggleCrossClassInfo.bind(this);
+        this.toggleICETooltip = this.toggleICETooltip.bind(this);
         this.fetchData = _.debounce(this.fetchData.bind(this), 400);
     }
 
@@ -831,6 +835,37 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             } else {
                 secondaryPlot = (
                     <div className={classNames.featureImportanceArea}>
+                        <div className={classNames.rightJustifiedContainer}>
+                            <CommandBarButton
+                                iconProps={{ iconName: 'Info' }}
+                                id="explanation-info"
+                                className={classNames.infoButton}
+                                text={localization.Charts.howToRead}
+                                onClick={this.toggleICETooltip}
+                            />
+                            {this.state.iceTooltipVisible && (
+                                <Callout
+                                    target={'#explanation-info'}
+                                    setInitialFocus={true}
+                                    onDismiss={this.toggleICETooltip}
+                                    role="alertdialog"
+                                >
+                                    <div className={classNames.calloutWrapper}>
+                                        <div className={classNames.calloutHeader}>
+                                            <Text className={classNames.calloutTitle}>
+                                                {localization.WhatIfTab.icePlot}
+                                            </Text>
+                                        </div>
+                                        <div className={classNames.calloutInner}>
+                                            <Text>{localization.WhatIfTab.icePlotHelperText}</Text>
+                                            <div className={classNames.calloutActions}>
+                                                <Link className={classNames.calloutLink} href={"https://christophm.github.io/interpretable-ml-book/ice.html#ice"} target="_blank">{localization.ExplanationSummary.clickHere}</Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Callout>
+                            )}
+                        </div>
                         <div className={classNames.featureImportanceChartAndLegend}>
                             <MultiICEPlot
                                 invokeModel={this.props.invokeModel}
@@ -1300,6 +1335,10 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private toggleCrossClassInfo(): void {
         this.setState({ crossClassInfoVisible: !this.state.crossClassInfoVisible });
+    }
+
+    private toggleICETooltip(): void {
+        this.setState({ iceTooltipVisible: !this.state.iceTooltipVisible });
     }
 
     private setTemporaryPointToCopyOfDatasetPoint(index: number): void {

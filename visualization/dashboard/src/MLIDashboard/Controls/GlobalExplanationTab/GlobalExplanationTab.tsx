@@ -395,7 +395,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                                 iconProps={{ iconName: 'Info' }}
                                 id="dependence-plot-info"
                                 className={classNames.infoButton}
-                                text={localization.GlobalTab.dependencePlotPrompt}
+                                text={localization.Charts.howToRead}
                                 onClick={this.toggleDependencePlotTooltip}
                             />
                             {this.state.dependenceTooltipVisible && (

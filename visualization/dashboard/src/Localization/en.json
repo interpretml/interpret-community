@@ -272,7 +272,6 @@
         "_missingParameters.comment": "Show a message if the required feature importance parameter is not provided",
         "weightOptions": "Class importance weights",
         "_weightOptions.comment": "Weight how importance values are averaged https://en.wikipedia.org/wiki/Weighted_arithmetic_mean",
-        "dependencePlotPrompt": "How to read this chart",
         "dependencePlotTitle": "Dependence Plots",
         "dependencePlotHelperText": "This dependence plot shows the relationship between the value of a feature to the corresponding importance of the feature across a cohort.",
         "dependencePlotFeatureSelectPlaceholder": "Select feature",
@@ -332,7 +331,8 @@
         "_featurePrefix.comment": "label shown before feature name in tooltip",
         "importancePrefix": "Importance",
         "_importance.comment": "label shown before importance value in tooltip",
-        "cohort": "Cohort"
+        "cohort": "Cohort",
+        "howToRead": "How to read this chart"
     },
     "DatasetExplorer": {
         "helperText": "Explore your dataset statistics by selecting different filters along the X, Y, and color axis to slice your data into different dimensions. Create dataset cohorts above to analyze dataset statistics along filters such as predicted outcome, dataset features and error groups. Use the gear icon in the upper right-hand corner of the graph to change graph types.",
@@ -443,7 +443,8 @@
         "probabilityLabel": "Probability",
         "deltaLabel": "Delta",
         "_deltaLabel.comment": "represents the change in a value",
-        "nonNumericValue": "Value should be numeric"
+        "nonNumericValue": "Value should be numeric",
+        "icePlotHelperText": "ICE plots demonstrate how the selected datapoint's prediction values change along a range of feature values between a minimum and maximum value."
     },
     "CohortEditor": {
         "selectFilter": "Select Filter",
