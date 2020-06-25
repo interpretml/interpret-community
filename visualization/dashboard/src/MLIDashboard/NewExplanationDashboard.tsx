@@ -476,6 +476,7 @@ export class NewExplanationDashboard extends React.PureComponent<
                             weightOptions={this.weightVectorOptions}
                             weightLabels={this.weightVectorLabels}
                             onWeightChange={this.onWeightVectorChange}
+                            explanationMethod={this.props.explanationMethod}
                         />
                     )}
                     {this.state.activeGlobalTab === globalTabKeys.whatIfTab && (

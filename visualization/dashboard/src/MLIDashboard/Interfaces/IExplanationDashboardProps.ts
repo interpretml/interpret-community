@@ -28,6 +28,7 @@ export interface IExplanationDashboardProps {
     stringParams?: IStringsParam;
     shouldInitializeIcons?: boolean;
     iconUrl?: string;
+    explanationMethod?: string;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
     requestLocalFeatureExplanations?: (
         request: any[],
