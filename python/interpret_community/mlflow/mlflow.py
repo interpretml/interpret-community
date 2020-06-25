@@ -17,18 +17,18 @@ def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_
         from mlflow.utils.file_utils import _copy_file_or_tree
         from mlflow.pyfunc.model import get_default_conda_env
     except ImportError as e:
-        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, pip install mlflow to resolve the error: {}.".format(e))
-    # if os.path.exists(path):
-    #     raise MlflowException(
-    #         message="Path '{}' already exists".format(path),
-    #         error_code=RESOURCE_ALREADY_EXISTS)
-    # os.makedirs(path)
-    os.makedirs(path, exist_ok=True)
+        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, "
+                        "pip install mlflow to resolve the error: {}.".format(e))
+
+    if os.path.exists(path):
+        raise Exception(
+            message="Path '{}' already exists".format(path))
+    os.makedirs(path)
+
     if mlflow_model is None:
         mlflow_model = Model()
 
     data = None
-
     if data_path is not None:
         model_file = _copy_file_or_tree(src=data_path, dst=path, dst_dir="data")
         data = model_file
@@ -50,26 +50,28 @@ def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_
 
 def log_explanation(name, explanation):
     try:
-        import mlflow.pyfunc
         from mlflow.models import Model
     except ImportError as e:
-        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, pip install mlflow to resolve the error: {}.".format(e))
+        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, "
+                        "pip install mlflow to resolve the error: {}.".format(e))
     import cloudpickle as pickle
 
-    model_explanation = Model()
     with TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'exp')
         save_explanation(explanation, path, exist_ok=True)
 
-        conda_env = {"name": "mlflow-env",
-                     "channels": ["defaults"],
-                     "dependencies": ["pip",
-                                      {"pip": [
-                                        # "interpret-community=={}".format(interpret_community.VERSION),
-                                        "cloudpickle=={}".format(pickle.__version__)]
-                                      }
-                                     ]
-                    }
+        conda_env = {
+            "name": "mlflow-env",
+            "channels": ["defaults"],
+            "dependencies": [
+                "pip",
+                {
+                    "pip": [
+                        # "interpret-community=={}".format(interpret_community.VERSION),
+                        "cloudpickle=={}".format(pickle.__version__)]
+                }
+            ]
+        }
         conda_path = os.path.join(tempdir, "conda.yaml")
         with open(conda_path, "w") as stream:
             yaml.dump(conda_env, stream)
