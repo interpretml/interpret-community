@@ -63,7 +63,7 @@ export class Cohort {
     // Bin object stores array of upper bounds for each bin, return the index
     // of the bin of the value;
     public unwrap(key: string, applyBin?: boolean): any[] {
-        if (applyBin && this.jointDataset.metaDict[key].isCategorical === false) {
+        if (applyBin && !this.jointDataset.metaDict[key].isCategorical && !this.jointDataset.metaDict[key].treatAsCategorical) {
             let binVector = this.jointDataset.binDict[key];
             if (binVector === undefined) {
                 this.jointDataset.addBin(key);

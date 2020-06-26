@@ -376,7 +376,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
             filter.arg = Array.from(Array(meta.sortedCategoricalValues.length).keys());
         } else if (meta.treatAsCategorical) {
             filter.method = FilterMethods.includes;
-            filter.arg = meta.sortedCategoricalValues as any[];
+            filter.arg = [...meta.sortedCategoricalValues] as any[];
         } else {
             filter.method = FilterMethods.lessThan;
             filter.arg = [meta.featureRange.max];
@@ -529,6 +529,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 )}
                 {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
                     <Checkbox
+                        key={openedFilter.column}
                         className={styles.treatCategorical}
                         label={localization.CohortEditor.TreatAsCategorical}
                         checked={selectedMeta.treatAsCategorical}
@@ -544,6 +545,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             )}`}
                         </Text>
                         <ComboBox
+                            key={openedFilter.column}
                             multiSelect
                             label={localization.Filters.categoricalIncludeValues}
                             className={styles.operationComboBox}

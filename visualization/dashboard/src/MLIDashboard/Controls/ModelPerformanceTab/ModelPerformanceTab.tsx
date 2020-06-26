@@ -343,9 +343,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         };
         let rawX: number[];
         let rawY: number[];
-        let yLabels: string[];
+        let yLabels: Array<string | number>;
         let yLabelIndexes: number[];
-        const yAxisName = jointData.metaDict[chartProps.yAxis.property].label;
+        const yMeta = jointData.metaDict[chartProps.yAxis.property];
+        const yAxisName = yMeta.label;
+        const yTreatAtCategoricalOnly = yMeta.treatAsCategorical && !yMeta.isCategorical;
         if (chartProps.yAxis.property === Cohort.CohortKey) {
             rawX = [];
             rawY = [];
@@ -366,13 +368,13 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const cohort = cohorts[selectedCohortIndex];
             rawY = cohort.unwrap(chartProps.yAxis.property, true);
             rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
-            yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
-            yLabelIndexes = yLabels.map((unused, index) => index);
+            yLabels = yMeta.sortedCategoricalValues;
+            yLabelIndexes = yTreatAtCategoricalOnly ? yLabels as number[]: yLabels.map((unused, index) => index);
         }
 
-        // The buonding box for the labels on y axis are too small, add some white space as buffer
+        // The bounding box for the labels on y axis are too small, add some white space as buffer
         yLabels = yLabels.map((val) => {
-            const len = val.length;
+            const len = val.toString().length;
             let result = ' ';
             for (let i = 0; i < len; i += 5) {
                 result += ' ';
@@ -389,7 +391,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[0].marker = {
-                    color: FabricStyles.fabricColorPalette[0],
+                    color: FabricStyles.fabricColorPalette[0], 
                 };
                 _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
                 _.set(plotlyProps, 'layout.yaxis.tickvals', yLabelIndexes);
@@ -401,7 +403,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 // We also use the selected Y property as the series prop, since all histograms will just be a count.
                 plotlyProps.data[0].type = 'bar';
                 const x = new Array(rawY.length).fill(1);
-                plotlyProps.data[0].text = rawY.map((index) => yLabels[index]);
+                plotlyProps.data[0].text = (yTreatAtCategoricalOnly ? rawY : rawY.map((index) => yLabels[index]) as any[]);
                 plotlyProps.data[0].hoverinfo = 'all';
                 plotlyProps.data[0].hovertemplate = ` ${yAxisName}:%{y}<br> ${localization.Charts.count}: %{x}<br>`;
                 plotlyProps.data[0].y = rawY;

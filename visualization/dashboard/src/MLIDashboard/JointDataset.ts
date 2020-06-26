@@ -346,6 +346,8 @@ export class JointDataset {
             metadata.sortedCategoricalValues = _.uniq(values).sort((a, b) => {
                 return a - b;
             }) as any[];
+        } else {
+            this.addBin(key);
         }
     }
 

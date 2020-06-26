@@ -175,6 +175,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 {selectedMeta.featureRange &&
                                     selectedMeta.featureRange.rangeType === RangeTypes.integer && (
                                         <Checkbox
+                                            key={this.state.selectedColumn.property}
                                             className={styles.treatCategorical}
                                             label={localization.AxisConfigDialog.TreatAsCategorical}
                                             checked={selectedMeta.treatAsCategorical}
@@ -258,6 +259,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
         this.props.jointDataset.setTreatAsCategorical(this.state.selectedColumn.property, checked);
+        this.setState({binCount: checked ? undefined : AxisConfigDialog.MIN_HIST_COLS});
         this.forceUpdate();
     };
 
@@ -271,6 +273,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         bin: checked,
                     },
                 },
+            binCount: undefined
             });
         } else {
             const binCount = this._getBinCountForProperty(property);
@@ -377,7 +380,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private _getBinCountForProperty(key: string): number | undefined {
         const selectedMeta = this.props.jointDataset.metaDict[key];
         let binCount = undefined;
-        if (this.props.canBin && selectedMeta.isCategorical === false) {
+        if (this.props.canBin && selectedMeta.treatAsCategorical === false) {
             binCount =
                 selectedMeta.sortedCategoricalValues !== undefined
                     ? selectedMeta.sortedCategoricalValues.length
