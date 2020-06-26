@@ -39,8 +39,8 @@ class TestMlflow(object):
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
             download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        # full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data', 'explanation')
-        full_path = os.path.join(TEST_DOWNLOAD, 'test_explanation', 'data', 'exp')
+        # TODO: implement a nicer get_explanation
+        full_path = os.path.join(TEST_DOWNLOAD, TEST_EXPLANATION, 'data', 'explanation')
         downloaded_explanation_mlflow = load_explanation(full_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
 
@@ -63,7 +63,7 @@ class TestMlflow(object):
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
             download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        # full_path = os.path.join(TEST_DOWNLOAD, global_explanation.id, 'data', 'explanation')
-        full_path = os.path.join(TEST_DOWNLOAD, 'global_explanation', 'data', 'exp')
+        # TODO: implement a nicer get_explanation
+        full_path = os.path.join(TEST_DOWNLOAD, 'global_explanation', 'data', 'explanation')
         downloaded_explanation_mlflow = load_explanation(full_path)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)

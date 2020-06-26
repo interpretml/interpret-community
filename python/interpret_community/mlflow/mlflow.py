@@ -57,7 +57,7 @@ def log_explanation(name, explanation):
     import cloudpickle as pickle
 
     with TemporaryDirectory() as tempdir:
-        path = os.path.join(tempdir, 'exp')
+        path = os.path.join(tempdir, 'explanation')
         save_explanation(explanation, path, exist_ok=True)
 
         conda_env = {
