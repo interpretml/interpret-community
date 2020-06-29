@@ -8,8 +8,8 @@ import os
 import shutil
 
 _major = '0'
-_minor = '12'
-_patch = '1'
+_minor = '13'
+_patch = '0'
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
