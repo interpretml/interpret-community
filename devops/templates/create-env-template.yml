@@ -27,6 +27,13 @@ steps:
     condition:  eq(variables['Agent.OS'], 'Darwin')
 
   - bash: |
+      source activate interp
+      pip install torch
+      pip install torchvision
+    displayName: Install torch from pip on MacOS
+    condition:  eq(variables['Agent.OS'], 'Darwin')
+
+  - bash: |
       source activate ${{parameters.condaEnv}} 
       pip install --upgrade pip
     displayName: Upgrade pip to latest
