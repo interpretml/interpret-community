@@ -25,7 +25,7 @@ jobs:
 
 - template: templates/all-tests-job-template.yml
   parameters:
-    platforms:  { Linux: ubuntu-latest, MacOS: macos-latest }
+    platforms:  { MacOS: macos-latest }
     testRunTypes: ['Notebooks']
     pyVersions: [3.7]
     installationType: PipLocal
