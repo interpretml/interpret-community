@@ -37,7 +37,7 @@ parameters:
   type: string
 - name: condaEnv
   type: string
-  default: interpret_conda_env
+  default: interp_community
 
 steps:
 - template: conda-path-step-template.yml
@@ -63,11 +63,6 @@ steps:
     wheelArtifactName: ${{parameters.wheelArtifactName}}
     condaEnv: ${{parameters.condaEnv}}
   
-- bash: |
-      source activate ${{parameters.condaEnv}}
-      pip install -r requirements.txt
-  displayName: 'Install requirements'
-
 - template: environment-info-step-template.yml
   parameters:
     condaEnv: ${{parameters.condaEnv}}
