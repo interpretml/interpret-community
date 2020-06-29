@@ -44,7 +44,7 @@ steps:
 
 - template: create-env-template.yml
   parameters:
-    pythonVersion: ${{parameters.pythonversion}}
+    pythonVersion: ${{parameters.pythonVersion}}
     condaEnv: ${{parameters.condaEnv}}
 
 - bash: |
