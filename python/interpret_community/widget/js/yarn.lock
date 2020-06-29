@@ -3245,10 +3245,10 @@ internal-slot@^1.0.2:
     has "^1.0.3"
     side-channel "^1.0.2"
 
-interpret-dashboard@0.1.11:
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.11.tgz#fc1dc215caddbeb2d1984eb23d7159508269b097"
-  integrity sha512-otSoT0iG8ro5tIj4J8zXtHqySN16YYlQzhWeCCa0WWZRPwOJqaxNsAOd5bZ1jZ/oWb5YOWvhrOEIPc1UkieJBA==
+interpret-dashboard@0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/interpret-dashboard/-/interpret-dashboard-0.1.12.tgz#d258b72c6cfb94a01f8634df3ccc8a6670552832"
+  integrity sha512-2QGWj2kxOhwIYbBvqIB+hAcc36x/3tB/qjK6JiIukIPh93BJxCmZQFHtUZLwtmJLJ3/51AYEll1r91PGcinAZA==
   dependencies:
     eslint-cli "^1.1.1"
     eslint-plugin-react "^7.20.0"
