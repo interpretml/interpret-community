@@ -164,12 +164,12 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                             </div>
                                         )}
                                         {this.props.jointDataset.hasTrueY &&
-                                            metricsList.map((stats) => {
+                                            metricsList.map((stats, index) => {
                                                 return (
-                                                    <div className={classNames.statsBox}>
-                                                        {stats.map((labeledStat) => {
+                                                    <div className={classNames.statsBox} key={index}>
+                                                        {stats.map((labeledStat, statIndex) => {
                                                             return (
-                                                                <Text block>
+                                                                <Text block key={statIndex}>
                                                                     {localization.formatString(
                                                                         labeledStat.label,
                                                                         labeledStat.stat.toLocaleString(undefined, {
@@ -343,7 +343,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         };
         let rawX: number[];
         let rawY: number[];
-        let yLabels: Array<string | number>;
+        let yLabels: string[];
         let yLabelIndexes: number[];
         const yMeta = jointData.metaDict[chartProps.yAxis.property];
         const yAxisName = yMeta.label;
@@ -373,7 +373,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
 
         // The bounding box for the labels on y axis are too small, add some white space as buffer
         yLabels = yLabels.map((val) => {
-            const len = val.toString().length;
+            const len = val.length;
             let result = ' ';
             for (let i = 0; i < len; i += 5) {
                 result += ' ';
@@ -402,7 +402,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 // We also use the selected Y property as the series prop, since all histograms will just be a count.
                 plotlyProps.data[0].type = 'bar';
                 const x = new Array(rawY.length).fill(1);
-                plotlyProps.data[0].text = (rawY.map((index) => yLabels[index]) as any[]);
+                plotlyProps.data[0].text = rawY.map((index) => yLabels[index]);
                 plotlyProps.data[0].hoverinfo = 'all';
                 plotlyProps.data[0].hovertemplate = ` ${yAxisName}:%{y}<br> ${localization.Charts.count}: %{x}<br>`;
                 plotlyProps.data[0].y = rawY;

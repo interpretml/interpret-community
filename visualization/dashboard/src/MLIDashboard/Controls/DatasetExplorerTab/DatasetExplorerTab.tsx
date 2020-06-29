@@ -465,7 +465,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
             <div className={classNames.legend}>
                 {colorSeries.map((name, i) => {
                     return (
-                        <div className={classNames.legendItem}>
+                        <div className={classNames.legendItem} key={i}>
                             <div
                                 className={classNames.colorBox}
                                 style={{ backgroundColor: FabricStyles.fabricColorPalette[i] }}
