@@ -12,6 +12,12 @@ parameters:
   - PipLocal
   - PyPI
   - WheelArtifact
+- name: packageOptions
+  type: string
+  values:
+  - ''
+  - '[visualization]'
+  default: ''
 - name: pypiUrl
   type: string
 - name: versionArtifactName
@@ -32,7 +38,7 @@ steps:
 - ${{ if eq(parameters.installationType, 'PipLocal') }}:
   - bash: |
       source activate ${{parameters.condaEnv}}
-      pip install -e python/
+      pip install -e ${{ format( './python{0}', parameters.packageOptions )}}
     displayName: "Local install of interpret-community with pip"
 
 # ===============================================================
