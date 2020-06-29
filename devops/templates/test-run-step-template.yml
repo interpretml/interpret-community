@@ -42,75 +42,8 @@ parameters:
 steps:
 - template: conda-path-step-template.yml
 
-- template: create-env-template.yml
-  parameters:
-    pythonVersion: ${{parameters.pythonVersion}}
-    condaEnv: ${{parameters.condaEnv}}
+#- template: create-env-template.yml
+#  parameters:
+#    pythonVersion: ${{parameters.pythonVersion}}
+#    condaEnv: ${{parameters.condaEnv}}
 
-- bash: |
-      source activate ${{parameters.condaEnv}}
-      python --version
-  displayName: 'Verify Python version'
-
-# Need to have alternatives to this install
-- template: package-installation-step-template.yml
-  parameters:
-    installationType: ${{parameters.installationType}}
-    pypiUrl: ${{parameters.pypiUrl}}
-    versionArtifactName: ${{parameters.versionArtifactName}}
-    versionArtifactFile: ${{parameters.versionArtifactFile}}
-    pipVersionVariable: variableForPipVersion
-    wheelArtifactName: ${{parameters.wheelArtifactName}}
-    condaEnv: ${{parameters.condaEnv}}
-  
-- template: environment-info-step-template.yml
-  parameters:
-    condaEnv: ${{parameters.condaEnv}}
-    envInfoArtifact: ${{parameters.envInfoArtifact}}
-    envInfoFileBase: ${{parameters.envInfoFileBase}}
-
-- ${{ if eq(parameters.testRunType, 'Unit')}}:
-  - bash: |
-        source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Unit"
-    displayName: Run Unit tests
-
-- ${{ if eq(parameters.testRunType, 'Notebooks')}}:
-  - bash: |
-        source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
-    displayName: Run Notebook tests
-
-- ${{ if eq(parameters.testRunType, 'CodeCoverage')}}:
-  - bash: |
-        source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Coverage"  --cov=python --cov-report=xml --cov-report=html -o unit_suite_name="UnitCoverage"
-    displayName: Run Code Coverage tests
-
-  - task: PublishCodeCoverageResults@1
-    inputs:
-      codeCoverageTool: 'cobertura'
-      summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage.xml
-      pathToSources: $(System.DefaultWorkingDirectory)
-      additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/htmlcov/**
-      failIfCoverageEmpty: false
-      displayName: "Publish Code Coverage"
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFiles: '**/*.xml'
-    failTaskOnFailedTests: true
-  condition: succeededOrFailed()
-  displayName: 'Publish Test Results'
-
-- bash: |
-      source activate ${{parameters.condaEnv}}
-      python -m pip install flake8
-      flake8 flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-  displayName: 'Run flake8'
-  
-- bash: |
-    cd ./visualization/dashboard
-    yarn lintci
-    cd ../..
-  displayName: "Run visualization linter"
