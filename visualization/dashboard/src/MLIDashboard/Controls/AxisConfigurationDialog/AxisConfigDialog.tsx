@@ -231,16 +231,16 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                                     onDecrement={this.setNumericValue.bind(this, -1, selectedMeta)}
                                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
                                                 />
-                                            )
-                                        }
-                                        {!(this.props.mustBin || this.state.selectedColumn.options.bin) && this.props.canDither &&
-                                            <Checkbox
-                                                key={this.state.selectedColumn.property}
-                                                label={localization.AxisConfigDialog.ditherLabel}
-                                                checked={this.state.selectedColumn.options.dither}
-                                                onChange={this.ditherChecked}
-                                            />
-                                        }
+                                            )}
+                                        {!(this.props.mustBin || this.state.selectedColumn.options.bin) &&
+                                            this.props.canDither && (
+                                                <Checkbox
+                                                    key={this.state.selectedColumn.property}
+                                                    label={localization.AxisConfigDialog.ditherLabel}
+                                                    checked={this.state.selectedColumn.options.dither}
+                                                    onChange={this.ditherChecked}
+                                                />
+                                            )}
                                     </div>
                                 )}
                             </div>
@@ -270,7 +270,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
         this.props.jointDataset.setTreatAsCategorical(this.state.selectedColumn.property, checked);
-        this.setState({binCount: checked ? undefined : AxisConfigDialog.MIN_HIST_COLS});
+        this.setState({ binCount: checked ? undefined : AxisConfigDialog.MIN_HIST_COLS });
         this.forceUpdate();
     };
 
@@ -284,7 +284,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         bin: checked,
                     },
                 },
-            binCount: undefined
+                binCount: undefined,
             });
         } else {
             const binCount = this._getBinCountForProperty(property);

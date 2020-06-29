@@ -1709,7 +1709,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             const metaX = this.props.jointDataset.metaDict[chartProps.xAxis.property];
             const rawX = JointDataset.unwrap(dictionary, chartProps.xAxis.property);
             hovertemplate += metaX.label + ': %{customdata.X}<br>';
-                
+
             rawX.map((val, index) => {
                 if (metaX.treatAsCategorical) {
                     customdata[index]['X'] = metaX.sortedCategoricalValues[val];
@@ -1730,21 +1730,21 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             const metaY = this.props.jointDataset.metaDict[chartProps.yAxis.property];
             const rawY = JointDataset.unwrap(dictionary, chartProps.yAxis.property);
             hovertemplate += metaY.label + ': %{customdata.Y}<br>';
-                rawY.map((val, index) => {
-                    if (metaY.treatAsCategorical) {
-                        customdata[index]['Y'] = metaY.sortedCategoricalValues[val];
-                    } else {
-                        customdata[index]['Y'] = (val as number).toLocaleString(undefined, { maximumSignificantDigits: 5 });
-                    }
-                });
-                if (chartProps.yAxis.options.dither) {
-                    const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel2);
-                    trace.y = dither.map((ditherVal, index) => {
-                        return rawY[index] + ditherVal;
-                    });
+            rawY.map((val, index) => {
+                if (metaY.treatAsCategorical) {
+                    customdata[index]['Y'] = metaY.sortedCategoricalValues[val];
                 } else {
-                    trace.y = rawY;
+                    customdata[index]['Y'] = (val as number).toLocaleString(undefined, { maximumSignificantDigits: 5 });
                 }
+            });
+            if (chartProps.yAxis.options.dither) {
+                const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel2);
+                trace.y = dither.map((ditherVal, index) => {
+                    return rawY[index] + ditherVal;
+                });
+            } else {
+                trace.y = rawY;
+            }
         }
         hovertemplate += localization.Charts.rowIndex + ': %{customdata.Index}<br>';
         hovertemplate += '<extra></extra>';

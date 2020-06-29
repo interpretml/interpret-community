@@ -390,7 +390,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 plotlyProps.data[0].x = rawX;
                 plotlyProps.data[0].y = rawY;
                 plotlyProps.data[0].marker = {
-                    color: FabricStyles.fabricColorPalette[0], 
+                    color: FabricStyles.fabricColorPalette[0],
                 };
                 _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
                 _.set(plotlyProps, 'layout.yaxis.tickvals', yLabelIndexes);

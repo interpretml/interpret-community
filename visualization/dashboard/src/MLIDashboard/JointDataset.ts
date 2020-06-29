@@ -352,7 +352,7 @@ export class JointDataset {
             const sortedUniqueValues = _.uniq(values).sort((a, b) => {
                 return a - b;
             });
-            metadata.sortedCategoricalValues = sortedUniqueValues.map(num => num.toString()) as string[];
+            metadata.sortedCategoricalValues = sortedUniqueValues.map((num) => num.toString()) as string[];
             this.dataDict.forEach((row, rowIndex) => {
                 const numVal = row[key];
                 row[key] = sortedUniqueValues.indexOf(numVal);

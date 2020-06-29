@@ -454,11 +454,12 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 const includedIndexes = _.uniq(
                     this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property),
                 );
-                colorSeries = this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical ?
-                    includedIndexes.map(
-                    (category) =>
-                        this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category]
-                ) : includedIndexes;
+                colorSeries = this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical
+                    ? includedIndexes.map(
+                          (category) =>
+                              this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category],
+                      )
+                    : includedIndexes;
             }
         }
         return (
@@ -616,19 +617,17 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 ];
                 if (chartProps.yAxis && chartProps.yAxis.property !== ColumnCategories.none) {
                     const rawColor = cohort.unwrap(chartProps.yAxis.property, true);
-                    const styles = yMeta.sortedCategoricalValues.map(
-                        (label, index) => {
-                            return {
-                                target: index,
-                                value: {
-                                    name: label,
-                                    marker: {
-                                        color: FabricStyles.fabricColorPalette[index],
-                                    },
+                    const styles = yMeta.sortedCategoricalValues.map((label, index) => {
+                        return {
+                            target: index,
+                            value: {
+                                name: label,
+                                marker: {
+                                    color: FabricStyles.fabricColorPalette[index],
                                 },
-                            };
-                        },
-                    );
+                            },
+                        };
+                    });
                     transforms.push({
                         type: 'groupby',
                         groups: rawColor,
