@@ -9,7 +9,7 @@ trigger: none # No CI build
 pr: none # Not for pull requests
 
 schedules:
-- cron: "0 7 * * *" # Time is UTC
+- cron: "0 8 * * *" # Time is UTC
   displayName: Nightly Build
   branches:
     include:
@@ -23,7 +23,7 @@ jobs:
 - template: templates/all-tests-job-template.yml
   parameters:
     platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
-    pyVersions: [3.6, 3.7, 3.8]
+    pyVersions: [3.6, 3.7]
     installationType: PipLocal
     envArtifactStem: $(EnvArtifactStem)
     envFileStem: $(EnvFileStem)
