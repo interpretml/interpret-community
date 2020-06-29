@@ -391,7 +391,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private _getBinCountForProperty(key: string): number | undefined {
         const selectedMeta = this.props.jointDataset.metaDict[key];
         let binCount = undefined;
-        if (this.props.canBin && selectedMeta.treatAsCategorical === false) {
+        if (this.props.canBin && !selectedMeta.treatAsCategorical) {
             binCount =
                 selectedMeta.sortedCategoricalValues !== undefined
                     ? selectedMeta.sortedCategoricalValues.length
