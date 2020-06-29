@@ -17,7 +17,6 @@ if os.path.exists('../LICENSE'):
     shutil.copyfile('../LICENSE', LICENSE_FILE)
 
 
-
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',

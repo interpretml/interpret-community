@@ -38,7 +38,7 @@ class TestMlflow(object):
             log_explanation(TEST_EXPLANATION, global_explanation)
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
-            download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
+            client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
         # TODO: implement a nicer get_explanation
         full_path = os.path.join(TEST_DOWNLOAD, TEST_EXPLANATION, 'data', 'explanation')
         downloaded_explanation_mlflow = load_explanation(full_path)
@@ -62,7 +62,7 @@ class TestMlflow(object):
             log_explanation('local_explanation', local_explanation)
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
-            download_path = client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
+            client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
         # TODO: implement a nicer get_explanation
         full_path = os.path.join(TEST_DOWNLOAD, 'global_explanation', 'data', 'explanation')
         downloaded_explanation_mlflow = load_explanation(full_path)

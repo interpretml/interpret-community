@@ -12,11 +12,6 @@ from .tabular_explainer import TabularExplainer
 
 __all__ = ["TabularExplainer"]
 
-_major = '0'
-_minor = '12'
-_patch = '1'
-__version__ = '{}.{}.{}'.format(_major, _minor, _patch)
-
 # Setup logging infrustructure
 import logging
 import os
@@ -36,3 +31,8 @@ if interpret_c_logs is not None:
         handler.close()
         logger.removeHandler(handler)
     atexit.register(close_handler)
+
+_major = '0'
+_minor = '13'
+_patch = '0'
+__version__ = '{}.{}.{}'.format(_major, _minor, _patch)
