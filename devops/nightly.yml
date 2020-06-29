@@ -19,7 +19,6 @@ schedules:
 pool:
   vmImage: 'ubuntu-latest'
 
-  
 jobs:
 - template: templates/all-tests-job-template.yml
   parameters:
