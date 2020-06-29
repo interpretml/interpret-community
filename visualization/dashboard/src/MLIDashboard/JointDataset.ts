@@ -59,6 +59,7 @@ export class JointDataset {
     public static readonly ProbabilityYRoot = 'ProbabilityClass';
     public static readonly TrueYLabel = 'TrueY';
     public static readonly DitherLabel = 'Dither';
+    public static readonly DitherLabel2 = 'Dither2';
     public static readonly ClassificationError = 'ClassificationError';
     public static readonly RegressionError = 'RegressionError';
     public static readonly ReducedLocalImportanceRoot = 'LocalImportance';
@@ -82,8 +83,13 @@ export class JointDataset {
 
     private readonly _modelMeta: IExplanationModelMetadata;
     private readonly _localExplanationIndexesComputed: boolean[];
+    // The user elected to treat numeric columns as categorical. Store the unaltered values here in case they toggle back.
+    private numericValuedColumsCache: Array<{ [key: string]: number }> = [];
     public rawLocalImportance: number[][][];
     public metaDict: { [key: string]: IJointMeta } = {};
+
+    // Can add method to set dither scale in future, update charts on change.
+    private readonly ditherScale = 0.1;
 
     // creating public static methods of the class instance methonds.
     // This is to enable prototyping the cohort concept, where we don't have a single
@@ -343,10 +349,19 @@ export class JointDataset {
         metadata.treatAsCategorical = value;
         if (value) {
             const values = this.dataDict.map((row) => row[key]);
-            metadata.sortedCategoricalValues = _.uniq(values).sort((a, b) => {
+            const sortedUniqueValues = _.uniq(values).sort((a, b) => {
                 return a - b;
-            }) as any[];
+            });
+            metadata.sortedCategoricalValues = sortedUniqueValues.map(num => num.toString()) as string[];
+            this.dataDict.forEach((row, rowIndex) => {
+                const numVal = row[key];
+                row[key] = sortedUniqueValues.indexOf(numVal);
+                this.numericValuedColumsCache[rowIndex][key] = numVal;
+            });
         } else {
+            this.dataDict.forEach((row, rowIndex) => {
+                row[key] = this.numericValuedColumsCache[rowIndex][key];
+            });
             this.addBin(key);
         }
     }
@@ -424,8 +439,12 @@ export class JointDataset {
         this.dataDict = Array.from({ length: arr.length } as any).map((unused, index) => {
             const dict = {};
             dict[JointDataset.IndexLabel] = index;
-            dict[JointDataset.DitherLabel] = 0.2 * Math.random() - 0.1;
+            dict[JointDataset.DitherLabel] = 2 * this.ditherScale * Math.random() - this.ditherScale;
+            dict[JointDataset.DitherLabel2] = 2 * this.ditherScale * Math.random() - this.ditherScale;
             return dict;
+        });
+        this.numericValuedColumsCache = Array.from({ length: arr.length } as any).map((unused, index) => {
+            return {};
         });
         this.metaDict[JointDataset.IndexLabel] = {
             label: localization.ExplanationScatter.index,

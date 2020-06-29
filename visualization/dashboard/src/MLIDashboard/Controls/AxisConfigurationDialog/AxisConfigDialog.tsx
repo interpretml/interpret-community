@@ -229,7 +229,15 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                                     onDecrement={this.setNumericValue.bind(this, -1, selectedMeta)}
                                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
                                                 />
-                                            )}
+                                            )
+                                        }
+                                        {!(this.props.mustBin || this.state.selectedColumn.options.bin) && this.props.canDither &&
+                                            <Checkbox
+                                                label={localization.AxisConfigDialog.ditherLabel}
+                                                checked={this.state.selectedColumn.options.dither}
+                                                onChange={this.ditherChecked}
+                                            />
+                                        }
                                     </div>
                                 )}
                             </div>

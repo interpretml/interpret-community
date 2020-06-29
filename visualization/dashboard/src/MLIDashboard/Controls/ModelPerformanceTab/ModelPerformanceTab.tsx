@@ -347,7 +347,6 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         let yLabelIndexes: number[];
         const yMeta = jointData.metaDict[chartProps.yAxis.property];
         const yAxisName = yMeta.label;
-        const yTreatAtCategoricalOnly = yMeta.treatAsCategorical && !yMeta.isCategorical;
         if (chartProps.yAxis.property === Cohort.CohortKey) {
             rawX = [];
             rawY = [];
@@ -369,7 +368,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             rawY = cohort.unwrap(chartProps.yAxis.property, true);
             rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
             yLabels = yMeta.sortedCategoricalValues;
-            yLabelIndexes = yTreatAtCategoricalOnly ? yLabels as number[]: yLabels.map((unused, index) => index);
+            yLabelIndexes = yLabels.map((unused, index) => index);
         }
 
         // The bounding box for the labels on y axis are too small, add some white space as buffer
@@ -403,7 +402,7 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                 // We also use the selected Y property as the series prop, since all histograms will just be a count.
                 plotlyProps.data[0].type = 'bar';
                 const x = new Array(rawY.length).fill(1);
-                plotlyProps.data[0].text = (yTreatAtCategoricalOnly ? rawY : rawY.map((index) => yLabels[index]) as any[]);
+                plotlyProps.data[0].text = (rawY.map((index) => yLabels[index]) as any[]);
                 plotlyProps.data[0].hoverinfo = 'all';
                 plotlyProps.data[0].hovertemplate = ` ${yAxisName}:%{y}<br> ${localization.Charts.count}: %{x}<br>`;
                 plotlyProps.data[0].y = rawY;
@@ -454,14 +453,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const indexArray = cohort.unwrap(JointDataset.IndexLabel);
             const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
                 .sortedCategoricalValues;
-            const treatAsCategorical =
-                this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
-                !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
             const indexes = sortedCategoricalValues.map((label, labelIndex) => {
-                const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
-
                 return indexArray.filter((unused, index) => {
-                    return yValues[index] === matchingIndex;
+                    return yValues[index] === labelIndex;
                 });
             });
             return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);
