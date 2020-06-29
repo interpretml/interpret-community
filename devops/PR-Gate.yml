@@ -1,64 +1,33 @@
-trigger: none
-pr:
-  - master
-
-pool:
-  vmImage: "ubuntu-latest"
+# ADO Pipeline for PRs
 
 variables:
-  artifactFeed: interpret-extensions-feed
+  EnvArtifactStem: 'environment'
+  EnvFileStem: 'environment'
 
-steps:
-  - bash: echo "##vso[task.prependpath]$CONDA/bin"
-    displayName: Add conda to PATH
+pr:
+- master
 
-  - template: templates/create-env-template.yml
+trigger: none # No CI build
 
-  - bash: |
-      source activate interp
-      pip install -e ./python
-    displayName: Install interpret-community
+pool:
+  vmImage: 'ubuntu-latest'
 
-  - bash: |
-      source activate interp
-      pip install --upgrade setuptools wheel twine
-      cd ./python
-      python setup.py bdist_wheel
-      cd ..
-    displayName: Create a wheel
+  
+jobs:
+- template: templates/all-tests-job-template.yml
+  parameters:
+    platforms:  { Linux: ubuntu-latest }
+    testRunTypes: ['Unit']
+    pyVersions: [3.6]
+    installationType: PipLocal
+    envArtifactStem: $(EnvArtifactStem)
+    envFileStem: $(EnvFileStem)
 
-  - task: TwineAuthenticate@0
-    displayName: Configure twine authentication
-    inputs:
-      artifactFeeds: $(artifactFeed)
-
-  - bash: |
-      source activate interp
-      cd ./python
-      twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
-      cd ..
-    displayName: Publish artifacts
-
-  - bash: |
-      source activate interp
-      flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-    displayName: "Run flake8"
-
-  - bash: |
-      cd ./visualization/dashboard
-      yarn lintci
-      cd ../..
-    displayName: "Run visualization linter"
-
-  - bash: |
-      source activate interp
-      pip freeze > $(System.DefaultWorkingDirectory)/pip_freeze.txt \ &&
-      python -m pytest -m "not notebooks" test --junitxml=./TEST-TEST.xml
-    displayName: "Run tests"
-
-  - task: PublishTestResults@2
-    displayName: "Publish Test Results **/TEST-*.xml"
-    condition: succeededOrFailed()
-
-  - publish: $(System.DefaultWorkingDirectory)/pip_freeze.txt
-    artifact: PipFreeze
+- template: templates/all-tests-job-template.yml
+  parameters:
+    platforms:  { Linux: ubuntu-latest, MacOS: macos-latest }
+    testRunTypes: ['Notebooks']
+    pyVersions: [3.7]
+    installationType: PipLocal
+    envArtifactStem: $(EnvArtifactStem)
+    envFileStem: $(EnvFileStem)
