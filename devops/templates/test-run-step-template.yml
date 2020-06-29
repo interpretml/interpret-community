@@ -72,19 +72,19 @@ steps:
 - ${{ if eq(parameters.testRunType, 'Unit')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/unit --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Unit"
+        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Unit"
     displayName: Run Unit tests
 
-- ${{ if eq(parameters.testRunType, 'Integration')}}:
+- ${{ if eq(parameters.testRunType, 'Notebooks')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/integration/ --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Integration"
-    displayName: Run Integration tests
+        python -m pytest test/ -m "notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
+    displayName: Run Notebook tests
 
 - ${{ if eq(parameters.testRunType, 'CodeCoverage')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/unit --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Coverage"  --cov=python --cov-report=xml --cov-report=html -o unit_suite_name="UnitCoverage"
+        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Coverage"  --cov=python --cov-report=xml --cov-report=html -o unit_suite_name="UnitCoverage"
     displayName: Run Code Coverage tests
 
   - task: PublishCodeCoverageResults@1
@@ -106,5 +106,11 @@ steps:
 - bash: |
       source activate ${{parameters.condaEnv}}
       python -m pip install flake8
-      flake8 --ignore=E501,E266,W503,F403,F405,E731,F821,E203 ./python/
+      flake8 flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
   displayName: 'Run flake8'
+  
+- bash: |
+    cd ./visualization/dashboard
+    yarn lintci
+    cd ../..
+  displayName: "Run visualization linter"
