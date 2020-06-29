@@ -1,26 +1,33 @@
 # install needed packages
+parameters:
+- name: pythonVersion
+  type: string
+- name: condaEnv
+  type: string
+  default: interpret_conda_env
+
 steps:
-  - bash: conda create --yes --quiet --name interp python=3.6
+  - bash: conda create --yes --quiet --name ${{parameters.condaEnv}} python=${{parameters.pythonVersion}}
     displayName: Create Anaconda environment
 
   - bash: |
-      source activate interp
-      conda install --yes --quiet --name interp pytorch-cpu torchvision-cpu -c pytorch
-      conda install --yes -c anaconda -n interp jupyter pip
+      source activate ${{parameters.condaEnv}}
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch-cpu torchvision-cpu -c pytorch
+      conda install --yes -c anaconda -n  ${{parameters.condaEnv}} jupyter pip
     displayName: Install Anaconda packages
 
   - bash: |
-      source activate interp
+      source activate ${{parameters.condaEnv}} 
       pip install --upgrade pip
     displayName: Upgrade pip to latest
 
   - bash: |
-      source activate interp
+      source activate  ${{parameters.condaEnv}} 
       pip install -r requirements.txt
     displayName: Install required pip packages
 
   - bash: |
-      source activate interp
+      source activate  ${{parameters.condaEnv}} 
       conda install --yes -c conda-forge -n interp papermill 
       pip install nteract-scrapbook
     displayName: List Jupyter Kernel and fix
