@@ -192,6 +192,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                         </Text>
                                         {this.props.canDither && (
                                             <Checkbox
+                                                key={this.state.selectedColumn.property}
                                                 label={localization.AxisConfigDialog.ditherLabel}
                                                 checked={this.state.selectedColumn.options.dither}
                                                 onChange={this.ditherChecked}
@@ -211,6 +212,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                         </div>
                                         {this.props.canBin && !this.props.mustBin && (
                                             <Checkbox
+                                                key={this.state.selectedColumn.property}
                                                 label={localization.AxisConfigDialog.binLabel}
                                                 checked={this.state.selectedColumn.options.bin}
                                                 onChange={this.shouldBinClicked}
@@ -233,6 +235,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                         }
                                         {!(this.props.mustBin || this.state.selectedColumn.options.bin) && this.props.canDither &&
                                             <Checkbox
+                                                key={this.state.selectedColumn.property}
                                                 label={localization.AxisConfigDialog.ditherLabel}
                                                 checked={this.state.selectedColumn.options.dither}
                                                 onChange={this.ditherChecked}
