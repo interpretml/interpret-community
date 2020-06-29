@@ -46,16 +46,4 @@ jobs:
 
           
           steps:
-          - template: test-run-step-template.yml
-            parameters:
-              testRunType: ${{testRunType}}
-              installationType: ${{parameters.installationType}}
-              pythonVersion: ${{pyVer}}
-              envInfoArtifact: $(EnvInfoArtifact)
-              envInfoFileBase: $(EnvInfoFileBase)
-              # Following are used if the installationType is PyPI
-              pypiUrl: $(pypiUrl)
-              versionArtifactName: ${{parameters.versionArtifactName}}
-              versionArtifactFile: ${{parameters.versionArtifactFile}}
-              # Following used if installationType is WheelArtifact
-              wheelArtifactName: ${{parameters.wheelArtifactName}}
+          - bash: echo ${{pyVer}}
