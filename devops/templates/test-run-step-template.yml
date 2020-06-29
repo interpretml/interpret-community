@@ -42,10 +42,10 @@ parameters:
 steps:
 - template: conda-path-step-template.yml
 
-- bash: |
-      python tools/generate_conda_files.py --name ${{parameters.condaEnv}} --python-version ${{parameters.pythonVersion}}
-      conda env create -n ${{parameters.condaEnv}} --file=${{parameters.condaEnv}}.yaml
-  displayName: 'Creating Conda Environment with dependencies'
+- template: create-env-template.yml
+  parameters:
+    pythonVersion: ${{parameters.pythonversion}}
+    condaEnv: ${{parameters.condaEnv}}
 
 - bash: |
       source activate ${{parameters.condaEnv}}
