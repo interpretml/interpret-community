@@ -86,8 +86,8 @@ export class FeatureImportanceBar extends React.PureComponent<IFeatureBarProps, 
                 <div className={classNames.verticalAxis}>
                     <div className={classNames.rotatedVerticalBox}>
                         <div>
-                            {this.props.yAxisLabels.map((label) => (
-                                <Text block variant="medium" className={classNames.boldText}>
+                            {this.props.yAxisLabels.map((label, i) => (
+                                <Text block variant="medium" className={classNames.boldText} key={i}>
                                     {label}
                                 </Text>
                             ))}

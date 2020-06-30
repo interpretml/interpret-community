@@ -59,7 +59,7 @@ export class CohortList extends React.PureComponent<ICohortListProps> {
                     </Text>
                     {this.props.cohorts.map((cohort, index) => {
                         return (
-                            <div className={classNames.cohortBox}>
+                            <div className={classNames.cohortBox} key={index}>
                                 <div className={classNames.cohortLabelWrapper}>
                                     <Text variant={'mediumPlus'} nowrap className={classNames.cohortLabel}>
                                         {cohort.name}

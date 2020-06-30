@@ -454,17 +454,19 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 const includedIndexes = _.uniq(
                     this.props.cohorts[this.state.selectedCohortIndex].unwrap(colorAxis.property),
                 );
-                colorSeries = includedIndexes.map(
-                    (category) =>
-                        this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category],
-                );
+                colorSeries = this.props.jointDataset.metaDict[colorAxis.property].treatAsCategorical
+                    ? includedIndexes.map(
+                          (category) =>
+                              this.props.jointDataset.metaDict[colorAxis.property].sortedCategoricalValues[category],
+                      )
+                    : includedIndexes;
             }
         }
         return (
             <div className={classNames.legend}>
                 {colorSeries.map((name, i) => {
                     return (
-                        <div className={classNames.legendItem}>
+                        <div className={classNames.legendItem} key={i}>
                             <div
                                 className={classNames.colorBox}
                                 style={{ backgroundColor: FabricStyles.fabricColorPalette[i] }}
@@ -504,7 +506,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 plotlyProps.data[0].type = chartProps.chartType;
                 plotlyProps.data[0].mode = PlotlyMode.markers;
                 if (chartProps.xAxis) {
-                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                    if (jointData.metaDict[chartProps.xAxis.property].treatAsCategorical) {
                         const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
                         const xLabelIndexes = xLabels.map((unused, index) => index);
                         _.set(plotlyProps, 'layout.xaxis.ticktext', xLabels);
@@ -521,7 +523,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     }
                 }
                 if (chartProps.yAxis) {
-                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                    if (jointData.metaDict[chartProps.yAxis.property].treatAsCategorical) {
                         const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
                         const yLabelIndexes = yLabels.map((unused, index) => index);
                         _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
@@ -529,7 +531,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     }
                     const rawY = cohort.unwrap(chartProps.yAxis.property);
                     if (chartProps.yAxis.options.dither) {
-                        const dithered = cohort.unwrap(JointDataset.DitherLabel);
+                        const dithered = cohort.unwrap(JointDataset.DitherLabel2);
                         plotlyProps.data[0].y = dithered.map((dither, index) => {
                             return rawY[index] + dither;
                         });
@@ -581,7 +583,9 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
             case ChartTypes.Histogram: {
                 cohort.sort(chartProps.yAxis.property);
                 const rawX = cohort.unwrap(chartProps.xAxis.property, true);
-                const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
+                const xMeta = jointData.metaDict[chartProps.xAxis.property];
+                const yMeta = jointData.metaDict[chartProps.yAxis.property];
+                const xLabels = xMeta.sortedCategoricalValues;
                 const xLabelIndexes = xLabels.map((unused, index) => index);
                 // color series will be set by the y axis if it is categorical, otherwise no color for aggregate charts
                 if (!jointData.metaDict[chartProps.yAxis.property].treatAsCategorical) {
@@ -613,19 +617,17 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 ];
                 if (chartProps.yAxis && chartProps.yAxis.property !== ColumnCategories.none) {
                     const rawColor = cohort.unwrap(chartProps.yAxis.property, true);
-                    const styles = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues.map(
-                        (label, index) => {
-                            return {
-                                target: index,
-                                value: {
-                                    name: label,
-                                    marker: {
-                                        color: FabricStyles.fabricColorPalette[index],
-                                    },
+                    const styles = yMeta.sortedCategoricalValues.map((label, index) => {
+                        return {
+                            target: index,
+                            value: {
+                                name: label,
+                                marker: {
+                                    color: FabricStyles.fabricColorPalette[index],
                                 },
-                            };
-                        },
-                    );
+                            },
+                        };
+                    });
                     transforms.push({
                         type: 'groupby',
                         groups: rawColor,
@@ -643,8 +645,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
 
     private static buildHoverTemplate(jointData: JointDataset, chartProps: IGenericChartProps): string {
         let hovertemplate = '';
-        const xName = jointData.metaDict[chartProps.xAxis.property].abbridgedLabel;
-        const yName = jointData.metaDict[chartProps.yAxis.property].abbridgedLabel;
+        const xName = jointData.metaDict[chartProps.xAxis.property].label;
+        const yName = jointData.metaDict[chartProps.yAxis.property].label;
         switch (chartProps.chartType) {
             case ChartTypes.Scatter: {
                 if (chartProps.xAxis) {
@@ -663,7 +665,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 }
                 if (chartProps.colorAxis) {
                     hovertemplate +=
-                        jointData.metaDict[chartProps.colorAxis.property].abbridgedLabel + ': %{customdata.Color}<br>';
+                        jointData.metaDict[chartProps.colorAxis.property].label + ': %{customdata.Color}<br>';
                 }
                 hovertemplate += localization.Charts.rowIndex + ': %{customdata.AbsoluteIndex}<br>';
                 break;
@@ -672,7 +674,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 hovertemplate += xName + ': %{text}<br>';
                 if (
                     chartProps.yAxis.property !== ColumnCategories.none &&
-                    jointData.metaDict[chartProps.yAxis.property].isCategorical
+                    jointData.metaDict[chartProps.yAxis.property].treatAsCategorical
                 ) {
                     hovertemplate += yName + ': %{customdata.Y}<br>';
                 }
@@ -699,7 +701,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 const rawX = cohort.unwrap(chartProps.xAxis.property);
                 rawX.forEach((val, index) => {
                     // If categorical, show string value in tooltip
-                    if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+                    if (jointData.metaDict[chartProps.xAxis.property].treatAsCategorical) {
                         customdata[index]['X'] =
                             jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues[val];
                     } else {
@@ -714,7 +716,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                 const rawY = cohort.unwrap(chartProps.yAxis.property);
                 rawY.forEach((val, index) => {
                     // If categorical, show string value in tooltip
-                    if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+                    if (jointData.metaDict[chartProps.yAxis.property].treatAsCategorical) {
                         customdata[index]['Y'] =
                             jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues[val];
                     } else {
@@ -743,7 +745,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         }
         if (chartProps.chartType === ChartTypes.Histogram && chartProps.yAxis.property !== ColumnCategories.none) {
             const yMeta = jointData.metaDict[chartProps.yAxis.property];
-            if (yMeta.isCategorical) {
+            if (yMeta.treatAsCategorical) {
                 const rawY = cohort.unwrap(chartProps.yAxis.property);
                 rawY.forEach((val, index) => {
                     customdata[index]['Y'] = yMeta.sortedCategoricalValues[val];
@@ -773,7 +775,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
 
     private generateDefaultYAxis(): ISelectorConfig {
         const yKey = JointDataset.DataLabelRoot + '0';
-        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
+        const yIsDithered = this.props.jointDataset.metaDict[yKey].treatAsCategorical;
         return {
             property: yKey,
             options: {
