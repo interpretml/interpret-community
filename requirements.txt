@@ -20,3 +20,4 @@ mlflow
 pytest-cov
 nbformat
 papermill
+nteract-scrapbook
