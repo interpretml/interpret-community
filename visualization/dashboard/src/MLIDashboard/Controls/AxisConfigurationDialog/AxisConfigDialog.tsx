@@ -175,6 +175,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 {selectedMeta.featureRange &&
                                     selectedMeta.featureRange.rangeType === RangeTypes.integer && (
                                         <Checkbox
+                                            key={this.state.selectedColumn.property}
                                             className={styles.treatCategorical}
                                             label={localization.AxisConfigDialog.TreatAsCategorical}
                                             checked={selectedMeta.treatAsCategorical}
@@ -191,6 +192,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                         </Text>
                                         {this.props.canDither && (
                                             <Checkbox
+                                                key={this.state.selectedColumn.property}
                                                 label={localization.AxisConfigDialog.ditherLabel}
                                                 checked={this.state.selectedColumn.options.dither}
                                                 onChange={this.ditherChecked}
@@ -210,6 +212,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                         </div>
                                         {this.props.canBin && !this.props.mustBin && (
                                             <Checkbox
+                                                key={this.state.selectedColumn.property}
                                                 label={localization.AxisConfigDialog.binLabel}
                                                 checked={this.state.selectedColumn.options.bin}
                                                 onChange={this.shouldBinClicked}
@@ -227,6 +230,15 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                                     onIncrement={this.setNumericValue.bind(this, 1, selectedMeta)}
                                                     onDecrement={this.setNumericValue.bind(this, -1, selectedMeta)}
                                                     onValidate={this.setNumericValue.bind(this, 0, selectedMeta)}
+                                                />
+                                            )}
+                                        {!(this.props.mustBin || this.state.selectedColumn.options.bin) &&
+                                            this.props.canDither && (
+                                                <Checkbox
+                                                    key={this.state.selectedColumn.property}
+                                                    label={localization.AxisConfigDialog.ditherLabel}
+                                                    checked={this.state.selectedColumn.options.dither}
+                                                    onChange={this.ditherChecked}
                                                 />
                                             )}
                                     </div>
@@ -258,6 +270,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
 
     private readonly setAsCategorical = (ev: React.FormEvent<HTMLElement>, checked: boolean): void => {
         this.props.jointDataset.setTreatAsCategorical(this.state.selectedColumn.property, checked);
+        this.setState({ binCount: checked ? undefined : AxisConfigDialog.MIN_HIST_COLS });
         this.forceUpdate();
     };
 
@@ -271,6 +284,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                         bin: checked,
                     },
                 },
+                binCount: undefined,
             });
         } else {
             const binCount = this._getBinCountForProperty(property);
@@ -377,7 +391,7 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
     private _getBinCountForProperty(key: string): number | undefined {
         const selectedMeta = this.props.jointDataset.metaDict[key];
         let binCount = undefined;
-        if (this.props.canBin && selectedMeta.isCategorical === false) {
+        if (this.props.canBin && !selectedMeta.treatAsCategorical) {
             binCount =
                 selectedMeta.sortedCategoricalValues !== undefined
                     ? selectedMeta.sortedCategoricalValues.length

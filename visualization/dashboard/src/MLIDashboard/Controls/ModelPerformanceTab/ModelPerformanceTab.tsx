@@ -164,12 +164,12 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                             </div>
                                         )}
                                         {this.props.jointDataset.hasTrueY &&
-                                            metricsList.map((stats) => {
+                                            metricsList.map((stats, index) => {
                                                 return (
-                                                    <div className={classNames.statsBox}>
-                                                        {stats.map((labeledStat) => {
+                                                    <div className={classNames.statsBox} key={index}>
+                                                        {stats.map((labeledStat, statIndex) => {
                                                             return (
-                                                                <Text block>
+                                                                <Text block key={statIndex}>
                                                                     {localization.formatString(
                                                                         labeledStat.label,
                                                                         labeledStat.stat.toLocaleString(undefined, {
@@ -345,7 +345,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         let rawY: number[];
         let yLabels: string[];
         let yLabelIndexes: number[];
-        const yAxisName = jointData.metaDict[chartProps.yAxis.property].label;
+        const yMeta = jointData.metaDict[chartProps.yAxis.property];
+        const yAxisName = yMeta.label;
         if (chartProps.yAxis.property === Cohort.CohortKey) {
             rawX = [];
             rawY = [];
@@ -366,11 +367,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const cohort = cohorts[selectedCohortIndex];
             rawY = cohort.unwrap(chartProps.yAxis.property, true);
             rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
-            yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
+            yLabels = yMeta.sortedCategoricalValues;
             yLabelIndexes = yLabels.map((unused, index) => index);
         }
 
-        // The buonding box for the labels on y axis are too small, add some white space as buffer
+        // The bounding box for the labels on y axis are too small, add some white space as buffer
         yLabels = yLabels.map((val) => {
             const len = val.length;
             let result = ' ';
@@ -452,14 +453,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const indexArray = cohort.unwrap(JointDataset.IndexLabel);
             const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
                 .sortedCategoricalValues;
-            const treatAsCategorical =
-                this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
-                !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
             const indexes = sortedCategoricalValues.map((label, labelIndex) => {
-                const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
-
                 return indexArray.filter((unused, index) => {
-                    return yValues[index] === matchingIndex;
+                    return yValues[index] === labelIndex;
                 });
             });
             return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);

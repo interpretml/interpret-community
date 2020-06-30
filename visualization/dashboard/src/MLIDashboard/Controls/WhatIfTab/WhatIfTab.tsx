@@ -436,6 +436,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                             if (item.data && item.data.categoricalOptions) {
                                                 return (
                                                     <ComboBox
+                                                        key={item.key}
                                                         label={metaInfo.abbridgedLabel}
                                                         autoComplete={'on'}
                                                         allowFreeform={true}
@@ -450,6 +451,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                             }
                                             return (
                                                 <TextField
+                                                    key={item.key}
                                                     label={metaInfo.abbridgedLabel}
                                                     value={this.stringifedValues[item.key]}
                                                     onChange={this.setCustomRowProperty.bind(this, item.key, false)}
@@ -959,15 +961,15 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     const className = this.props.jointDataset.metaDict[JointDataset.PredictedYLabel]
                         .sortedCategoricalValues[index];
                     return (
-                        <Text block variant="small">
+                        <Text block variant="small" key={index}>
                             {className}
                         </Text>
                     );
                 });
-                const tooltipProbs = sortedProbs.map((index) => {
+                const tooltipProbs = sortedProbs.map((index, key) => {
                     const prob = predictedProbs[index];
                     return (
-                        <Text block variant="small">
+                        <Text block variant="small" key={key}>
                             {prob.toLocaleString(undefined, { maximumFractionDigits: 3 })}
                         </Text>
                     );
@@ -1137,7 +1139,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     const className = this.props.jointDataset.metaDict[JointDataset.PredictedYLabel]
                         .sortedCategoricalValues[index];
                     return (
-                        <Text block variant="small">
+                        <Text block variant="small" key={index}>
                             {className}
                         </Text>
                     );
@@ -1145,7 +1147,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                 const tooltipProbs = sortedProbs.map((index) => {
                     const prob = predictedProbs[index];
                     return (
-                        <Text block variant="small">
+                        <Text block variant="small" key={index}>
                             {prob.toLocaleString(undefined, { maximumFractionDigits: 3 })}
                         </Text>
                     );
@@ -1154,20 +1156,20 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                     const delta = predictedProbs[index] - basePredictedProbs[index];
                     if (delta < 0) {
                         return (
-                            <Text className={classNames.negativeNumber} block variant="small">
+                            <Text className={classNames.negativeNumber} block variant="small" key={index}>
                                 {delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}
                             </Text>
                         );
                     }
                     if (delta > 0) {
                         return (
-                            <Text className={classNames.positiveNumber} block variant="small">
+                            <Text className={classNames.positiveNumber} block variant="small" key={index}>
                                 {'+' + delta.toLocaleString(undefined, { maximumFractionDigits: 3 })}
                             </Text>
                         );
                     }
                     return (
-                        <Text block variant="small">
+                        <Text block variant="small" key={index}>
                             0
                         </Text>
                     );
@@ -1670,7 +1672,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         };
 
         if (chartProps.xAxis) {
-            if (jointData.metaDict[chartProps.xAxis.property].isCategorical) {
+            if (jointData.metaDict[chartProps.xAxis.property].treatAsCategorical) {
                 const xLabels = jointData.metaDict[chartProps.xAxis.property].sortedCategoricalValues;
                 const xLabelIndexes = xLabels.map((unused, index) => index);
                 _.set(plotlyProps, 'layout.xaxis.ticktext', xLabels);
@@ -1678,7 +1680,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
             }
         }
         if (chartProps.yAxis) {
-            if (jointData.metaDict[chartProps.yAxis.property].isCategorical) {
+            if (jointData.metaDict[chartProps.yAxis.property].treatAsCategorical) {
                 const yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
                 const yLabelIndexes = yLabels.map((unused, index) => index);
                 _.set(plotlyProps, 'layout.yaxis.ticktext', yLabels);
@@ -1706,42 +1708,41 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         if (chartProps.xAxis) {
             const metaX = this.props.jointDataset.metaDict[chartProps.xAxis.property];
             const rawX = JointDataset.unwrap(dictionary, chartProps.xAxis.property);
-            if (metaX.isCategorical) {
-                hovertemplate += metaX.abbridgedLabel + ': %{customdata.X}<br>';
-                rawX.map((val, index) => {
+            hovertemplate += metaX.label + ': %{customdata.X}<br>';
+
+            rawX.map((val, index) => {
+                if (metaX.treatAsCategorical) {
                     customdata[index]['X'] = metaX.sortedCategoricalValues[val];
-                });
-                if (chartProps.xAxis.options.dither) {
-                    const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel);
-                    trace.x = dither.map((ditherVal, index) => {
-                        return rawX[index] + ditherVal;
-                    });
                 } else {
-                    trace.x = rawX;
+                    customdata[index]['X'] = (val as number).toLocaleString(undefined, { maximumSignificantDigits: 5 });
                 }
+            });
+            if (chartProps.xAxis.options.dither) {
+                const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel);
+                trace.x = dither.map((ditherVal, index) => {
+                    return rawX[index] + ditherVal;
+                });
             } else {
-                hovertemplate += metaX.abbridgedLabel + ': %{x}<br>';
                 trace.x = rawX;
             }
         }
         if (chartProps.yAxis) {
             const metaY = this.props.jointDataset.metaDict[chartProps.yAxis.property];
             const rawY = JointDataset.unwrap(dictionary, chartProps.yAxis.property);
-            if (metaY.isCategorical) {
-                hovertemplate += metaY.abbridgedLabel + ': %{customdata.Y}<br>';
-                rawY.map((val, index) => {
+            hovertemplate += metaY.label + ': %{customdata.Y}<br>';
+            rawY.map((val, index) => {
+                if (metaY.treatAsCategorical) {
                     customdata[index]['Y'] = metaY.sortedCategoricalValues[val];
-                });
-                if (chartProps.yAxis.options.dither) {
-                    const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel);
-                    trace.y = dither.map((ditherVal, index) => {
-                        return rawY[index] + ditherVal;
-                    });
                 } else {
-                    trace.y = rawY;
+                    customdata[index]['Y'] = (val as number).toLocaleString(undefined, { maximumSignificantDigits: 5 });
                 }
+            });
+            if (chartProps.yAxis.options.dither) {
+                const dither = JointDataset.unwrap(dictionary, JointDataset.DitherLabel2);
+                trace.y = dither.map((ditherVal, index) => {
+                    return rawY[index] + ditherVal;
+                });
             } else {
-                hovertemplate += metaY.abbridgedLabel + ': %{y}<br>';
                 trace.y = rawY;
             }
         }
@@ -1753,7 +1754,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
 
     private generateDefaultChartAxes(): void {
         const yKey = JointDataset.DataLabelRoot + '0';
-        const yIsDithered = this.props.jointDataset.metaDict[yKey].isCategorical;
+        const yIsDithered = this.props.jointDataset.metaDict[yKey].treatAsCategorical;
         const chartProps: IGenericChartProps = {
             chartType: ChartTypes.Scatter,
             xAxis: {
