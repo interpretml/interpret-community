@@ -17,7 +17,7 @@ def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_
         from mlflow.utils.file_utils import _copy_file_or_tree
         from mlflow.pyfunc.model import get_default_conda_env
     except ImportError as e:
-        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, "
+        raise Exception("Could not log_explanation to mlflow. Missing mlflow dependency, "
                         "pip install mlflow to resolve the error: {}.".format(e))
 
     if os.path.exists(path):
@@ -52,7 +52,7 @@ def log_explanation(name, explanation):
     try:
         from mlflow.models import Model
     except ImportError as e:
-        raise Exception("Could not log_model to mlflow. Missing mlflow dependency, "
+        raise Exception("Could not log_explanation to mlflow. Missing mlflow dependency, "
                         "pip install mlflow to resolve the error: {}.".format(e))
     import cloudpickle as pickle
 
