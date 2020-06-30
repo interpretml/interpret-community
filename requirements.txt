@@ -19,3 +19,4 @@ jinja2
 mlflow
 pytest-cov
 nbformat
+papermill
