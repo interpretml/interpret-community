@@ -433,50 +433,70 @@ tabular_explainer = TabularExplainer(clf.steps[-1][1],
 
 ## Visualizations
 
-Load the visualization dashboard in your noteboook to understand and interpret your model:
-
-### Global visualizations
-
-The following plots provide a global view of the trained model along with its predictions and explanations.
-
-|Plot|Description|
-|----|-----------|
-|Data Exploration| Displays an overview of the dataset along with prediction values.|
-|Global Importance|Aggregates feature importance values of individual datapoints to show the model's overall top K (configurable K) important features. Helps understanding of underlying model's overall behavior.|
-|Explanation Exploration|Demonstrates how a feature affects a change in model’s prediction values, or the probability of prediction values. Shows impact of feature interactions.|
-|Summary Importance|Uses indiviual feature importance values across all data points to show the distribution of each feature's impact on the prediction value. Using this diagram, you investigate in what direction the feature values affects the prediction values.
-|
-
-
-![Visualization Dashboard Global](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/global-charts.png)
-
-
-
-### Local visualizations
-
-You can click on any individual data point at any time of the preceding plots to load the local feature importance plot for the given data point.
-
-|Plot|Description|
-|----|-----------|
-|Local Importance|Shows the top K (configurable K) important features for an individual prediction. Helps illustrate the local behavior of the underlying model on a specific data point.|
-|Perturbation Exploration (what if analysis)|Allows changes to feature values of the selected data point and observe resulting changes to prediction value.|
-|Individual Conditional Expectation (ICE)| Allows feature value changes from a minimum value to a maximum value. Helps illustrate how the data point's prediction changes when a feature changes.|
-
-
-![Visualization Dashboard Local Feature Importance](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/local-charts.png)
-
-![Visualization Dashboard Feature Perturbation](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/perturbation.gif)
-
-![Visualization Dashboard ICE Plots](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/ice-plot.png)
-
-
-To load the visualization dashboard, use the following code:
+Load the visualization dashboard in your notebook to understand and interpret your model:
 
 ```python
 from interpret_community.widget import ExplanationDashboard
 
-ExplanationDashboard(global_explanation, model, datasetX=x_test)
+ExplanationDashboard(global_explanation, model, datasetX=x_test, trueY=y_test)
 ```
+Once you load the visualization dashboard, you can investigate different aspects of your dataset and trained model via four tab views: 
+
+* Model Performance
+* Data Explorer	
+* Aggregate Feature Importance
+* Individual Feature Importance and What-If	
+
+>[!NOTE]
+> Click on "Open in a new tab" on the top left corner to get a better view of the dashboard in a new tab.
+
+
+You can further create custom cohorts (subgroups of your dataset) to explore the insights across different subgroups (e.g., females vs males). The created cohorts can contain more than one filter (e.g., age < 30 and sex = female) and will be visible from all of the four tabs. The following sections demonstrate the visualization dashboard capabilities on a [classification model trained on employee attrition dataset]((https://github.com/interpretml/interpret-community/blob/master/notebooks/simple-feature-transformations-explain-local.ipynb)). Besides the default cohort (including the whole dataset), there are two additional cohorts created: employees with Age <= 35 and employees with Age > 35.
+
+
+![Visualization Dashboard Cohorts](./img/Cohorts.png)
+
+
+### Model performance 
+This tab enables you to evaluate your model by observing its performance metrics and prediction probabilities/classes/values across different cohorts.
+
+![Visualization Dashboard Cohorts](./img/ModelPerformance.png)
+
+### Dataset explorer
+You can explore your dataset statistics by selecting different filters along the X, Y, and color axis of this tab to slice your data into different dimensions.
+
+![Visualization Dashboard Cohorts](./img/DatasetExplorer.png)
+
+The following plots provide a global view of the trained model along with its predictions and explanations.
+
+### Aggregate feature importance (global explanation)
+
+This view consists of two charts:
+|Plot|Description|
+|----|-----------|
+|Feature Importance| Explore the top-k important features that impact your overall model predictions (a.k.a. global explanation). Use the slider to show descending feature importance values. Select up to three cohorts to see their feature importance values side by side.|
+|Dependence Plot|Click on any of the feature bars in the feature importance graph to see the relationship of the values of the selected feature to its corresponding feature importance values. Overall, this plot show how values of the selected feature impact model prediction.
+|
+
+
+![Visualization Dashboard Global](./img/GlobalExplanation.png)
+
+
+
+### Individual feature importance and what-if 
+You can click on any individual data point on the scatterplot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. These are the capabilities covered in this tab:
+
+
+|Plot|Description|
+|----|-----------|
+|Feature Importance Plot|Shows the top K (configurable K) important features for an individual prediction. Helps illustrate the local behavior of the underlying model on a specific data point.|
+|Individual Conditional Expectation (ICE)| Allows feature value changes from a minimum value to a maximum value. Helps illustrate how the data point's prediction changes when a feature changes.|
+|Perturbation Exploration (what if analysis)|Allows changes to feature values of the selected data point and observe resulting changes to prediction value. You can then save your hypothetical what-if data point.
+|
+
+![Visualization Dashboard Global](./img/LocalExplanation.png)
+
+![Visualization Dashboard Global](./img/WhatIf.gif)
 
 
 <a name=Contributing></a>
