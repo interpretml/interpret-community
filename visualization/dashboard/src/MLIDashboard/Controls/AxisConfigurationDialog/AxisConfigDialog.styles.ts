@@ -7,6 +7,7 @@ import {
     mergeStyleSets,
     ICalloutContentStyles,
 } from 'office-ui-fabric-react';
+import { FabricStyles } from '../../FabricStyles';
 
 export interface IAxisControlDialogStyles {
     wrapper: IStyle;
@@ -35,7 +36,6 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
         },
         leftHalf: {
             width: '213px',
-            height: '100%',
         },
         rightHalf: {
             boxSizing: 'border-box',
@@ -43,7 +43,6 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
             padding: '20px 25px',
             display: 'inline-flex',
             width: '255px',
-            height: '100%',
             flexDirection: 'column',
             background: theme.semanticColors.bodyBackgroundChecked,
             borderRadius: '5px',
@@ -93,19 +92,15 @@ export const axisControlDialogStyles: () => IProcessedStyleSet<IAxisControlDialo
 export const axisControlCallout: () => ICalloutContentStyles = () => {
     const theme = getTheme();
     return {
-        container: {},
+        container: FabricStyles.calloutContainer,
         root: {},
         beak: {},
         beakCurtain: {},
         calloutMain: {
-            position: 'absolute',
             overflowY: 'visible',
             width: '560px',
             height: 'fit-content',
             minHeight: '340px',
-            left: '450px',
-            top: '250px',
-            //elevation64 is used for dialogs/panels
             boxShadow: theme.effects.elevation64,
             borderRadius: '2px',
             display: 'flex',

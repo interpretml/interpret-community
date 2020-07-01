@@ -127,8 +127,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         } as any,
     };
 
-    private readonly _xButtonId = 'x-button-id';
-    private readonly _yButtonId = 'y-button-id';
+    private readonly chartAndConfigsId = "chart-and-axis-config-id";
 
     private includedFeatureImportance: IGlobalSeries[] = [];
     private selectedFeatureImportance: IGlobalSeries[] = [];
@@ -446,6 +445,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                                             this,
                                                             item.key,
                                                         )}
+                                                        calloutProps={FabricStyles.calloutProps}
+                                                        styles={FabricStyles.limitedSizeMenuDropdown}
                                                     />
                                                 );
                                             }
@@ -500,7 +501,47 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             </div>
                         )}
                         <div className={classNames.topArea}>
-                            <div className={classNames.chartWithAxes}>
+                            <div className={classNames.chartWithAxes} id={this.chartAndConfigsId}>
+                                {this.state.yDialogOpen && (
+                                    <AxisConfigDialog
+                                        jointDataset={this.props.jointDataset}
+                                        orderedGroupTitles={[
+                                            ColumnCategories.index,
+                                            ColumnCategories.dataset,
+                                            ColumnCategories.outcome,
+                                        ]}
+                                        selectedColumn={this.props.chartProps.yAxis}
+                                        canBin={false}
+                                        mustBin={false}
+                                        canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                        onAccept={this.onYSet}
+                                        onCancel={this.setYOpen.bind(this, false)}
+                                        target={`#${this.chartAndConfigsId}`}
+                                    />
+                                )}
+                                {this.state.xDialogOpen && (
+                                    <AxisConfigDialog
+                                        jointDataset={this.props.jointDataset}
+                                        orderedGroupTitles={[
+                                            ColumnCategories.index,
+                                            ColumnCategories.dataset,
+                                            ColumnCategories.outcome,
+                                        ]}
+                                        selectedColumn={this.props.chartProps.xAxis}
+                                        canBin={
+                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                            this.props.chartProps.chartType === ChartTypes.Box
+                                        }
+                                        mustBin={
+                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                            this.props.chartProps.chartType === ChartTypes.Box
+                                        }
+                                        canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                        onAccept={this.onXSet}
+                                        onCancel={this.setXOpen.bind(this, false)}
+                                        target={`#${this.chartAndConfigsId}`}
+                                    />
+                                )}
                                 <div className={classNames.chartWithVertical}>
                                     <div className={classNames.verticalAxis}>
                                         <div className={classNames.rotatedVerticalBox}>
@@ -509,7 +550,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                             </Text>
                                             <DefaultButton
                                                 onClick={this.setYOpen.bind(this, true)}
-                                                id={this._yButtonId}
                                                 text={
                                                     this.props.jointDataset.metaDict[
                                                         this.props.chartProps.yAxis.property
@@ -521,23 +561,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                                     ].label
                                                 }
                                             />
-                                            {this.state.yDialogOpen && (
-                                                <AxisConfigDialog
-                                                    jointDataset={this.props.jointDataset}
-                                                    orderedGroupTitles={[
-                                                        ColumnCategories.index,
-                                                        ColumnCategories.dataset,
-                                                        ColumnCategories.outcome,
-                                                    ]}
-                                                    selectedColumn={this.props.chartProps.yAxis}
-                                                    canBin={false}
-                                                    mustBin={false}
-                                                    canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                                    onAccept={this.onYSet}
-                                                    onCancel={this.setYOpen.bind(this, false)}
-                                                    target={this._yButtonId}
-                                                />
-                                            )}
                                         </div>
                                     </div>
                                     {!canRenderChart && (
@@ -569,7 +592,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                             </Text>
                                             <DefaultButton
                                                 onClick={this.setXOpen.bind(this, true)}
-                                                id={this._xButtonId}
                                                 text={
                                                     this.props.jointDataset.metaDict[
                                                         this.props.chartProps.xAxis.property
@@ -582,29 +604,6 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                                 }
                                             />
                                         </div>
-                                        {this.state.xDialogOpen && (
-                                            <AxisConfigDialog
-                                                jointDataset={this.props.jointDataset}
-                                                orderedGroupTitles={[
-                                                    ColumnCategories.index,
-                                                    ColumnCategories.dataset,
-                                                    ColumnCategories.outcome,
-                                                ]}
-                                                selectedColumn={this.props.chartProps.xAxis}
-                                                canBin={
-                                                    this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                                    this.props.chartProps.chartType === ChartTypes.Box
-                                                }
-                                                mustBin={
-                                                    this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                                    this.props.chartProps.chartType === ChartTypes.Box
-                                                }
-                                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                                onAccept={this.onXSet}
-                                                onCancel={this.setXOpen.bind(this, false)}
-                                                target={this._xButtonId}
-                                            />
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -778,11 +777,13 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                         />
                                         {this.state.crossClassInfoVisible && (
                                             <Callout
+                                                doNotLayer={true}
                                                 target={'#cross-class-weight-info'}
                                                 setInitialFocus={true}
                                                 onDismiss={this.toggleCrossClassInfo}
                                                 directionalHint={DirectionalHint.leftCenter}
                                                 role="alertdialog"
+                                                styles={{container: FabricStyles.calloutContainer}}
                                             >
                                                 <div className={classNames.calloutWrapper}>
                                                     <div className={classNames.calloutHeader}>
@@ -847,10 +848,12 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                             />
                             {this.state.iceTooltipVisible && (
                                 <Callout
+                                    doNotLayer={true}
                                     target={'#explanation-info'}
                                     setInitialFocus={true}
                                     onDismiss={this.toggleICETooltip}
                                     role="alertdialog"
+                                    styles={{container: FabricStyles.calloutContainer}}
                                 >
                                     <div className={classNames.calloutWrapper}>
                                         <div className={classNames.calloutHeader}>
@@ -897,6 +900,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                     ariaLabel="feature picker"
                                     selectedKey={this.state.selectedFeatureKey}
                                     useComboBoxAsMenuWidth={true}
+                                    calloutProps={FabricStyles.calloutProps}
+                                    styles={FabricStyles.limitedSizeMenuDropdown}
                                 />
                                 {this.props.metadata.modelType === ModelTypes.multiclass && (
                                     <ComboBox
@@ -908,6 +913,8 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
                                         ariaLabel="class picker"
                                         selectedKey={this.state.selectedICEClass}
                                         useComboBoxAsMenuWidth={true}
+                                        calloutProps={FabricStyles.calloutProps}
+                                        styles={FabricStyles.limitedSizeMenuDropdown}
                                     />
                                 )}
                             </div>
@@ -1402,6 +1409,7 @@ export class WhatIfTab extends React.PureComponent<IWhatIfTabProps, IWhatIfTabSt
         this.stringifedValues[key] = newValue;
         if (isString) {
             editingData[key] = newValue;
+            this.forceUpdate();
         } else {
             const asNumber = +newValue;
             // because " " evaluates to 0 in js
