@@ -116,6 +116,7 @@ def log_explanation(name, explanation):
                   conda_env=conda_path,
                   **kwargs)
 
+
 def get_explanation(run_id, name):
     """Download and deserialize an explanation that has been logged to MLflow.
 
@@ -138,4 +139,3 @@ def get_explanation(run_id, name):
     client.download_artifacts(run_id, name, dst_path=DOWNLOAD_DIR)
     full_path = os.path.join(DOWNLOAD_DIR, name, 'data', 'explanation')
     return load_explanation(full_path)
-

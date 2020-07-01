@@ -5,7 +5,6 @@ import mlflow
 from common_utils import create_sklearn_random_forest_classifier
 
 from interpret_community.mlflow.mlflow import log_explanation, get_explanation
-from interpret_community.explanation.explanation import load_explanation
 from constants import owner_email_tools_and_ux, DatasetConstants
 from test_serialize_explanation import _assert_explanation_equivalence
 
