@@ -16,6 +16,7 @@ export interface ICohortListProps {
 }
 
 export class CohortList extends React.PureComponent<ICohortListProps> {
+    public static bannerId = "cohortBannerId";
     public render(): React.ReactNode {
         const classNames = cohortListStyles();
 
@@ -28,7 +29,7 @@ export class CohortList extends React.PureComponent<ICohortListProps> {
             modelType = localization.CohortBanner.regressor;
         }
         return (
-            <div className={classNames.banner}>
+            <div className={classNames.banner} id={CohortList.bannerId}>
                 <div className={classNames.summaryBox}>
                     <Text variant={'xSmall'} block className={classNames.summaryLabel}>
                         {localization.CohortBanner.dataStatistics.toUpperCase()}

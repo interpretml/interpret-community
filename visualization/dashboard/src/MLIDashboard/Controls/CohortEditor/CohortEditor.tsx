@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { RangeTypes } from 'mlchartlib';
 import { Text, TextField, TooltipHost, TooltipOverflowMode, IProcessedStyleSet } from 'office-ui-fabric-react';
 import { DefaultButton, IconButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
-import { Callout } from 'office-ui-fabric-react/lib/Callout';
+import { Callout, DirectionalHint } from 'office-ui-fabric-react/lib/Callout';
 import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
 import { ComboBox, IComboBox, IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
 import { CheckboxVisibility, DetailsList, Selection, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
@@ -14,6 +14,8 @@ import { Cohort } from '../../Cohort';
 import { FilterMethods, IFilter } from '../../Interfaces/IFilter';
 import { IJointMeta, JointDataset } from '../../JointDataset';
 import { cohortEditorCallout, cohortEditorStyles, tooltipHostStyles, ICohortEditorStyles } from './CohortEditor.styles';
+import { CohortList } from '../CohortList/CohortList';
+import { FabricStyles } from '../../FabricStyles';
 
 export interface ICohort {
     filterList: IFilter[];
@@ -147,7 +149,17 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
         });
 
         return (
-            <Callout setInitialFocus={true} hidden={false} styles={cohortEditor}>
+            <Callout 
+                setInitialFocus={true} 
+                hidden={false} 
+                styles={cohortEditor} 
+                doNotLayer={true}
+                coverTarget
+                target={`#${CohortList.bannerId}`}
+                isBeakVisible={false}
+                gapSpace={100}
+                directionalHint={DirectionalHint.topCenter}
+            >
                 <div className={styles.container}>
                     <IconButton
                         className={styles.closeIcon}
@@ -521,10 +533,12 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                 {isDataColumn && (
                     <ComboBox
                         className={styles.featureComboBox}
+                        styles={FabricStyles.limitedSizeMenuDropdown}
                         options={this.dataArray}
                         onChange={this.setSelectedProperty}
                         label={localization.CohortEditor.selectFilter}
                         selectedKey={openedFilter.column}
+                        calloutProps={FabricStyles.calloutProps}
                     />
                 )}
                 {selectedMeta.featureRange && selectedMeta.featureRange.rangeType === RangeTypes.integer && (
@@ -553,6 +567,8 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             onChange={this.setCategoricalValues}
                             options={categoricalOptions}
                             useComboBoxAsMenuWidth={true}
+                            calloutProps={FabricStyles.calloutProps}
+                            styles={FabricStyles.limitedSizeMenuDropdown}
                         />
                     </div>
                 )}
@@ -571,6 +587,7 @@ export class CohortEditor extends React.PureComponent<ICohortEditorProps, ICohor
                             onChange={this.setComparison}
                             options={this.comparisonOptions}
                             useComboBoxAsMenuWidth={true}
+                            calloutProps={FabricStyles.calloutProps}
                         />
                         {openedFilter.method == FilterMethods.inTheRangeOf ? (
                             <div className={styles.valueSpinButtonDiv}>
