@@ -74,6 +74,9 @@ class ExplanationDashboardInput:
         ebm_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EBM_GLOBAL_EXPLANATION_KEY)
         dataset_explanation = self._find_first_explanation(ExplanationDashboardInterface.MLI_EXPLANATION_DATASET_KEY)
 
+        if hasattr(explanation, 'method'):
+            self.dashboard_input[ExplanationDashboardInterface.EXPLANATION_METHOD] = explanation.method
+
         predicted_y = None
         feature_length = None
         if dataset_explanation is not None:
@@ -212,6 +215,8 @@ class ExplanationDashboardInput:
                 raise ValueError("Exceeds maximum number of features for visualization (1000)")
             return array.toarray().tolist()
         if (isinstance(array, pd.DataFrame)):
+            return array.values.tolist()
+        if (isinstance(array, pd.Series)):
             return array.values.tolist()
         if (isinstance(array, np.ndarray)):
             return array.tolist()

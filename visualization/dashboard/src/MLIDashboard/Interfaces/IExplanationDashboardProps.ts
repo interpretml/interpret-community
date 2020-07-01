@@ -1,4 +1,4 @@
-import IStringsParam from "./IStringsParam";
+import IStringsParam from './IStringsParam';
 
 // This is the interface of the data to be provided by any glue code, be it the ModelExplanationController, the Jupyter widget,
 // or some future extension. The Explanation Dashboard opperates on this data object, and an optional chart config that specifies
@@ -28,19 +28,24 @@ export interface IExplanationDashboardProps {
     stringParams?: IStringsParam;
     shouldInitializeIcons?: boolean;
     iconUrl?: string;
+    explanationMethod?: string;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
-    requestLocalFeatureExplanations?: (request: any[], abortSignal: AbortSignal, explanationAlgorithm?: string) => Promise<any[]>;
+    requestLocalFeatureExplanations?: (
+        request: any[],
+        abortSignal: AbortSignal,
+        explanationAlgorithm?: string,
+    ) => Promise<any[]>;
 }
 
 export interface IModelInformation {
-    modelClass: "Tree" | "EBM" | "blackbox";
-    method: "classifier" | "regressor";
+    modelClass: 'Tree' | 'EBM' | 'blackbox';
+    method: 'classifier' | 'regressor';
 }
 
 export interface IDatasetSummary {
     featureNames?: string[];
     classNames?: string[];
-    categoricalMap?: {[key: number]: string[]};
+    categoricalMap?: { [key: number]: string[] };
 }
 
 export interface IPrecomputedExplanations {

@@ -45,6 +45,8 @@ try:
 except ImportError:
     module_logger.debug('Could not import torch, required if using a pytorch model')
 
+TRUE_LABELS = 'true_labels'
+
 
 def labels_decorator(explain_func):
     """Decorate PFI explainer to throw better error message if true_labels not passed.
@@ -54,7 +56,8 @@ def labels_decorator(explain_func):
     """
     @wraps(explain_func)
     def explain_func_wrapper(self, evaluation_examples, *args, **kwargs):
-        if not args:
+        # NOTE: true_labels can either be in args or kwargs
+        if not args and TRUE_LABELS not in kwargs:
             raise TypeError("PFI explainer requires true_labels parameter to be passed in for explain_global")
         return explain_func(self, evaluation_examples, *args, **kwargs)
     return explain_func_wrapper

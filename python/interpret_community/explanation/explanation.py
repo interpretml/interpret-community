@@ -9,6 +9,7 @@ import uuid
 import json
 import pandas as pd
 import gc
+import os
 from scipy.sparse import issparse
 
 from abc import ABCMeta, abstractmethod
@@ -16,7 +17,8 @@ from abc import ABCMeta, abstractmethod
 from shap.common import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
 
-from ..common.explanation_utils import _sort_values, _order_imp
+from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \
+    _sort_feature_list_multiclass
 from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
     ExplainType, ModelTask, Defaults, InterpretData
 from ..dataset.dataset_wrapper import DatasetWrapper
@@ -635,7 +637,9 @@ class GlobalExplanation(FeatureImportanceExplanation):
         """
         if self._global_importance_values is None:
             return self._ranked_global_values
-        return self._global_importance_values.tolist()
+        if hasattr(self._global_importance_values, 'tolist'):
+            return self._global_importance_values.tolist()
+        return self._global_importance_values
 
     @property
     def global_importance_rank(self):
@@ -659,16 +663,18 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[str] or list[int]
         """
         if self._ranked_global_names is None and self._features is not None:
-            self._ranked_global_names = _sort_values(self._features, self._global_importance_rank)
+            self._ranked_global_names = _sort_feature_list_single(self._features, self._global_importance_rank)
 
         if self._ranked_global_names is not None:
             ranked_global_names = self._ranked_global_names
         else:
             ranked_global_names = self._global_importance_rank
 
+        if hasattr(ranked_global_names, 'tolist'):
+            ranked_global_names = ranked_global_names.tolist()
         if top_k is not None:
-            return ranked_global_names[:top_k].tolist()
-        return ranked_global_names.tolist()
+            ranked_global_names = ranked_global_names[:top_k]
+        return ranked_global_names
 
     def get_ranked_global_values(self, top_k=None):
         """Get global feature importance sorted from highest to lowest.
@@ -679,11 +685,14 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :rtype: list[float]
         """
         if self._ranked_global_values is None:
-            self._ranked_global_values = _sort_values(self._global_importance_values,
-                                                      self._global_importance_rank)
+            self._ranked_global_values = _sort_feature_list_single(self._global_importance_values,
+                                                                   self._global_importance_rank)
+        ranked_global_values = self._ranked_global_values
+        if hasattr(ranked_global_values, 'tolist'):
+            ranked_global_values = ranked_global_values.tolist()
         if top_k is not None:
-            return self._ranked_global_values[:top_k].tolist()
-        return self._ranked_global_values.tolist()
+            ranked_global_values = ranked_global_values[:top_k]
+        return ranked_global_values
 
     def get_raw_explanation(self, feature_maps, raw_feature_names=None):
         """Get raw explanation given input feature maps.
@@ -1068,16 +1077,21 @@ class PerClassMixin(ClassesMixin):
         :rtype: list[list[str]] or list[list[int]]
         """
         if self._ranked_per_class_names is None and self._features is not None:
-            self._ranked_per_class_names = _sort_values(self._features, self._per_class_rank)
+            self._ranked_per_class_names = _sort_feature_list_multiclass(self._features, self._per_class_rank)
 
         if self._ranked_per_class_names is not None:
             ranked_per_class_names = self._ranked_per_class_names
         else:
             ranked_per_class_names = self._per_class_rank
 
-        if top_k is not None:
-            ranked_per_class_names = ranked_per_class_names[:, :top_k]
-        return ranked_per_class_names.tolist()
+        if hasattr(ranked_per_class_names, 'tolist'):
+            if top_k is not None:
+                ranked_per_class_names = ranked_per_class_names[:, :top_k]
+            return ranked_per_class_names.tolist()
+        else:
+            if top_k is not None:
+                ranked_per_class_names = list(map(lambda x: x[:top_k], ranked_per_class_names))
+            return ranked_per_class_names
 
     def get_ranked_per_class_values(self, top_k=None):
         """Get per class feature importance sorted from highest to lowest.
@@ -1393,8 +1407,8 @@ def _create_global_explanation(local_explanation=None, expected_values=None,
     :param local_explanation: The local explanation information to include with global,
         can be done when the global explanation is a summary of local explanations.
     :type local_explanation: LocalExplanation
-        :param expected_values: The expected values of the model.
-        :type expected_values: list
+    :param expected_values: The expected values of the model.
+    :type expected_values: list
     :param classification: Indicates if this is a classification or regression explanation.
     :type classification: bool
     :param explanation_id: If specified, puts the global explanation under a preexisting explanation object.
@@ -1655,145 +1669,170 @@ def _get_raw_explainer_create_explanation_kwargs(*, kwargs=None, explanation=Non
     return kwarg_dict
 
 
-def _transform_value_for_load(paramkey, expldict, _metadata):
-    param = getattr(ExplainParams, paramkey)
-    if paramkey != 'CLASSIFICATION':
-        if param not in expldict:
-            return None
-        value = expldict[param]
-
-    # special handling for classification
-    if paramkey == 'CLASSIFICATION':
-        model_task_param = getattr(ExplainParams, 'MODEL_TASK')
-        model_task_value = expldict[model_task_param]
-        if model_task_value is None or model_task_value == getattr(ExplainParams, 'CLASSIFICATION'):
-            return True
-        else:
-            return False
-
-    # assumes that all lists should be converted to np.array
-    # unless otherwise indicated in _metadata
-    if isinstance(value, list) and param not in _metadata:
-        return np.array(value)
-
-    if param in _metadata:
-        if _metadata[param] == 'ndarray':
-            return np.array(value)
-        if _metadata[param] == 'DataFrame':
-            return pd.DataFrame(value)
-        if _metadata[param] == 'DatasetWrapper':
-            return DatasetWrapper(value)
-        if _metadata[param] == 'DenseData':
-            return DatasetWrapper(value)
-
-    # default - no tranformation needed
-    return value
-
-
-def save_explanation(explanation):
+def save_explanation(explanation, path, exist_ok=False):
     """Serialize the explanation.
 
     :param explanation: The Explanation to be serialized.
     :type explanation: Explanation
+    :param path: The path to the directory in which the explanation will be saved. By default, must be a new directory
+        to avoid overwriting any previous explanations. Set exist_ok to True to overrule this behavior.
+    :type path: str
+    :param exist_ok: If False (default), the path provided by the user must not already exist and will be created by
+        this function. If True, a prexisting path may be passed. Any preexisting files whose names match those of the
+        files that make up the explanation will be overwritten.
+    :type exist_ok: bool
     :return: JSON-formatted explanation data.
     :rtype: str
     """
-    paramkeys = list(ExplainParams.get_serializable())
-    expldict = dict()
-    _metadata = dict()
-    for paramkey in paramkeys:
-        param = getattr(ExplainParams, paramkey)
-        if hasattr(explanation, param):
-            value = getattr(explanation, param)
+    if os.path.exists(path) and not exist_ok:
+        raise Exception('The directory specified by path already exists. '
+                        'Please pass in a new directory or set exists_ok=True.')
+    os.makedirs(path, exist_ok=True)
+
+    # TODO replace with set of params from below
+    uploadable_properties = [
+        ExplainParams.FEATURES,
+        ExplainParams.LOCAL_IMPORTANCE_VALUES,
+        ExplainParams.EXPECTED_VALUES,
+        ExplainParams.CLASSES,
+        ExplainParams.GLOBAL_IMPORTANCE_NAMES,
+        ExplainParams.GLOBAL_IMPORTANCE_RANK,
+        ExplainParams.GLOBAL_IMPORTANCE_VALUES,
+        ExplainParams.PER_CLASS_NAMES,
+        ExplainParams.PER_CLASS_RANK,
+        ExplainParams.PER_CLASS_VALUES
+    ]
+    # TODO will need to add viz data on top of this
+    for prop in uploadable_properties:
+        if hasattr(explanation, prop) and getattr(explanation, prop) is not None:
+            value = getattr(explanation, prop)
             if isinstance(value, pd.DataFrame):
-                expldict[param] = value.values.tolist()
-                _metadata[param] = 'DataFrame'
+                value = value.values.tolist()
+                metadata = 'DataFrame'
             elif isinstance(value, DatasetWrapper):
-                expldict[param] = value.original_dataset.tolist()
-                _metadata[param] = 'DatasetWrapper'
+                value = value.original_dataset.tolist()
+                metadata = 'DatasetWrapper'
             elif isinstance(value, DenseData):
-                expldict[param] = value.original_dataset.tolist()
-                _metadata[param] = 'DenseData'
+                value = value.data
+                metadata = 'DenseData'
             elif isinstance(value, np.ndarray):
-                expldict[param] = value.tolist()
-                _metadata[param] = 'ndarray'
+                value = value.tolist()
+                metadata = 'ndarray'
+            elif isinstance(value, list):
+                metadata = 'list'
             else:
-                expldict[param] = value
-    return json.dumps({
-        '_metadata': _metadata,
-        'explanation': expldict
-    })
+                metadata = 'other'
+            data_dict = {
+                'metadata': metadata,
+                'data': value
+            }
+            filename = os.path.join(path, prop + '.json')
+            with open(filename, 'w') as f:
+                json.dump(data_dict, f)
+    # create metadata file
+    prop_dict = _get_explanation_metadata(explanation)
+
+    filename = os.path.join(path, 'explanation_metadata.json')
+    with open(filename, 'w') as f:
+        json.dump(prop_dict, f)
 
 
-def load_explanation(expljson):
-    """De-serialize the explanation.
+def _get_explanation_metadata(explanation):
+    classification = ClassesMixin._does_quack(explanation)
+    is_raw = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_raw
+    is_eng = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_engineered
+    num_features = 0 if not FeatureImportanceExplanation._does_quack(explanation) else explanation.num_features
+    prop_dict = {
+        ExplainParams.EXPLANATION_ID: explanation.id,
+        ExplainType.MODEL: ExplainType.CLASSIFICATION if classification else ExplainType.REGRESSION,
+        ExplainType.DATA: ExplainType.TABULAR,
+        ExplainType.MODEL_TASK: explanation.model_task,
+        ExplainType.METHOD: explanation.method,
+        ExplainType.MODEL_CLASS: explanation.model_type,
+        ExplainType.IS_RAW: is_raw,
+        ExplainType.IS_ENG: is_eng,
+        ExplainType.GLOBAL: GlobalExplanation._does_quack(explanation),
+        ExplainType.LOCAL: LocalExplanation._does_quack(explanation),
+        ExplainParams.NUM_CLASSES: 1 if not ClassesMixin._does_quack(explanation) else explanation.num_classes,
+        ExplainParams.NUM_EXAMPLES: 0 if not LocalExplanation._does_quack(explanation) else explanation.num_examples,
+        ExplainParams.NUM_FEATURES: num_features,
+        'serialization_version': 1,
+    }
+    return prop_dict
 
-    :param expljson: JSON-formatted explanation data.
-    :type expljson: str
-    :return: The original Explanation.
-    :rtype: Explanation
-    """
-    expl = json.loads(expljson)
-    expldict = expl['explanation']
-    _metadata = expl['_metadata']
 
-    # special handling for id & explanation_id
-    paramkeys = list(ExplainParams.get_serializable() - set(['ID']))
-    id_param = getattr(ExplainParams, 'ID')
-    if id_param in expldict:
-        id_value = expldict[id_param]
+def _get_value_from_file(file_var):
+    json_input = json.load(file_var)
+    meta = json_input['metadata']
+    data = json_input['data']
+    if meta == 'DataFrame':
+        return pd.DataFrame(data)
+    elif meta == 'DatasetWrapper' or meta == 'DenseData':
+        return DenseData(data)
+    elif meta == 'ndarray':
+        return np.array(data)
+    elif meta == 'list':
+        return data
     else:
-        id_value = None
+        raise Exception('Unrecognized data type in deserialization: ' + meta)
 
-    # params that are already passed as named constructor arguments should not go into kwargs
-    for remove_key in ['INIT_DATA', 'EXPECTED_VALUES', 'CLASSIFICATION', 'NUM_EXAMPLES', 'IS_LOCAL_SPARSE']:
-        if getattr(ExplainParams, remove_key) in expldict:
-            paramkeys.remove(remove_key)
 
-    if expldict.get(ExplainParams.LOCAL_IMPORTANCE_VALUES, None) is not None:
-        # Includes a local explanation
-        local_kwargs = dict()
-        omit_global_keys = ['GLOBAL_IMPORTANCE_NAMES', 'GLOBAL_IMPORTANCE_VALUES',
-                            'GLOBAL_IMPORTANCE_RANK', 'PER_CLASS_RANK', 'PER_CLASS_VALUES']
-        for paramkey in list(set(paramkeys) - set(omit_global_keys)):
-            param = getattr(ExplainParams, paramkey)
-            if param in expldict:
-                local_kwargs[param] = _transform_value_for_load(paramkey, expldict, _metadata)
-        local_explanation = _create_local_explanation(
-            explanation_id=id_value,
-            init_data=_transform_value_for_load('INIT_DATA', expldict, _metadata),
-            classification=_transform_value_for_load('CLASSIFICATION', expldict, _metadata),
-            expected_values=_transform_value_for_load('EXPECTED_VALUES', expldict, _metadata),
-            **local_kwargs)
-        if expldict.get(ExplainParams.GLOBAL_IMPORTANCE_VALUES, None) is not None:
-            # BOTH Local and Global explanation
-            global_kwargs = dict()
-            if getattr(ExplainParams, 'LOCAL_EXPLANATION') in expldict:
-                paramkeys.remove('LOCAL_EXPLANATION')
-            for paramkey in paramkeys:
-                param = getattr(ExplainParams, paramkey)
-                if param in expldict:
-                    global_kwargs[param] = _transform_value_for_load(paramkey, expldict, _metadata)
-            return _create_global_explanation(
-                explanation_id=id_value,
-                init_data=_transform_value_for_load('INIT_DATA', expldict, _metadata),
-                classification=_transform_value_for_load('CLASSIFICATION', expldict, _metadata),
-                expected_values=_transform_value_for_load('EXPECTED_VALUES', expldict, _metadata),
-                local_explanation=local_explanation,
-                **global_kwargs)
-        else:
-            # Local explanation ONLY
-            return local_explanation
-    else:
-        # Global explanation ONLY
-        global_kwargs = dict()
-        for paramkey in paramkeys:
-            param = getattr(ExplainParams, paramkey)
-            if param in expldict:
-                global_kwargs[param] = _transform_value_for_load(paramkey, expldict, _metadata)
-        return _create_global_explanation(
-            explanation_id=id_value,
-            init_data=_transform_value_for_load('INIT_DATA', expldict, _metadata),
-            classification=_transform_value_for_load('CLASSIFICATION', expldict, _metadata),
-            expected_values=_transform_value_for_load('EXPECTED_VALUES', expldict, _metadata),
-            **global_kwargs)
+def _get_kwargs(path, params, local_explanation=None):
+    kwargs = {}
+    for param in params:
+        if os.path.exists(os.path.join(path, param + '.json')):
+            with open(os.path.join(path, param + '.json'), 'r') as f:
+                kwargs[param] = _get_value_from_file(f)
+    with open(os.path.join(path, 'explanation_metadata.json'), 'r') as f:
+        metadata = json.load(f)
+        param_list = [
+            ExplainParams.METHOD,
+            ExplainParams.MODEL_TASK,
+            ExplainParams.NUM_FEATURES,
+            ExplainParams.IS_RAW,
+            ExplainParams.IS_ENG,
+            ExplainParams.EXPLANATION_ID
+        ]
+        for param in param_list:
+            kwargs[param] = metadata[param]
+        kwargs[ExplainParams.MODEL_TYPE] = metadata[ExplainType.MODEL_CLASS]
+        classification = metadata[ExplainType.MODEL] == ExplainType.CLASSIFICATION
+        kwargs[ExplainParams.CLASSIFICATION] = classification
+        if classification:
+            kwargs[ExplainParams.NUM_CLASSES] = metadata[ExplainParams.NUM_CLASSES]
+        if local_explanation is not None:
+            kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
+    return kwargs
+
+
+def load_explanation(path):
+    shared_params = [
+        ExplainParams.EXPECTED_VALUES,
+        ExplainParams.FEATURES,
+        ExplainParams.CLASSES,
+    ]
+    global_params = [
+        ExplainParams.GLOBAL_IMPORTANCE_RANK,
+        ExplainParams.GLOBAL_IMPORTANCE_VALUES,
+        ExplainParams.PER_CLASS_RANK,
+        ExplainParams.PER_CLASS_VALUES
+    ]
+    local_params = [
+        ExplainParams.LOCAL_IMPORTANCE_VALUES
+    ]
+    with open(os.path.join(path, 'explanation_metadata.json'), 'r') as f:
+        metadata = json.load(f)
+        is_global = metadata[ExplainType.GLOBAL]
+        is_local = metadata[ExplainType.LOCAL]
+
+    if is_local and is_global:
+        local_kwargs = _get_kwargs(path, shared_params + local_params)
+        local_explanation = _create_local_explanation(**local_kwargs)
+        global_kwargs = _get_kwargs(path, shared_params + global_params, local_explanation=local_explanation)
+        return _create_global_explanation(**global_kwargs)
+    elif is_local:
+        local_kwargs = _get_kwargs(path, shared_params + local_params)
+        return _create_local_explanation(**local_kwargs)
+    elif is_global:
+        global_kwargs = _get_kwargs(path, shared_params + global_params)
+        return _create_global_explanation(**global_kwargs)

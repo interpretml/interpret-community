@@ -1,14 +1,14 @@
-import React from "react";
-import { ScatterUtils, IScatterProps } from "./ScatterUtils";
-import { Callout } from "office-ui-fabric-react/lib/Callout";
-import { localization } from "../../../Localization/localization";
-import { DefaultButton, IconButton } from "office-ui-fabric-react/lib/Button";
-import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from "mlchartlib";
-import { FabricStyles } from "../../FabricStyles";
-import { ComboBox, IComboBox, IComboBoxOption } from "office-ui-fabric-react/lib/ComboBox";
-import _ from "lodash";
-import { ModelTypes } from "../../IExplanationContext";
-import { LoadingSpinner, NoDataMessage } from "../../SharedComponents";
+import React from 'react';
+import { ScatterUtils, IScatterProps } from './ScatterUtils';
+import { Callout } from 'office-ui-fabric-react/lib/Callout';
+import { localization } from '../../../Localization/localization';
+import { DefaultButton, IconButton } from 'office-ui-fabric-react/lib/Button';
+import { AccessibleChart, IPlotlyProperty, DefaultSelectionFunctions } from 'mlchartlib';
+import { FabricStyles } from '../../FabricStyles';
+import { ComboBox, IComboBox, IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
+import _ from 'lodash';
+import { ModelTypes } from '../../IExplanationContext';
+import { LoadingSpinner, NoDataMessage } from '../../SharedComponents';
 require('./Scatter.css');
 
 export const ExplanationScatterId = 'explanation_scatter_id';
@@ -18,12 +18,12 @@ export interface IExplanationExplorationState {
 }
 
 export class ExplanationExploration extends React.PureComponent<IScatterProps, IExplanationExplorationState> {
-    private readonly iconId = "data-exploration-help-icon1";
+    private readonly iconId = 'data-exploration-help-icon1';
     private plotlyProps: IPlotlyProperty;
 
     constructor(props: IScatterProps) {
         super(props);
-        this.state = { isCalloutVisible: false};
+        this.state = { isCalloutVisible: false };
         this.onXSelected = this.onXSelected.bind(this);
         this.onYSelected = this.onYSelected.bind(this);
         this.onColorSelected = this.onColorSelected.bind(this);
@@ -33,17 +33,21 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
     }
 
     public render(): React.ReactNode {
-        if (this.props.dashboardContext.explanationContext.testDataset
-            && this.props.dashboardContext.explanationContext.localExplanation
-            && this.props.dashboardContext.explanationContext.localExplanation.values) {
+        if (
+            this.props.dashboardContext.explanationContext.testDataset &&
+            this.props.dashboardContext.explanationContext.localExplanation &&
+            this.props.dashboardContext.explanationContext.localExplanation.values
+        ) {
             const projectedData = ScatterUtils.projectData(this.props.dashboardContext.explanationContext);
-            this.plotlyProps = this.props.plotlyProps !== undefined ?
-                _.cloneDeep(this.props.plotlyProps) :
-                ScatterUtils.defaultExplanationPlotlyProps(this.props.dashboardContext.explanationContext);
+            this.plotlyProps =
+                this.props.plotlyProps !== undefined
+                    ? _.cloneDeep(this.props.plotlyProps)
+                    : ScatterUtils.defaultExplanationPlotlyProps(this.props.dashboardContext.explanationContext);
             const dropdownOptions = ScatterUtils.buildOptions(this.props.dashboardContext.explanationContext, true);
             const initialColorOption = ScatterUtils.getselectedColorOption(this.plotlyProps, dropdownOptions);
             const weightContext = this.props.dashboardContext.weightContext;
-            const includeWeightDropdown = this.props.dashboardContext.explanationContext.modelMetadata.modelType === ModelTypes.multiclass;
+            const includeWeightDropdown =
+                this.props.dashboardContext.explanationContext.modelMetadata.modelType === ModelTypes.multiclass;
             let plotProp = ScatterUtils.populatePlotlyProps(projectedData, _.cloneDeep(this.plotlyProps));
             plotProp = ScatterUtils.updatePropsForSelections(plotProp, this.props.selectedRow);
             return (
@@ -84,46 +88,48 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                                 styles={FabricStyles.defaultDropdownStyle}
                             />
                         </div>
-                        {(includeWeightDropdown) && 
-                        <div className="selector">
-                            <div className="selector-label">
-                                <div className="label-text">{localization.CrossClass.label}</div>
-                                <IconButton
-                                    id={this.iconId}
-                                    iconProps={{ iconName: 'Info' }}
-                                    title={localization.CrossClass.info}
-                                    onClick={this.onIconClick}
-                                    styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
+                        {includeWeightDropdown && (
+                            <div className="selector">
+                                <div className="selector-label">
+                                    <div className="label-text">{localization.CrossClass.label}</div>
+                                    <IconButton
+                                        id={this.iconId}
+                                        iconProps={{ iconName: 'Info' }}
+                                        title={localization.CrossClass.info}
+                                        onClick={this.onIconClick}
+                                        styles={{ root: { marginBottom: -3, color: 'rgb(0, 120, 212)' } }}
+                                    />
+                                </div>
+                                <ComboBox
+                                    selectedKey={weightContext.selectedKey}
+                                    onChange={weightContext.onSelection}
+                                    options={weightContext.options}
+                                    ariaLabel={'Cross-class weighting selector'}
+                                    useComboBoxAsMenuWidth={true}
+                                    styles={FabricStyles.defaultDropdownStyle}
                                 />
                             </div>
-                            <ComboBox
-                                selectedKey={weightContext.selectedKey}
-                                onChange={weightContext.onSelection}
-                                options={weightContext.options}
-                                ariaLabel={"Cross-class weighting selector"}
-                                useComboBoxAsMenuWidth={true}
-                                styles={FabricStyles.defaultDropdownStyle}
-                            />
-                        </div>}
+                        )}
                     </div>
                     {this.state.isCalloutVisible && (
-                    <Callout
-                        target={'#' + this.iconId}
-                        setInitialFocus={true}
-                        onDismiss={this.onDismiss}
-                        role="alertdialog">
-                        <div className="callout-info">
-                            <div className="class-weight-info">
-                                <span>{localization.CrossClass.overviewInfo}</span> 
-                                <ul>
-                                    <li>{localization.CrossClass.absoluteValInfo}</li>
-                                    <li>{localization.CrossClass.predictedClassInfo}</li>
-                                    <li>{localization.CrossClass.enumeratedClassInfo}</li>
-                                </ul>
+                        <Callout
+                            target={'#' + this.iconId}
+                            setInitialFocus={true}
+                            onDismiss={this.onDismiss}
+                            role="alertdialog"
+                        >
+                            <div className="callout-info">
+                                <div className="class-weight-info">
+                                    <span>{localization.CrossClass.overviewInfo}</span>
+                                    <ul>
+                                        <li>{localization.CrossClass.absoluteValInfo}</li>
+                                        <li>{localization.CrossClass.predictedClassInfo}</li>
+                                        <li>{localization.CrossClass.enumeratedClassInfo}</li>
+                                    </ul>
+                                </div>
+                                <DefaultButton onClick={this.onDismiss}>{localization.CrossClass.close}</DefaultButton>
                             </div>
-                            <DefaultButton onClick={this.onDismiss}>{localization.CrossClass.close}</DefaultButton>
-                        </div>
-                    </Callout>
+                        </Callout>
                     )}
                     <AccessibleChart
                         plotlyProps={plotProp}
@@ -133,12 +139,14 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
                 </div>
             );
         }
-        if (this.props.dashboardContext.explanationContext.localExplanation &&
-            this.props.dashboardContext.explanationContext.localExplanation.percentComplete !== undefined) {
-            return <LoadingSpinner/>
+        if (
+            this.props.dashboardContext.explanationContext.localExplanation &&
+            this.props.dashboardContext.explanationContext.localExplanation.percentComplete !== undefined
+        ) {
+            return <LoadingSpinner />;
         }
         const explanationStrings = this.props.messages ? this.props.messages.LocalExpAndTestReq : undefined;
-        return <NoDataMessage explanationStrings={explanationStrings}/>;
+        return <NoDataMessage explanationStrings={explanationStrings} />;
     }
 
     private handleClick(data: any): void {
@@ -168,7 +176,7 @@ export class ExplanationExploration extends React.PureComponent<IScatterProps, I
     }
 
     private onIconClick(): void {
-        this.setState({isCalloutVisible: !this.state.isCalloutVisible});
+        this.setState({ isCalloutVisible: !this.state.isCalloutVisible });
     }
 
     private onDismiss(): void {

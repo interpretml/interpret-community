@@ -1,19 +1,19 @@
-import { IFilter, FilterMethods } from "./Interfaces/IFilter";
-import { JointDataset } from "./JointDataset";
-import { ModelExplanationUtils } from "./ModelExplanationUtils";
+import { IFilter, FilterMethods } from './Interfaces/IFilter';
+import { JointDataset } from './JointDataset';
+import { ModelExplanationUtils } from './ModelExplanationUtils';
 
 export class Cohort {
-    public static CohortKey: string = "Cohort";
-    private static _cohortIndex: number = 0;
+    public static CohortKey = 'Cohort';
+    private static _cohortIndex = 0;
 
-    public rowCount: number = 0;
+    public rowCount = 0;
+    public filteredData: Array<{ [key: string]: number }>;
     private readonly cohortIndex: number;
-    private mutateCount: number = 0;
-    private filteredData: Array<{[key: string]: number}>;
+    private mutateCount = 0;
     private cachedAverageImportance: number[];
     private cachedTransposedLocalFeatureImportances: number[][];
     private currentSortKey: string | undefined;
-    private currentSortReversed: boolean = false;
+    private currentSortReversed = false;
     constructor(public name: string, private jointDataset: JointDataset, public filters: IFilter[] = []) {
         this.cohortIndex = Cohort._cohortIndex;
         this.name = name;
@@ -24,7 +24,7 @@ export class Cohort {
     public updateFilter(filter: IFilter, index?: number): void {
         if (index === undefined) {
             index = this.filters.length;
-        } 
+        }
 
         this.filters[index] = filter;
         this.applyFilters();
@@ -40,8 +40,8 @@ export class Cohort {
         this.applyFilters();
     }
 
-    public getRow(index: number): {[key: string]: number} {
-        return {...this.jointDataset.dataDict[index]}
+    public getRow(index: number): { [key: string]: number } {
+        return { ...this.jointDataset.dataDict[index] };
     }
 
     public sort(columnName: string = JointDataset.IndexLabel, reverse?: boolean): void {
@@ -63,18 +63,22 @@ export class Cohort {
     // Bin object stores array of upper bounds for each bin, return the index
     // of the bin of the value;
     public unwrap(key: string, applyBin?: boolean): any[] {
-        if (applyBin && this.jointDataset.metaDict[key].isCategorical === false) {
+        if (
+            applyBin &&
+            !this.jointDataset.metaDict[key].isCategorical &&
+            !this.jointDataset.metaDict[key].treatAsCategorical
+        ) {
             let binVector = this.jointDataset.binDict[key];
             if (binVector === undefined) {
                 this.jointDataset.addBin(key);
                 binVector = this.jointDataset.binDict[key];
             }
-            return this.filteredData.map(row => {
+            return this.filteredData.map((row) => {
                 const rowValue = row[key];
-                return binVector.findIndex(upperLimit => upperLimit >= rowValue );
+                return binVector.findIndex((upperLimit) => upperLimit >= rowValue);
             });
         }
-        return this.filteredData.map(row => row[key]);
+        return this.filteredData.map((row) => row[key]);
     }
 
     public calculateAverageImportance(): number[] {
@@ -82,13 +86,15 @@ export class Cohort {
             return this.cachedAverageImportance;
         }
 
-        this.cachedAverageImportance = this.transposedLocalFeatureImportances().map(featureValues => {
+        this.cachedAverageImportance = this.transposedLocalFeatureImportances().map((featureValues) => {
             if (!featureValues || featureValues.length === 0) {
                 return Number.NaN;
             }
-            const total = featureValues.reduce((prev, current) => {return prev + Math.abs(current)}, 0);
+            const total = featureValues.reduce((prev, current) => {
+                return prev + Math.abs(current);
+            }, 0);
             return total / featureValues.length;
-        })
+        });
         return this.cachedAverageImportance;
     }
 
@@ -97,31 +103,41 @@ export class Cohort {
             return this.cachedTransposedLocalFeatureImportances;
         }
         const featureLength = this.jointDataset.localExplanationFeatureCount;
-        const localFeatureImportances = this.filteredData.map(row => {
+        const localFeatureImportances = this.filteredData.map((row) => {
             return JointDataset.localExplanationSlice(row, featureLength);
         });
         this.cachedTransposedLocalFeatureImportances = ModelExplanationUtils.transpose2DArray(localFeatureImportances);
         return this.cachedTransposedLocalFeatureImportances;
     }
 
-    private applyFilters(): void {
+    public clearCachedImportances(): void {
         this.cachedAverageImportance = undefined;
         this.cachedTransposedLocalFeatureImportances = undefined;
         this.mutateCount += 1;
-        this.filteredData = this.jointDataset.dataDict.filter(row => 
-            this.filters.every(filter => {
+    }
+
+    private applyFilters(): void {
+        this.clearCachedImportances();
+        this.filteredData = this.jointDataset.dataDict.filter((row) =>
+            this.filters.every((filter) => {
                 const rowVal = row[filter.column];
-                switch(filter.method){
+                switch (filter.method) {
                     case FilterMethods.equal:
-                        return rowVal === filter.arg;
+                        return rowVal === filter.arg[0];
                     case FilterMethods.greaterThan:
-                        return rowVal > filter.arg;
+                        return rowVal > filter.arg[0];
+                    case FilterMethods.greaterThanEqualTo:
+                        return rowVal >= filter.arg[0];
                     case FilterMethods.lessThan:
-                        return rowVal < filter.arg;
+                        return rowVal < filter.arg[0];
+                    case FilterMethods.lessThanEqualTo:
+                        return rowVal <= filter.arg[0];
                     case FilterMethods.includes:
                         return (filter.arg as number[]).includes(rowVal);
+                    case FilterMethods.inTheRangeOf:
+                        return rowVal >= filter.arg[0] && rowVal <= filter.arg[1];
                 }
-            })
+            }),
         );
         this.rowCount = this.filteredData.length;
     }

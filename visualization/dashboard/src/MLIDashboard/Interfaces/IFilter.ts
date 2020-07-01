@@ -1,14 +1,16 @@
 export const enum FilterMethods {
     greaterThan = 'greater',
+    greaterThanEqualTo = 'greater and equal',
     lessThan = 'less',
+    lessThanEqualTo = 'less and equal',
     equal = 'equal',
     includes = 'includes',
-    inTheRangeOf ='inTheRangeOf'
+    inTheRangeOf = 'in the range of',
 }
 
 export interface IFilter {
     method: FilterMethods;
-    arg: number | number[];
+    arg: number[];
     column: string;
 }
 
