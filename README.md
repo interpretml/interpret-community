@@ -479,8 +479,7 @@ This view consists of two charts:
 |Plot|Description|
 |----|-----------|
 |Feature Importance| Explore the top-k important features that impact your overall model predictions (a.k.a. global explanation). Use the slider to show descending feature importance values. Select up to three cohorts to see their feature importance values side by side.|
-|Dependence Plot|Click on any of the feature bars in the feature importance graph to see the relationship of the values of the selected feature to its corresponding feature importance values. Overall, this plot show how values of the selected feature impact model prediction.
-|
+|Dependence Plot|Click on any of the feature bars in the feature importance graph to see the relationship of the values of the selected feature to its corresponding feature importance values. Overall, this plot show how values of the selected feature impact model prediction.|
 
 
 ![Visualization Dashboard Global](./img/GlobalExplanation.png)
