@@ -17,3 +17,5 @@ flask
 flask-cors
 jinja2
 mlflow
+shap
+interpret-core

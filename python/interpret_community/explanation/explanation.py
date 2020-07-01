@@ -1730,6 +1730,14 @@ def save_explanation(explanation, path, exist_ok=False):
             with open(filename, 'w') as f:
                 json.dump(data_dict, f)
     # create metadata file
+    prop_dict = _get_explanation_metadata(explanation)
+
+    filename = os.path.join(path, 'explanation_metadata.json')
+    with open(filename, 'w') as f:
+        json.dump(prop_dict, f)
+
+
+def _get_explanation_metadata(explanation):
     classification = ClassesMixin._does_quack(explanation)
     is_raw = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_raw
     is_eng = False if not FeatureImportanceExplanation._does_quack(explanation) else explanation.is_engineered
@@ -1750,10 +1758,7 @@ def save_explanation(explanation, path, exist_ok=False):
         ExplainParams.NUM_FEATURES: num_features,
         'serialization_version': 1,
     }
-
-    filename = os.path.join(path, 'explanation_metadata.json')
-    with open(filename, 'w') as f:
-        json.dump(prop_dict, f)
+    return prop_dict
 
 
 def _get_value_from_file(file_var):

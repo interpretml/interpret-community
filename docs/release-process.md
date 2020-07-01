@@ -1,6 +1,6 @@
 # Release process for interpret-community
 
-When ready to release, create a separate PR in interpret-community to bump up the version in the setup.py file under the python directory:
+When ready to release, create a separate PR in interpret-community to bump up the version in the \_\_init__.py file under the python/interpret_community directory:
 
 ```
 _major = '0'
