@@ -32,6 +32,7 @@ import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from "./I
 import { ModelExplanationUtils } from "./ModelExplanationUtils";
 import { IBarChartConfig } from "./SharedComponents/IBarChartConfig";
 import { EbmExplanation } from "./Controls/EbmExplanation";
+import { JointDataset } from "./JointDataset";
 
 const s = require("./ExplanationDashboard.css");
 const RowIndex: string = "rowIndex";
@@ -110,6 +111,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                 explanationGenerators,
                 localExplanation: undefined,
                 testDataset: {},
+                jointDataset: undefined,
                 globalExplanation: undefined,
                 isGlobalDerived: false,
                 ebmExplanation: undefined,
@@ -199,11 +201,17 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             };
         }
 
+        const jointDataset = new JointDataset({
+            dataset: props.testData,
+            predictedY: props.predictedY, 
+            trueY: props.trueY,
+            metadata: modelMetadata});
         let customVis = (props.precomputedExplanations && props.precomputedExplanations.customVis) ?
             props.precomputedExplanations.customVis : undefined;
 
         return {
             modelMetadata,
+            jointDataset,
             explanationGenerators,
             localExplanation,
             testDataset,
@@ -508,7 +516,6 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
     }
 
     private pivotItems: IPivotItemProps[];
-    private pivotRef: IPivot;
 
     constructor(props: IExplanationDashboardProps) {
         super(props);
@@ -609,9 +616,9 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
             <>
                 <div className="explainerDashboard">
                     <div className="charts-wrapper">
-                        <div className="global-charts-wrapper">
+                        <div className="global-charts-wrapper" >
                             <Pivot
-                                componentRef={ref => {this.pivotRef = ref;}}
+                                id={"globalPivot"}
                                 selectedKey={ExplanationDashboard.globalTabKeys[this.state.activeGlobalTab]}
                                 onLinkClick={this.handleGlobalTabClick}
                                 linkFormat={PivotLinkFormat.tabs}
@@ -626,6 +633,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[DataScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -636,6 +644,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[BarId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -646,6 +655,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     plotlyProps={this.state.configs[ExplanationScatterId] as IPlotlyProperty}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -656,6 +666,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                                     dashboardContext={this.state.dashboardContext}
                                     theme={this.props.theme}
                                     selectionContext={this.selectionContext}
+                                    selectedRow={this.state.selectedRow}
                                     config={this.state.configs[GlobalFeatureImportanceId] as IFeatureImportanceConfig}
                                     onChange={this.onConfigChanged}
                                     messages={this.props.stringParams ? this.props.stringParams.contextualHelp : undefined}
@@ -809,7 +820,8 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
                         },
                         globalExplanation: prevState.dashboardContext.explanationContext.globalExplanation,
                         explanationGenerators: prevState.dashboardContext.explanationContext.explanationGenerators,
-                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived
+                        isGlobalDerived: prevState.dashboardContext.explanationContext.isGlobalDerived,
+                        jointDataset: prevState.dashboardContext.explanationContext.jointDataset
                     },
                     weightContext: newWeightContext
                 }
@@ -845,7 +857,7 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
 
     private onClearSelection(): void {
         this.selectionContext.onSelect([]);
-        this.pivotRef.focus();
         this.setState({activeLocalTab: 0});
+        (document.querySelector("#globalPivot button")as any).focus();
     }
 }

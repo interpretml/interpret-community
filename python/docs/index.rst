@@ -6,10 +6,12 @@
 Welcome to interpret-community's documentation!
 ===============================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+The code is `available from GitHub <https://github.com/interpretml/interpret-community>`_.
 
+.. toctree::
+   :maxdepth: 1
+
+   api_reference/main
 
 
 Indices and tables

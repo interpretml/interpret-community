@@ -6,7 +6,7 @@ import pytest
 import logging
 
 import numpy as np
-import scipy as sp
+from scipy.sparse import csr_matrix
 
 from interpret_community.explanation.explanation import BaseExplanation, FeatureImportanceExplanation, \
     LocalExplanation, GlobalExplanation, ExpectedValuesMixin, ClassesMixin, PerClassMixin, _DatasetsMixin, \
@@ -69,7 +69,7 @@ class LocalValuesValid(object):
 class SparseLocalValuesValid(object):
     @property
     def local_importance_values(self):
-        return sp.sparse.csr_matrix([[.2, 0, .01], [0, .2, 0]])
+        return csr_matrix([[.2, 0, .01], [0, .2, 0]])
 
     @property
     def num_examples(self):

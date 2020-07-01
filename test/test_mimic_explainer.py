@@ -4,7 +4,7 @@
 
 import pytest
 
-# Tests for LIME Explainer
+# Tests for MIMIC Explainer
 import json
 import logging
 import numpy as np
@@ -14,7 +14,7 @@ from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data
-from models import retrieve_model, DataFrameTestModel
+from models import DataFrameTestModel, SkewedTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -320,8 +320,8 @@ class TestMimicExplainer(object):
         assert explanation.method == LIGHTGBM_METHOD
 
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
-        model = retrieve_model('unbalanced_model.pkl')
         x_train = retrieve_dataset('unbalanced_dataset.npz')
+        model = SkewedTestModel()
         model_predictions = model.predict(x_train)
         # Assert the model's predictions are skewed
         assert len(np.unique(model_predictions)) == 2

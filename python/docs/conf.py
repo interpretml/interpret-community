@@ -22,7 +22,7 @@ copyright = '2020, Microsoft'
 author = 'Microsoft'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.0.5'
+release = '0.10.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,26 +35,16 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks'
 ]
-
-# enable links to objects in the other standard libraries, e.g., list and str in the Python standard library
-intersphinx_mapping = {
-    'Python': ('https://docs.python.org/3', None),
-    'NumPy': ('http://docs.scipy.org/doc/numpy/', None),
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
-    'SciPy': ('http://docs.scipy.org/doc/scipy/reference', None),
-    'sklearn': ('http://scikit-learn.org/stable', None)
-}
-
 # eventually we may be able to use intersphinx for these! TODO
 autodoc_mock_imports = ['shap', 'shap.common', 'interpret', 'interpret.utils']
 
 # enable links to objects in the other standard libraries, e.g., list and str in the Python standard library
 intersphinx_mapping = {
     'Python': ('https://docs.python.org/3', None),
-    'NumPy': ('http://docs.scipy.org/doc/numpy/', None),
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
-    'SciPy': ('http://docs.scipy.org/doc/scipy/reference', None),
-    'sklearn': ('http://scikit-learn.org/stable', None)
+    'NumPy': ('https://docs.scipy.org/doc/numpy/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'SciPy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'sklearn': ('https://scikit-learn.org/stable', None)
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,9 +64,23 @@ master_doc = 'index'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# Note: We will use the default theme which is nicer
+# html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
+
+
+def run_apidoc(_):
+    package_path = os.path.join("..", "interpret_community")
+    api_reference_path = os.path.join(".", "api_reference")
+    argv = ["-f", "-T", "-e", "-M", "-o", api_reference_path, package_path]
+
+    from sphinx.ext import apidoc
+    apidoc.main(argv)
+
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)

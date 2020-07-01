@@ -6,7 +6,7 @@
 
 import pytest
 import logging
-from sklearn.externals import joblib
+from joblib import dump
 from os import path
 
 from common_utils import create_sklearn_svm_classifier, create_scikit_cancer_data
@@ -32,8 +32,8 @@ class TestSerializeExplainer(object):
         model_name = 'wrapped_model.joblib'
         explainer_name = 'inner_explainer.joblib'
         with open(explainer_name, 'wb') as stream:
-            joblib.dump(explainer.explainer.explainer, stream)
+            dump(explainer.explainer.explainer, stream)
         with open(model_name, 'wb') as stream:
-            joblib.dump(explainer.model.predict_proba, stream)
+            dump(explainer.model.predict_proba, stream)
         assert path.exists(model_name)
         assert path.exists(explainer_name)

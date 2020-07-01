@@ -21,9 +21,9 @@ import zhtw from "./zh-TW.json";
 
 
 export const localization = new LocalizedStrings({
+    en,
     cs,
     de,
-    en,
     es,
     fr,
     hu,
@@ -39,4 +39,4 @@ export const localization = new LocalizedStrings({
     tr,
     "zh-CN": zhcn,
     "zh-TW": zhtw
-});
+}) as any;

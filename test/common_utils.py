@@ -29,12 +29,21 @@ from pandas import read_csv
 from datasets import retrieve_dataset
 
 
-def create_binary_newsgroups_data():
+def create_binary_sparse_newsgroups_data():
     categories = ['alt.atheism', 'soc.religion.christian']
     newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
     newsgroups_test = fetch_20newsgroups(subset='test', categories=categories)
     class_names = ['atheism', 'christian']
-    return newsgroups_train, newsgroups_test, class_names
+    x_train = newsgroups_train.data
+    x_test = newsgroups_test.data
+    y_train = newsgroups_train.target
+    y_validation = newsgroups_test.target
+    from sklearn.feature_extraction.text import HashingVectorizer
+    vectorizer = HashingVectorizer(stop_words='english', alternate_sign=False,
+                                   n_features=2**16)
+    x_train = vectorizer.transform(x_train)
+    x_test = vectorizer.transform(x_test)
+    return x_train, x_test, y_train, y_validation, class_names, vectorizer
 
 
 def create_multiclass_sparse_newsgroups_data():
