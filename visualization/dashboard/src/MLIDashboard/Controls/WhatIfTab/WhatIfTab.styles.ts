@@ -101,6 +101,7 @@ export const whatIfTabStyles: () => IProcessedStyleSet<IWhatIfTabStyles> = () =>
         featureList: {
             display: 'flex',
             paddingLeft: '10px',
+            paddingRight: '10px',
             flexGrow: 1,
             flexDirection: 'column',
             maxHeight: '400px',

@@ -51,8 +51,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
         cohortEditor: {
             overflowY: 'auto',
             width: '560px',
-            height: '592px',
-            maxHeight: '592px !important',
+            height: '610px',
+            maxHeight: '610px !important',
             ////elevation64 is used for dialogs/panels
             boxShadow: theme.effects.elevation64,
             borderRadius: '2px',
@@ -183,7 +183,7 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             display: 'flex',
             flexDirection: 'column',
             width: '560px',
-            height: '592px',
+            height: '610px',
             overflowY: 'auto',
         },
         addedFilter: {
