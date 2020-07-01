@@ -487,8 +487,8 @@ This view consists of two charts:
 
 
 
-### Individual feature importance and what-if 
-You can click on any individual data point on the scatterplot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. These are the capabilities covered in this tab:
+### Individual feature importance (local explanation) and what-if 
+You can click on any individual data point on the scatter plot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. These are the capabilities covered in this tab:
 
 
 |Plot|Description|
