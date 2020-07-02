@@ -9,17 +9,14 @@ Interpret Community SDK
 =============================================================
 
 
-The Interpret Community extends [Interpret](https://github.com/interpretml/interpret), an open source python package from Microsoft Research for training interpretable models and helping to explain blackbox systems, with additional interpretability techniques and  utility functions to handle real-world datasets and workflows.
-
-This repository contains an SDK and Jupyter notebooks with examples to showcase its use.
+Interpret-Community is an experimental repository extending [Interpret](https://github.com/interpretml/interpret), with additional interpretability techniques and utility functions to handle real-world datasets and workflows for explaining models trained on **tabular data**. This repository contains the Interpret-Community SDK and Jupyter notebooks with examples to showcase its use.
 
 # Contents
 
 - [Overview of Interpret-Community](#intro)
-- [Target Audience](#target)
 - [Getting Started](#getting-started)
 - [Supported Models](#models)
-- [Supported Explainers](#explainers)
+- [Supported Interpretability Techniques](#explainers)
 - [Use Interpret-Community](#Example)
 - [Contributing](#Contributing)
 - [Code of Conduct](#code)
@@ -27,26 +24,21 @@ This repository contains an SDK and Jupyter notebooks with examples to showcase 
 # <a name="intro"></a>
 
 # Overview of Interpret-Community
-Interpret-Community incorporates community developed interpretability techniques under one roof with a unified set of data structures and visualization. Users could experiment with different interpretability techniques and easily perform comparative analysis to evaluate their brand new explainers. Using these tools, one can explain machine learning models globally on all data, or locally on a specific prediction using the state-of-art technologies in an easy-to-use and scalable fashion. In particular, this open-source toolkit:
-1. Actively incorporates innovative interpretability techniques, and allows for further expansion by researchers and data scientists
-2. Creates a common API across the integrated libraries
-3. Applies optimizations to make it possible to run on real-world datasets at scale
-4. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide model insights in terms of the original raw features rather than engineered features
-5. Provides interactive and exploratory visualization to empower data scientists to gain significant insight into their data
+Interpret-Community extends the [Interpret](https://github.com/interpretml/interpret) repository and incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios. Interpret-Community enables adding new experimental techniques (or functionalities) and performing comparative analysis to evaluate them.
 
- # <a name="target"></a>
+Interpret-Community 
 
- # Target Audience
+1. Actively incorporates innovative experimental interpretability techniques and allows for further expansion by researchers and data scientists
+2. Applies optimizations to make it possible to run interpretability techniques on real-world datasets at scale
+3. Provides improvements such as the capability to "reverse the feature engineering pipeline" to provide model insights in terms of the original raw features rather than engineered features
+4. Provides interactive and exploratory visualizations to empower data scientists to gain meaningful insight into their data
 
-1. Developers/Data Scientists: Having all of the interpretability techniques in one place makes it easy for data scientists to experiment with different interpretability techniques, and explain their model in a scalable and seamless manner. The set of rich interactive visualizations allow developers and data scientists to train and deploy more transparent machine learning models instead of wasting time and effort on generating customized visualizations, addressing scalability issues by optimizing third-party interpretability techniques, and adopting/operationalizing interpretability techniques.
-2. Business Executives: The core logic and visualizations are beneficial for raising awareness among those involved in developing AI applications, allow them to audit model predictions for potential unfairness, and establish a strong governance framework around the use of AI applications.
-3. Machine Learning Interpretability Researchers: Interpret's extension hooks make it easy to extend and thus, interpretability researchers who are interested in adding their own techniques, can easily add them to the community repository and compare it to state-of-the-art and proven interpretability techniques and/or other community techniques.
-
+ 
 # <a name="try"></a>
 
 <a name="getting started"></a>
 
-## Getting Started
+# Getting Started
 
 This repository uses Anaconda to simplify package and environment management.
 
@@ -183,7 +175,9 @@ jupyter notebook
 This API supports models that are trained on datasets in Python `numpy.array`, `pandas.DataFrame`, `iml.datatypes.DenseData`, or `scipy.sparse.csr_matrix` format.
 
 
-The explanation functions accept both models and pipelines as input, as long as the model or pipeline implements the prediction function predict or predict_proba that conforms to the Scikit convention. If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via PyTorch, TensorFlow, and Keras deep learning frameworks.
+The explanation functions accept both models and pipelines as input as long as the model or pipeline implements a `predict` or `predict_proba` function that conforms to the Scikit convention. If not compatible, you can wrap your model's prediction function into a wrapper function that transforms the output into the format that is supported (predict or predict_proba of Scikit), and pass that wrapper function to your selected interpretability techniques.  
+
+If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via **PyTorch**, **TensorFlow**, and **Keras** deep learning frameworks.
 
 
 # Supported Explainers
@@ -195,17 +189,18 @@ https://docs.microsoft.com/en-us/python/api/azureml-explain-model/azureml.explai
 
 
 The following are a list of the experimental explainers available in the community repository:
+Interpretability Technique|Description|Type
+|--|--|--------------------|
+|SHAP Kernel Explainer| [SHAP](https://github.com/slundberg/shap)'s Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for **any model**.|Model-agnostic|
+|SHAP Tree Explainer| [SHAP](https://github.com/slundberg/shap)’s Tree explainer, which focuses on the polynomial time fast SHAP value estimation algorithm specific to **trees and ensembles of trees**.|Model-specific|
+|SHAP Deep Explainer| Based on the explanation from [SHAP](https://github.com/slundberg/shap), Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the [SHAP NIPS paper](https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions). **TensorFlow** models and **Keras** models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".|Model-specific|
+|SHAP Linear Explainer| [SHAP](https://github.com/slundberg/shap)'s Linear explainer computes SHAP values for a **linear model**, optionally accounting for inter-feature correlations.|Model-specific|
+|Mimic Explainer (Global Surrogate)| Mimic explainer is based on the idea of training [global surrogate models](https://christophm.github.io/interpretable-ml-book/global.html) to mimic blackbox models. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of **any black box model** as accurately as possible. Data scientists can interpret the surrogate model to draw conclusions about the black box model. You can use one of the following interpretable models as your surrogate model: LightGBM (LGBMExplainableModel), Linear Regression (LinearExplainableModel), Stochastic Gradient Descent explainable model (SGDExplainableModel), and Decision Tree (DecisionTreeExplainableModel).|Model-agnostic|
+|Permutation Feature Importance Explainer (PFI)| Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by [Breiman's Random Forests paper](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) (see section 10). At a high level, the way it works is by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest changes. The larger the change, the more important that feature is. PFI can explain the overall behavior of **any underlying model** but does not explain individual predictions. |Model-agnostic|
 
-* [SHAP](https://github.com/slundberg/shap) Tree Explainer: SHAP’s tree explainer, which focuses on polynomial time fast SHAP value estimation algorithm specific to trees and ensembles of trees.
-* [SHAP](https://github.com/slundberg/shap) Deep Explainer: Based on the explanation from SHAP, Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the SHAP NIPS paper. TensorFlow models and Keras models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".
-* [SHAP](https://github.com/slundberg/shap) Kernel Explainer: SHAP's Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for any model.
-* [SHAP](https://github.com/slundberg/shap): SHAP's Linear Explainer computes SHAP values for a linear model, optionally accounting for inter-feature correlations.
 
-* Mimic Explainer: Mimic explainer is based on the idea of [global surrogate models](https://christophm.github.io/interpretable-ml-book/global.html)'s. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of a black box model as accurately as possible. Data scientist can interpret the surrogate model to draw conclusions about the black box model. This repository supports the following interpretable models as surrogate model: LightGBM (LGBMExplainableModel), Linear/Logistic Regression (LinearExplainableModel), Stochastic Gradient Descent explainable model (SGDExplainableModel), and Decision Tree (DecisionTreeExplainableModel).
-* Permutation Feature Importance Explainer: Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by [Breiman's Random Forests paper](https://www.stat.berkeley.edu/%7Ebreiman/randomforest2001.pdf) (section 10). At a high level, it works by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest decreases. The larger the change, the more important that feature is.
-* LIME Explainer: LIME Explainer uses the state-of-the-art Local interpretable model-agnostic explanations [(LIME)](https://github.com/marcotcr/lime) algorithm to create local surrogate models. Unlike the global surrogate models, LIME focuses on training local surrogate models to explain individual predictions.
 
-* Tabular Explainer: Used with tabular datasets, it currently employs the following logic to invoke the direct SHAP explainers:
+Besides the interpretability techniques described above, Interpret-Community supports another [SHAP-based explainer](https://github.com/slundberg/shap), called `TabularExplainer`. Depending on the model, `TabularExplainer` uses one of the supported SHAP explainers:
 
 
   | Original Model   | Invoked Explainer  |
@@ -214,6 +209,18 @@ The following are a list of the experimental explainers available in the communi
   | Deep Neural Network models| SHAP DeepExplainer|
   | Linear models | SHAP LinearExplainer |
   | None of the above  | SHAP KernelExplainer |
+
+
+## Example Notebooks
+
+
+- [Blackbox interpretability for binary classification](https://github.com/interpretml/interpret-community/blob/master/notebooks/explain-binary-classification-local.ipynb)
+- [Blackbox interpretability for multi-class classification](https://github.com/interpretml/interpret-community/blob/master/notebooks/explain-multiclass-classification-local.ipynb)
+- [Blackbox interpretability for regression](https://github.com/interpretml/interpret-community/blob/master/notebooks/explain-regression-local.ipynb)
+
+- [Blackbox interpretability with simple raw feature transformations](https://github.com/interpretml/interpret-community/blob/master/notebooks/simple-feature-transformations-explain-local.ipynb)
+- [Blackbox interpretability with advanced raw feature transformations](https://github.com/interpretml/interpret-community/blob/master/notebooks/advanced-feature-transformations-explain-local.ipynb)
+
 
 <a name=Example></a>
 
@@ -228,7 +235,7 @@ https://interpret-community.readthedocs.io/en/latest/index.html
 ## Interpretability in training
 
 
-1. Train your model in a Jupyter notebook running on your local machine.
+1. Train your model
 
 
     ```python
@@ -299,10 +306,10 @@ https://interpret-community.readthedocs.io/en/latest/index.html
 
 
 
-The following two sections demonstrate how you can get global and local feature importance values. Local measures focus on the contribution of features for a specific prediction (e.g., why the model predicted an 80% chance of breast cancer for Mary?), whereas global measures take all predictions into account (Overall, what are the top K important features in predicting a high risk for breast cancer?):
+The following two sections demonstrate how you can get aggregate (global) and instance-level (local) feature importance values. Instance-level feature importance measures focus on the contribution of features for a specific prediction (e.g., why did the model predict an 80% chance of breast cancer for Mary?), whereas aggregate-level feature importance takes all predictions into account (Overall, what are the top important features in predicting a high risk for breast cancer?):
 ## Overall (Global) feature importance values
 
-Get the global feature importance values.
+Get the aggregate feature importance values.
     
 ```python
 
@@ -322,7 +329,7 @@ global_explanation.get_feature_importance_dict()
 ```
 
 ## Instance-level (local) feature importance values
-Get the local feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support local explanations.
+Get the instance-level feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support instance-level explanations.
 
 ```python
 # explain the first data point in the test set
@@ -430,49 +437,68 @@ tabular_explainer = TabularExplainer(clf.steps[-1][1],
 
 ## Visualizations
 
-Load the visualization dashboard in your noteboook to understand and interpret your model:
-
-### Global visualizations
-
-The following plots provide a global view of the trained model along with its predictions and explanations.
-
-|Plot|Description|
-|----|-----------|
-|Data Exploration| An overview of the dataset along with prediction values.|
-|Global Importance|Shows the top K (configurable K) important features globally. This chart is useful for understanding the global behavior of the underlying model.|
-|Explanation Exploration|Demonstrates how a feature is responsible for making a change in model’s prediction values (or probability of prediction values). |
-|Summary| Uses a signed local feature importance values across all data points to show the distribution of the impact each feature has on the prediction value.|
-
-
-![Visualization Dashboard Global](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/global-charts.png)
-
-
-
-### Local visualizations
-
-You can click on any individual data point at any time of the preceding plots to load the local feature importance plot for the given data point.
-
-|Plot|Description|
-|----|-----------|
-|Local Importance|Shows the top K (configurable K) important features globally. This chart is useful for understanding the local behavior of the underlying model on a specific data point.|
-|Perturbation Exploration|Allows you to change feature values of the selected data point and observe how those changes will affect prediction value.|
-|Individual Conditional Expectation (ICE)| Allows you to change a feature value from a minimum value to a maximum value to see how the data point's prediction changes when a feature changes.|
-
-
-![Visualization Dashboard Local Feature Importance](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/local-charts.png)
-
-![Visualization Dashboard Feature Perturbation](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/perturbation.gif)
-
-![Visualization Dashboard ICE Plots](https://docs.microsoft.com/en-us/azure/machine-learning/service/media/machine-learning-interpretability-explainability/ice-plot.png)
-
-
-To load the visualization dashboard, use the following code:
+Load the visualization dashboard in your notebook to understand and interpret your model:
 
 ```python
 from interpret_community.widget import ExplanationDashboard
 
-ExplanationDashboard(global_explanation, model, datasetX=x_test)
+ExplanationDashboard(global_explanation, model, datasetX=x_test, trueY=y_test)
 ```
+Once you load the visualization dashboard, you can investigate different aspects of your dataset and trained model via four tab views: 
+
+* Model Performance
+* Data Explorer	
+* Aggregate Feature Importance
+* Individual Feature Importance and What-If	
+
+>[!NOTE]
+> Click on "Open in a new tab" on the top left corner to get a better view of the dashboard in a new tab.
+
+
+You can further create custom cohorts (subgroups of your dataset) to explore the insights across different subgroups (e.g., women vs. men). The created cohorts can contain more than one filter (e.g., age < 30 and sex = female) and will be visible from all of the four tabs. The following sections demonstrate the visualization dashboard capabilities on a [classification model trained on employee attrition dataset]((https://github.com/interpretml/interpret-community/blob/master/notebooks/simple-feature-transformations-explain-local.ipynb)). Besides the default cohort (including the whole dataset), there are two additional cohorts created: employees with Age <= 35 and employees with Age > 35.
+
+
+![Visualization Dashboard Cohorts](./img/Cohorts.png)
+
+
+### Model performance 
+This tab enables you to evaluate your model by observing its performance metrics and prediction probabilities/classes/values across different cohorts.
+
+![Visualization Dashboard Cohorts](./img/ModelPerformance.png)
+
+### Dataset explorer
+You can explore your dataset statistics by selecting different filters along the X, Y, and color axes of this tab to slice your data into different dimensions.
+
+![Visualization Dashboard Cohorts](./img/DatasetExplorer.png)
+
+The following plots provide a global view of the trained model along with its predictions and explanations.
+
+### Aggregate feature importance (global explanation)
+
+This view consists of two charts:
+|Plot|Description|
+|----|-----------|
+|Feature Importance| Explore the top K important features that impact your overall model predictions (a.k.a. global explanation). Use the slider to show additional less important feature values. Select up to three cohorts to see their feature importance values side by side.|
+|Dependence Plot|Click on any of the feature bars in the feature importance graph to see the relationship of the values of the selected feature to its corresponding feature importance values. Overall, this plot show how values of the selected feature impact model prediction.|
+
+
+![Visualization Dashboard Global](./img/GlobalExplanation.png)
+
+
+
+### Individual feature importance (local explanation) and what-if 
+You can click on any individual data point on the scatter plot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. These are the capabilities covered in this tab:
+
+
+|Plot|Description|
+|----|-----------|
+|Feature Importance Plot|Shows the top K (configurable K) important features for an individual prediction. Helps illustrate the local behavior of the underlying model on a specific data point.|
+|Individual Conditional Expectation (ICE)| Allows feature value changes from a minimum value to a maximum value. Helps illustrate how the data point's prediction changes when a feature changes.|
+|Perturbation Exploration (what if analysis)|Allows changes to feature values of the selected data point and observe resulting changes to prediction value. You can then save your hypothetical what-if data point.|
+
+![Visualization Dashboard Global](./img/LocalExplanation.png)
+
+![Visualization Dashboard Global](./img/WhatIf.gif)
 
 
 <a name=Contributing></a>
