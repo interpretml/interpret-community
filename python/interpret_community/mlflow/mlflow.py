@@ -7,10 +7,35 @@ from ..explanation.explanation import save_explanation, load_explanation, _get_e
 
 
 def _load_pyfunc(path):
+    """Load the explanation from the given path.
+
+    :param path: The path from which to load the explanation.
+    :type path: str
+    """
+
     load_explanation(path)
 
 
 def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_model=None, **kwargs):
+    """Save the explanation locally using the MLflow model format.
+
+    This function is necessary for log_explanation to work properly.
+
+    :param path: The destination path for the saved explanation.
+    :type path: str
+    :param loader_module: The package that will be used to reload a serialized explanation. In this case,
+        always interpret_community.mlflow.
+    :type loader_module: str
+    :param data_path: The path to the serialized explanation files.
+    :type data_path: str
+    :param conda_env: The path to a YAML file with basic Python environment information.
+    :type conda_env: str
+    :param mlflow_model: In our case, always None.
+    :type mlflow_model: None
+    :return: The MLflow model representation of the explanation.
+    :rtype: mlflow.models.Model
+    """
+
     try:
         import mlflow
         from mlflow.models import Model
@@ -49,6 +74,14 @@ def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_
 
 
 def log_explanation(name, explanation):
+    """Log the explanation to MLflow using MLflow model logging.
+
+    :param name: The name of the explanation. Will be used as a directory name.
+    :type name: str
+    :param explanation: The explanation object to log.
+    :type explanation: Explanation
+    """
+
     try:
         from mlflow.models import Model
     except ImportError as e:
@@ -82,3 +115,27 @@ def log_explanation(name, explanation):
                   data_path=path,
                   conda_env=conda_path,
                   **kwargs)
+
+
+def get_explanation(run_id, name):
+    """Download and deserialize an explanation that has been logged to MLflow.
+
+    :param run_id: The ID of the run the explanation was logged to.
+    :type run_id: str
+    :param name: The name given to the explanation when it was logged.
+    :type name: str
+    :return: The rehydrated explanation.
+    :rtype: Explanation
+    """
+
+    try:
+        import mlflow
+    except ImportError as e:
+        raise Exception("Could not get_explanation from mlflow. Missing mlflow dependency, "
+                        "pip install mlflow to resolve the error: {}.".format(e))
+    DOWNLOAD_DIR = 'exp_downloads'
+    client = mlflow.tracking.MlflowClient()
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    client.download_artifacts(run_id, name, dst_path=DOWNLOAD_DIR)
+    full_path = os.path.join(DOWNLOAD_DIR, name, 'data', 'explanation')
+    return load_explanation(full_path)

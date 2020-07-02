@@ -4,8 +4,7 @@ import mlflow
 
 from common_utils import create_sklearn_random_forest_classifier
 
-from interpret_community.mlflow.mlflow import log_explanation
-from interpret_community.explanation.explanation import load_explanation
+from interpret_community.mlflow.mlflow import log_explanation, get_explanation
 from constants import owner_email_tools_and_ux, DatasetConstants
 from test_serialize_explanation import _assert_explanation_equivalence
 
@@ -33,15 +32,11 @@ class TestMlflow(object):
         explainer = tabular_explainer(model, x_train)
         global_explanation = explainer.explain_global(x_test)
         mlflow.set_experiment(TEST_EXPERIMENT)
-        client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             log_explanation(TEST_EXPLANATION, global_explanation)
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
-            client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        # TODO: implement a nicer get_explanation
-        full_path = os.path.join(TEST_DOWNLOAD, TEST_EXPLANATION, 'data', 'explanation')
-        downloaded_explanation_mlflow = load_explanation(full_path)
+        downloaded_explanation_mlflow = get_explanation(run_id, TEST_EXPLANATION)
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
 
     def test_upload_two_explanations(self, iris, tabular_explainer, tracking_uri):
@@ -56,14 +51,10 @@ class TestMlflow(object):
         global_explanation = explainer.explain_global(x_test)
         local_explanation = explainer.explain_local(x_test)
         mlflow.set_experiment(TEST_EXPERIMENT)
-        client = mlflow.tracking.MlflowClient()
         with mlflow.start_run() as run:
             log_explanation('global_explanation', global_explanation)
             log_explanation('local_explanation', local_explanation)
             os.makedirs(TEST_DOWNLOAD, exist_ok=True)
             run_id = run.info.run_id
-            client.download_artifacts(run_id, '', dst_path=TEST_DOWNLOAD)
-        # TODO: implement a nicer get_explanation
-        full_path = os.path.join(TEST_DOWNLOAD, 'global_explanation', 'data', 'explanation')
-        downloaded_explanation_mlflow = load_explanation(full_path)
+        downloaded_explanation_mlflow = get_explanation(run_id, 'global_explanation')
         _assert_explanation_equivalence(global_explanation, downloaded_explanation_mlflow)
