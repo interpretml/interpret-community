@@ -51,7 +51,8 @@ class ExplanationDashboardInput:
             class and for the regression case a method of predict() returning the prediction value.
         :type model: object
         :param dataset: A matrix of feature vector examples (# examples x # features), the same samples
-            used to build the explanation. Will overwrite any set on explanation object already
+            used to build the explanation. Will overwrite any set on explanation object already. Must have fewer than
+            10000 rows and fewer than 1000 columns.
         :type dataset: numpy.array or list[][]
         :param true_y: The true labels for the provided dataset. Will overwrite any set on
             explanation object already.
@@ -111,7 +112,9 @@ class ExplanationDashboardInput:
             if row_length > 100000:
                 raise ValueError("Exceeds maximum number of rows for visualization (100000)")
             if feature_length > 1000:
-                raise ValueError("Exceeds maximum number of features for visualization (1000)")
+                raise ValueError("Exceeds maximum number of features for visualization (1000). Please regenerate the"
+                                 " explanation using fewer features or initialize the dashboard without passing a"
+                                 " dataset.")
             self.dashboard_input[ExplanationDashboardInterface.TRAINING_DATA] = list_dataset
             self.dashboard_input[ExplanationDashboardInterface.IS_CLASSIFIER] = self._is_classifier
 
@@ -212,7 +215,9 @@ class ExplanationDashboardInput:
     def _convert_to_list(self, array):
         if issparse(array):
             if array.shape[1] > 1000:
-                raise ValueError("Exceeds maximum number of features for visualization (1000)")
+                raise ValueError("Exceeds maximum number of features for visualization (1000). Please regenerate the"
+                                 " explanation using fewer features or initialize the dashboard without passing a"
+                                 " dataset.")
             return array.toarray().tolist()
         if (isinstance(array, pd.DataFrame)):
             return array.values.tolist()
