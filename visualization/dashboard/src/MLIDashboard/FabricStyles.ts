@@ -1,8 +1,8 @@
 import { IComboBoxStyles } from 'office-ui-fabric-react/lib/ComboBox';
 import { IPivotStyles } from 'office-ui-fabric-react/lib/Pivot';
-import { FontWeights } from 'office-ui-fabric-react';
+import { FontWeights, ICalloutProps, mergeStyles } from 'office-ui-fabric-react';
 import { ITextFieldStyles } from 'office-ui-fabric-react/lib/TextField';
-import { IStyle, getTheme } from '@uifabric/styling';
+import { IStyle, getTheme, mergeStyleSets } from '@uifabric/styling';
 
 export interface IRGBColor {
     r: number;
@@ -11,17 +11,7 @@ export interface IRGBColor {
 }
 
 export class FabricStyles {
-    public static defaultDropdownStyle: Partial<IComboBoxStyles> = {
-        container: {
-            display: 'inline-flex',
-            width: '100%',
-        },
-        root: {
-            flex: 1,
-        },
-        label: {
-            padding: '5px 10px 0 10px',
-        },
+    public static limitedSizeMenuDropdown: Partial<IComboBoxStyles> = {
         callout: {
             maxHeight: '256px',
             minWidth: '200px',
@@ -32,7 +22,22 @@ export class FabricStyles {
         },
     };
 
-    public static smallDropdownStyle: Partial<IComboBoxStyles> = {
+    public static defaultDropdownStyle: Partial<IComboBoxStyles> = 
+        mergeStyleSets<Partial<IComboBoxStyles>, Partial<IComboBoxStyles>>({
+        container: {
+            display: 'inline-flex',
+            width: '100%',
+        },
+        root: {
+            flex: 1,
+        },
+        label: {
+            padding: '5px 10px 0 10px',
+        },
+    }, FabricStyles.limitedSizeMenuDropdown);
+
+    public static smallDropdownStyle: Partial<IComboBoxStyles> = 
+        mergeStyleSets<Partial<IComboBoxStyles>, Partial<IComboBoxStyles>>({
         container: {
             display: 'inline-flex',
             flexWrap: 'wrap',
@@ -53,7 +58,7 @@ export class FabricStyles {
             maxHeight: '256px',
             minWidth: '200px',
         },
-    };
+    }, FabricStyles.limitedSizeMenuDropdown);
 
     public static missingParameterPlaceholder: IStyle = {
         height: '300px',
@@ -61,8 +66,9 @@ export class FabricStyles {
     };
 
     public static calloutWrapper: IStyle = {
-        maxWidth: '300px',
+        width: '300px',
     };
+
 
     public static calloutHeader: IStyle = {
         padding: '18px 24px 12px',
@@ -87,6 +93,25 @@ export class FabricStyles {
         borderStyle: 'solid',
         borderColor: getTheme().semanticColors.buttonBorder,
     };
+
+    public static calloutContainer: IStyle = {
+        zIndex: 10,
+    }
+
+    public static calloutProps: ICalloutProps = {
+        doNotLayer: true,
+        styles: {
+            container: mergeStyles([
+                FabricStyles.calloutContainer,
+                {
+                    position: "fixed"
+                }
+            ]),
+            calloutMain: {
+                maxHeight: "400px"
+            },
+        }
+    }
 
     public static placeholderItalic: IStyle = {
         fontStyle: 'italic',

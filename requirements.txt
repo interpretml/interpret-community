@@ -21,3 +21,5 @@ pytest-cov
 nbformat
 papermill
 nteract-scrapbook
+shap
+interpret-core

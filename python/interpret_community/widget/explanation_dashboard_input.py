@@ -216,6 +216,8 @@ class ExplanationDashboardInput:
             return array.toarray().tolist()
         if (isinstance(array, pd.DataFrame)):
             return array.values.tolist()
+        if (isinstance(array, pd.Series)):
+            return array.values.tolist()
         if (isinstance(array, np.ndarray)):
             return array.tolist()
         return array

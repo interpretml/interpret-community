@@ -31,16 +31,16 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
         return (
             <div className={this.classes.root}>
                 {this.props.items.map((item, index) => {
-                    return this.buildRowElement(item);
+                    return this.buildRowElement(item, index);
                 })}
             </div>
         );
     }
 
-    private buildRowElement(item: ILegendItem): React.ReactNode {
+    private buildRowElement(item: ILegendItem, index: number): React.ReactNode {
         if (item.disabled) {
             return (
-                <div className={this.classes.disabledItem} title={item.disabledMessage || ''}>
+                <div className={this.classes.disabledItem} title={item.disabledMessage || ''} key={index}>
                     <div className={this.classes.inactiveColorBox} />
                     <Text nowrap variant={'medium'} className={this.classes.label}>
                         {item.name}
@@ -64,7 +64,7 @@ export class InteractiveLegend extends React.PureComponent<IInteractiveLegendPro
         }
         const rootClass = item.activated === false ? this.classes.inactiveItem : this.classes.item;
         return (
-            <div className={rootClass}>
+            <div className={rootClass} key={index}>
                 <div className={this.classes.clickTarget} onClick={item.onClick}>
                     <div
                         className={item.activated === false ? this.classes.inactiveColorBox : this.classes.colorBox}

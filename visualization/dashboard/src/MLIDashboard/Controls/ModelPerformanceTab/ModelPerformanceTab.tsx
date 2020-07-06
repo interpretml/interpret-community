@@ -32,8 +32,7 @@ export interface IModelPerformanceTabState {
 }
 
 export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTabProps, IModelPerformanceTabState> {
-    private readonly _xButtonId = 'x-button-id';
-    private readonly _yButtonId = 'y-button-id';
+    private readonly chartAndConfigsId = "chart-and-axis-config-id";
 
     constructor(props: IModelPerformanceTabProps) {
         super(props);
@@ -106,7 +105,39 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                         />
                     </div>
                 )}
-                <div className={classNames.chartWithAxes}>
+                <div className={classNames.chartWithAxes} id={this.chartAndConfigsId}>
+                    {this.state.yDialogOpen && (
+                        <AxisConfigDialog
+                            jointDataset={this.props.jointDataset}
+                            orderedGroupTitles={[ColumnCategories.cohort, ColumnCategories.dataset]}
+                            selectedColumn={this.props.chartProps.yAxis}
+                            canBin={
+                                this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                this.props.chartProps.chartType === ChartTypes.Box
+                            }
+                            mustBin={
+                                this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                this.props.chartProps.chartType === ChartTypes.Box
+                            }
+                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                            onAccept={this.onYSet}
+                            onCancel={this.setYOpen.bind(this, false)}
+                            target={`#${this.chartAndConfigsId}`}
+                        />
+                    )}
+                    {this.state.xDialogOpen && (
+                        <AxisConfigDialog
+                            jointDataset={this.props.jointDataset}
+                            orderedGroupTitles={[ColumnCategories.outcome]}
+                            selectedColumn={this.props.chartProps.xAxis}
+                            canBin={false}
+                            mustBin={false}
+                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                            onAccept={this.onXSet}
+                            onCancel={this.setXOpen.bind(this, false)}
+                            target={`#${this.chartAndConfigsId}`}
+                        />
+                    )}
                     <div className={classNames.chartWithVertical}>
                         <div className={classNames.verticalAxis}>
                             <div className={classNames.rotatedVerticalBox}>
@@ -116,7 +147,6 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     </Text>
                                     <DefaultButton
                                         onClick={this.setYOpen.bind(this, true)}
-                                        id={this._yButtonId}
                                         text={
                                             this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
                                                 .abbridgedLabel
@@ -126,25 +156,6 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                         }
                                     />
                                 </div>
-                                {this.state.yDialogOpen && (
-                                    <AxisConfigDialog
-                                        jointDataset={this.props.jointDataset}
-                                        orderedGroupTitles={[ColumnCategories.cohort, ColumnCategories.dataset]}
-                                        selectedColumn={this.props.chartProps.yAxis}
-                                        canBin={
-                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                            this.props.chartProps.chartType === ChartTypes.Box
-                                        }
-                                        mustBin={
-                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                            this.props.chartProps.chartType === ChartTypes.Box
-                                        }
-                                        canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                        onAccept={this.onYSet}
-                                        onCancel={this.setYOpen.bind(this, false)}
-                                        target={this._yButtonId}
-                                    />
-                                )}
                             </div>
                         </div>
                         <div className={classNames.scrollableWrapper}>
@@ -164,12 +175,12 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                             </div>
                                         )}
                                         {this.props.jointDataset.hasTrueY &&
-                                            metricsList.map((stats) => {
+                                            metricsList.map((stats, index) => {
                                                 return (
-                                                    <div className={classNames.statsBox}>
-                                                        {stats.map((labeledStat) => {
+                                                    <div className={classNames.statsBox} key={index}>
+                                                        {stats.map((labeledStat, statIndex) => {
                                                             return (
-                                                                <Text block>
+                                                                <Text block key={statIndex}>
                                                                     {localization.formatString(
                                                                         labeledStat.label,
                                                                         labeledStat.stat.toLocaleString(undefined, {
@@ -198,7 +209,6 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                 </Text>
                                 <DefaultButton
                                     onClick={this.setXOpen.bind(this, true)}
-                                    id={this._xButtonId}
                                     text={
                                         this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property]
                                             .abbridgedLabel
@@ -206,19 +216,6 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
                                     title={this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property].label}
                                 />
                             </div>
-                            {this.state.xDialogOpen && (
-                                <AxisConfigDialog
-                                    jointDataset={this.props.jointDataset}
-                                    orderedGroupTitles={[ColumnCategories.outcome]}
-                                    selectedColumn={this.props.chartProps.xAxis}
-                                    canBin={false}
-                                    mustBin={false}
-                                    canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                    onAccept={this.onXSet}
-                                    onCancel={this.setXOpen.bind(this, false)}
-                                    target={this._xButtonId}
-                                />
-                            )}
                         </div>
                     </div>
                 </div>
@@ -345,7 +342,8 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
         let rawY: number[];
         let yLabels: string[];
         let yLabelIndexes: number[];
-        const yAxisName = jointData.metaDict[chartProps.yAxis.property].label;
+        const yMeta = jointData.metaDict[chartProps.yAxis.property];
+        const yAxisName = yMeta.label;
         if (chartProps.yAxis.property === Cohort.CohortKey) {
             rawX = [];
             rawY = [];
@@ -366,11 +364,11 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const cohort = cohorts[selectedCohortIndex];
             rawY = cohort.unwrap(chartProps.yAxis.property, true);
             rawX = cohort.unwrap(chartProps.xAxis.property, chartProps.chartType === ChartTypes.Histogram);
-            yLabels = jointData.metaDict[chartProps.yAxis.property].sortedCategoricalValues;
+            yLabels = yMeta.sortedCategoricalValues;
             yLabelIndexes = yLabels.map((unused, index) => index);
         }
 
-        // The buonding box for the labels on y axis are too small, add some white space as buffer
+        // The bounding box for the labels on y axis are too small, add some white space as buffer
         yLabels = yLabels.map((val) => {
             const len = val.length;
             let result = ' ';
@@ -452,14 +450,9 @@ export class ModelPerformanceTab extends React.PureComponent<IModelPerformanceTa
             const indexArray = cohort.unwrap(JointDataset.IndexLabel);
             const sortedCategoricalValues = this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
                 .sortedCategoricalValues;
-            const treatAsCategorical =
-                this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].treatAsCategorical &&
-                !this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property].isCategorical;
             const indexes = sortedCategoricalValues.map((label, labelIndex) => {
-                const matchingIndex = (treatAsCategorical ? label : labelIndex) as string;
-
                 return indexArray.filter((unused, index) => {
-                    return yValues[index] === matchingIndex;
+                    return yValues[index] === labelIndex;
                 });
             });
             return generateMetrics(this.props.jointDataset, indexes, this.props.metadata.modelType);

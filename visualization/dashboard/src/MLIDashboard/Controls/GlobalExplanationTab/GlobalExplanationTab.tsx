@@ -223,10 +223,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     )}
                     {this.state.explanationTooltipVisible && (
                         <Callout
+                            doNotLayer={true}
                             target={'#explanation-info'}
                             setInitialFocus={true}
                             onDismiss={this.toggleExplanationTooltip}
                             role="alertdialog"
+                            styles={{container: FabricStyles.calloutContainer}}
                         >
                             <div className={classNames.calloutWrapper}>
                                 <div className={classNames.calloutHeader}>
@@ -257,6 +259,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                     />
                     {this.state.calloutVisible && (
                         <Callout
+                            doNotLayer={true}
                             className={classNames.callout}
                             gapSpace={0}
                             target={'#' + this._chartConfigId}
@@ -264,6 +267,7 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                             onDismiss={this.closeCallout}
                             directionalHint={DirectionalHint.bottomRightEdge}
                             setInitialFocus={true}
+                            styles={{container: FabricStyles.calloutContainer}}
                         >
                             <Text variant="medium" className={classNames.boldText}>
                                 {localization.DatasetExplorer.chartType}
@@ -356,11 +360,13 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                                 />
                                 {this.state.crossClassInfoVisible && (
                                     <Callout
+                                        doNotLayer={true}
                                         target={'#cross-class-weight-info'}
                                         setInitialFocus={true}
                                         onDismiss={this.toggleCrossClassInfo}
                                         directionalHint={DirectionalHint.leftCenter}
                                         role="alertdialog"
+                                        styles={{container: FabricStyles.calloutContainer}}
                                     >
                                         <div className={classNames.calloutWrapper}>
                                             <div className={classNames.calloutHeader}>
@@ -407,10 +413,12 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                             />
                             {this.state.dependenceTooltipVisible && (
                                 <Callout
+                                    doNotLayer={true}
                                     target={'#dependence-plot-info'}
                                     setInitialFocus={true}
                                     onDismiss={this.toggleDependencePlotTooltip}
                                     role="alertdialog"
+                                    styles={{container: FabricStyles.calloutContainer}}
                                 >
                                     <div className={classNames.calloutWrapper}>
                                         <div className={classNames.calloutHeader}>
@@ -453,6 +461,8 @@ export class GlobalExplanationTab extends React.PureComponent<IGlobalExplanation
                                                 : undefined
                                         }
                                         onChange={this.onXSet}
+                                        calloutProps={FabricStyles.calloutProps}
+                                        styles={FabricStyles.defaultDropdownStyle}
                                     />
                                 )}
                                 <Text variant={'medium'} block className={classNames.cohortLegendWithTop}>
