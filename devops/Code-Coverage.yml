@@ -1,0 +1,27 @@
+# Code Coverage build pipeline
+
+variables:
+  EnvArtifactStem: 'environment'
+  EnvFileStem: 'environment'
+
+trigger: none
+
+pr: none
+
+schedules:
+- cron: "30 5 * * *" # Time is UTC
+  displayName: Nightly Code Coverage Build
+  branches:
+    include:
+      - master
+  always: true
+
+jobs:
+- template: templates/all-tests-job-template.yml
+  parameters:
+    platforms:  { Linux: ubuntu-latest }
+    pyVersions: [3.6]
+    testRunTypes: [ 'CodeCoverage' ]
+    installationType: PipLocal
+    envArtifactStem: $(EnvArtifactStem)
+    envFileStem: $(EnvFileStem)

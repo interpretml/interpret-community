@@ -1,54 +1,29 @@
-trigger: none
-pr: none
-
-pool:
-  vmImage: "ubuntu-latest"
+# Nightly build pipeline
 
 variables:
-  artifactFeed: interpret-extensions-feed
+  EnvArtifactStem: 'environment'
+  EnvFileStem: 'environment'
 
-steps:
+trigger: none # No CI build
 
-    displayName: Install Anaconda packages
+pr: none # Not for pull requests
 
-  - bash: |
-      pip install --upgrade pip
-    displayName: Upgrade pip to latest
+schedules:
+- cron: "0 8 * * *" # Time is UTC
+  displayName: Nightly Build
+  branches:
+    include:
+      - master
+  always: true
 
-  - bash: |
-      pip install -r requirements.txt
-    displayName: Install required pip packages
+pool:
+  vmImage: 'ubuntu-latest'
 
-  - bash: |
-      pip install -e ./python
-    displayName: Install interpret-community
-
-  - bash: |
-      pip install --upgrade setuptools wheel twine
-      cd ./python
-      python setup.py bdist_wheel
-      cd ..
-    displayName: Create a wheel
-
-  - task: TwineAuthenticate@0
-    displayName: Configure twine authentication
-    inputs:
-      artifactFeeds: $(artifactFeed)
-
-  - bash: |
-      cd ./python
-      twine upload -r $(artifactFeed) --config-file $(PYPIRC_PATH) dist/*
-      cd ..
-    displayName: Publish artifacts
-
-  - bash: |
-      flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-    displayName: "Run flake8"
-
-  - bash: |
-      python -m pytest test/ --junitxml=./TEST-TEST.xml
-    displayName: "Run tests"
-
-  - task: PublishTestResults@2
-    displayName: "Publish Test Results **/TEST-*.xml"
-    condition: succeededOrFailed()
+jobs:
+- template: templates/all-tests-job-template.yml
+  parameters:
+    platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
+    pyVersions: [3.6, 3.7]
+    installationType: PipLocal
+    envArtifactStem: $(EnvArtifactStem)
+    envFileStem: $(EnvFileStem)
