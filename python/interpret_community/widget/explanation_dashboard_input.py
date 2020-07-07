@@ -128,7 +128,7 @@ class ExplanationDashboardInput:
                 local_explanation["scores"] = self._convert_to_list(local_explanation["scores"])
                 if np.shape(local_explanation["scores"])[-1] > 1000:
                     raise ValueError("Exceeds maximum number of features for visualization (1000). Please regenerate"
-                                    " the explanation using fewer features.")
+                                     " the explanation using fewer features.")
                 local_explanation["intercept"] = self._convert_to_list(local_explanation["intercept"])
                 # We can ignore perf explanation data.  Note if it is added back at any point,
                 # the numpy values will need to be converted to python, otherwise serialization fails.
