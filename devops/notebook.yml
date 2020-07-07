@@ -10,6 +10,9 @@ steps:
     displayName: Add conda to PATH
 
   - template: templates/create-env-template.yml
+    parameters:
+      pythonVersion: 3.6
+      condaEnv: interp
 
   - bash: |
       source activate interp

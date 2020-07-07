@@ -1,0 +1,32 @@
+# Steps to set up a machine to use Conda
+
+# See:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/ecosystems/anaconda?view=azure-devops&tabs=macos#add-conda-to-your-system-path
+
+# --------------------------------
+# Windows
+
+steps:
+- powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+  displayName: Add conda to PATH for Windows
+  condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+# --------------------------------
+# MacOS
+
+- bash: echo "##vso[task.prependpath]$CONDA/bin"
+  displayName: Add conda to PATH for MacOS
+  condition:  eq(variables['Agent.OS'], 'Darwin')
+
+# On Hosted macOS, the agent user doesn't have ownership of Miniconda's installation directory/
+# We need to take ownership if we want to update conda or install packages globally
+- bash: sudo chown -R $USER $CONDA
+  displayName: Take ownership of conda installation for MacOS
+  condition:  eq(variables['Agent.OS'], 'Darwin')
+
+# --------------------------------
+# Linux
+
+- bash: echo "##vso[task.prependpath]$CONDA/bin"
+  displayName: Add conda to PATH for Linux
+  condition:  eq(variables['Agent.OS'], 'Linux')
