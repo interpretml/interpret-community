@@ -17,5 +17,9 @@ flask
 flask-cors
 jinja2
 mlflow
+pytest-cov
+nbformat
+papermill
+nteract-scrapbook
 shap
 interpret-core

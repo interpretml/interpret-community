@@ -1,0 +1,96 @@
+# Install interpret-community in some way
+# Beyond 'None', the options are:
+# PipLocal -> pip install .
+# WheelArtifact -> Get a .whl file from a Pipeline Artifact
+# PyPI -> Get a version from a Pipeline Artifact and install from PyPI
+
+parameters:
+- name: installationType
+  type: string
+  values:
+  - None
+  - PipLocal
+  - PyPI
+  - WheelArtifact
+- name: packageOptions
+  type: string
+  values:
+  - " "
+  - '[visualization]'
+  default: " "
+- name: pypiUrl
+  type: string
+- name: versionArtifactName
+  type: string
+- name: versionArtifactFile
+  type: string
+- name: pipVersionVariable
+  type: string
+  default: pipVersionVar
+- name: wheelArtifactName
+  type: string
+- name: condaEnv
+  type: string
+
+steps:
+# ==============================================================
+# Install PipLocal
+- ${{ if eq(parameters.installationType, 'PipLocal') }}:
+  - bash: |
+      source activate ${{parameters.condaEnv}}
+      pip install -e ${{ format( './python{0}', parameters.packageOptions )}}
+    displayName: "Local install of interpret-community with pip"
+
+# ===============================================================
+# Install from a wheel package or from PyPI
+- ${{ if in(parameters.installationType, 'PyPI', 'WheelArtifact') }}:
+  # Clear out the checked out code
+  - task: DeleteFiles@1
+    inputs:
+      contents: |
+        python
+
+  - script: ls -p
+    displayName: "List after deletion"
+
+  # Install from PyPI
+  - ${{ if eq(parameters.installationType, 'PyPI') }}:
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download version Artifact ${{parameters.versionArtifactName}}"
+      inputs:
+        artifact: ${{parameters.versionArtifactName}}
+        path: $(Build.SourcesDirectory)
+
+    - script: ls -p $(Build.SourcesDirectory)
+      displayName: "Show sources directory"
+
+    - task: PowerShell@2
+      displayName: 'Read version Artifact and set pipeline variable from file contents'
+      inputs:
+        filePath: scripts/set-variable-from-file.ps1
+        arguments: "-baseDir $(Build.SourcesDirectory) -subDir . -fileName ${{parameters.versionArtifactFile}} -targetVariable ${{parameters.pipVersionVariable}}"
+        pwsh: true
+    
+    - bash: |
+        source activate ${{parameters.condaEnv}}
+        pip install --index-url ${{parameters.pypiUrl}} interpret-community==$(${{parameters.pipVersionVariable}})
+      displayName: "Install interpret-community with pip"
+
+  # Install from Wheel Artifact
+  - ${{ if eq(parameters.InstallationType, 'WheelArtifact') }}:
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download wheel Artifact ${{parameters.wheelArtifactName}}"
+      inputs:
+        artifact: ${{parameters.wheelArtifactName}}
+        path: $(Build.SourcesDirectory)
+
+    - script: ls -p $(Build.SourcesDirectory)
+      displayName: "Show sources directory"
+
+    - bash: |
+        source activate ${{parameters.condaEnv}}
+        pip install interpret-community*.whl
+      displayName: "Install interpret-community with pip from local file"
+
+      
+    
