@@ -99,10 +99,8 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
         } as any,
     };
 
-    private readonly _xButtonId = 'x-button-id';
-    private readonly _yButtonId = 'y-button-id';
-    private readonly _colorButtonId = 'color-button-id';
-    private readonly _chartConfigId = 'chart-connfig-button';
+    private readonly chartAndConfigsId = "chart-and-axis-config-id";
+    private readonly _chartConfigId = 'chart-config-button';
     private readonly chartOptions: IChoiceGroupOption[] = [
         { key: ChartTypes.Histogram, text: localization.DatasetExplorer.aggregatePlots },
         { key: ChartTypes.Scatter, text: localization.DatasetExplorer.individualDatapoints },
@@ -195,7 +193,60 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                     />
                 </div>
                 <div className={classNames.mainArea}>
-                    <div className={classNames.chartWithAxes}>
+                    <div className={classNames.chartWithAxes} id={this.chartAndConfigsId}>
+                        {this.state.yDialogOpen && (
+                            <AxisConfigDialog
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={yAxisCategories}
+                                selectedColumn={this.props.chartProps.yAxis}
+                                canBin={false}
+                                mustBin={false}
+                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                onAccept={this.onYSet}
+                                onCancel={this.setYOpen.bind(this, false)}
+                                target={`#${this.chartAndConfigsId}`}
+                            />
+                        )}
+                        {this.state.xDialogOpen && (
+                            <AxisConfigDialog
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[
+                                    ColumnCategories.index,
+                                    ColumnCategories.dataset,
+                                    ColumnCategories.outcome,
+                                ]}
+                                selectedColumn={this.props.chartProps.xAxis}
+                                canBin={
+                                    this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                    this.props.chartProps.chartType === ChartTypes.Box
+                                }
+                                mustBin={
+                                    this.props.chartProps.chartType === ChartTypes.Histogram ||
+                                    this.props.chartProps.chartType === ChartTypes.Box
+                                }
+                                canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
+                                onAccept={this.onXSet}
+                                onCancel={this.setXOpen.bind(this, false)}
+                                target={`#${this.chartAndConfigsId}`}
+                            />
+                        )}
+                        {this.state.colorDialogOpen && (
+                            <AxisConfigDialog
+                                jointDataset={this.props.jointDataset}
+                                orderedGroupTitles={[
+                                    ColumnCategories.index,
+                                    ColumnCategories.dataset,
+                                    ColumnCategories.outcome,
+                                ]}
+                                selectedColumn={this.props.chartProps.colorAxis}
+                                canBin={true}
+                                mustBin={false}
+                                canDither={false}
+                                onAccept={this.onColorSet}
+                                onCancel={this.setColorOpen.bind(this, false)}
+                                target={`#${this.chartAndConfigsId}`}
+                            />
+                        )}
                         <div className={classNames.chartWithVertical}>
                             <div className={classNames.verticalAxis}>
                                 <div className={classNames.rotatedVerticalBox}>
@@ -207,7 +258,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                         </Text>
                                         <DefaultButton
                                             onClick={this.setYOpen.bind(this, true)}
-                                            id={this._yButtonId}
                                             text={
                                                 this.props.jointDataset.metaDict[this.props.chartProps.yAxis.property]
                                                     .abbridgedLabel
@@ -218,19 +268,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                             }
                                         />
                                     </div>
-                                    {this.state.yDialogOpen && (
-                                        <AxisConfigDialog
-                                            jointDataset={this.props.jointDataset}
-                                            orderedGroupTitles={yAxisCategories}
-                                            selectedColumn={this.props.chartProps.yAxis}
-                                            canBin={false}
-                                            mustBin={false}
-                                            canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                            onAccept={this.onYSet}
-                                            onCancel={this.setYOpen.bind(this, false)}
-                                            target={this._yButtonId}
-                                        />
-                                    )}
                                 </div>
                             </div>
                             <IconButton
@@ -241,6 +278,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             />
                             {this.state.calloutVisible && (
                                 <Callout
+                                    doNotLayer={true}
                                     className={classNames.callout}
                                     gapSpace={0}
                                     target={'#' + this._chartConfigId}
@@ -248,6 +286,7 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                     onDismiss={this.closeCallout}
                                     directionalHint={DirectionalHint.bottomRightEdge}
                                     setInitialFocus={true}
+                                    styles={{container: FabricStyles.calloutContainer}}
                                 >
                                     <Text variant="medium" className={classNames.boldText}>
                                         {localization.DatasetExplorer.chartType}
@@ -282,7 +321,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                     </Text>
                                     <DefaultButton
                                         onClick={this.setXOpen.bind(this, true)}
-                                        id={this._xButtonId}
                                         text={
                                             this.props.jointDataset.metaDict[this.props.chartProps.xAxis.property]
                                                 .abbridgedLabel
@@ -292,29 +330,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                                         }
                                     />
                                 </div>
-                                {this.state.xDialogOpen && (
-                                    <AxisConfigDialog
-                                        jointDataset={this.props.jointDataset}
-                                        orderedGroupTitles={[
-                                            ColumnCategories.index,
-                                            ColumnCategories.dataset,
-                                            ColumnCategories.outcome,
-                                        ]}
-                                        selectedColumn={this.props.chartProps.xAxis}
-                                        canBin={
-                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                            this.props.chartProps.chartType === ChartTypes.Box
-                                        }
-                                        mustBin={
-                                            this.props.chartProps.chartType === ChartTypes.Histogram ||
-                                            this.props.chartProps.chartType === ChartTypes.Box
-                                        }
-                                        canDither={this.props.chartProps.chartType === ChartTypes.Scatter}
-                                        onAccept={this.onXSet}
-                                        onCancel={this.setXOpen.bind(this, false)}
-                                        target={this._xButtonId}
-                                    />
-                                )}
                             </div>
                         </div>
                     </div>
@@ -325,7 +340,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                         {this.props.chartProps.chartType === ChartTypes.Scatter && (
                             <DefaultButton
                                 onClick={this.setColorOpen.bind(this, true)}
-                                id={this._colorButtonId}
                                 text={
                                     this.props.jointDataset.metaDict[this.props.chartProps.colorAxis.property]
                                         .abbridgedLabel
@@ -334,23 +348,6 @@ export class DatasetExplorerTab extends React.PureComponent<IDatasetExplorerTabP
                             />
                         )}
                         {legend}
-                        {this.state.colorDialogOpen && (
-                            <AxisConfigDialog
-                                jointDataset={this.props.jointDataset}
-                                orderedGroupTitles={[
-                                    ColumnCategories.index,
-                                    ColumnCategories.dataset,
-                                    ColumnCategories.outcome,
-                                ]}
-                                selectedColumn={this.props.chartProps.colorAxis}
-                                canBin={true}
-                                mustBin={false}
-                                canDither={false}
-                                onAccept={this.onColorSet}
-                                onCancel={this.setColorOpen.bind(this, false)}
-                                target={this._colorButtonId}
-                            />
-                        )}
                     </div>
                 </div>
             </div>

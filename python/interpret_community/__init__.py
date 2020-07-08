@@ -31,3 +31,8 @@ if interpret_c_logs is not None:
         handler.close()
         logger.removeHandler(handler)
     atexit.register(close_handler)
+
+_major = '0'
+_minor = '14'
+_patch = '0'
+__version__ = '{}.{}.{}'.format(_major, _minor, _patch)

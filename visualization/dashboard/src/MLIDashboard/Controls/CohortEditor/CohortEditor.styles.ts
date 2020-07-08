@@ -8,6 +8,7 @@ import {
     ICalloutContentStyles,
     ITooltipHostStyles,
 } from 'office-ui-fabric-react';
+import { FabricStyles } from '../../FabricStyles';
 
 export interface ICohortEditorStyles {
     wrapper: IStyle;
@@ -48,9 +49,10 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
     const theme = getTheme();
     return mergeStyleSets<ICohortEditorStyles>({
         cohortEditor: {
-            overflowY: 'visible',
+            overflowY: 'auto',
             width: '560px',
-            height: '624px',
+            height: '610px',
+            maxHeight: '610px !important',
             ////elevation64 is used for dialogs/panels
             boxShadow: theme.effects.elevation64,
             borderRadius: '2px',
@@ -181,8 +183,8 @@ export const cohortEditorStyles: () => IProcessedStyleSet<ICohortEditorStyles> =
             display: 'flex',
             flexDirection: 'column',
             width: '560px',
-            height: '624px',
-            overflowY: 'visible',
+            height: '610px',
+            overflowY: 'auto',
         },
         addedFilter: {
             fontWeight: FontWeights.semibold,
@@ -275,8 +277,12 @@ export const tooltipHostStyles: Partial<ITooltipHostStyles> = {
 const cohortEditor = cohortEditorStyles();
 export const cohortEditorCallout: () => ICalloutContentStyles = () => {
     return {
-        container: {},
-        root: { marginLeft: '30%', marginTop: '7%' },
+        container: {
+            zIndex: 15
+        },
+        root: {
+            top: "-22px !important"
+        },
         beak: {},
         beakCurtain: {},
         calloutMain: cohortEditor.cohortEditor,

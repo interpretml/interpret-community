@@ -191,6 +191,7 @@ export class MultiICEPlot extends React.PureComponent<IMultiICEPlotProps, IMulti
                                     options={this.state.rangeView.categoricalOptions}
                                     onChange={this.onCategoricalRangeChanged}
                                     styles={FabricStyles.defaultDropdownStyle}
+                                    calloutProps={FabricStyles.calloutProps}
                                 />
                             )}
                             {this.state.rangeView.type !== RangeTypes.categorical && (

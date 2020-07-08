@@ -14,6 +14,7 @@ import { Cohort } from '../../Cohort';
 import { ColumnCategories, IJointMeta, JointDataset } from '../../JointDataset';
 import { ISelectorConfig } from '../../NewExplanationDashboard';
 import { axisControlCallout, axisControlDialogStyles, IAxisControlDialogStyles } from './AxisConfigDialog.styles';
+import { FabricStyles } from '../../FabricStyles';
 
 export interface IAxisConfigProps {
     jointDataset: JointDataset;
@@ -121,9 +122,16 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
         return (
             <Callout
                 onDismiss={this.props.onCancel}
+                preventDismissOnScroll={true}
+                doNotLayer={true}
                 setInitialFocus={true}
                 hidden={false}
                 styles={axisControlCallout()}
+                coverTarget
+                target={this.props.target}
+                isBeakVisible={false}
+                gapSpace={30}
+                directionalHint={DirectionalHint.topCenter}
             >
                 <div className={styles.wrapper}>
                     <div className={styles.leftHalf}>
@@ -157,6 +165,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 {isDataColumn && (
                                     <ComboBox
                                         options={this.dataArray}
+                                        styles={FabricStyles.limitedSizeMenuDropdown}
+                                        calloutProps={FabricStyles.calloutProps}
                                         onChange={this.setSelectedProperty}
                                         label={localization.AxisConfigDialog.selectFeature}
                                         className={styles.featureComboBox}
@@ -166,6 +176,8 @@ export class AxisConfigDialog extends React.PureComponent<IAxisConfigProps, IAxi
                                 {isProbabilityColumn && (
                                     <ComboBox
                                         options={this.classArray}
+                                        styles={FabricStyles.limitedSizeMenuDropdown}
+                                        calloutProps={FabricStyles.calloutProps}
                                         onChange={this.setSelectedProperty}
                                         label={localization.AxisConfigDialog.selectClass}
                                         className={styles.featureComboBox}

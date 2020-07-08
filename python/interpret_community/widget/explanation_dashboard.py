@@ -30,8 +30,12 @@ class ExplanationDashboard:
         class and for the regression case a method of predict() returning the prediction value.
     :type model: object
     :param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
-        used to build the explanation. Overwrites any existing dataset on the explanation object.
+        used to build the explanation. Overwrites any existing dataset on the explanation object. Must have fewer than
+        10000 rows and fewer than 1000 columns.
     :type dataset: numpy.array or list[][]
+    :param datasetX: Alias of the dataset parameter. If dataset is passed, this will have no effect. Must have fewer
+        than 10000 rows and fewer than 1000 columns.
+    :type datasetX: numpy.array or list[][]
     :param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
         explanation object.
     :type true_y: numpy.array or list[]
