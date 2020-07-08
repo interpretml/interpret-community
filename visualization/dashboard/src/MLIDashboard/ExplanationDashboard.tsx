@@ -52,7 +52,7 @@ import {
     IFeatureValueExplanation,
     IMultiClassBoundedCoordinates,
 } from './IExplanationContext';
-import { IExplanationDashboardProps } from './Interfaces/IExplanationDashboardProps';
+import { IExplanationDashboardProps, TelemetryLevels } from './Interfaces/IExplanationDashboardProps';
 import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from './IWeightedDropdownContext';
 import { ModelExplanationUtils } from './ModelExplanationUtils';
 import { IBarChartConfig } from './SharedComponents/IBarChartConfig';
@@ -130,6 +130,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         const modelMetadata = ExplanationDashboard.buildModelMetadata(props);
         const errorMessage = ExplanationDashboard.validateInputs(props, modelMetadata);
         if (errorMessage !== undefined) {
+            if (props.telemetryHook !== undefined) {
+                props.telemetryHook({
+                    message: "Invalid inputs",
+                    level: TelemetryLevels.error,
+                    context: errorMessage
+                });
+            }
             return {
                 modelMetadata,
                 explanationGenerators,
