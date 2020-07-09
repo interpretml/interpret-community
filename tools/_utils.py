@@ -1,8 +1,8 @@
 import logging
-import os
 
 _logger = logging.getLogger(__file__)
 logging.basicConfig(level=logging.INFO)
+
 
 class _LogWrapper:
     def __init__(self, description):
