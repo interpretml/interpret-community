@@ -76,7 +76,7 @@ stages:
         addToPath: true
 
     
-    - template: templates/create-env-template.yml
+    - template: templates/create-env-step-template.yml
       parameters:
         pythonVersion: $(poolPythonVersion)
         pinRequirements: False

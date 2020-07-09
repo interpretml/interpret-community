@@ -42,7 +42,7 @@ parameters:
 steps:
 - template: conda-path-step-template.yml
 
-- template: create-env-template.yml
+- template: create-env-step-template.yml
   parameters:
     pythonVersion: ${{parameters.pythonVersion}}
     condaEnv: ${{parameters.condaEnv}}
