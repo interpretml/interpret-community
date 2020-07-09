@@ -36,18 +36,14 @@ stages:
   pool:
     vmImage: $(poolImage)
 
-  variables:
-    envInfoArtifact: PredeployFreeze
-    envInfoFileBase: predeploy-requirements
-
   jobs:
   - template: templates/all-tests-job-template.yml
     parameters:
       platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
       pyVersions: [3.6, 3.7]
       installationType: PipLocal
-      envArtifactStem: $(envInfoArtifact)
-      envFileStem: $(envInfoFileBase)
+      envArtifactStem: PredeployFreeze
+      envFileStem: redeploy-requirements
 
 # ==================================================================================================
 
@@ -59,8 +55,6 @@ stages:
 
   variables:
     wheelEnvName: WheelEnvironment
-    freezeArtifactName: CreateWheelFreeze
-    freezeFile: createwheel-freeze
 
   jobs:
   - job: CreateWheel
@@ -74,13 +68,12 @@ stages:
       inputs:
         versionSpec: $(poolPythonVersion)
         addToPath: true
-
     
     - template: templates/create-env-step-template.yml
       parameters:
         pythonVersion: $(poolPythonVersion)
-        envInfoArtifact: $(freezeArtifactName)
-        envInfoFileBase: $(freezeFile)
+        envInfoArtifact: CreateWheelFreeze
+        envInfoFileBase: createwheel-freeze
         condaEnv: $(wheelEnvName)
 
     - bash: |
