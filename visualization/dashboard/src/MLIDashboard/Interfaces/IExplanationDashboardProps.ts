@@ -1,4 +1,5 @@
 import IStringsParam from './IStringsParam';
+import { ITelemetryMessage } from './ITelemetryMessage';
 
 // This is the interface of the data to be provided by any glue code, be it the ModelExplanationController, the Jupyter widget,
 // or some future extension. The Explanation Dashboard opperates on this data object, and an optional chart config that specifies
@@ -36,25 +37,6 @@ export interface IExplanationDashboardProps {
         abortSignal: AbortSignal,
         explanationAlgorithm?: string,
     ) => Promise<any[]>;
-}
-
-export enum TelemetryLevels {
-    error = 'Error',
-    warning = 'Warning',
-    info = 'Info',
-    trace = 'Trace'
-}
-
-export type TelemetryLevel = 
-    TelemetryLevels.error | 
-    TelemetryLevels.warning |
-    TelemetryLevels.info |
-    TelemetryLevels.trace;
-
-export interface ITelemetryMessage {
-    level: TelemetryLevel;
-    message?: string;
-    context?: any;
 }
 
 export interface IModelInformation {

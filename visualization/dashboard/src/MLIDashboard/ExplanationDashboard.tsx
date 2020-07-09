@@ -52,12 +52,13 @@ import {
     IFeatureValueExplanation,
     IMultiClassBoundedCoordinates,
 } from './IExplanationContext';
-import { IExplanationDashboardProps, TelemetryLevels } from './Interfaces/IExplanationDashboardProps';
+import { IExplanationDashboardProps } from './Interfaces/IExplanationDashboardProps';
 import { IWeightedDropdownContext, WeightVectorOption, WeightVectors } from './IWeightedDropdownContext';
 import { ModelExplanationUtils } from './ModelExplanationUtils';
 import { IBarChartConfig } from './SharedComponents/IBarChartConfig';
 import { EbmExplanation } from './Controls/EbmExplanation';
 import { JointDataset } from './JointDataset';
+import { TelemetryLevels } from './Interfaces/ITelemetryMessage';
 
 const s = require('./ExplanationDashboard.css');
 const RowIndex = 'rowIndex';
