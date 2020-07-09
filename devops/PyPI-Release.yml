@@ -48,3 +48,60 @@ stages:
       installationType: PipLocal
       envInfoArtifact: $(envInfoArtifact)
       envInfoFileBase: $(envInfoFileBase)
+
+# ==================================================================================================
+
+- stage: CreateWheel
+  displayName: Create Wheel Artifact
+  dependsOn: PredeploymentValidation
+  pool:
+    vmImage: $(poolImage)
+
+  variables:
+    wheelEnvName: WheelEnvironment
+    freezeArtifactName: CreateWheelFreeze
+    freezeFile: createwheel-freeze
+
+  jobs:
+  - job: CreateWheel
+    displayName: Build and publish wheel
+    pool:
+      vmImage: $(poolImage)
+    
+    steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python $(poolPythonVersion)'
+      inputs:
+        versionSpec: $(poolPythonVersion)
+        addToPath: true
+
+    
+    - template: templates/create-env-template.yml
+      parameters:
+        pythonVersion: $(poolPythonVersion)
+        pinRequirements: False
+        envInfoArtifact: $(freezeArtifactName)
+        envInfoFileBase: $(freezeFile)
+        condaEnv: $(wheelEnvName)
+
+    - bash: |
+        source activate $(wheelEnvName)
+        pip install --upgrade wheel 
+      displayName: 'Install wheel'
+
+    - bash: |
+        source activate $(wheelEnvName)
+        python ./tools/build_wheels.py --version-filename $(versionFilename) 
+      displayName: 'Build wheels'
+
+    - task: PublishPipelineArtifact@1
+      displayName: "Publish wheels"
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/python/dist
+        artifact: $(packageArtifactName)
+
+    - task: PublishPipelineArtifact@1
+      displayName: "Publish version information file"
+      inputs:
+        path: '$(System.DefaultWorkingDirectory)/$(versionFilename)'
+        artifact: $(versionArtifactName)

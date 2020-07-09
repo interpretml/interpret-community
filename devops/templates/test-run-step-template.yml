@@ -64,12 +64,6 @@ steps:
     pipVersionVariable: variableForPipVersion
     wheelArtifactName: ${{parameters.wheelArtifactName}}
     condaEnv: ${{parameters.condaEnv}}
-  
-- template: environment-info-step-template.yml
-  parameters:
-    condaEnv: ${{parameters.condaEnv}}
-    envInfoArtifact: ${{parameters.envInfoArtifact}}
-    envInfoFileBase: ${{parameters.envInfoFileBase}}
 
 - ${{ if eq(parameters.testRunType, 'Unit')}}:
   - bash: |
