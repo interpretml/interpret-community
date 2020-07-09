@@ -46,8 +46,8 @@ stages:
       platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
       pyVersions: [3.6, 3.7]
       installationType: PipLocal
-      envInfoArtifact: $(envInfoArtifact)
-      envInfoFileBase: $(envInfoFileBase)
+      envArtifactStem: $(envInfoArtifact)
+      envFileStem: $(envInfoFileBase)
 
 # ==================================================================================================
 
