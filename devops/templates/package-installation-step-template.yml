@@ -89,7 +89,7 @@ steps:
 
     - bash: |
         source activate ${{parameters.condaEnv}}
-        pip install interpret-community*.whl
+        pip install interpret_community*.whl
       displayName: "Install interpret-community with pip from local file"
 
       
