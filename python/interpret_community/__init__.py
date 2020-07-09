@@ -36,4 +36,4 @@ __name__ = "interpret_community"
 _major = '0'
 _minor = '14'
 _patch = '0'
-__version__ = '{}.{}.{}'.format(_major, _minor, _patch)
+__version__ = '{}.{}.{}.dev0'.format(_major, _minor, _patch)
