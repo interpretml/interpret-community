@@ -67,7 +67,7 @@ steps:
     - task: PowerShell@2
       displayName: 'Read version Artifact and set pipeline variable from file contents'
       inputs:
-        filePath: scripts/set-variable-from-file.ps1
+        filePath: tools/set-variable-from-file.ps1
         arguments: "-baseDir $(Build.SourcesDirectory) -subDir . -fileName ${{parameters.versionArtifactFile}} -targetVariable ${{parameters.pipVersionVariable}}"
         pwsh: true
     
