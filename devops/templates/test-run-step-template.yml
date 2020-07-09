@@ -46,6 +46,8 @@ steps:
   parameters:
     pythonVersion: ${{parameters.pythonVersion}}
     condaEnv: ${{parameters.condaEnv}}
+    envInfoArtifact: ${{parameters.envInfoArtifact}}
+    envInfoFileBase: ${{parameters.envInfoFileBase}}
 
 - bash: |
       source activate ${{parameters.condaEnv}}
