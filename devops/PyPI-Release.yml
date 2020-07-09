@@ -79,7 +79,6 @@ stages:
     - template: templates/create-env-step-template.yml
       parameters:
         pythonVersion: $(poolPythonVersion)
-        pinRequirements: False
         envInfoArtifact: $(freezeArtifactName)
         envInfoFileBase: $(freezeFile)
         condaEnv: $(wheelEnvName)
