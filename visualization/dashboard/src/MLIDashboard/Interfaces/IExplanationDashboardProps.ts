@@ -1,4 +1,5 @@
 import IStringsParam from './IStringsParam';
+import { ITelemetryMessage } from './ITelemetryMessage';
 
 // This is the interface of the data to be provided by any glue code, be it the ModelExplanationController, the Jupyter widget,
 // or some future extension. The Explanation Dashboard opperates on this data object, and an optional chart config that specifies
@@ -29,6 +30,7 @@ export interface IExplanationDashboardProps {
     shouldInitializeIcons?: boolean;
     iconUrl?: string;
     explanationMethod?: string;
+    telemetryHook?: (message: ITelemetryMessage) => void;
     requestPredictions?: (request: any[], abortSignal: AbortSignal) => Promise<any[]>;
     requestLocalFeatureExplanations?: (
         request: any[],

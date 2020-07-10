@@ -251,6 +251,7 @@ import { createTheme } from "@uifabric/styling";
                           this.generateRandomScore :
                           this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
+                        telemetryHook={(er) => {console.error(er.message)}}
                         theme={theme}
                         explanationMethod="mimic"
                         locale={this.state.language}
@@ -270,6 +271,7 @@ import { createTheme } from "@uifabric/styling";
                         }}
                         requestPredictions={this.generateRandomProbs.bind(this, classDimension)}
                         stringParams={{contextualHelp: this.messages}}
+                        telemetryHook={(er) => {console.error(er.message)}}
                         theme={theme}
                         locale={this.state.language}
                         key={new Date()}
