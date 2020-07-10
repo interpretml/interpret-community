@@ -3,6 +3,7 @@ import {
     IExplanationDashboardProps,
     IMultiClassLocalFeatureImportance,
     ISingleClassLocalFeatureImportance,
+    TelemetryLevels,
 } from './Interfaces';
 import { JointDataset } from './JointDataset';
 import { ModelMetadata } from 'mlchartlib';
@@ -287,6 +288,13 @@ export class NewExplanationDashboard extends React.PureComponent<
         const globalProps = NewExplanationDashboard.buildGlobalProperties(props);
         // consider taking filters in as param arg for programatic users
         const cohorts = [new Cohort(localization.Cohort.defaultLabel, jointDataset, [])];
+        if (validationCheck.errorStrings.length !== 0 && props.telemetryHook !== undefined) {
+            props.telemetryHook({
+                message: "Invalid inputs",
+                level: TelemetryLevels.error,
+                context: validationCheck.errorStrings.length
+            });
+        }
         return {
             cohorts,
             validationWarnings: validationCheck.errorStrings,

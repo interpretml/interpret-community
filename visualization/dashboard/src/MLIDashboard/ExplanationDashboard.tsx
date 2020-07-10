@@ -58,6 +58,7 @@ import { ModelExplanationUtils } from './ModelExplanationUtils';
 import { IBarChartConfig } from './SharedComponents/IBarChartConfig';
 import { EbmExplanation } from './Controls/EbmExplanation';
 import { JointDataset } from './JointDataset';
+import { TelemetryLevels } from './Interfaces/ITelemetryMessage';
 
 const s = require('./ExplanationDashboard.css');
 const RowIndex = 'rowIndex';
@@ -130,6 +131,13 @@ export class ExplanationDashboard extends React.Component<IExplanationDashboardP
         const modelMetadata = ExplanationDashboard.buildModelMetadata(props);
         const errorMessage = ExplanationDashboard.validateInputs(props, modelMetadata);
         if (errorMessage !== undefined) {
+            if (props.telemetryHook !== undefined) {
+                props.telemetryHook({
+                    message: "Invalid inputs",
+                    level: TelemetryLevels.error,
+                    context: errorMessage
+                });
+            }
             return {
                 modelMetadata,
                 explanationGenerators,
