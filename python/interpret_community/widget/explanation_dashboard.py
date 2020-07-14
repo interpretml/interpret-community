@@ -103,7 +103,8 @@ class ExplanationDashboard:
             # First handle known cloud environments
             nbvm_file_path = "/mnt/azmnt/.nbvm"
             if not (os.path.exists(nbvm_file_path) and os.path.isfile(nbvm_file_path)):
-                if not in_cloud_env:
+                # special case azure, since the azure sdk can set this env setting on local runs
+                if not in_cloud_env or "azureml_vm" in detected_envs:
                     return "http://{0}:{1}".format(
                         self.ip,
                         self.port)
