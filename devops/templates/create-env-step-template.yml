@@ -2,6 +2,13 @@
 parameters:
 - name: pythonVersion
   type: string
+- name: envInfoArtifact
+  type: string
+- name: envInfoFileBase
+  type: string
+- name: envInfoDirectory
+  type: string
+  default: environmentInfo
 - name: condaEnv
   type: string
   default: interpret_conda_env
@@ -48,3 +55,19 @@ steps:
       conda install --yes -c conda-forge -n ${{parameters.condaEnv}} papermill 
       pip install nteract-scrapbook
     displayName: List Jupyter Kernel and fix
+
+  - bash: mkdir ${{parameters.envInfoDirectory}}
+    displayName: Create directory for environment info
+
+  - bash: |
+        source activate ${{parameters.condaEnv}}
+        pip freeze --all > ${{parameters.envInfoFileBase}}-pip.txt
+        conda list > ${{parameters.envInfoFileBase}}-conda.txt
+    displayName: "Gather environment information"
+    workingDirectory: '$(System.DefaultWorkingDirectory)/${{parameters.envInfoDirectory}}'
+
+  - task: PublishPipelineArtifact@1
+    displayName: "Publish environment info to artifact ${{parameters.envInfoArtifact}}"
+    inputs:
+      path: '$(System.DefaultWorkingDirectory)/${{parameters.envInfoDirectory}}'
+      artifact: ${{parameters.envInfoArtifact}}

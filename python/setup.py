@@ -66,7 +66,7 @@ with open(README_FILE, 'r', encoding='utf-8') as f:
     README = f.read()
 
 setup(
-    name='interpret-community',
+    name=interpret_community.__name__,
 
     version=interpret_community.__version__,
 
