@@ -132,6 +132,7 @@ class SKLearn(object):
     EXAMPLES = 'examples'
     LABELS = 'labels'
     PREDICTIONS = 'predictions'
+    PREDICT_PROBA = 'predict_proba'
 
 
 class Spacy(object):

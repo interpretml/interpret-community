@@ -10,7 +10,7 @@ from functools import wraps
 
 from .base_explainer import BaseExplainer
 from .aggregate import init_aggregator_decorator
-from .constants import ModelTask, ExplainParams
+from .constants import ModelTask, ExplainParams, SKLearn
 from .chained_identity import ChainedIdentity
 
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data
@@ -78,7 +78,7 @@ class BlackBoxMixin(ChainedIdentity):
         super(BlackBoxMixin, self).__init__(**kwargs)
         self._logger.debug('Initializing BlackBoxMixin')
         # If true, this is a classification model
-        self.predict_proba_flag = hasattr(model, "predict_proba")
+        self.predict_proba_flag = hasattr(model, SKLearn.PREDICT_PROBA)
 
         if is_function:
             self._logger.debug('Function passed in, no model')

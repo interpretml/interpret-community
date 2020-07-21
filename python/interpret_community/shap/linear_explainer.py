@@ -10,7 +10,7 @@ from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
 from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
 from ..common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults, Extension, SHAPDefaults
+    Defaults, Extension, SHAPDefaults, SKLearn
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
@@ -195,7 +195,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
-        if hasattr(self.model, 'predict_proba'):
+        if hasattr(self.model, SKLearn.PREDICT_PROBA):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
         return self._explain_global(wrapped_evals, **kwargs)
 
@@ -247,7 +247,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(evaluation_examples)
-        if hasattr(self.model, 'predict_proba'):
+        if hasattr(self.model, SKLearn.PREDICT_PROBA):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(evaluation_examples)
         return kwargs
 
