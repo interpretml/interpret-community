@@ -9,9 +9,14 @@ import json
 import logging
 import numpy as np
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import LinearExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data
 from models import DataFrameTestModel, SkewedTestModel
@@ -27,6 +32,7 @@ test_logger.setLevel(logging.DEBUG)
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
 LIGHTGBM_METHOD = 'mimic.lightgbm'
+LINEAR_METHOD = 'mimic.linear'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -338,6 +344,43 @@ class TestMimicExplainer(object):
         assert len(np.unique(model_predictions)) == 2
         assert np.isclose(surrogate_predictions, model_predictions).all()
         assert global_explanation.method == LIGHTGBM_METHOD
+
+    def test_explain_model_string_classes(self, mimic_explainer):
+        adult_census_income = retrieve_dataset('AdultCensusIncome.csv', skipinitialspace=True)
+        X = adult_census_income.drop(['income'], axis=1)
+        y = adult_census_income[['income']]
+        features = X.columns.values.tolist()
+        classes = y['income'].unique().tolist()
+        pipe_cfg = {
+            'num_cols': X.dtypes[X.dtypes == 'int64'].index.values.tolist(),
+            'cat_cols': X.dtypes[X.dtypes == 'object'].index.values.tolist(),
+        }
+        num_pipe = Pipeline([
+            ('num_imputer', SimpleImputer(strategy='median')),
+            ('num_scaler', StandardScaler())
+        ])
+        cat_pipe = Pipeline([
+            ('cat_imputer', SimpleImputer(strategy='constant', fill_value='?')),
+            ('cat_encoder', OneHotEncoder(handle_unknown='ignore', sparse=False))
+        ])
+        feat_pipe = ColumnTransformer([
+            ('num_pipe', num_pipe, pipe_cfg['num_cols']),
+            ('cat_pipe', cat_pipe, pipe_cfg['cat_cols'])
+        ])
+        X_train = X.copy()
+        y_train = y.copy()
+        X_train.reset_index(drop=True, inplace=True)
+        y_train.reset_index(drop=True, inplace=True)
+        X_train = feat_pipe.fit_transform(X_train)
+        model = SGDClassifier()
+        model = model.fit(X_train, y_train['income'])
+        model_task = ModelTask.Classification
+        explainer = mimic_explainer(model, X.iloc[:1000], LinearExplainableModel,
+                                    augment_data=True, max_num_of_augmentations=10,
+                                    features=features, classes=classes, model_task=model_task,
+                                    transformations=feat_pipe)
+        global_explanation = explainer.explain_global(X.iloc[:1000])
+        assert global_explanation.method == LINEAR_METHOD
 
     @property
     def iris_overall_expected_features(self):

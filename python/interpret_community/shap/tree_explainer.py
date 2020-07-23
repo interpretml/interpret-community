@@ -15,7 +15,7 @@ from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
 from ..common.constants import ExplainParams, Attributes, ExplainType, \
-    ShapValuesOutput, Defaults, Extension
+    ShapValuesOutput, Defaults, Extension, SKLearn
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 from ..dataset.dataset_wrapper import DatasetWrapper
@@ -205,7 +205,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         else:
             typed_evaluation_examples = evaluation_examples
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(typed_evaluation_examples)
-        if hasattr(self.model, 'predict_proba'):
+        if hasattr(self.model, SKLearn.PREDICT_PROBA):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(typed_evaluation_examples)
         return self._explain_global(wrapped_evals, **kwargs)
 
@@ -268,7 +268,7 @@ class TreeExplainer(PureStructuredModelExplainer):
         if len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         kwargs[ExplainParams.EVAL_Y_PRED] = self.model.predict(typed_wrapper_func(evaluation_examples))
-        if hasattr(self.model, 'predict_proba'):
+        if hasattr(self.model, SKLearn.PREDICT_PROBA):
             kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.model.predict_proba(typed_wrapper_func(evaluation_examples))
         return kwargs
 

@@ -6,6 +6,7 @@
 
 from ._internal.constants import ExplanationDashboardInterface, WidgetRequestResponseConstants
 from ..common.error_handling import _format_exception
+from ..common.constants import SKLearn
 from scipy.sparse import issparse
 import numpy as np
 import pandas as pd
@@ -63,7 +64,7 @@ class ExplanationDashboardInput:
         :type features: numpy.array or list[]
         """
         self._model = model
-        self._is_classifier = model is not None and hasattr(model, 'predict_proba') and \
+        self._is_classifier = model is not None and hasattr(model, SKLearn.PREDICT_PROBA) and \
             model.predict_proba is not None
         self._dataframeColumns = None
         self.dashboard_input = {}
@@ -177,7 +178,7 @@ class ExplanationDashboardInput:
                 raise ValueError("Class vector length mismatch: \
                     class names length differs from local explanations dimension")
             self.dashboard_input[ExplanationDashboardInterface.CLASS_NAMES] = classes
-        if model is not None and hasattr(model, 'predict_proba') \
+        if model is not None and hasattr(model, SKLearn.PREDICT_PROBA) \
                 and model.predict_proba is not None and dataset is not None:
             try:
                 probability_y = model.predict_proba(dataset)

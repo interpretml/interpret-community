@@ -6,8 +6,9 @@
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import SGDClassifier
 
-from .constants import ModelTask
+from .constants import ModelTask, SKLearn
 
 import logging
 import warnings
@@ -231,6 +232,45 @@ class WrappedRegressionModel(object):
         return self._eval_function(dataset)
 
 
+class WrappedClassificationWithoutProbaModel(object):
+    """A class for wrapping a classifier without a predict_proba method.
+
+    Note: the classifier may not output numeric values for its predictions.
+    We generate a trival boolean version of predict_proba
+    """
+
+    def __init__(self, model):
+        """Initialize the WrappedClassificationWithoutProbaModel with the model."""
+        self._model = model
+        # Create a map from classes to index
+        self._classes_to_index = {}
+        for index, i in enumerate(self._model.classes_):
+            self._classes_to_index[i] = index
+        self._num_classes = len(self._model.classes_)
+
+    def predict(self, dataset):
+        """Predict the output using the wrapped regression model.
+
+        :param dataset: The dataset to predict on.
+        :type dataset: DatasetWrapper
+        """
+        return self._model.predict(dataset)
+
+    def predict_proba(self, dataset):
+        """Predict the output probability using the wrapped model.
+
+        :param dataset: The dataset to predict_proba on.
+        :type dataset: DatasetWrapper
+        """
+        predictions = self.predict(dataset)
+        # Generate trivial boolean array for predictions
+        probabilities = np.zeros((predictions.shape[0], self._num_classes))
+        for row_idx, pred_class in enumerate(predictions):
+            class_index = self._classes_to_index[pred_class]
+            probabilities[row_idx, class_index] = 1
+        return probabilities
+
+
 def wrap_model(model, examples, model_task):
     """If needed, wraps the model in a common API based on model task and prediction function contract.
 
@@ -274,11 +314,24 @@ def _wrap_model(model, examples, model_task, is_function):
                 model = WrappedPytorchModel(model)
         except (NameError, AttributeError):
             module_logger.debug('Could not import torch, required if using a pytorch model')
+        if _classifier_without_proba(model):
+            model = WrappedClassificationWithoutProbaModel(model)
         eval_function, eval_ml_domain = _eval_model(model, examples, model_task)
         if eval_ml_domain == ModelTask.Classification:
             return WrappedClassificationModel(model, eval_function), eval_ml_domain
         else:
             return WrappedRegressionModel(model, eval_function), eval_ml_domain
+
+
+def _classifier_without_proba(model):
+    """Returns True if the given model is a classifier without predict_proba, eg SGDClassifier.
+
+    :param model: The model to evaluate on the examples.
+    :type model: model with a predict or predict_proba function
+    :return: True if the given model is a classifier without predict_proba.
+    :rtype: bool
+    """
+    return isinstance(model, SGDClassifier) and not hasattr(model, SKLearn.PREDICT_PROBA)
 
 
 def _eval_model(model, examples, model_task):
@@ -308,7 +361,7 @@ def _eval_model(model, examples, model_task):
         else:
             return _eval_function(model.predict_proba, examples, ModelTask.Classification)
     else:
-        has_predict_proba = hasattr(model, "predict_proba")
+        has_predict_proba = hasattr(model, SKLearn.PREDICT_PROBA)
         # Note: Allow user to override default to use predict method for regressor
         if has_predict_proba and model_task != ModelTask.Regression:
             return _eval_function(model.predict_proba, examples, model_task)
