@@ -70,4 +70,4 @@ steps:
     displayName: "Publish environment info to artifact ${{parameters.envInfoArtifact}}"
     inputs:
       path: '$(System.DefaultWorkingDirectory)/${{parameters.envInfoDirectory}}'
-      artifact: ${{parameters.envInfoArtifact}}
+      artifact: ${{parameters.envInfoArtifact}}-Attempt-$(System.JobAttemp
