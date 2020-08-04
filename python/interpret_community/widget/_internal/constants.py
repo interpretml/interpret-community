@@ -29,6 +29,7 @@ class ExplanationDashboardInterface(object):
     PROBABILITY_Y = "probabilityY"
     TRAINING_DATA = "trainingData"
     TRUE_Y = "trueY"
+    WITH_CREDENTIALS = "withCredentials"
 
 
 class DatabricksInterfaceConstants(object):
