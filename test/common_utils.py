@@ -136,6 +136,26 @@ def create_sklearn_random_forest_regressor(X, y):
     return model
 
 
+def wrap_classifier_without_proba(classifier):
+    # Wraps a classifier without a predict_proba
+    class WrappedWithoutProbaClassificationModel(object):
+        """A class for wrapping a classification model."""
+
+        def __init__(self, classifier):
+            """Initialize the WrappedWithoutProbaClassificationModel with the underlying model."""
+            self._model = classifier
+
+        def predict(self, dataset):
+            """Returns the probabilities instead of the predicted class.
+
+            :param dataset: The dataset to predict on.
+            :type dataset: DatasetWrapper
+            """
+            return self._model.predict_proba(dataset)
+
+    return WrappedWithoutProbaClassificationModel(classifier)
+
+
 def create_sklearn_linear_regressor(X, y, pipeline=False):
     lin = linear_model.LinearRegression(normalize=True)
     if pipeline:

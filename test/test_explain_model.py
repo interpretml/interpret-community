@@ -16,7 +16,7 @@ from interpret_community.common.policy import SamplingPolicy
 from common_utils import create_sklearn_random_forest_classifier, create_sklearn_svm_classifier, \
     create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, create_keras_classifier, \
     create_keras_regressor, create_lightgbm_classifier, create_pytorch_classifier, create_pytorch_regressor, \
-    create_xgboost_classifier
+    create_xgboost_classifier, wrap_classifier_without_proba
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
 from constants import DatasetConstants
@@ -659,6 +659,22 @@ class TestTabularExplainer(object):
         assert local_shape == (2, num_rows_expected, num_cols)
         assert len(global_explanation.global_importance_values) == num_cols
         assert global_explanation.num_features == num_cols
+
+    def test_explain_model_classification_with_predict_only(self, tabular_explainer):
+        X, y = shap.datasets.adult()
+        x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.003, random_state=7)
+        # Fit a tree model
+        model = create_sklearn_random_forest_classifier(x_train, y_train)
+
+        # Wrap the model in a predict-only API
+        wrapped_model = wrap_classifier_without_proba(model)
+
+        # Create tabular explainer
+        exp = tabular_explainer(wrapped_model, x_train, features=X.columns.values, model_task=ModelTask.Classification)
+        test_logger.info('Running explain global for test_explain_model_classification_with_predict_only')
+        explanation = exp.explain_global(x_test)
+        # Validate predicted y values are boolean
+        assert(np.all(np.isin(explanation.eval_y_predicted, [0, 1])))
 
     def create_msx_data(self, test_size):
         sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
