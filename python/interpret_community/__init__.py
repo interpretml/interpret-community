@@ -35,5 +35,5 @@ if interpret_c_logs is not None:
 __name__ = 'interpret_community'
 _major = '0'
 _minor = '14'
-_patch = '1'
+_patch = '2'
 __version__ = '{}.{}.{}'.format(_major, _minor, _patch)
