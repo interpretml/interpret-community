@@ -14,8 +14,8 @@ from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import _create_local_explanation, \
     _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
 from .kwargs_utils import _get_explain_global_kwargs
-from ..common.constants import ExplainParams, Attributes, ExplainType, \
-    ShapValuesOutput, Defaults, Extension, SKLearn
+from ..common.constants import ExplainParams, ExplainType, ShapValuesOutput, \
+    Defaults, Extension, SKLearn
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 from ..dataset.dataset_wrapper import DatasetWrapper
@@ -233,16 +233,15 @@ class TreeExplainer(PureStructuredModelExplainer):
         # until TreeExplainer sparse support is added
         typed_dense_evaluation_examples = typed_wrapper_func(_get_dense_examples(evaluation_examples))
         shap_values = self.explainer.shap_values(typed_dense_evaluation_examples)
-        expected_values = None
-        if hasattr(self.explainer, Attributes.EXPECTED_VALUE):
-            self._logger.debug('Expected values available on explainer')
-            expected_values = np.array(self.explainer.expected_value)
+        expected_values = self.explainer.expected_value
         classification = isinstance(shap_values, list)
         if str(type(self.model)).endswith("XGBClassifier'>") and not classification:
             # workaround for XGBoost binary classifier output from SHAP
             classification = True
-            shap_values = np.array((-shap_values, shap_values))
+            shap_values = [-shap_values, shap_values]
             expected_values = np.array((-expected_values, expected_values))
+        else:
+            expected_values = np.array(expected_values)
         if classification and self._shap_values_output == ShapValuesOutput.PROBABILITY:
             # Re-scale shap values to probabilities for classification case
             shap_values = _scale_tree_shap(shap_values, expected_values,

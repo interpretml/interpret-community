@@ -11,3 +11,10 @@ class DatasetConstants(object):
     X_TRAIN = 'x_train'
     Y_TEST = 'y_test'
     Y_TRAIN = 'y_train'
+
+
+class ModelType(object):
+    """Model type constants."""
+    XGBOOST = 'xgboost'
+    TREE = 'tree'
+    DEFAULT = 'default'

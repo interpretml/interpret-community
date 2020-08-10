@@ -25,7 +25,7 @@ from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
 
-from constants import owner_email_tools_and_ux
+from constants import owner_email_tools_and_ux, ModelType
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
@@ -214,6 +214,10 @@ class TestMimicExplainer(object):
         for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_shap_values_binary()
 
+    def test_explain_model_shap_values_binary_xgboost(self, verify_mimic_regressor):
+        for verifier in verify_mimic_regressor:
+            verifier.verify_explain_model_shap_values_binary(model_type=ModelType.XGBOOST)
+
     def test_explain_model_shap_values_multiclass(self, verify_mimic_classifier):
         for verifier in verify_mimic_classifier:
             verifier.verify_explain_model_shap_values_multiclass()
@@ -221,6 +225,11 @@ class TestMimicExplainer(object):
     def test_explain_model_shap_values_binary_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
         verify_mimic_classifier[LGBM_MODEL_IDX].verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY)
+
+    def test_explain_model_shap_values_binary_proba_xgboost(self, verify_mimic_classifier):
+        # Note: only LGBMExplainableModel supports conversion to probabilities for now
+        verify_mimic_classifier[LGBM_MODEL_IDX].verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY,
+                                                                                        model_type=ModelType.XGBOOST)
 
     def test_explain_model_shap_values_multiclass_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
@@ -231,6 +240,12 @@ class TestMimicExplainer(object):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
         verify_mimic = verify_mimic_classifier[LGBM_MODEL_IDX]
         verify_mimic.verify_explain_model_shap_values_binary(ShapValuesOutput.TEACHER_PROBABILITY)
+
+    def test_explain_model_shap_values_binary_teacher_proba_xgboost(self, verify_mimic_classifier):
+        # Note: only LGBMExplainableModel supports conversion to probabilities for now
+        verify_mimic = verify_mimic_classifier[LGBM_MODEL_IDX]
+        verify_mimic.verify_explain_model_shap_values_binary(ShapValuesOutput.TEACHER_PROBABILITY,
+                                                             model_type=ModelType.XGBOOST)
 
     def test_explain_model_shap_values_multiclass_teacher_proba(self, verify_mimic_classifier):
         # Note: only LGBMExplainableModel supports conversion to probabilities for now
