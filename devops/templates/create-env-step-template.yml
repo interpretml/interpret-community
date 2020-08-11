@@ -43,7 +43,14 @@ steps:
   - bash: |
       source activate ${{parameters.condaEnv}} 
       pip install --upgrade pip
-    displayName: Upgrade pip to latest
+    displayName: Upgrade pip to latest for linux or macos
+    condition:  or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin'))
+
+  - bash: |
+      source activate ${{parameters.condaEnv}} 
+      pip install --upgrade pip --user
+    displayName: Upgrade pip to latest for windows
+    condition:  eq(variables['Agent.OS'], 'Windows_NT')
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
@@ -62,9 +69,14 @@ steps:
   - bash: |
         source activate ${{parameters.condaEnv}}
         pip freeze --all > ${{parameters.envInfoFileBase}}-pip.txt
-        conda list > ${{parameters.envInfoFileBase}}-conda.txt
     displayName: "Gather environment information"
     workingDirectory: '$(System.DefaultWorkingDirectory)/${{parameters.envInfoDirectory}}'
+
+  - bash: |
+        source activate  ${{parameters.condaEnv}}
+        conda list > ${{parameters.envInfoFileBase}}-conda.txt
+    displayName: Save conda info for linux or macos
+    condition:  or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin'))
 
   - task: PublishPipelineArtifact@1
     displayName: "Publish environment info to artifact ${{parameters.envInfoArtifact}}"
