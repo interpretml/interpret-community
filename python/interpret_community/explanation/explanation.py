@@ -15,7 +15,7 @@ from scipy.sparse import issparse
 from abc import ABCMeta, abstractmethod
 
 from shap.common import DenseData
-from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class, perf_dict
+from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
 from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \
     _sort_feature_list_multiclass
@@ -485,6 +485,15 @@ class LocalExplanation(FeatureImportanceExplanation):
         else:
             return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
 
+    def _perf_dict(self, y, y_hat, i):
+        if y is None or y_hat is None:
+            return None
+        di = {}
+        di["actual"] = y[i]
+        di["predicted"] = y_hat[i]
+        di["residual"] = y[i] - y_hat[i]
+        return di
+
     def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
 
@@ -507,7 +516,7 @@ class LocalExplanation(FeatureImportanceExplanation):
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
             if _DatasetsMixin._does_quack(self):
-                parent_data[InterpretData.PERF] = perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
+                parent_data[InterpretData.PERF] = self._perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
                 if isinstance(self._eval_data, DatasetWrapper):
                     eval_data = self._eval_data
                 else:
