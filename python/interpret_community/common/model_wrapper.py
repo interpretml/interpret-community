@@ -204,7 +204,17 @@ class WrappedClassificationModel(object):
         is_sequential = str(type(self._model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
             return self._model.predict_classes(dataset).flatten()
-        return self._model.predict(dataset)
+        preds = self._model.predict(dataset)
+        # Handle possible case where the model has only a predict function and it outputs probabilities
+        # Note this is different from WrappedClassificationWithoutProbaModel where there is no predict_proba
+        # method but the predict method outputs classes
+        has_predict_proba = hasattr(self._model, SKLearn.PREDICT_PROBA)
+        if not has_predict_proba:
+            if len(preds.shape) == 1:
+                return np.argmax(preds)
+            else:
+                return np.argmax(preds, axis=1)
+        return preds
 
     def predict_proba(self, dataset):
         """Predict the output probability using the wrapped model.
