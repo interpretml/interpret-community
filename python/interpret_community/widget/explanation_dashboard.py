@@ -22,7 +22,9 @@ except ModuleNotFoundError:
 
 NBVM_FILE_PATH = "/mnt/azmnt/.nbvm"
 CREDENTIALED_VM = 'credentialed_vm'
+PUBLIC_VM = 'public_vm'
 LOCALHOST = 'localhost'
+VM_ENVS = {CREDENTIALED_VM, PUBLIC_VM}
 
 
 def _get_nbvm():
@@ -92,8 +94,12 @@ class ExplanationDashboard:
             if self.nbvm is None and not with_credentials:
                 self.cors = CORS(app)
                 self.with_credentials = False
-                self.ip = LOCALHOST
-                self.env = 'local'
+                if public_ip is not None:
+                    self.ip = public_ip
+                    self.env = PUBLIC_VM
+                else:
+                    self.ip = LOCALHOST
+                    self.env = 'local'
             elif self.nbvm is not None:
                 # Note: for debugging CORS set logging.getLogger('flask_cors').level = logging.DEBUG
                 instance_name = self.nbvm["instance"]
@@ -112,7 +118,8 @@ class ExplanationDashboard:
                     self.ip = public_ip
                 else:
                     # Attempt to get the ip, but this may fail since it may not get the external ip of
-                    # the machine, just the private ip
+                    # the machine, just the private ip. Note we don't use LOCALHOST here because it
+                    # doesn't make sense to run with CORS on local machine anyway.
                     host_name = socket.gethostname()
                     self.ip = socket.gethostbyname(host_name)
                 origin = "https://{}:{}".format(self.ip, port)
@@ -160,8 +167,8 @@ class ExplanationDashboard:
             class devnull:
                 write = lambda _: None  # noqa: E731
             ip = LOCALHOST
-            # Note: for credentialed VM we need to use the private IP address
-            if self.env == CREDENTIALED_VM:
+            # Note: for credentialed VM or public VM we need to use the private IP address
+            if self.env in VM_ENVS:
                 host_name = socket.gethostname()
                 ip = socket.gethostbyname(host_name)
             server = WSGIServer((ip, self.port), self.app, log=devnull)
@@ -182,7 +189,7 @@ class ExplanationDashboard:
             # First handle known cloud environments
             if result is None:
                 # special case azure, since the azure sdk can set this env setting on local runs
-                if not in_cloud_env or "azureml_vm" in detected_envs:
+                if not in_cloud_env or self.env in VM_ENVS:
                     return "http://{0}:{1}".format(
                         self.ip,
                         self.port)
