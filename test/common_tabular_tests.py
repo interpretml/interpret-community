@@ -28,9 +28,11 @@ from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_re
     create_sklearn_logistic_regressor, create_iris_data, create_energy_data, create_cancer_data, \
     create_pandas_only_svm_classifier, create_keras_regressor, create_pytorch_regressor, \
     create_keras_multiclass_classifier, create_pytorch_multiclass_classifier, \
-    create_multiclass_sparse_newsgroups_data
+    create_multiclass_sparse_newsgroups_data, create_xgboost_classifier, \
+    create_sklearn_random_forest_regressor, create_sklearn_random_forest_classifier
 from raw_explain.utils import IdentityTransformer
 from test_serialize_explanation import verify_serialization
+from constants import ModelType
 
 from datasets import retrieve_dataset
 
@@ -39,6 +41,8 @@ DATA_SLICE = slice(10)
 
 
 TOLERANCE = 1e-2
+PROBABILITY_TOLERANCE = 1e-5
+SURROGATE_MODEL = 'surrogate_model'
 
 
 class TransformationType(Enum):
@@ -783,10 +787,18 @@ class VerifyTabularTests(object):
             create_model, true_labels_required, allow_all_transformations=True
         )
 
-    def verify_explain_model_shap_values_multiclass(self, shap_values_output=ShapValuesOutput.DEFAULT):
+    def verify_explain_model_shap_values_multiclass(self, shap_values_output=ShapValuesOutput.DEFAULT,
+                                                    model_type=ModelType.DEFAULT):
         x_train, x_test, y_train, _, feature_names, target_names = create_iris_data()
-        # Fit an SVM model
-        model = create_sklearn_svm_classifier(x_train, y_train)
+        if model_type == ModelType.XGBOOST:
+            # Fit an XGBoost model
+            model = create_xgboost_classifier(x_train, y_train)
+        elif model_type == ModelType.TREE:
+            # Fit an sklearn tree-based model
+            model = create_sklearn_random_forest_classifier(x_train, y_train)
+        else:
+            # Fit an SVM model
+            model = create_sklearn_svm_classifier(x_train, y_train)
 
         # Create tabular explainer
         kwargs = {}
@@ -796,13 +808,22 @@ class VerifyTabularTests(object):
         explanation = explainer.explain_global(x_test)
         is_probability = shap_values_output != ShapValuesOutput.DEFAULT
         self.validate_explanation(explanation, is_multiclass=True, is_probability=is_probability)
-        # validate explanation has init_data on it
-        assert(explanation.init_data is not None)
+        # validate explanation has init_data on it in mimic explainer case (note there is none for TreeExplainer)
+        if hasattr(explainer, SURROGATE_MODEL):
+            assert(explanation.init_data is not None)
 
-    def verify_explain_model_shap_values_binary(self, shap_values_output=ShapValuesOutput.DEFAULT):
+    def verify_explain_model_shap_values_binary(self, shap_values_output=ShapValuesOutput.DEFAULT,
+                                                model_type=ModelType.DEFAULT):
         x_train, x_test, y_train, _, feature_names, target_names = create_cancer_data()
-        # Fit an SVM model
-        model = create_sklearn_svm_classifier(x_train, y_train)
+        if model_type == ModelType.XGBOOST:
+            # Fit an XGBoost model, which is handled in special way currently
+            model = create_xgboost_classifier(x_train, y_train)
+        elif model_type == ModelType.TREE:
+            # Fit an sklearn tree-based model
+            model = create_sklearn_random_forest_classifier(x_train, y_train)
+        else:
+            # Fit an SVM model
+            model = create_sklearn_svm_classifier(x_train, y_train)
 
         # Create tabular explainer
         kwargs = {}
@@ -811,17 +832,30 @@ class VerifyTabularTests(object):
         self.test_logger.info('Running explain global for verify_explain_model_shap_values_binary')
         explanation = explainer.explain_global(x_test)
         is_probability = shap_values_output != ShapValuesOutput.DEFAULT
-        if shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
+        has_surrogate_model = hasattr(explainer, SURROGATE_MODEL)
+        has_explainer_probas = not has_surrogate_model and shap_values_output == ShapValuesOutput.PROBABILITY
+        if shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY or has_explainer_probas:
             model_output = model.predict_proba(x_test)
         else:
-            model_output = expit(explainer.surrogate_model.predict(x_test))
+            if has_surrogate_model:
+                predictions = explainer.surrogate_model.predict(x_test)
+            elif str(type(model)).endswith("XGBClassifier'>"):
+                predictions = model.predict(x_test, output_margin=True)
+            else:
+                predictions = model.predict(x_test)
+            model_output = expit(predictions)
             model_output = np.stack((1 - model_output, model_output), axis=-1)
         self.validate_explanation(explanation, is_probability=is_probability, model_output=model_output)
 
-    def verify_explain_model_shap_values_regression(self, shap_values_output=ShapValuesOutput.DEFAULT):
+    def verify_explain_model_shap_values_regression(self, shap_values_output=ShapValuesOutput.DEFAULT,
+                                                    model_type=ModelType.DEFAULT):
         x_train, x_test, y_train, y_test, feature_names = create_energy_data()
-        # Fit a linear model
-        model = create_sklearn_linear_regressor(x_train, y_train)
+        if model_type == ModelType.TREE:
+            # Fit a tree-based model
+            model = create_sklearn_random_forest_regressor(x_train, y_train)
+        else:
+            # Fit a linear model
+            model = create_sklearn_linear_regressor(x_train, y_train)
 
         # Create tabular explainer
         kwargs = {}
@@ -915,7 +949,9 @@ class VerifyTabularTests(object):
                         predicted_probability = expit(total_sum)
                     else:
                         predicted_probability = total_sum
-                    assert(predicted_probability <= 1.0 and predicted_probability >= 0.0)
+                    ubound = 1.0 + PROBABILITY_TOLERANCE
+                    lbound = 0.0 - PROBABILITY_TOLERANCE
+                    assert(predicted_probability <= ubound and predicted_probability >= lbound)
                     if model_output is not None:
                         assert abs(predicted_probability - model_output[row_idx, class_idx]) < TOLERANCE
 

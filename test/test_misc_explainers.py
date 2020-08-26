@@ -13,10 +13,11 @@ from interpret_community.shap.kernel_explainer import KernelExplainer
 from interpret_community.shap.tree_explainer import TreeExplainer
 from interpret_community.shap.deep_explainer import DeepExplainer
 from interpret_community.shap.linear_explainer import LinearExplainer
+from interpret_community.common.constants import ShapValuesOutput
 from common_tabular_tests import VerifyTabularTests
 from common_utils import create_keras_multiclass_classifier, create_keras_regressor, \
     create_sklearn_linear_regressor, create_sklearn_logistic_regressor
-from constants import owner_email_tools_and_ux
+from constants import owner_email_tools_and_ux, ModelType
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.INFO)
@@ -115,6 +116,31 @@ class TestTreeExplainer(object):
     def test_tree_explainer_raw_transformations_column_transformer_regression(self):
         self._verify_tabular.verify_explain_model_transformations_list_regression(self._get_create_model(
             classification=False))
+
+    def test_tree_explainer_shap_values_binary_xgboost(self):
+        self._verify_tabular.verify_explain_model_shap_values_binary(model_type=ModelType.XGBOOST)
+
+    def test_tree_explainer_shap_values_binary_proba(self):
+        self._verify_tabular.verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY,
+                                                                     model_type=ModelType.TREE)
+
+    def test_tree_explainer_shap_values_binary_proba_xgboost(self):
+        self._verify_tabular.verify_explain_model_shap_values_binary(ShapValuesOutput.PROBABILITY,
+                                                                     model_type=ModelType.XGBOOST)
+
+    def test_tree_explainer_shap_values_multiclass(self):
+        self._verify_tabular.verify_explain_model_shap_values_multiclass(model_type=ModelType.TREE)
+
+    def test_tree_explainer_shap_values_multiclass_proba(self):
+        self._verify_tabular.verify_explain_model_shap_values_multiclass(ShapValuesOutput.PROBABILITY,
+                                                                         model_type=ModelType.TREE)
+
+    def test_tree_explainer_shap_values_multiclass_proba_xgboost(self):
+        self._verify_tabular.verify_explain_model_shap_values_multiclass(ShapValuesOutput.PROBABILITY,
+                                                                         model_type=ModelType.XGBOOST)
+
+    def test_tree_explainer_shap_values_regression(self):
+        self._verify_tabular.verify_explain_model_shap_values_regression(model_type=ModelType.TREE)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
