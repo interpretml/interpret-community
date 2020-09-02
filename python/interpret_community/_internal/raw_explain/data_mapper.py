@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas
-from scipy.sparse import issparse, hstack
+from scipy.sparse import issparse, hstack, csr_matrix
 from sklearn.pipeline import Pipeline
 
 from .feature_mappers import encoders_to_mappers_dict, get_feature_mapper_for_pipeline, IdentityMapper, \
@@ -177,7 +177,7 @@ class DataMapper(object):
         self._run_feature_mappers_transform(x)
 
         num_output_columns = int(sum([x[1].feature_map.shape[1] for x in self._feature_mappers_pipeline]))
-        feature_map = np.zeros((len(columns), num_output_columns))
+        feature_map = csr_matrix((len(columns), num_output_columns))
         raw_feats_indices = dict([(col, i) for i, col in enumerate(columns)])
         curr_output_cols = 0
         for transformer_config, feature_mapper in self._feature_mappers_pipeline:
@@ -189,6 +189,10 @@ class DataMapper(object):
                 feature_map[raw_feats_indices[col], curr_start:curr_end] = feature_mapper.feature_map[i]
 
             curr_output_cols += num_output_columns_for_transformer
+
+        # Convert to dense format if more than half of the matrix has non-zeros
+        if feature_map.shape[0] * feature_map.shape[1] / feature_map.getnnz() <= 2.0:
+            feature_map = feature_map.toarray()
 
         self._feature_map = feature_map
 
@@ -210,7 +214,6 @@ class DataMapper(object):
         :return: transformed data
         :rtype: numpy.array or scipy.sparse matrix
         """
-
         if self._feature_map is None:
             # pass a single example through the transformations list to build feature map
             columns = x.columns if isinstance(x, pandas.DataFrame) else list(range(x.shape[1]))

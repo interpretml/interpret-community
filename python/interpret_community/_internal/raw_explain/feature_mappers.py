@@ -4,9 +4,12 @@
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
+from scipy.sparse import eye, csr_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Binarizer, KernelCenterer, LabelEncoder, MaxAbsScaler, MinMaxScaler, Normalizer, \
     OneHotEncoder, QuantileTransformer, RobustScaler, StandardScaler
+
+CSR_FORMAT = 'csr'
 
 
 def get_feature_mapper_for_pipeline(pipeline_obj):
@@ -111,7 +114,7 @@ class IdentityMapper(FeatureMapper):
         :param num_cols: number of columns in input.
         :type num_cols: int
         """
-        self.set_feature_map(np.eye(num_cols))
+        self.set_feature_map(eye(num_cols, format=CSR_FORMAT))
 
     def transform(self, x):
         """Transform input data.
@@ -216,7 +219,7 @@ class OneHotEncoderMapper(FeatureMapper):
         cat_lens = [len(cat) for cat in self.transformer.categories_]
         output_cols = int(sum(cat_lens))
         input_cols = len(self.transformer.categories_)
-        feature_map = np.zeros((input_cols, output_cols))
+        feature_map = csr_matrix((input_cols, output_cols))
         last_num_cols = 0
         for i, cat_len in enumerate(cat_lens):
             feature_map[i, last_num_cols:(last_num_cols + cat_len)] = np.ones((cat_len))

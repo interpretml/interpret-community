@@ -53,6 +53,20 @@ class TestDataMapper:
         result = data_mapper.transform(x)
         assert result.shape == (2, 2)
 
+    def test_large_sparse_transformation(self):
+        x = np.linspace((1,) * 8000, (10,) * 8000, 10)
+        encoder = OneHotEncoder()
+        encoder.fit(x)
+        data_mapper = DataMapper([(np.arange(8000), encoder)])
+        result = data_mapper.transform(x)
+        assert result.shape == (10, 80000)
+        for i in range(10):
+            for j in range(i, 80000, 10):
+                assert result[i, j] == 1
+                result[i, j] = 0
+        result.eliminate_zeros()
+        assert result.count_nonzero() == 0
+
     def test_transform_numpy_list(self):
         self._transform_numpy(self._identity_mapper_list)
 
