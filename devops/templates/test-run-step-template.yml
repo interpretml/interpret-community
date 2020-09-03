@@ -106,9 +106,3 @@ steps:
       python -m pip install flake8
       flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
   displayName: 'Run flake8'
-  
-- bash: |
-    cd ./visualization/dashboard
-    yarn lintci
-    cd ../..
-  displayName: "Run visualization linter"
