@@ -11,9 +11,11 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, LinearRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
 from sys import platform
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
@@ -391,6 +393,29 @@ class TestMimicExplainer(object):
         assert len(np.unique(model_predictions)) == 2
         assert np.isclose(surrogate_predictions, model_predictions).all()
         assert global_explanation.method == LIGHTGBM_METHOD
+
+    def test_explain_raw_feats_regression(self, mimic_explainer):
+        # verify that no errors get thrown when calling get_raw_feat_importances
+        num_features = 19999
+        num_rows = 1000
+        test_size = 0.2
+        X, y = make_regression(n_samples=num_rows, n_features=num_features)
+        x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
+
+        lin = LinearRegression(normalize=True)
+        scaler_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+        transformations = [(list(range(num_features)), scaler_transformer)]
+        clf = Pipeline(steps=[('preprocessor', scaler_transformer), ('regressor', lin)])
+        model = clf.fit(x_train, y_train)
+        explainable_model = LGBMExplainableModel
+        explainer = mimic_explainer(model, x_train, explainable_model,
+                                    transformations=transformations, augment_data=False)
+        global_explanation = explainer.explain_global(x_test)
+        local_explanation = explainer.explain_local(x_test)
+        # There should be an explanation per feature
+        assert len(global_explanation.global_importance_values) == num_features
+        # There should be an explanation for each row
+        assert len(local_explanation.local_importance_values) == num_rows * test_size
 
     def test_explain_model_string_classes(self, mimic_explainer):
         adult_census_income = retrieve_dataset('AdultCensusIncome.csv', skipinitialspace=True)
