@@ -81,7 +81,7 @@ class ExplanationDashboard:
     explanations = {}
     model_count = 0
     using_fallback = False
-    _cdn_path = "v0.3.js"
+    _cdn_path = "v0.4.js"
     _dashboard_js = None
     env = Environment(loader=PackageLoader(__name__, 'templates'))
     default_template = env.get_template("inlineDashboard.html")
