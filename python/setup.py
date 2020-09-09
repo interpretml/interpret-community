@@ -6,8 +6,11 @@
 from setuptools import setup, find_packages
 import os
 import shutil
-import interpret_community
 
+
+with open('interpret_community/version.py') as f:
+    code = compile(f.read(), f.name, 'exec')
+    exec(code)
 
 README_FILE = 'README.md'
 LICENSE_FILE = 'LICENSE.txt'
@@ -67,9 +70,9 @@ with open(README_FILE, 'r', encoding='utf-8') as f:
     README = f.read()
 
 setup(
-    name=interpret_community.__name__,
+    name=name,  # noqa: F821
 
-    version=interpret_community.__version__,
+    version=version,  # noqa: F821
 
     description='Microsoft Interpret Extensions SDK for Python',
     long_description=README,
