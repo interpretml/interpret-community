@@ -12,6 +12,9 @@ import json
 import warnings
 import logging
 import inspect
+from packaging import version
+from scipy.sparse import issparse
+from functools import wraps
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
@@ -19,7 +22,6 @@ with warnings.catch_warnings():
     try:
         from lightgbm import LGBMRegressor, LGBMClassifier, Booster
         import lightgbm
-        from packaging import version
         if (version.parse(lightgbm.__version__) <= version.parse('2.2.1')):
             print("Using older than supported version of lightgbm, please upgrade to version greater than 2.2.1")
     except ImportError:
@@ -28,6 +30,20 @@ with warnings.catch_warnings():
 DEFAULT_RANDOM_STATE = 123
 _N_FEATURES = '_n_features'
 _N_CLASSES = '_n_classes'
+
+
+def lgbm_predict_decorator(predict):
+    """Decorate the predict method, temporary workaround for sparse case until TreeExplainer support is added.
+
+    :param predict: The prediction method from lightgbm learner to be densified.
+    :type predict: method
+    """
+    @wraps(predict)
+    def predict_wrapper(X, *args, **kwargs):
+        if issparse(X):
+            X = X.toarray()
+        return predict(X, *args, **kwargs)
+    return predict_wrapper
 
 
 class LGBMExplainableModel(BaseExplainableModel):
@@ -162,6 +178,17 @@ class LGBMExplainableModel(BaseExplainableModel):
         """
         return self._lgbm.feature_importances_
 
+    def _init_tree_explainer(self):
+        """Creates the TreeExplainer.
+
+        Includes a temporary fix for lightgbm 3.0 by wrapping predict method for sparse case to output dense data.
+        """
+        if self._tree_explainer is None:
+            self._tree_explainer = shap.TreeExplainer(self._lgbm)
+            if version.parse('3.0.0') <= version.parse(lightgbm.__version__):
+                predict_method = lgbm_predict_decorator(self._tree_explainer.model.original_model.predict)
+                self._tree_explainer.model.original_model.predict = predict_method
+
     def explain_local(self, evaluation_examples, probabilities=None, **kwargs):
         """Use TreeExplainer to get the local feature importances from the trained explainable model.
 
@@ -173,8 +200,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         :return: The local explanation of feature importances.
         :rtype: Union[list, numpy.ndarray]
         """
-        if self._tree_explainer is None:
-            self._tree_explainer = shap.TreeExplainer(self._lgbm)
+        self._init_tree_explainer()
         return _explain_local_tree_surrogate(self._lgbm, evaluation_examples, self._tree_explainer,
                                              self._shap_values_output, self._classification,
                                              probabilities, self.multiclass)
@@ -186,8 +212,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         :return: The expected values of the LightGBM tree model.
         :rtype: list
         """
-        if self._tree_explainer is None:
-            self._tree_explainer = shap.TreeExplainer(self._lgbm)
+        self._init_tree_explainer()
         return _expected_values_tree_surrogate(self._lgbm, self._tree_explainer, self._shap_values_output,
                                                self._classification, self.multiclass)
 

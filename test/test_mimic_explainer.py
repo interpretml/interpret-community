@@ -163,7 +163,6 @@ class TestMimicExplainer(object):
         for verifier in verify_sparse_mimic:
             verifier.verify_explain_model_subset_regression_sparse(is_local=False)
 
-    @pytest.mark.skip('skipping test until shap TreeExplainer supports sparse importances from latest LightGBM 3.0')
     def test_explain_model_subset_classification_sparse(self, verify_sparse_mimic):
         for verifier in verify_sparse_mimic:
             verifier.verify_explain_model_subset_classification_sparse(is_local=False)
@@ -373,7 +372,6 @@ class TestMimicExplainer(object):
         explanation = explainer.explain_global(x_test)
         assert explanation.method == LIGHTGBM_METHOD
 
-    @pytest.mark.skip('skipping test until shap TreeExplainer supports sparse importances from latest LightGBM 3.0')
     def test_explain_model_imbalanced_classes(self, mimic_explainer):
         x_train = retrieve_dataset('unbalanced_dataset.npz')
         model = SkewedTestModel()
