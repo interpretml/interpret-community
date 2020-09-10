@@ -7,8 +7,9 @@
 You can use model interpretability to explain why a model model makes the predictions it does and help build
 confidence in the model.
 """
-
 from .tabular_explainer import TabularExplainer
+from .version import name, version
+
 
 __all__ = ["TabularExplainer"]
 
@@ -32,8 +33,5 @@ if interpret_c_logs is not None:
         logger.removeHandler(handler)
     atexit.register(close_handler)
 
-__name__ = 'interpret_community'
-_major = '0'
-_minor = '14'
-_patch = '4'
-__version__ = '{}.{}.{}'.format(_major, _minor, _patch)
+__name__ = name
+__version__ = version
