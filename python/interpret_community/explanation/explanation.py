@@ -513,9 +513,12 @@ class LocalExplanation(FeatureImportanceExplanation):
         # Note: we currently don't have access to instances on explanation
         parent_data[InterpretData.VALUES] = None
         if key is not None:
+            # Note: eval_y_predicted and eval_data can be id, in which case we should skip this logic
+            has_eval_y_predicted = not isinstance(self._eval_y_predicted, str)
+            has_eval_data = not isinstance(self._eval_data, str)
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
-            if _DatasetsMixin._does_quack(self):
+            if _DatasetsMixin._does_quack(self) and has_eval_y_predicted and has_eval_data:
                 parent_data[InterpretData.PERF] = self._perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
                 if isinstance(self._eval_data, DatasetWrapper):
                     eval_data = self._eval_data
@@ -1146,6 +1149,12 @@ class _DatasetsMixin(object):
     :type init_data: np.array or str
     :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
     :type eval_data: np.array or str
+    :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
+        Not available from the DeepExplainer.
+    :type eval_y_predicted: np.array or str
+    :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
+        Not available from the DeepExplainer.
+    :type eval_y_predicted_proba: np.array or str
     """
 
     def __init__(self,
@@ -1162,11 +1171,12 @@ class _DatasetsMixin(object):
         :type init_data: np.array or str
         :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
         :type eval_data: np.array or str
-        :param eval_ys_predicted: The predicted ys for the evaluation data. Not available from the DeepExplainer.
-        :type eval_ys_predicted: np.array
-        :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data. Not available from the
-            DeepExplainer.
-        :type eval_ys_predicted_proba: np.array
+        :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
+            Not available from the DeepExplainer.
+        :type eval_y_predicted: np.array or str
+        :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
+            Not available from the DeepExplainer.
+        :type eval_y_predicted_proba: np.array or str
         """
         super(_DatasetsMixin, self).__init__(**kwargs)
         self._init_data = init_data
@@ -1179,7 +1189,7 @@ class _DatasetsMixin(object):
         """Get initialization (background) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list[input data base type] | sparse | or str
+        :rtype: list[input data base type] | sparse | str
         """
         return self._convert_to_list(self._init_data)
 
@@ -1194,19 +1204,19 @@ class _DatasetsMixin(object):
 
     @property
     def eval_y_predicted(self):
-        """Get predicted ys for the evaluation data.
+        """Get predicted ys for the evaluation data or the Dataset ID.
 
-        :return: The predicted ys for the evaluation data.
-        :rtype: list[input data base type] | sparse
+        :return: The predicted ys for the evaluation data or dataset ID.
+        :rtype: list[input data base type] | sparse | str
         """
         return self._convert_to_list(self._eval_y_predicted)
 
     @property
     def eval_y_predicted_proba(self):
-        """Get predicted probability ys for the evaluation data.
+        """Get predicted probability ys for the evaluation data or the Dataset ID.
 
-        :return: The predicted probability ys for the evaluation data.
-        :rtype: list[list[input data base type]] | sparse
+        :return: The predicted probability ys for the evaluation data or dataset ID.
+        :rtype: list[list[input data base type]] | sparse | str
         """
         return self._convert_to_list(self._eval_y_predicted_proba)
 
@@ -1215,15 +1225,15 @@ class _DatasetsMixin(object):
 
         :param data: The data to be converted.
         :type data: np.array, pd.DataFrame, list, scipy.sparse
-        :return: The data converted to a list (except for sparse which is unchanged).
-        :rtype: list | scipy.sparse | list[scipy.sparse]
+        :return: The data converted to a list (except for sparse or string which is unchanged).
+        :rtype: list | scipy.sparse | list[scipy.sparse] | str
         """
         if isinstance(data, np.ndarray):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
         else:
-            # doesn't handle sparse right now
+            # doesn't handle sparse or string right now
             return data
 
     @staticmethod
