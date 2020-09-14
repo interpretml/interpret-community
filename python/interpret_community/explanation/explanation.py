@@ -1225,7 +1225,7 @@ class _DatasetsMixin(object):
 
         :param data: The data to be converted.
         :type data: np.array, pd.DataFrame, list, scipy.sparse
-        :return: The data converted to a list (except for sparse or string which is unchanged).
+        :return: The data converted to a list (except for sparse or dataset ID which is unchanged).
         :rtype: list | scipy.sparse | list[scipy.sparse] | str
         """
         if isinstance(data, np.ndarray):
