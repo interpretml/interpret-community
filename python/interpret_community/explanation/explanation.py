@@ -513,12 +513,9 @@ class LocalExplanation(FeatureImportanceExplanation):
         # Note: we currently don't have access to instances on explanation
         parent_data[InterpretData.VALUES] = None
         if key is not None:
-            # Note: eval_y_predicted and eval_data can be id, in which case we should skip this logic
-            has_eval_y_predicted = not isinstance(self._eval_y_predicted, str)
-            has_eval_data = not isinstance(self._eval_data, str)
             # Note: the first argument should be the true y's but we don't have that
             # available currently, using predicted instead for now
-            if _DatasetsMixin._does_quack(self) and has_eval_y_predicted and has_eval_data:
+            if _DatasetsMixin._does_quack(self) and not _DatasetsMixin._is_reference(self):
                 parent_data[InterpretData.PERF] = self._perf_dict(self._eval_y_predicted, self._eval_y_predicted, key)
                 if isinstance(self._eval_data, DatasetWrapper):
                     eval_data = self._eval_data
@@ -1251,6 +1248,21 @@ class _DatasetsMixin(object):
         has_init_data = hasattr(explanation, ExplainParams.INIT_DATA)
         has_eval_data = hasattr(explanation, ExplainParams.EVAL_DATA)
         return has_init_data and has_eval_data and has_ys
+
+    @staticmethod
+    def _is_reference(explanation):
+        """Checks whether any of the datasets are references (dataset ID) or all are in-memory data.
+
+        :param explanation: The explanation to be validated.
+        :type explanation: object
+        :return: True if any of the datasets are references, False if all are in-memory data.
+        :rtype: bool
+        """
+        eval_y_reference = isinstance(explanation._eval_y_predicted, str)
+        eval_y_proba_reference = isinstance(explanation._eval_y_predicted_proba, str)
+        eval_data_reference = isinstance(explanation.eval_data, str)
+        init_data_reference = isinstance(explanation.init_data, str)
+        return eval_y_reference or eval_y_proba_reference or eval_data_reference or init_data_reference
 
 
 class _ModelIdMixin(object):
