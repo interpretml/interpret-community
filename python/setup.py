@@ -57,6 +57,9 @@ EXTRAS = {
     'mimic': [
         'lightgbm'
     ],
+    'lime': [
+        'lime>=0.2.0.0'
+    ],
     'visualization': [
         'flask',
         'flask-cors',
@@ -93,7 +96,8 @@ setup(
             "TabularExplainer = interpret_community:TabularExplainer",
             "KernelExplainer = interpret_community.shap:KernelExplainer",
             "MimicExplainer = interpret_community.mimic:MimicExplainer",
-            "PFIExplainer = interpret_community.permutation:PFIExplainer"
+            "PFIExplainer = interpret_community.permutation:PFIExplainer",
+            "LIMEExplainer = interpret_community.lime:LIMEExplainer"
         ],
         "interpret_ext_greybox": [
             "LinearExplainer = interpret_community.shap:LinearExplainer",
