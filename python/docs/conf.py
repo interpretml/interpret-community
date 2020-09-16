@@ -21,8 +21,12 @@ project = 'interpret-community'
 copyright = '2020, Microsoft'
 author = 'Microsoft'
 
+with open(os.path.join('..', 'interpret_community', 'version.py')) as f:
+    code = compile(f.read(), f.name, 'exec')
+    exec(code)
+
 # The full version, including alpha/beta/rc tags
-release = '0.10.2'
+release = version  # noqa: F821
 
 
 # -- General configuration ---------------------------------------------------
