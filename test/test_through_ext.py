@@ -21,6 +21,10 @@ def test_import_pfi():
     from interpret.ext.blackbox import PFIExplainer  # noqa
 
 
+def test_import_lime():
+    from interpret.ext.blackbox import LIMEExplainer  # noqa
+
+
 def test_import_linear():
     from interpret.ext.greybox import LinearExplainer  # noqa
 
