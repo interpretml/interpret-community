@@ -452,6 +452,22 @@ class TestMimicExplainer(object):
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
 
+    def test_linear_explainable_model_regression(self, mimic_explainer):
+        num_features = 3
+        x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
+        y_train = np.array([1, 2])
+        lin = LinearRegression(normalize=True)
+        one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
+        transformations = [(list(range(num_features)), one_hot_transformer)]
+        clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])
+        model = clf.fit(x_train, y_train)
+        explainable_model = LinearExplainableModel
+        explainer = mimic_explainer(model.named_steps['regressor'], x_train, explainable_model,
+                                    transformations=transformations, augment_data=False,
+                                    explainable_model_args={'sparse_data': True}, features=['f1', 'f2', 'f3'])
+        global_explanation = explainer.explain_global(x_train)
+        assert global_explanation.method == LINEAR_METHOD
+
     @property
     def iris_overall_expected_features(self):
         return [['petal length', 'petal width', 'sepal width', 'sepal length'],
