@@ -13,7 +13,7 @@ from scipy.special import expit
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler, MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 from sklearn.impute import SimpleImputer
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.model_selection import train_test_split
@@ -31,7 +31,11 @@ from common_utils import (create_sklearn_svm_classifier, create_sklearn_linear_r
                           create_keras_multiclass_classifier, create_pytorch_multiclass_classifier,
                           create_multiclass_sparse_newsgroups_data, create_xgboost_classifier,
                           create_sklearn_random_forest_regressor, create_sklearn_random_forest_classifier)
-from raw_explain.utils import IdentityTransformer
+
+from transformation_utils import (
+    get_transformations_one_to_many_smaller, get_transformations_one_to_many_greater,
+    get_transformations_many_to_many, get_transformations_from_col_transformer)
+
 from test_serialize_explanation import verify_serialization
 from constants import ModelType
 
@@ -57,68 +61,6 @@ class VerifyTabularTests(object):
         self.create_explainer = create_explainer
         self.specify_policy = specify_policy
 
-    def _get_transformations_one_to_many_smaller(self, feature_names):
-        # results in number of features smaller than original features
-        transformations = []
-        # Take out last feature after taking a copy
-        feature_names = list(feature_names)
-        feature_names.pop()
-
-        index = 0
-        for f in feature_names:
-            transformations.append(("{}".format(index), "passthrough", [f]))
-            index += 1
-
-        return ColumnTransformer(transformations)
-
-    def _get_transformations_one_to_many_greater(self, feature_names):
-        # results in number of features greater than original features
-        # copy all features except last one. For last one, replicate columns to create 3 more features
-        transformations = []
-        feature_names = list(feature_names)
-        index = 0
-        for f in feature_names[:-1]:
-            transformations.append(("{}".format(index), "passthrough", [f]))
-            index += 1
-
-        def copy_func(x):
-            return np.tile(x, (1, 3))
-
-        copy_transformer = FunctionTransformer(copy_func)
-
-        transformations.append(("copy_transformer", copy_transformer, [feature_names[-1]]))
-
-        return ColumnTransformer(transformations)
-
-    def _get_transformations_many_to_many(self, feature_names):
-        # Instantiate data mapper with many to many transformer support and test whether the feature map is generated
-
-        # IdentityTransformer is our custom transformer, so not recognized as one to many
-        transformations = [
-            ("column_0_1_2_3", Pipeline([
-                ("scaler", StandardScaler()),
-                ("identity", IdentityTransformer())]), [f for f in feature_names[:-2]]),
-            ("column_4_5", StandardScaler(), [f for f in feature_names[-2:]])
-        ]
-
-        # add transformations with pandas index types
-        transformations.append(("pandas_index_columns", "passthrough",
-                                pd.Index([feature_names[0], feature_names[1]])))
-
-        column_transformer = ColumnTransformer(transformations)
-
-        return column_transformer
-
-    def _get_transformations_from_col_transformer(self, col_transformer):
-        transformers = []
-        for name, tr, column_name, in col_transformer.transformers_:
-            if tr == "passthrough":
-                tr = None
-            if tr != "drop":
-                transformers.append((column_name, tr))
-
-        return transformers
-
     def _verify_explain_model_transformations_classification(self, transformation_type, get_transformations,
                                                              create_model, true_labels_required,
                                                              allow_all_transformations=False):
@@ -130,7 +72,7 @@ class VerifyTabularTests(object):
         col_transformer = get_transformations(feature_names)
         x_train_transformed = col_transformer.fit_transform(x_train)
         if transformation_type == TransformationType.TransformationsList:
-            transformations = self._get_transformations_from_col_transformer(col_transformer)
+            transformations = get_transformations_from_col_transformer(col_transformer)
         else:
             transformations = col_transformer
 
@@ -184,7 +126,7 @@ class VerifyTabularTests(object):
         x_train_transformed = col_transformer.fit_transform(x_train)
 
         if transformations_type == TransformationType.TransformationsList:
-            transformations = self._get_transformations_from_col_transformer(col_transformer)
+            transformations = get_transformations_from_col_transformer(col_transformer)
         else:
             transformations = col_transformer
 
@@ -739,52 +681,52 @@ class VerifyTabularTests(object):
     def verify_explain_model_transformations_list_classification(self, create_model=None,
                                                                  true_labels_required=False):
         self._verify_explain_model_transformations_classification(
-            TransformationType.TransformationsList, self._get_transformations_one_to_many_smaller,
+            TransformationType.TransformationsList, get_transformations_one_to_many_smaller,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_classification(
-            TransformationType.TransformationsList, self._get_transformations_one_to_many_greater,
+            TransformationType.TransformationsList, get_transformations_one_to_many_greater,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_classification(
-            TransformationType.TransformationsList, self._get_transformations_many_to_many,
+            TransformationType.TransformationsList, get_transformations_many_to_many,
             create_model, true_labels_required, allow_all_transformations=True
         )
 
     def verify_explain_model_transformations_column_transformer_classification(self, create_model=None,
                                                                                true_labels_required=False):
         self._verify_explain_model_transformations_classification(
-            TransformationType.ColumnTransformer, self._get_transformations_one_to_many_smaller,
+            TransformationType.ColumnTransformer, get_transformations_one_to_many_smaller,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_classification(
-            TransformationType.ColumnTransformer, self._get_transformations_one_to_many_greater,
+            TransformationType.ColumnTransformer, get_transformations_one_to_many_greater,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_classification(
-            TransformationType.ColumnTransformer, self._get_transformations_many_to_many,
+            TransformationType.ColumnTransformer, get_transformations_many_to_many,
             create_model, true_labels_required, allow_all_transformations=True
         )
 
     def verify_explain_model_transformations_list_regression(self, create_model=None,
                                                              true_labels_required=False):
         self._verify_explain_model_transformations_regression(
-            TransformationType.TransformationsList, self._get_transformations_one_to_many_smaller,
+            TransformationType.TransformationsList, get_transformations_one_to_many_smaller,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_regression(
-            TransformationType.TransformationsList, self._get_transformations_one_to_many_greater,
+            TransformationType.TransformationsList, get_transformations_one_to_many_greater,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_regression(
-            TransformationType.TransformationsList, self._get_transformations_many_to_many,
+            TransformationType.TransformationsList, get_transformations_many_to_many,
             create_model, true_labels_required, allow_all_transformations=True
         )
 
     def verify_explain_model_transformations_column_transformer_regression(self, create_model=None,
                                                                            true_labels_required=False):
         self._verify_explain_model_transformations_regression(
-            TransformationType.ColumnTransformer, self._get_transformations_one_to_many_smaller,
+            TransformationType.ColumnTransformer, get_transformations_one_to_many_smaller,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_regression(
-            TransformationType.ColumnTransformer, self._get_transformations_one_to_many_greater,
+            TransformationType.ColumnTransformer, get_transformations_one_to_many_greater,
             create_model, true_labels_required)
         self._verify_explain_model_transformations_regression(
-            TransformationType.ColumnTransformer, self._get_transformations_many_to_many,
+            TransformationType.ColumnTransformer, get_transformations_many_to_many,
             create_model, true_labels_required, allow_all_transformations=True
         )
 

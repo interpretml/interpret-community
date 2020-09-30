@@ -1664,7 +1664,7 @@ def _get_local_explanation_row(explainer, evaluation_examples, i, batch_size):
     :return: The local explanation for the slice of rows.
     :rtype: DynamicLocalExplanation
     """
-    rows = evaluation_examples.dataset[i:i + batch_size]
+    rows = evaluation_examples.typed_wrapper_func(evaluation_examples.dataset[i:i + batch_size])
     return explainer.explain_local(rows)
 
 

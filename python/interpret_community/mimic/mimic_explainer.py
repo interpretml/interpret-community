@@ -461,7 +461,8 @@ class MimicExplainer(BlackBoxExplainer):
         kwargs = self._get_explain_global_kwargs(evaluation_examples=evaluation_examples, include_local=include_local,
                                                  batch_size=batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
-        if evaluation_examples is not None:
+        has_eval_examples = evaluation_examples is not None
+        if has_eval_examples:
             kwargs[ExplainParams.EVAL_DATA] = self._original_eval_examples
             ys_dict = self._get_ys_dict(self._original_eval_examples,
                                         transformations=self.transformations,
@@ -469,13 +470,24 @@ class MimicExplainer(BlackBoxExplainer):
             kwargs.update(ys_dict)
             if include_local:
                 return _aggregate_global_from_local_explanation(**kwargs)
-
         explanation = _create_global_explanation(**kwargs)
+        has_data_mapper = self._datamapper is not None
 
-        # if transformations have been passed, then return raw features explanation
-        raw_kwargs = _get_raw_explainer_create_explanation_kwargs(kwargs=kwargs)
-        return explanation if self._datamapper is None else _create_raw_feats_global_explanation(
-            explanation, feature_maps=[self._datamapper.feature_map], features=self.features, **raw_kwargs)
+        if has_data_mapper:
+            if not has_eval_examples:
+                # If transformations have been passed, and no evaluation data, then return raw features explanation
+                raw_kwargs = _get_raw_explainer_create_explanation_kwargs(kwargs=kwargs)
+                return _create_raw_feats_global_explanation(explanation,
+                                                            feature_maps=[self._datamapper.feature_map],
+                                                            features=self.features,
+                                                            **raw_kwargs)
+            else:
+                # Note this is a raw explanation already if transformations were passed
+                explanation._is_raw = True
+        # If eval examples passed, even if transformations is passed the explanation is
+        # already in terms of raw data since it is aggregated from engineered.
+        # If there is no data mapper then we should return the explanation directly.
+        return explanation
 
     @property
     def _get_method(self):
