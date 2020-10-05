@@ -15,7 +15,7 @@ const RenderDashboard = (divId, data) => {
         var axios_options = { headers: headers_data, withCredentials: true }
         return axios.post(data.predictionUrl, JSON.stringify(postData), axios_options)
             .then((response) => {
-                return response.data
+                return response.data.data
             })
             .catch(function (error) {
                 throw new Error(error)
