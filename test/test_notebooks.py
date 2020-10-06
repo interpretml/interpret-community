@@ -18,16 +18,6 @@ def append_scrapbook_commands(input_nb_path, output_nb_path, scrap_specs):
         source = "sb.glue(\"{0}\", {1})".format(k, v)
         scrapbook_cells.append(nbf.v4.new_code_cell(source=source))
 
-    # Don't use CDN when running notebook tests
-    for cell in notebook['cells']:
-        if cell.cell_type == 'code' and "ExplanationDashboard(" in cell.source:
-            if "ExplanationDashboard(global_explanation, model, datasetX=x_test, true_y=y_test)" in cell.source:
-                string_match = "datasetX=x_test, true_y=y_test)"
-                string_replace = "datasetX=x_test, true_y=y_test, use_cdn=False)"
-                cell.source = cell.source.replace(string_match, string_replace)
-            else:
-                raise Exception("ExplanationDashboard added in new format and could not be replaced. "
-                                "Please replace code in tests to use_cdn in test_notebooks")
     # Append the cells to the notebook
     [notebook['cells'].append(c) for c in scrapbook_cells]
 

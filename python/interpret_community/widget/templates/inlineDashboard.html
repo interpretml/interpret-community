@@ -1,8 +1,5 @@
 <!doctype html>
 <title>Interpret Dashboard</title>
-{% if using_fallback %}
-    <div style="background-color: #fee12b; width: 100%;">Could not use CDN for dashboard javascript. Falling back to local index.js</div>
-{% endif %}
 {% if has_local_url %}
     <a href="{{local_url}}" target="_blank">Open in new tab</a>
 {% endif %}
