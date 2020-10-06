@@ -448,7 +448,7 @@ class LocalExplanation(FeatureImportanceExplanation):
             return self._ranked_local_values[..., :top_k].tolist()
         return self._ranked_local_values.tolist()
 
-    def get_raw_explanation(self, feature_maps, raw_feature_names=None):
+    def get_raw_explanation(self, feature_maps, raw_feature_names=None, eval_data=None):
         """Get raw explanation using input feature maps.
 
         :param feature_maps: list of feature maps from raw to generated feature
@@ -460,12 +460,15 @@ class LocalExplanation(FeatureImportanceExplanation):
             in a single element list can be passed
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
+        :param eval_data: Evaluation data.
+        :type eval_data: pd.DataFrame
         :return: raw explanation
         :rtype: LocalExplanation
         """
         raw_kwargs = _get_raw_explainer_create_explanation_kwargs(explanation=self)
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
+        raw_kwargs[ExplainParams.EVAL_DATA] = eval_data
         self._is_eng = True
         return _create_raw_feats_local_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
