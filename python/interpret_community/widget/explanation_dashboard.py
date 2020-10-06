@@ -5,11 +5,11 @@ from IPython.display import display, HTML
 from interpret.utils.environment import EnvironmentDetector, is_cloud_env
 import threading
 import socket
-import requests
 import re
 import os
 import json
 import atexit
+import warnings
 from .explanation_dashboard_input import ExplanationDashboardInput
 from ._internal.constants import DatabricksInterfaceConstants
 
@@ -69,7 +69,9 @@ class ExplanationDashboard:
     :type features: numpy.array or list[]
     :param port: The port to use on locally hosted service.
     :type port: int
-    :param use_cdn: Whether to load latest dashboard script from cdn, fall back to local script if False.
+    :param use_cdn: Deprecated. Whether to load latest dashboard script from cdn, fall back to local script if False.
+        .. deprecated:: 0.15.2
+           Deprecated since 0.15.2, cdn has been removed.  Setting parameter to True or False will trigger warning.
     :type use_cdn: bool
     :param public_ip: Optional. If running on a remote vm, the external public ip address of the VM.
     :type public_ip: str
@@ -80,8 +82,6 @@ class ExplanationDashboard:
     service = None
     explanations = {}
     model_count = 0
-    using_fallback = False
-    _cdn_path = "v0.4.js"
     _dashboard_js = None
     env = Environment(loader=PackageLoader(__name__, 'templates'))
     default_template = env.get_template("inlineDashboard.html")
@@ -147,7 +147,6 @@ class ExplanationDashboard:
 
             self.app = app
             self.port = port
-            self.use_cdn = True
             if self.port is None:
                 # Try 100 different ports
                 for port in range(5000, 5100):
@@ -226,14 +225,18 @@ class ExplanationDashboard:
             return True
 
     def __init__(self, explanation, model=None, *, dataset=None,
-                 true_y=None, classes=None, features=None, port=None, use_cdn=True,
-                 datasetX=None, trueY=None, locale=None, public_ip=None, with_credentials=False):
+                 true_y=None, classes=None, features=None, port=None,
+                 datasetX=None, trueY=None, locale=None, public_ip=None,
+                 with_credentials=False, use_cdn=None):
+        if use_cdn is not None:
+            warnings.warn("""use_cdn parameter is deprecated, cdn has been deleted.
+                          Constructor parameter will be removed in the future""")
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
             dataset = datasetX
         if true_y is None and trueY is not None:
             true_y = trueY
-        self._initialize_js(use_cdn)
+        self._initialize_js()
         predict_url = None
         local_url = None
         if not ExplanationDashboard.service:
@@ -244,7 +247,6 @@ class ExplanationDashboard:
             except Exception as e:
                 ExplanationDashboard.service = None
                 raise e
-        ExplanationDashboard.service.use_cdn = use_cdn
         ExplanationDashboard.model_count += 1
         base_url = ExplanationDashboard.service.get_base_url()
         if base_url is not None:
@@ -268,24 +270,7 @@ class ExplanationDashboard:
         else:
             display(HTML(html))
 
-    def _initialize_js(self, use_cdn):
-        if (ExplanationDashboard._dashboard_js is None):
-            if (use_cdn):
-                try:
-                    url = 'https://interpret-cdn.azureedge.net/{0}'.format(ExplanationDashboard._cdn_path)
-                    r = requests.get(url)
-                    if not r.ok:
-                        ExplanationDashboard.using_fallback = True
-                        self._load_local_js()
-                    r.encoding = "utf-8"
-                    ExplanationDashboard._dashboard_js = r.text
-                except Exception:
-                    ExplanationDashboard.using_fallback = True
-                    self._load_local_js()
-            else:
-                self._load_local_js()
-
-    def _load_local_js(self):
+    def _initialize_js(self):
         script_path = os.path.dirname(os.path.abspath(__file__))
         js_path = os.path.join(script_path, "static", "index.js")
         with open(js_path, "r", encoding="utf-8") as f:
@@ -297,7 +282,6 @@ def generate_inline_html(explanation_input_object, local_url):
     return ExplanationDashboard.default_template.render(explanation=explanation_input,
                                                         main_js=ExplanationDashboard._dashboard_js,
                                                         app_id='app_123',
-                                                        using_fallback=ExplanationDashboard.using_fallback,
                                                         local_url=local_url,
                                                         has_local_url=local_url is not None)
 
