@@ -161,7 +161,7 @@ class TestRawExplanations:
                                                      classes, feature_names, is_sparse=True)
 
 
-    def test_get_global_raw_explanations_eval_data(self, iris, tabular_explainer):
+    def test_get_global_raw_explanations_classification_eval_data(self, iris, tabular_explainer):
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
 
         exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
@@ -185,7 +185,7 @@ class TestRawExplanations:
                                                      iris[DatasetConstants.CLASSES], feature_names,
                                                      has_raw_eval_data=True)
 
-    def test_get_global_raw_explanations_regression(self, boston, tabular_explainer):
+    def test_get_global_raw_explanations_regression_eval_data(self, boston, tabular_explainer):
         model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
                                                        boston[DatasetConstants.Y_TRAIN])
 
@@ -197,7 +197,7 @@ class TestRawExplanations:
         num_engineered_feats = len(boston[DatasetConstants.FEATURES])
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
-        raw_eval_data = np.ones_like(iris[DatasetConstants.X_TRAIN])
+        raw_eval_data = np.ones_like(boston[DatasetConstants.X_TRAIN])
         global_raw_explanation = global_explanation.get_raw_explanation(
             [feature_map],
             eval_data=raw_eval_data)
