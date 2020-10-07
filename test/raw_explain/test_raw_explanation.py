@@ -160,7 +160,6 @@ class TestRawExplanations:
         self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
                                                      classes, feature_names, is_sparse=True)
 
-
     def test_get_global_raw_explanations_classification_eval_data(self, iris, tabular_explainer):
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
 
