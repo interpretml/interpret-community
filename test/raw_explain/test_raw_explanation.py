@@ -37,8 +37,8 @@ class TestRawExplanations:
         global_raw_explanation = global_explanation.get_raw_explanation(
             [feature_map], raw_feature_names=feature_names[:feature_map.shape[0]])
 
-        self.validate_global_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
-                                                            iris[DatasetConstants.CLASSES], feature_names)
+        self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                     iris[DatasetConstants.CLASSES], feature_names)
 
     def test_get_global_raw_explanations_regression(self, boston, tabular_explainer):
         model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
@@ -53,7 +53,7 @@ class TestRawExplanations:
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map])
-        self.validate_global_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map)
+        self.validate_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map)
 
     def test_get_local_raw_explanations_classification(self, iris, tabular_explainer):
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
@@ -122,7 +122,7 @@ class TestRawExplanations:
         feature_map = np.eye(5, num_engineered_feats)
 
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map])
-        self.validate_global_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map)
+        self.validate_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map)
 
     def test_get_local_raw_explanations_sparse_classification(self, mimic_explainer):
         x_train, x_test, y_train, _, classes, _ = create_multiclass_sparse_newsgroups_data()
@@ -139,8 +139,8 @@ class TestRawExplanations:
         feature_names = [str(i) for i in range(feature_map.shape[0])]
         raw_names = feature_names[:feature_map.shape[0]]
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map], raw_feature_names=raw_names)
-        self.validate_global_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
-                                                            classes, feature_names, is_sparse=True)
+        self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                     classes, feature_names, is_sparse=True)
 
     def test_get_local_raw_explanations_sparse_binary_classification(self, mimic_explainer):
         x_train, x_test, y_train, _, classes, _ = create_binary_sparse_newsgroups_data()
@@ -157,47 +157,94 @@ class TestRawExplanations:
         feature_names = [str(i) for i in range(feature_map.shape[0])]
         raw_names = feature_names[:feature_map.shape[0]]
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map], raw_feature_names=raw_names)
-        self.validate_global_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
-                                                            classes, feature_names, is_sparse=True)
+        self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                     classes, feature_names, is_sparse=True)
 
-    def validate_global_raw_explanation_regression(self, global_explanation, global_raw_explanation, feature_map):
+
+    def test_get_global_raw_explanations_eval_data(self, iris, tabular_explainer):
+        model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
+
+        exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
+                                classes=iris[DatasetConstants.CLASSES])
+
+        global_explanation = exp.explain_global(iris[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
-        assert hasattr(global_explanation, 'eval_data')
-        assert global_explanation.is_engineered
+        assert not global_explanation.is_engineered
+        num_engineered_feats = len(iris[DatasetConstants.FEATURES])
 
-        assert np.array(global_raw_explanation.local_importance_values).shape[-1] == feature_map.shape[0]
+        feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
+        feature_names = [str(i) for i in range(feature_map.shape[0])]
 
-        assert global_raw_explanation.is_raw
-        assert not hasattr(global_raw_explanation, 'eval_data')
-        assert not global_raw_explanation.is_engineered
-        assert np.array(global_raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
+        raw_eval_data = np.ones_like(iris[DatasetConstants.X_TRAIN])
+        global_raw_explanation = global_explanation.get_raw_explanation(
+            [feature_map],
+            raw_feature_names=feature_names[:feature_map.shape[0]],
+            eval_data=raw_eval_data)
 
-    def validate_global_raw_explanation_classification(self, global_explanation, global_raw_explanation,
-                                                       feature_map, classes, feature_names, is_sparse=False):
+        self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                     iris[DatasetConstants.CLASSES], feature_names,
+                                                     has_raw_eval_data=True)
+
+    def test_get_global_raw_explanations_regression(self, boston, tabular_explainer):
+        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
+                                                       boston[DatasetConstants.Y_TRAIN])
+
+        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+
+        global_explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
-        assert global_explanation.is_engineered
+        assert not global_explanation.is_engineered
+        num_engineered_feats = len(boston[DatasetConstants.FEATURES])
+        feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
-        assert global_raw_explanation.expected_values == global_explanation.expected_values
+        raw_eval_data = np.ones_like(iris[DatasetConstants.X_TRAIN])
+        global_raw_explanation = global_explanation.get_raw_explanation(
+            [feature_map],
+            eval_data=raw_eval_data)
+        self.validate_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map,
+                                                 has_raw_eval_data=True)
 
-        per_class_values = global_raw_explanation.get_ranked_per_class_values()
+    def validate_raw_explanation_regression(self, eng_explanation, raw_explanation, feature_map,
+                                            has_eng_eval_data=True, has_raw_eval_data=False):
+        assert not eng_explanation.is_raw
+        assert hasattr(eng_explanation, 'eval_data') == has_eng_eval_data
+        assert eng_explanation.is_engineered
+
+        assert np.array(raw_explanation.local_importance_values).shape[-1] == feature_map.shape[0]
+
+        assert raw_explanation.is_raw
+        assert hasattr(raw_explanation, 'eval_data') == has_raw_eval_data
+        assert not raw_explanation.is_engineered
+        assert np.array(raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
+
+    def validate_raw_explanation_classification(self, eng_explanation, raw_explanation,
+                                                feature_map, classes, feature_names, is_sparse=False,
+                                                has_eng_eval_data=True, has_raw_eval_data=False):
+        assert not eng_explanation.is_raw
+        assert hasattr(eng_explanation, 'eval_data') == has_eng_eval_data
+        assert eng_explanation.is_engineered
+
+        assert raw_explanation.expected_values == eng_explanation.expected_values
+
+        per_class_values = raw_explanation.get_ranked_per_class_values()
         assert len(per_class_values) == len(classes)
         assert len(per_class_values[0]) == feature_map.shape[0]
-        assert len(global_raw_explanation.get_ranked_per_class_names()[0]) == feature_map.shape[0]
-        feat_imps_global_local = np.array(global_raw_explanation.local_importance_values)
+        assert len(raw_explanation.get_ranked_per_class_names()[0]) == feature_map.shape[0]
+        feat_imps_global_local = np.array(raw_explanation.local_importance_values)
         assert feat_imps_global_local.shape[-1] == feature_map.shape[0]
 
-        assert global_raw_explanation.is_raw
-        assert not hasattr(global_raw_explanation, 'eval_data')
-        assert not global_raw_explanation.is_engineered
-        assert len(global_raw_explanation.get_ranked_global_values()) == feature_map.shape[0]
-        assert len(global_raw_explanation.get_ranked_global_names()) == feature_map.shape[0]
+        assert raw_explanation.is_raw
+        assert hasattr(raw_explanation, 'eval_data') == has_raw_eval_data
+        assert not raw_explanation.is_engineered
+        assert len(raw_explanation.get_ranked_global_values()) == feature_map.shape[0]
+        assert len(raw_explanation.get_ranked_global_names()) == feature_map.shape[0]
         if isinstance(classes, list):
-            assert global_raw_explanation.classes == classes
+            assert raw_explanation.classes == classes
         else:
-            assert (global_raw_explanation.classes == classes).all()
+            assert (raw_explanation.classes == classes).all()
 
-        assert global_raw_explanation.features == feature_names
+        assert raw_explanation.features == feature_names
 
-        feat_imps_global = np.array(global_raw_explanation.global_importance_values)
+        feat_imps_global = np.array(raw_explanation.global_importance_values)
 
         assert feat_imps_global.shape[-1] == feature_map.shape[0]
