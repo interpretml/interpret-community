@@ -180,6 +180,8 @@ class TestRawExplanations:
             raw_feature_names=feature_names[:feature_map.shape[0]],
             eval_data=raw_eval_data)
 
+        assert np.array_equal(raw_eval_data, global_raw_explanation.eval_data)
+
         self.validate_raw_explanation_classification(global_explanation, global_raw_explanation, feature_map,
                                                      iris[DatasetConstants.CLASSES], feature_names,
                                                      has_raw_eval_data=True)
@@ -200,6 +202,9 @@ class TestRawExplanations:
         global_raw_explanation = global_explanation.get_raw_explanation(
             [feature_map],
             eval_data=raw_eval_data)
+
+        assert np.array_equal(raw_eval_data, global_raw_explanation.eval_data)
+
         self.validate_raw_explanation_regression(global_explanation, global_raw_explanation, feature_map,
                                                  has_raw_eval_data=True)
 
