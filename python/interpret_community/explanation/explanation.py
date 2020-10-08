@@ -461,7 +461,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: pd.DataFrame
+        :type eval_data: np.ndarray or pd.DataFrame
         :return: raw explanation
         :rtype: LocalExplanation
         """
@@ -719,7 +719,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: pd.DataFrame
+        :type eval_data: np.ndarray or pd.DataFrame
         :return: raw explanation
         :rtype: GlobalExplanation
         """
