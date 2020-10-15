@@ -14,7 +14,6 @@ import logging
 import inspect
 from packaging import version
 from scipy.sparse import issparse
-from functools import wraps
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
@@ -32,18 +31,32 @@ _N_FEATURES = '_n_features'
 _N_CLASSES = '_n_classes'
 
 
-def lgbm_predict_decorator(predict):
+class _LGBMFunctionWrapper(object):
     """Decorate the predict method, temporary workaround for sparse case until TreeExplainer support is added.
 
-    :param predict: The prediction method from lightgbm learner to be densified.
-    :type predict: method
+    :param function: The prediction function to wrap.
+    :type function: function
     """
-    @wraps(predict)
-    def predict_wrapper(X, *args, **kwargs):
+
+    def __init__(self, function):
+        """Wraps a function to reshape the input data.
+
+        :param function: The prediction function to wrap.
+        :type function: function
+        """
+        self._function = function
+
+    def predict_wrapper(self, X, *args, **kwargs):
+        """Wraps a prediction function from lightgbm learner to densify the input dataset.
+
+        :param X: The model evaluation examples.
+        :type X: np.array
+        :return: Prediction result.
+        :rtype: np.array
+        """
         if issparse(X):
             X = X.toarray()
-        return predict(X, *args, **kwargs)
-    return predict_wrapper
+        return self._function(X, *args, **kwargs)
 
 
 class LGBMExplainableModel(BaseExplainableModel):
@@ -186,8 +199,8 @@ class LGBMExplainableModel(BaseExplainableModel):
         if self._tree_explainer is None:
             self._tree_explainer = shap.TreeExplainer(self._lgbm)
             if version.parse('3.0.0') <= version.parse(lightgbm.__version__):
-                predict_method = lgbm_predict_decorator(self._tree_explainer.model.original_model.predict)
-                self._tree_explainer.model.original_model.predict = predict_method
+                wrapper = _LGBMFunctionWrapper(self._tree_explainer.model.original_model.predict)
+                self._tree_explainer.model.original_model.predict = wrapper.predict_wrapper
 
     def explain_local(self, evaluation_examples, probabilities=None, **kwargs):
         """Use TreeExplainer to get the local feature importances from the trained explainable model.
