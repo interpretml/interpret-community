@@ -494,7 +494,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         di = {}
         di["actual"] = y[i]
         di["predicted"] = y_hat[i]
-        di["residual"] = y[i] - y_hat[i]
+        if isinstance(y[i], str) or isinstance(y_hat, str):
+            di["residual"] = int(y[i] == y_hat[i])
+        else:
+            di["residual"] = y[i] - y_hat[i]
         return di
 
     def _local_data(self, parent_data, key=None):
