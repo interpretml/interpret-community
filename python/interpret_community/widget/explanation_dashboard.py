@@ -6,12 +6,14 @@ from interpret.utils.environment import EnvironmentDetector, is_cloud_env
 import threading
 import socket
 import re
+import datetime
+import numpy as np
 import os
 import json
 import atexit
 import warnings
 from .explanation_dashboard_input import ExplanationDashboardInput
-from ._internal.constants import DatabricksInterfaceConstants
+from ._internal.constants import ExplanationDashboardInterface, DatabricksInterfaceConstants
 
 try:
     from gevent.pywsgi import WSGIServer
@@ -277,7 +279,40 @@ class ExplanationDashboard:
             ExplanationDashboard._dashboard_js = f.read()
 
 
+def _serialize_json_safe(o):
+    """
+    Convert a value into something that is safe to parse into JSON.
+
+    :param o: Object to make JSON safe.
+    :return: New object
+    """
+    if type(o) in {int, float, str, type(None)}:
+        if isinstance(o, float):
+            if np.isinf(o) or np.isnan(o):
+                return 0
+        return o
+    elif isinstance(o, datetime.datetime):
+        return o.__str__()
+    elif isinstance(o, dict):
+        return {k: _serialize_json_safe(v) for k, v in o.items()}
+    elif isinstance(o, list):
+        return [_serialize_json_safe(v) for v in o]
+    elif isinstance(o, tuple):
+        return tuple(_serialize_json_safe(v) for v in o)
+    elif isinstance(o, np.ndarray):
+        return _serialize_json_safe(o.tolist())
+    else:
+        # Attempt to convert Numpy type
+        try:
+            return o.item()
+        except Exception:
+            return o
+
+
 def generate_inline_html(explanation_input_object, local_url):
+    data = explanation_input_object.dashboard_input[ExplanationDashboardInterface.TRAINING_DATA]
+    data = _serialize_json_safe(data)
+    explanation_input_object.dashboard_input[ExplanationDashboardInterface.TRAINING_DATA] = data
     explanation_input = json.dumps(explanation_input_object.dashboard_input)
     return ExplanationDashboard.default_template.render(explanation=explanation_input,
                                                         main_js=ExplanationDashboard._dashboard_js,
