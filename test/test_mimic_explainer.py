@@ -6,6 +6,9 @@ import pytest
 
 # Tests for MIMIC Explainer
 import json
+import joblib
+import time
+import os
 import logging
 import numpy as np
 import pandas as pd
@@ -44,6 +47,23 @@ MACOS_PLATFORM = 'darwin'
 class TestMimicExplainer(object):
     def test_working(self):
         assert True
+
+    def pickle_unpickle_explainer(self, explainer):
+        explainer_pickle_file_name = 'explainer' + str(time.time()) + '.pkl'
+        loaded_explainer = None
+        try:
+            joblib.dump(explainer, explainer_pickle_file_name)
+            loaded_explainer = joblib.load(explainer_pickle_file_name)
+        except Exception as e:
+            raise e
+        finally:
+            try:
+                # Try and remove the downloaded file
+                if os.path.exists(explainer_pickle_file_name):
+                    os.remove(explainer_pickle_file_name)
+            except Exception:
+                pass
+            return loaded_explainer
 
     def test_explain_model_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
@@ -414,6 +434,8 @@ class TestMimicExplainer(object):
         assert len(global_explanation.global_importance_values) == num_features
         # There should be an explanation for each row
         assert len(local_explanation.local_importance_values) == num_rows * test_size
+        # Testing pickling and unpickling the explainer
+        self.pickle_unpickle_explainer(explainer)
 
     def test_explain_model_string_classes(self, mimic_explainer):
         adult_census_income = retrieve_dataset('AdultCensusIncome.csv', skipinitialspace=True)
@@ -467,6 +489,8 @@ class TestMimicExplainer(object):
                                     explainable_model_args={'sparse_data': True}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
         assert global_explanation.method == LINEAR_METHOD
+        # Testing pickling and unpickling the explainer
+        self.pickle_unpickle_explainer(explainer)
 
     @property
     def iris_overall_expected_features(self):
