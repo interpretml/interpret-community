@@ -376,7 +376,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: bool
         """
         local_vals = self._local_importance_values
-        return issparse(local_vals) or (isinstance(local_vals, list) and issparse(local_vals[0]))
+        return issparse(local_vals) or \
+            ((isinstance(local_vals, list) or isinstance(local_vals, np.ndarray)) and issparse(local_vals[0]))
 
     def get_local_importance_rank(self):
         """Get local feature importance rank or indexes.
@@ -1581,7 +1582,10 @@ def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_ma
     is_1d = not isinstance(raw_importances[0], list)
     is_3d = not is_1d and isinstance(raw_importances[0][0], list)
     if is_1d:
-        kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
+        if issparse(raw_importances[0]):
+            kwargs[ExplainParams.NUM_FEATURES] = raw_importances[0].shape[1]
+        else:
+            kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
     else:
         kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
     return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
