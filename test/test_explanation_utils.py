@@ -4,13 +4,15 @@
 
 import pytest
 
+import datetime
 import numpy as np
 import logging
 from scipy.sparse import csr_matrix
 
 from interpret_community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
     _get_raw_feature_importances, _is_one_to_many, _sort_values, _sort_feature_list_single, \
-    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes
+    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes, \
+    _serialize_json_safe
 
 from raw_explain.utils import _get_feature_map_from_indices_list
 from constants import owner_email_tools_and_ux
@@ -188,3 +190,47 @@ class TestExplanationUtils(object):
         assert _is_one_to_many(one_to_many)
         assert not _is_one_to_many(many_to_one)
         assert not _is_one_to_many(many_to_many)
+
+    def test_serialize_json_safe_basic(self, uploader):
+        values = [0, 1, 2, 3, 4, 5]
+        result = _serialize_json_safe(values)
+        assert result == [0, 1, 2, 3, 4, 5]
+
+        values = ['a', 'b', 'a', 'c', 'a', 'b']
+        result = uploader._serialize_json_safe(values)
+        assert result == ['a', 'b', 'a', 'c', 'a', 'b']
+
+    def test_serialize_json_safe_missing(self, uploader):
+        values = [0, np.nan, 2, 3, 4, 5]
+        result = _serialize_json_safe(values)
+        assert result == [0, 0, 2, 3, 4, 5]
+
+        values = [0, np.inf, 2, 3, 4, 5]
+        result = _serialize_json_safe(values)
+        assert result == [0, 0, 2, 3, 4, 5]
+
+        values = ['a', 'b', 'a', np.nan, 'a', 'b']
+        result = _serialize_json_safe(values)
+        assert result == ['a', 'b', 'a', 0, 'a', 'b']
+
+    def test_serialize_json_safe_aggregate_types(self, uploader):
+        o = {
+            'a': [1, 2, 3],
+            'c': 'b'
+        }
+        result = _serialize_json_safe(o)
+        assert result == o
+
+        o = ('a', [1, 2, 3])
+        result = _serialize_json_safe(o)
+        assert result == o
+
+        values = np.array([[1, 2, 3], [4, 5, 6]])
+        result = _serialize_json_safe(values)
+        assert result == values.tolist()
+
+    def test_serialize_timestamp(self, uploader):
+        datetime_str = "2020-10-10"
+        datetime_object = datetime.datetime.strptime(datetime_str, "%Y-%m-%d")
+        result = _serialize_json_safe(datetime_object)
+        assert datetime_str in result
