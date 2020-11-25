@@ -274,7 +274,10 @@ class FeatureImportanceExplanation(BaseExplanation):
         if self._features is not None and self._num_features is not None:
             if len(self._features) != self._num_features:
                 raise Exception('The number of feature names passed in must be the same as the number of '
-                                'columns in the data.')
+                                'columns in the data.  Number of features: {} feature names: {}'.format(
+                                    self._num_features,
+                                    len(self._features)
+                                ))
         return self._num_features
 
     @property
@@ -487,7 +490,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         if self.is_local_sparse:
             return _get_raw_feature_importances(self.local_importance_values, raw_to_output_maps).tolist()
         else:
-            return _get_raw_feature_importances(np.array(self.local_importance_values), raw_to_output_maps).tolist()
+            return _get_raw_feature_importances(self._local_importance_values, raw_to_output_maps).tolist()
 
     def _perf_dict(self, y, y_hat, i):
         if y is None or y_hat is None:
@@ -1578,9 +1581,14 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
 
 
 def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
-    raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
-    is_1d = not isinstance(raw_importances[0], list)
-    is_3d = not is_1d and isinstance(raw_importances[0][0], list)
+    if engineered_feats_explanation.is_local_sparse:
+        local_importance_values = engineered_feats_explanation.local_importance_values
+        raw_importances = _get_raw_feature_importances(local_importance_values, feature_maps)
+    else:
+        local_importance_values = engineered_feats_explanation._local_importance_values
+        raw_importances = _get_raw_feature_importances(local_importance_values, feature_maps)
+    is_1d = not isinstance(raw_importances[0], np.ndarray)
+    is_3d = not is_1d and isinstance(raw_importances[0][0], np.ndarray)
     if is_1d:
         if issparse(raw_importances[0]):
             kwargs[ExplainParams.NUM_FEATURES] = raw_importances[0].shape[1]
@@ -1588,7 +1596,7 @@ def _create_raw_feats_local_explanation(engineered_feats_explanation, feature_ma
             kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
     else:
         kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances[0][0]) if is_3d else len(raw_importances[0])
-    return _create_local_explanation(local_importance_values=np.array(raw_importances), **kwargs)
+    return _create_local_explanation(local_importance_values=raw_importances, **kwargs)
 
 
 def _get_local_explanation_row(explainer, evaluation_examples, i, batch_size):
@@ -1818,7 +1826,7 @@ def _get_value_from_file(file_var):
     elif meta == 'list':
         return data
     else:
-        raise Exception('Unrecognized data type in deserialization: ' + meta)
+        raise Exception('Unrecognized data type in deserialization: {}'.format(meta))
 
 
 def _get_kwargs(path, params, local_explanation=None):
