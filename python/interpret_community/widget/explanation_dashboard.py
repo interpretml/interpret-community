@@ -3,7 +3,7 @@ from flask_cors import CORS
 from jinja2 import Environment, PackageLoader
 from IPython.display import display, HTML
 from interpret.utils.environment import EnvironmentDetector, is_cloud_env
-from interpret_community.common.explanation_utils import _serialize_json_safe
+from interpret_community.common.serialization_utils import _serialize_json_safe
 import threading
 import socket
 import re
