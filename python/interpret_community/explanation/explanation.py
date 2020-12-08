@@ -473,6 +473,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
         raw_kwargs[ExplainParams.EVAL_DATA] = eval_data
+        raw_kwargs[ExplainParams.EVAL_Y_PRED] = self.eval_y_predicted
+        raw_kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.eval_y_predicted_proba
         self._is_eng = True
         return _create_raw_feats_local_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
