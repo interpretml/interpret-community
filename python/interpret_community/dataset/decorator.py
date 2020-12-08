@@ -23,6 +23,12 @@ def tabular_decorator(explain_func):
     return explain_func_wrapper
 
 
+def wrap_dataset(dataset):
+    if not isinstance(dataset, DatasetWrapper):
+        dataset = DatasetWrapper(dataset)
+    return dataset
+
+
 def init_tabular_decorator(init_func):
     """Decorate a constructor to wrap initialization examples in a DatasetWrapper.
 
@@ -33,7 +39,5 @@ def init_tabular_decorator(init_func):
     """
     @wraps(init_func)
     def init_wrapper(self, model, initialization_examples, *args, **kwargs):
-        if not isinstance(initialization_examples, DatasetWrapper):
-            initialization_examples = DatasetWrapper(initialization_examples)
-        return init_func(self, model, initialization_examples, *args, **kwargs)
+        return init_func(self, model, wrap_dataset(initialization_examples), *args, **kwargs)
     return init_wrapper
