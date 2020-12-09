@@ -220,6 +220,7 @@ class TestRawExplanations:
         assert hasattr(raw_explanation, 'eval_data') == has_raw_eval_data
         assert not raw_explanation.is_engineered
         assert np.array(raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
+        assert raw_explanation.eval_y_predicted is not None
 
     def validate_global_explanation_classification(self, eng_explanation, raw_explanation,
                                                    feature_map, classes, feature_names, is_sparse=False,
