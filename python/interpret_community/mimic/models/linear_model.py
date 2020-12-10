@@ -11,7 +11,6 @@ from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassi
 from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
 from ...common.explanation_utils import _summarize_data
 import warnings
-import logging
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
@@ -334,29 +333,6 @@ class LinearExplainableModel(BaseExplainableModel):
         :rtype: ExplainableModelType
         """
         return ExplainableModelType.LINEAR_EXPLAINABLE_MODEL_TYPE
-
-    def __getstate__(self):
-        """Influence how LinearExplainableModel is pickled.
-
-        Removes logger which is not serializable.
-
-        :return state: The state to be pickled, with logger removed.
-        :rtype state: dict
-        """
-        odict = self.__dict__.copy()
-        del odict['_logger']
-        return odict
-
-    def __setstate__(self, state):
-        """Influence how LinearExplainableModel is unpickled.
-
-        Re-adds logger which is not serializable.
-
-        :param dict: A dictionary of deserialized state.
-        :type dict: dict
-        """
-        self.__dict__.update(state)
-        self._logger = logging.getLogger(__name__)
 
 
 class SGDExplainableModel(BaseExplainableModel):

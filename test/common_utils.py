@@ -28,6 +28,27 @@ from pandas import read_csv
 
 from datasets import retrieve_dataset
 
+LIGHTGBM_METHOD = 'mimic.lightgbm'
+LINEAR_METHOD = 'mimic.linear'
+SGD_METHOD = 'mimic.sgd'
+TREE_METHOD = 'mimic.tree'
+
+
+def get_mimic_method(surrogate_model):
+    from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+    from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
+    from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+    if surrogate_model == LGBMExplainableModel:
+        return LIGHTGBM_METHOD
+    elif surrogate_model == LinearExplainableModel:
+        return LINEAR_METHOD
+    elif surrogate_model == SGDExplainableModel:
+        return SGD_METHOD
+    elif surrogate_model == DecisionTreeExplainableModel:
+        return TREE_METHOD
+    else:
+        raise Exception("Unsupported surrogate model")
+
 
 def create_binary_sparse_newsgroups_data():
     categories = ['alt.atheism', 'soc.religion.christian']
