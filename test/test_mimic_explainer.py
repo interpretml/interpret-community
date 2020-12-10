@@ -23,7 +23,7 @@ from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data, \
-    LIGHTGBM_METHOD, LINEAR_METHOD
+    LIGHTGBM_METHOD, LINEAR_METHOD, create_lightgbm_regressor
 from models import DataFrameTestModel, SkewedTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
@@ -503,6 +503,23 @@ class TestMimicExplainer(object):
                                     model_task=ModelTask.Classification)
         global_explanation = explainer.explain_global(evaluation_examples=data_x)
         assert global_explanation.method == LINEAR_METHOD
+
+    def test_dense_wide_data(self, mimic_explainer):
+        # use 6000 rows instead for real performance testing
+        data = np.random.randn(50, 40000)
+        feature_names = [f'f_{i}' for i in range(39999)]
+        column_names = [f'f_{i}' for i in range(39999)]
+        column_names.append('label')
+        dataframe1 = pd.DataFrame(data, columns=column_names)
+        df_y = dataframe1['label']
+        df_X = dataframe1.drop(columns='label')
+        # Fit a lightgbm regression model
+        model = create_lightgbm_regressor(df_X, df_y)
+        explainable_model = LGBMExplainableModel
+        explainer = mimic_explainer(model, df_X, explainable_model, augment_data=False,
+                                    features=feature_names)
+        global_explanation = explainer.explain_global(df_X)
+        assert global_explanation.method == LIGHTGBM_METHOD
 
     @property
     def iris_overall_expected_features(self):

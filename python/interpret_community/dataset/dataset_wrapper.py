@@ -20,6 +20,8 @@ with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     from shap.common import DenseData
 
+SAMPLED_STRING_ROWS = 10
+
 
 class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
     """An estimator for featurizing timestamp columns to numeric data.
@@ -102,13 +104,15 @@ class DatasetWrapper(object):
         scipy.sparse.csr_matrix
     """
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, clear_references=False):
         """Initialize the dataset wrapper.
 
         :param dataset: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type dataset: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
+        :param clear_references: A memory optimization that clears all references after use in explainers.
+        :type clear_references: bool
         """
         self._features = None
         self._original_dataset_with_type = dataset
@@ -131,6 +135,7 @@ class DatasetWrapper(object):
         self._one_hot_encoder = None
         self._timestamp_featurized = False
         self._timestamp_featurizer = None
+        self._clear_references = clear_references
 
     @property
     def dataset(self):
@@ -312,9 +317,12 @@ class DatasetWrapper(object):
         except ImportError:
             return None
         tmp_dataset = self._dataset
-        # Temporarily convert to pandas for easier and uniform string handling
+        # Temporarily convert to pandas for easier and uniform string handling,
+        # only use top sampled rows to limit memory usage for string type test
         if isinstance(self._dataset, np.ndarray):
-            tmp_dataset = pd.DataFrame(self._dataset, dtype=self._dataset.dtype)
+            tmp_dataset = pd.DataFrame(self._dataset[:SAMPLED_STRING_ROWS, :], dtype=self._dataset.dtype)
+        else:
+            tmp_dataset = tmp_dataset.iloc[:SAMPLED_STRING_ROWS]
         categorical_col_names = list(np.array(list(tmp_dataset))[(tmp_dataset.applymap(type) == str).all(0)])
         if categorical_col_names:
             all_columns = tmp_dataset.columns
@@ -325,7 +333,7 @@ class DatasetWrapper(object):
                 categorical_col_indices = [all_columns.get_loc(col_name) for col_name in categorical_col_names]
             ordinal_enc = OrdinalEncoder()
             ct = ColumnTransformer([('ord', ordinal_enc, categorical_col_indices)], remainder='drop')
-            string_indexes_dataset = ct.fit_transform(tmp_dataset)
+            string_indexes_dataset = ct.fit_transform(self._dataset)
             # Inplace replacement of columns
             # (danger: using remainder=passthrough with ColumnTransformer will change column order!)
             for idx, categorical_col_index in enumerate(categorical_col_indices):
@@ -618,3 +626,27 @@ class DatasetWrapper(object):
         if (opt_k < num_rows):
             self._dataset = resample(self._dataset, n_samples=opt_k, random_state=7)
         return self._dataset
+
+    def _clear(self):
+        """Optimization for memory usage.
+
+        Clears all internal references so they can be garbage collected.
+        """
+        if self._clear_references:
+            self._features = None
+            self._original_dataset_with_type = None
+            self._dataset_is_df = None
+            self._dataset_is_series = None
+            self._default_index_cols = None
+            self._default_index = None
+            self._dataset = None
+            self._original_dataset = None
+            self._summary_dataset = None
+            self._column_indexer = None
+            self._subset_taken = False
+            self._summary_computed = False
+            self._string_indexed = False
+            self._one_hot_encoded = False
+            self._one_hot_encoder = None
+            self._timestamp_featurized = False
+            self._timestamp_featurizer = None

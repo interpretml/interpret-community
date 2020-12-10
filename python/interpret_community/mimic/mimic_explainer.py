@@ -239,9 +239,12 @@ class MimicExplainer(BlackBoxExplainer):
         self.reset_index = reset_index
         self._datamapper = None
         if transformations is not None:
-            self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
+            self._datamapper, new_initialization_examples = get_datamapper_and_transformed_data(
                 examples=initialization_examples, transformations=transformations,
                 allow_all_transformations=allow_all_transformations)
+            # memory optimization to clear all internal references so they can be gc'ed as soon as possible
+            initialization_examples._clear()
+            initialization_examples = new_initialization_examples
         if reset_index != ResetIndex.Ignore:
             initialization_examples.reset_index()
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
@@ -259,8 +262,12 @@ class MimicExplainer(BlackBoxExplainer):
         # augment the data if necessary
         if augment_data:
             initialization_examples.augment_data(max_num_of_augmentations=max_num_of_augmentations)
-        # get the original data with types and index column if reset_index != ResetIndex.Ignore
-        original_training_data = initialization_examples.typed_dataset
+            # get the original data with types and index column if reset_index != ResetIndex.Ignore
+            original_training_data = initialization_examples.typed_dataset
+        else:
+            # get the original data with types and index column if reset_index != ResetIndex.Ignore
+            # note: this is small memory optimization over above line if augment data = False
+            original_training_data = initialization_examples.original_dataset_with_type
 
         # if index column should not be set on surrogate model, remove it
         if reset_index == ResetIndex.ResetTeacher:
@@ -404,7 +411,7 @@ class MimicExplainer(BlackBoxExplainer):
                                                  batch_size=batch_size)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
         if evaluation_examples is not None:
-            kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+            kwargs[ExplainParams.EVAL_DATA] = self._original_eval_examples
             ys_dict = self._get_ys_dict(self._original_eval_examples,
                                         transformations=self.transformations,
                                         allow_all_transformations=self._allow_all_transformations)
@@ -531,7 +538,10 @@ class MimicExplainer(BlackBoxExplainer):
             else:
                 self._original_eval_examples = evaluation_examples
         if self._datamapper is not None:
-            evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
+            new_evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
+            # memory optimization to clear all internal references so they can be gc'ed as soon as possible
+            evaluation_examples._clear()
+            evaluation_examples = new_evaluation_examples
 
         kwargs = self._get_explain_local_kwargs(evaluation_examples)
         kwargs[ExplainParams.INIT_DATA] = self.initialization_examples

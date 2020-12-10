@@ -13,7 +13,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.base import TransformerMixin
-from lightgbm import LGBMClassifier
+from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier
 
 from tensorflow import keras
@@ -116,6 +116,13 @@ def create_sklearn_random_forest_classifier(X, y):
 def create_lightgbm_classifier(X, y):
     lgbm = LGBMClassifier(boosting_type='gbdt', learning_rate=0.1,
                           max_depth=5, n_estimators=200, n_jobs=1, random_state=777)
+    model = lgbm.fit(X, y)
+    return model
+
+
+def create_lightgbm_regressor(X, y):
+    lgbm = LGBMRegressor(boosting_type='gbdt', learning_rate=0.1,
+                         max_depth=5, n_estimators=200, n_jobs=1, random_state=777)
     model = lgbm.fit(X, y)
     return model
 
