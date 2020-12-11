@@ -8,8 +8,7 @@ from scipy.sparse import eye, csr_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Binarizer, KernelCenterer, LabelEncoder, MaxAbsScaler, MinMaxScaler, Normalizer, \
     OneHotEncoder, QuantileTransformer, RobustScaler, StandardScaler
-
-CSR_FORMAT = 'csr'
+from ...common.constants import Scipy
 
 
 def get_feature_mapper_for_pipeline(pipeline_obj):
@@ -114,7 +113,7 @@ class IdentityMapper(FeatureMapper):
         :param num_cols: number of columns in input.
         :type num_cols: int
         """
-        self.set_feature_map(eye(num_cols, format=CSR_FORMAT))
+        self.set_feature_map(eye(num_cols, format=Scipy.CSR_FORMAT))
 
     def transform(self, x):
         """Transform input data.
