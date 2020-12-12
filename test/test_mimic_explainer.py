@@ -453,6 +453,8 @@ class TestMimicExplainer(object):
                                     transformations=feat_pipe)
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
+        predictions_surrogate_model = explainer._surrogate_model_predict(X_train)
+        assert predictions_surrogate_model is not None
 
     def test_linear_explainable_model_regression(self, mimic_explainer):
         num_features = 3

@@ -20,7 +20,7 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
 
 from ..common.blackbox_explainer import BlackBoxExplainer
 
-from .model_distill import _model_distill
+from .model_distill import _model_distill, _inverse_soft_logit
 from .models import LGBMExplainableModel
 from ..explanation.explanation import _create_local_explanation, _create_global_explanation, \
     _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations, \
@@ -312,6 +312,13 @@ class MimicExplainer(BlackBoxExplainer):
         self._method = self.surrogate_model._method
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
+
+    def _surrogate_model_predict(self, evaluation_examples):
+        if len(self.classes) == 2:
+            predictions = self.surrogate_model.predict(evaluation_examples)
+            return _inverse_soft_logit(predictions)
+        else:
+            return self.surrogate_model.predict(evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)

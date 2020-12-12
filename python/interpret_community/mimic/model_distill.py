@@ -20,6 +20,11 @@ def _soft_logit(values, clip_val=5):
     return np.clip(new_values, -clip_val, clip_val)
 
 
+def _inverse_soft_logit(values):
+    new_values = np.exp(values) / (1 + np.exp(values))
+    return new_values
+
+
 def _model_distill(teacher_model_predict_fn, uninitialized_surrogate_model, data, original_training_data,
                    explainable_model_args):
     """Teach a surrogate model to mimic a teacher model.
