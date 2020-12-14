@@ -313,6 +313,22 @@ class MimicExplainer(BlackBoxExplainer):
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
+        # Train all available surrogate models to find the respective replication scores
+        from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+        from interpret_community.mimic.models.linear_model import SGDExplainableModel, LinearExplainableModel
+        from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+        explainable_model_list = [LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel, DecisionTreeExplainableModel]
+        self._trained_surrogate_model_list = []
+        for explainable_model in explainable_model_list:
+            print("training surrogate model " + str(explainable_model))
+            if explainable_model == LinearExplainableModel:
+                surrogate_model = _model_distill(self.function, explainable_model, training_data,
+                                                 original_training_data, explainable_model_args)
+            else:
+                surrogate_model = _model_distill(self.function, explainable_model, training_data,
+                                                 original_training_data, {})
+            self._trained_surrogate_model_list.append(surrogate_model)
+
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
 
@@ -629,3 +645,49 @@ class MimicExplainer(BlackBoxExplainer):
         if MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS not in mimic.__dict__:
             mimic.__dict__[MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS] = False
         return mimic
+
+    def _get_surrogate_model_replication_measure(self, training_data, surrogate_model=None):
+        """Return the metric which tells how well the surrogate model replicates the teacher model.
+
+        :param training_data: The data for getting the replication metric.
+        :type training_data: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+            scipy.sparse.csr_matrix
+        :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
+        :rtype: float
+        """
+        try:
+            from sklearn.metrics import accuracy_score
+            from sklearn.metrics import r2_score
+            sklearn_metrics_available = True
+        except ImportError:
+            sklearn_metrics_available = False
+
+        if not sklearn_metrics_available:
+            raise Exception(
+                "Cannot compute replication metrics due to missing sklearn metrics package")
+
+        if surrogate_model is None:
+            surrogate_model_predictions = self.surrogate_model.predict(training_data)
+        else:
+            surrogate_model_predictions = surrogate_model.predict(training_data)
+        teacher_model_predictions = self.model.predict(training_data)
+
+        if self.classes is not None:
+            if len(self.classes) > 2:
+                replication_measure = accuracy_score(teacher_model_predictions, surrogate_model_predictions)
+            else:
+                raise Exception("Replication measure is not supported for binary classification")
+        else:
+            if training_data.shape[0] == 1:
+                raise Exception("Replication measure for regression surrogate not supported "
+                                "because of single instance in training data")
+            replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
+        print("interpret-community score" + str(replication_measure))
+        return replication_measure
+
+    def _get_all_surrogate_model_scores(self, training_data):
+        for trained_surrogate_model in self._trained_surrogate_model_list:
+            self._get_surrogate_model_replication_measure(
+                training_data=training_data, surrogate_model=trained_surrogate_model
+            )
+
