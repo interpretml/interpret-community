@@ -323,6 +323,22 @@ class MimicExplainer(BlackBoxExplainer):
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
+        # Train all available surrogate models to find the respective replication scores
+        from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+        from interpret_community.mimic.models.linear_model import SGDExplainableModel, LinearExplainableModel
+        from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+        explainable_model_list = [LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel, DecisionTreeExplainableModel]
+        self._trained_surrogate_model_list = []
+        for explainable_model in explainable_model_list:
+            print("training surrogate model " + str(explainable_model))
+            if explainable_model == LinearExplainableModel:
+                surrogate_model = _model_distill(self.function, explainable_model, training_data,
+                                                 original_training_data, explainable_model_args)
+            else:
+                surrogate_model = _model_distill(self.function, explainable_model, training_data,
+                                                 original_training_data, {})
+            self._trained_surrogate_model_list.append(surrogate_model)
+
     def _get_transformed_data(self, evaluation_examples):
         """Return the transformed data for some evaluation data.
 
@@ -844,3 +860,8 @@ class MimicExplainer(BlackBoxExplainer):
         :rtype: float
         """
         return self._get_surrogate_model_replication_measure(training_data=training_data)
+    def _get_all_surrogate_model_scores(self, training_data):
+        for trained_surrogate_model in self._trained_surrogate_model_list:
+            self._get_surrogate_model_replication_measure(
+                training_data=training_data, surrogate_model=trained_surrogate_model
+            )
