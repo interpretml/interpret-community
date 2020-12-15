@@ -331,6 +331,12 @@ class MimicExplainer(BlackBoxExplainer):
                     raise Exception(lightgbm_param +
                                     " found in params for Linear explainable model")
 
+        all_supported_explainable_model_args = [LightGBMParams.ALL, LinearExplainableModelParams.ALL]
+        for explainable_model_arg in explainable_model_args:
+            if explainable_model_arg not in all_supported_explainable_model_args:
+                raise Exception(
+                    "Found unsupported explainable model argument " + explainable_model_arg)
+
     def _supplement_explainable_model_args(self, explainable_model, explainable_model_args,
                                            categorical_features, shap_values_output):
         if explainable_model_args is None:

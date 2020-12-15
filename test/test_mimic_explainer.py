@@ -527,7 +527,9 @@ class TestMimicExplainer(object):
     @pytest.mark.parametrize("error_config",
                              [(LGBMExplainableModel, {LinearExplainableModelParams.SPARSE_DATA: True}),
                               (LinearExplainableModel, {LightGBMParams.N_JOBS: -1}),
-                              (LinearExplainableModel, {LightGBMParams.CATEGORICAL_FEATURE: []})])
+                              (LinearExplainableModel, {LightGBMParams.CATEGORICAL_FEATURE: []}),
+                              (LGBMExplainableModel, {"unsupported": True}),
+                              (LinearExplainableModel, {"unsupported": True})])
     def test_validate_explainable_model_args(self, error_config, mimic_explainer):
         num_features = 100
         num_rows = 1000
