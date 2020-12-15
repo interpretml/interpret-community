@@ -669,3 +669,27 @@ class MimicExplainer(BlackBoxExplainer):
         if MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS not in mimic.__dict__:
             mimic.__dict__[MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS] = False
         return mimic
+
+    def __getstate__(self):
+        """Influence how MimicExplainer is pickled.
+
+        Removes logger which is not serializable.
+
+        :return state: The state to be pickled, with logger removed.
+        :rtype state: dict
+        """
+        odict = self.__dict__.copy()
+        del odict['_logger']
+        return odict
+
+    def __setstate__(self, state):
+        """Influence how MimicExplainer is unpickled.
+
+        Re-adds logger which is not serializable.
+
+        :param dict: A dictionary of deserialized state.
+        :type dict: dict
+        """
+        print(state)
+        self.__dict__.update(state)
+        self._logger = logging.getLogger(__name__)
