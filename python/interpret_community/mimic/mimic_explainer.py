@@ -21,7 +21,8 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
 from ..common.blackbox_explainer import BlackBoxExplainer
 
 from .model_distill import _model_distill
-from .models import LGBMExplainableModel
+from .models import LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel, \
+    DecisionTreeExplainableModel
 from ..explanation.explanation import _create_local_explanation, _create_global_explanation, \
     _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations, \
     _create_raw_feats_global_explanation, _create_raw_feats_local_explanation, \
@@ -133,14 +134,19 @@ class MimicExplainer(BlackBoxExplainer):
     :param reset_index: Uses the pandas DataFrame index column as part of the features when training
         the surrogate model.
     :type reset_index: str
+    :param auto_select_explainable_model: Set this to 'True' if you want to use the MimicExplainer with an
+        auto-selected explainable model. We train four different explainable models LGBMExplainableModel,
+        LinearExplainableModel, SGDExplainableModel and DecisionTreeExplainableModel and score them to find
+        the best explainable model. This model is then used to derive explanations.
+    :type auto_select_explainable_model: bool
     """
-
     @init_tabular_decorator
     def __init__(self, model, initialization_examples, explainable_model, explainable_model_args=None,
                  is_function=False, augment_data=True, max_num_of_augmentations=10, explain_subset=None,
                  features=None, classes=None, transformations=None, allow_all_transformations=False,
                  shap_values_output=ShapValuesOutput.DEFAULT, categorical_features=None,
-                 model_task=ModelTask.Unknown, reset_index=ResetIndex.Ignore, **kwargs):
+                 model_task=ModelTask.Unknown, reset_index=ResetIndex.Ignore,
+                 auto_select_explainable_model=False, **kwargs):
         """Initialize the MimicExplainer.
 
         :param model: The black box model or function (if is_function is True) to be explained.  Also known
@@ -233,6 +239,11 @@ class MimicExplainer(BlackBoxExplainer):
             the index when calling predict on the original model.  Only use reset_teacher if the index is already
             featurized as part of the data.
         :type reset_index: str
+        :param auto_select_explainable_model: Set this to 'True' if you want to use the MimicExplainer with an
+            auto-selected explainable model. We train four different explainable models LGBMExplainableModel,
+            LinearExplainableModel, SGDExplainableModel and DecisionTreeExplainableModel and score them to find
+            the best explainable model. This model is then used to derive explanations.
+        :type auto_select_explainable_model: bool
         """
         if transformations is not None and explain_subset is not None:
             raise ValueError("explain_subset not supported with transformations")
@@ -307,27 +318,41 @@ class MimicExplainer(BlackBoxExplainer):
         explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
         if self._supports_shap_values_output(explainable_model):
             explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
-        self.surrogate_model = _model_distill(self.function, explainable_model, training_data,
-                                              original_training_data, explainable_model_args)
-        self._method = self.surrogate_model._method
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
-        # Train all available surrogate models to find the respective replication scores
-        from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-        from interpret_community.mimic.models.linear_model import SGDExplainableModel, LinearExplainableModel
-        from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
-        explainable_model_list = [LGBMExplainableModel, LinearExplainableModel, SGDExplainableModel, DecisionTreeExplainableModel]
-        self._trained_surrogate_model_list = []
-        for explainable_model in explainable_model_list:
-            print("training surrogate model " + str(explainable_model))
-            if explainable_model == LinearExplainableModel:
-                surrogate_model = _model_distill(self.function, explainable_model, training_data,
-                                                 original_training_data, explainable_model_args)
-            else:
-                surrogate_model = _model_distill(self.function, explainable_model, training_data,
-                                                 original_training_data, {})
-            self._trained_surrogate_model_list.append(surrogate_model)
+        if auto_select_explainable_model:
+            # Train all available surrogate models to find the respective replication scores
+            explainable_model_list = [LGBMExplainableModel, LinearExplainableModel,
+                                      SGDExplainableModel, DecisionTreeExplainableModel]
+            self._trained_surrogate_model_list = []
+            self._best_replication_score = None
+            for explainable_model in explainable_model_list:
+                print("training surrogate model " + str(explainable_model))
+                try:
+                    surrogate_model = _model_distill(self.function, explainable_model, training_data,
+                                                    original_training_data, {})
+                    self._trained_surrogate_model_list.append(surrogate_model)
+                    
+                    surrogate_replication_score = self._get_surrogate_model_replication_measure(
+                        training_data=training_data,
+                        surrogate_model=surrogate_model)
+                    if self._best_replication_score is None:
+                        self._best_replication_score = surrogate_replication_score
+                    else:
+                        if surrogate_replication_score > self._best_replication_score:
+                            self.surrogate_model = surrogate_model
+                            self._best_replication_score = surrogate_replication_score
+                except Exception as e:
+                    print(str(e))
+            
+            print(self.surrogate_model)
+            print(self._best_replication_score)
+        else:
+            self.surrogate_model = _model_distill(
+                self.function, explainable_model, training_data,
+                original_training_data, explainable_model_args)
+        self._method = self.surrogate_model._method
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -682,7 +707,7 @@ class MimicExplainer(BlackBoxExplainer):
                 raise Exception("Replication measure for regression surrogate not supported "
                                 "because of single instance in training data")
             replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
-        print("interpret-community score" + str(replication_measure))
+        print("interpret-community score: " + str(replication_measure))
         return replication_measure
 
     def _get_all_surrogate_model_scores(self, training_data):
