@@ -319,13 +319,13 @@ class MimicExplainer(BlackBoxExplainer):
         if explainable_model_args is None:
             return
 
-        if isinstance(explainable_model, LGBMExplainableModel):
+        if explainable_model == LGBMExplainableModel:
             for linear_param in LinearExplainableModelParams.ALL:
                 if linear_param in explainable_model_args:
                     raise Exception(linear_param +
                                     " found in params for LightGBM explainable model")
 
-        if isinstance(explainable_model, LinearExplainableModel):
+        if explainable_model == LinearExplainableModel:
             for lightgbm_param in LightGBMParams.ALL:
                 if lightgbm_param in explainable_model_args:
                     raise Exception(lightgbm_param +

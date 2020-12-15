@@ -528,7 +528,7 @@ class TestMimicExplainer(object):
                              [(LGBMExplainableModel, {LinearExplainableModelParams.SPARSE_DATA: True}),
                               (LinearExplainableModel, {LightGBMParams.N_JOBS: -1}),
                               (LinearExplainableModel, {LightGBMParams.CATEGORICAL_FEATURE: []})])
-    def test_validate_explainable_model_args(self, error_config):
+    def test_validate_explainable_model_args(self, error_config, mimic_explainer):
         num_features = 100
         num_rows = 1000
         test_size = 0.2
@@ -543,7 +543,7 @@ class TestMimicExplainer(object):
         with pytest.raises(Exception):
             mimic_explainer(model, x_train, explainable_model,
                             explainable_model_args=explainable_model_args,
-                            transformations=transformations, augment_data=False)
+                            augment_data=False)
 
     @property
     def iris_overall_expected_features(self):
