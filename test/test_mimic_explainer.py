@@ -18,7 +18,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 from sys import platform
-from interpret_community.common.constants import ShapValuesOutput, ModelTask
+from interpret_community.common.constants import ShapValuesOutput, ModelTask, \
+    LinearExplainableModelParams, LightGBMParams
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
@@ -522,6 +523,27 @@ class TestMimicExplainer(object):
                                     features=feature_names)
         global_explanation = explainer.explain_global(df_X)
         assert global_explanation.method == LIGHTGBM_METHOD
+
+    @pytest.mark.parametrize("error_config",
+                             [(LGBMExplainableModel, {LinearExplainableModelParams.SPARSE_DATA: True}),
+                              (LinearExplainableModel, {LightGBMParams.N_JOBS: -1}),
+                              (LinearExplainableModel, {LightGBMParams.CATEGORICAL_FEATURE: []})])
+    def test_validate_explainable_model_args(self, error_config):
+        num_features = 100
+        num_rows = 1000
+        test_size = 0.2
+        X, y = make_regression(n_samples=num_rows, n_features=num_features)
+        x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
+
+        model = LinearRegression(normalize=True)
+        model.fit(x_train, y_train)
+
+        explainable_model = error_config[0]
+        explainable_model_args = error_config[1]
+        with pytest.raises(Exception):
+            mimic_explainer(model, x_train, explainable_model,
+                            explainable_model_args=explainable_model_args,
+                            transformations=transformations, augment_data=False)
 
     @property
     def iris_overall_expected_features(self):
