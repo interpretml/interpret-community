@@ -345,7 +345,7 @@ class MimicExplainer(BlackBoxExplainer):
                             surrogate_replication_score > self._best_replication_score:
                         self.surrogate_model = surrogate_model
                         self._best_replication_score = surrogate_replication_score
-                except Exception as e:
+                except Exception:
                     pass
 
         if not auto_select_explainable_model or \
@@ -368,7 +368,7 @@ class MimicExplainer(BlackBoxExplainer):
                 surrogate_replication_score = self._get_surrogate_model_replication_measure(
                     training_data=training_data,
                     surrogate_model=self.surrogate_model)
-            except Exception as e:
+            except Exception:
                 pass
             finally:
                 # Store the replication score
