@@ -261,8 +261,7 @@ class MimicExplainer(BlackBoxExplainer):
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(MimicExplainer, self).__init__(wrapped_model, is_function=is_function,
                                              model_task=eval_ml_domain, **kwargs)
-        if explainable_model_args is None:
-            explainable_model_args = {}
+
         if categorical_features is None:
             categorical_features = []
         self._logger.debug('Initializing MimicExplainer')
@@ -299,7 +298,6 @@ class MimicExplainer(BlackBoxExplainer):
             # Index the categorical string columns for training data
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
             self._one_hot_encoder = None
-            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
         else:
             # One-hot-encode categoricals for models that don't support categoricals natively
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
@@ -315,9 +313,6 @@ class MimicExplainer(BlackBoxExplainer):
         if isinstance(training_data, DenseData):
             training_data = training_data.data
 
-        explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
-        if self._supports_shap_values_output(explainable_model):
-            explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
@@ -325,34 +320,79 @@ class MimicExplainer(BlackBoxExplainer):
             # Train all available surrogate models to find the respective replication scores
             explainable_model_list = [LGBMExplainableModel, LinearExplainableModel,
                                       SGDExplainableModel, DecisionTreeExplainableModel]
-            self._trained_surrogate_model_list = []
             self._best_replication_score = None
-            for explainable_model in explainable_model_list:
-                print("training surrogate model " + str(explainable_model))
+            self._all_replication_scores = {}
+            for some_explainable_model in explainable_model_list:
                 try:
-                    surrogate_model = _model_distill(self.function, explainable_model, training_data,
-                                                    original_training_data, {})
-                    self._trained_surrogate_model_list.append(surrogate_model)
-                    
+                    # Set params for explainable model
+                    some_args = self._supplement_explainable_model_args(
+                        explainable_model=some_explainable_model,
+                        explainable_model_args={},
+                        categorical_features=categorical_features,
+                        shap_values_output=shap_values_output)
+                    # Train the explainable model
+                    surrogate_model = _model_distill(self.function, some_explainable_model, training_data,
+                                                     original_training_data, some_args)
+                    # Compute the replication score between the teacher model and surrogate model
                     surrogate_replication_score = self._get_surrogate_model_replication_measure(
                         training_data=training_data,
                         surrogate_model=surrogate_model)
-                    if self._best_replication_score is None:
+                    # Store the replication score
+                    self._all_replication_scores[surrogate_model.method] = surrogate_replication_score
+
+                    # Keep track of the best score and the best trained surrogate model
+                    if self._best_replication_score is None or \
+                            surrogate_replication_score > self._best_replication_score:
+                        self.surrogate_model = surrogate_model
                         self._best_replication_score = surrogate_replication_score
-                    else:
-                        if surrogate_replication_score > self._best_replication_score:
-                            self.surrogate_model = surrogate_model
-                            self._best_replication_score = surrogate_replication_score
                 except Exception as e:
-                    print(str(e))
-            
-            print(self.surrogate_model)
-            print(self._best_replication_score)
-        else:
+                    pass
+
+        if not auto_select_explainable_model or \
+                (hasattr(self, "_best_replication_score") and self._best_replication_score is None):
+            # If the training/scoring of explainable model fails for some reason,
+            # then fall back on the user specified explainable model and train it.
+            explainable_model_args = self._supplement_explainable_model_args(
+                explainable_model=explainable_model,
+                explainable_model_args=explainable_model_args,
+                categorical_features=categorical_features,
+                shap_values_output=shap_values_output)
+
             self.surrogate_model = _model_distill(
                 self.function, explainable_model, training_data,
                 original_training_data, explainable_model_args)
-        self._method = self.surrogate_model._method
+
+            try:
+                surrogate_replication_score = None
+                # Compute the replication score between the teacher model and surrogate model
+                surrogate_replication_score = self._get_surrogate_model_replication_measure(
+                    training_data=training_data,
+                    surrogate_model=self.surrogate_model)
+            except Exception as e:
+                pass
+            finally:
+                # Store the replication score
+                self._all_replication_scores = {}
+                self._all_replication_scores[self.surrogate_model.method] = surrogate_replication_score
+                self._best_replication_score = surrogate_replication_score
+
+        self._method = self.surrogate_model.method
+
+    def _supplement_explainable_model_args(self, explainable_model, explainable_model_args,
+                                           categorical_features, shap_values_output):
+        if explainable_model_args is None:
+            explainable_model_args = {}
+
+        if explainable_model.explainable_model_type == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE and \
+                self._supports_categoricals(explainable_model):
+            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
+
+        explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
+
+        if self._supports_shap_values_output(explainable_model):
+            explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
+
+        return explainable_model_args
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -671,12 +711,14 @@ class MimicExplainer(BlackBoxExplainer):
             mimic.__dict__[MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS] = False
         return mimic
 
-    def _get_surrogate_model_replication_measure(self, training_data, surrogate_model=None):
+    def _get_surrogate_model_replication_measure(self, training_data, surrogate_model):
         """Return the metric which tells how well the surrogate model replicates the teacher model.
 
         :param training_data: The data for getting the replication metric.
         :type training_data: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
             scipy.sparse.csr_matrix
+        :param surrogate_model: Trained surrogate model.
+        :type surrogate_model: Any
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """
@@ -691,10 +733,7 @@ class MimicExplainer(BlackBoxExplainer):
             raise Exception(
                 "Cannot compute replication metrics due to missing sklearn metrics package")
 
-        if surrogate_model is None:
-            surrogate_model_predictions = self.surrogate_model.predict(training_data)
-        else:
-            surrogate_model_predictions = surrogate_model.predict(training_data)
+        surrogate_model_predictions = surrogate_model.predict(training_data)
         teacher_model_predictions = self.model.predict(training_data)
 
         if self.classes is not None:
@@ -707,12 +746,4 @@ class MimicExplainer(BlackBoxExplainer):
                 raise Exception("Replication measure for regression surrogate not supported "
                                 "because of single instance in training data")
             replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
-        print("interpret-community score: " + str(replication_measure))
         return replication_measure
-
-    def _get_all_surrogate_model_scores(self, training_data):
-        for trained_surrogate_model in self._trained_surrogate_model_list:
-            self._get_surrogate_model_replication_measure(
-                training_data=training_data, surrogate_model=trained_surrogate_model
-            )
-

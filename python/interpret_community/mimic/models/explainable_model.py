@@ -81,3 +81,8 @@ class BaseExplainableModel(ChainedIdentity):
     def explainable_model_type(self):
         """Retrieve the model type."""
         pass
+
+    @property
+    def method(self):
+        """Return the name of the explainable model."""
+        return self._method
