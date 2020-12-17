@@ -103,3 +103,8 @@ class BaseExplainableModel(ABC, ChainedIdentity):
         """
         self.__dict__.update(state)
         self._logger = logging.getLogger(__name__)
+
+    @property
+    def method(self):
+        """Return the name of the explainable model."""
+        return self._method
