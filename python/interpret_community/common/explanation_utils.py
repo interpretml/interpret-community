@@ -134,7 +134,7 @@ def _transform_data(data, data_mapper=None):
     :param data: The raw data to transform.
     :type data: numpy, pandas, dense, sparse data matrix
     :param data_mapper: A list of lists of generated feature indices for each raw feature.
-    :type data_mapper: list[list[]]
+    :type data_mapper: DataMapper
     :return: The transformed data.
     :rtype: numpy, pandas, dense, sparse data matrix
     """
