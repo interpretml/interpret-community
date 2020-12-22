@@ -23,7 +23,7 @@ from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
 from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
     create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data, \
-    create_lightgbm_regressor
+    LIGHTGBM_METHOD, LINEAR_METHOD, create_lightgbm_regressor
 from models import DataFrameTestModel, SkewedTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
@@ -36,8 +36,6 @@ test_logger.setLevel(logging.DEBUG)
 
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
-LIGHTGBM_METHOD = 'mimic.lightgbm'
-LINEAR_METHOD = 'mimic.linear'
 MACOS_PLATFORM = 'darwin'
 
 
