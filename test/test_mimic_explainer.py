@@ -451,8 +451,12 @@ class TestMimicExplainer(object):
                                     transformations=feat_pipe)
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
-        predictions_surrogate_model = explainer._surrogate_model_predict(X_train)
-        assert predictions_surrogate_model is not None
+
+        predictions_main_model = model.predict(X_train)
+        assert classes == np.unique(predictions_main_model).tolist()
+
+        predictions_surrogate_model = explainer._get_surrogate_model_predictions(X.iloc[:1000])
+        assert classes == np.unique(predictions_surrogate_model).tolist()
 
     def test_linear_explainable_model_regression(self, mimic_explainer):
         num_features = 3
@@ -470,7 +474,15 @@ class TestMimicExplainer(object):
         global_explanation = explainer.explain_global(x_train)
         assert global_explanation.method == LINEAR_METHOD
 
-    def test_linear_explainable_model_classification(self, mimic_explainer):
+        predictions_main_model = model.predict(x_train)
+        assert predictions_main_model is not None
+
+        predictions_surrogate_model = explainer._get_surrogate_model_predictions(x_train)
+        assert predictions_surrogate_model is not None
+
+    @pytest.mark.parametrize('if_multiclass', [True, False])
+    @pytest.mark.parametrize('raw_feature_transformations', [True, False])
+    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass, raw_feature_transformations):
         n_samples = 100
         n_cat_features = 15
 
@@ -479,6 +491,12 @@ class TestMimicExplainer(object):
 
         data_x = pd.DataFrame(cat_features, columns=cat_feature_names)
         data_y = np.random.choice(['0', '1'], n_samples)
+        if if_multiclass:
+            data_y = np.random.choice([0, 1, 2, 3], n_samples)
+            classes = [0, 1, 2, 3]
+        else:
+            data_y = np.random.choice([0, 1], n_samples)
+            classes = [0, 1]
 
         # prepare feature encoders
         cat_feature_encoders = [OneHotEncoder().fit(cat_features[:, i].reshape(-1, 1)) for i in range(n_cat_features)]
@@ -494,17 +512,35 @@ class TestMimicExplainer(object):
         cat_transformations = [([cat_feature_name], encoder) for cat_feature_name, encoder in
                                zip(cat_feature_names, cat_feature_encoders)]
 
-        explainer = mimic_explainer(model=model,
-                                    initialization_examples=data_x,
-                                    explainable_model=LinearExplainableModel,
-                                    explainable_model_args={'sparse_data': True},
-                                    augment_data=False,
-                                    features=cat_feature_names,
-                                    classes=['0', '1'],
-                                    transformations=cat_transformations,
-                                    model_task=ModelTask.Classification)
-        global_explanation = explainer.explain_global(evaluation_examples=data_x)
+        if raw_feature_transformations:
+            explainer = mimic_explainer(model=model,
+                                        initialization_examples=data_x,
+                                        explainable_model=LinearExplainableModel,
+                                        explainable_model_args={'sparse_data': True},
+                                        augment_data=False,
+                                        features=cat_feature_names,
+                                        classes=classes,
+                                        transformations=cat_transformations,
+                                        model_task=ModelTask.Classification)
+            global_explanation = explainer.explain_global(evaluation_examples=data_x)
+        else:
+            explainer = mimic_explainer(model=model,
+                                        initialization_examples=encoded_cat_features,
+                                        explainable_model=LinearExplainableModel,
+                                        explainable_model_args={'sparse_data': True},
+                                        augment_data=False,
+                                        classes=classes,
+                                        model_task=ModelTask.Classification)
+            global_explanation = explainer.explain_global(evaluation_examples=encoded_cat_features)
+
         assert global_explanation.method == LINEAR_METHOD
+        if if_multiclass:
+            if raw_feature_transformations:
+                predictions_surrogate_model = explainer._get_surrogate_model_predictions(data_x)
+                assert classes == np.unique(predictions_surrogate_model).tolist()
+            else:
+                predictions_surrogate_model = explainer._get_surrogate_model_predictions(encoded_cat_features)
+                assert classes == np.unique(predictions_surrogate_model).tolist()
 
     def test_dense_wide_data(self, mimic_explainer):
         # use 6000 rows instead for real performance testing

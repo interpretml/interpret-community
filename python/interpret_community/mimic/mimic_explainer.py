@@ -313,12 +313,23 @@ class MimicExplainer(BlackBoxExplainer):
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
-    def _surrogate_model_predict(self, evaluation_examples):
-        if len(self.classes) == 2:
-            predictions = self.surrogate_model.predict(evaluation_examples)
-            return _inverse_soft_logit(predictions)
+    def _get_surrogate_model_predictions(self, evaluation_examples):
+        """Return the predictions given by the surrogate model."""
+        if self.transformations is not None:
+            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples, transformations=self.transformations,
+                allow_all_transformations=self._allow_all_transformations)
         else:
-            return self.surrogate_model.predict(evaluation_examples)
+            transformed_evaluation_examples = evaluation_examples
+
+        if self.classes is not None and len(self.classes) == 2:
+            index_predictions = _inverse_soft_logit(self.surrogate_model.predict(transformed_evaluation_examples))
+            actual_predictions = []
+            for index in index_predictions:
+                actual_predictions.append(self.classes[index])
+            return np.array(actual_predictions)
+        else:
+            return self.surrogate_model.predict(transformed_evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
