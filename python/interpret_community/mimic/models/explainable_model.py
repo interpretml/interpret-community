@@ -3,7 +3,7 @@
 # ---------------------------------------------------------
 
 """Defines the base API for explainable models."""
-
+import logging
 from abc import ABCMeta, abstractmethod
 from ...common.chained_identity import ChainedIdentity
 
@@ -81,3 +81,26 @@ class BaseExplainableModel(ChainedIdentity):
     def explainable_model_type(self):
         """Retrieve the model type."""
         pass
+
+    def __getstate__(self):
+        """Influence how SGDExplainableModel is pickled.
+
+        Removes logger which is not serializable.
+
+        :return state: The state to be pickled, with logger removed.
+        :rtype state: dict
+        """
+        odict = self.__dict__.copy()
+        del odict['_logger']
+        return odict
+
+    def __setstate__(self, state):
+        """Influence how SGDExplainableModel is unpickled.
+
+        Re-adds logger which is not serializable.
+
+        :param dict: A dictionary of deserialized state.
+        :type dict: dict
+        """
+        self.__dict__.update(state)
+        self._logger = logging.getLogger(__name__)
