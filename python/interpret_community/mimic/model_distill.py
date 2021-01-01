@@ -6,6 +6,7 @@
 
 import numpy as np
 from scipy.sparse import issparse, isspmatrix_csr, vstack as sparse_vstack
+from scipy.special import expit
 
 
 def _soft_logit(values, clip_val=5):
@@ -21,7 +22,7 @@ def _soft_logit(values, clip_val=5):
 
 
 def _inverse_soft_logit(values):
-    new_values = np.exp(values) / (1 + np.exp(values))
+    new_values = expit(values)
     binary_values = [1 if new_value > 0.5 else 0 for new_value in new_values]
     return np.array(binary_values)
 
