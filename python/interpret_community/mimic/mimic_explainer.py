@@ -668,6 +668,5 @@ class MimicExplainer(BlackBoxExplainer):
         :param dict: A dictionary of deserialized state.
         :type dict: dict
         """
-        print(state)
         self.__dict__.update(state)
         self._logger = logging.getLogger(__name__)

@@ -368,7 +368,7 @@ class DatasetWrapper(object):
         self._one_hot_encoder = ColumnTransformer([('ord', one_hot_encoder, columns)], remainder='passthrough')
         # Note this will change column order, the one hot encoded columns will be at the start and the
         # rest of the columns at the end
-        self._dataset = self._one_hot_encoder.fit_transform(self._dataset).astype(float)
+        self._dataset = self._one_hot_encoder.fit_transform(self._dataset.astype(float)).astype(float)
         return self._one_hot_encoder
 
     def timestamp_featurizer(self):
