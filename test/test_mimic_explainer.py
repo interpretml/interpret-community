@@ -482,7 +482,8 @@ class TestMimicExplainer(object):
 
     @pytest.mark.parametrize('if_multiclass', [True, False])
     @pytest.mark.parametrize('raw_feature_transformations', [True, False])
-    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass, raw_feature_transformations):
+    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass,
+                                                     raw_feature_transformations):
         n_samples = 100
         n_cat_features = 15
 
