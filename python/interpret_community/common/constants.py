@@ -159,6 +159,14 @@ class LightGBMParams(object):
     """Provide constants for LightGBM."""
 
     CATEGORICAL_FEATURE = 'categorical_feature'
+    N_JOBS = 'n_jobs'
+    ALL = [CATEGORICAL_FEATURE, N_JOBS]
+
+
+class LinearExplainableModelParams(object):
+    """Provide constants for LinearExplainableModel."""
+    SPARSE_DATA = 'sparse_data'
+    ALL = [SPARSE_DATA]
 
 
 class ShapValuesOutput(str, Enum):

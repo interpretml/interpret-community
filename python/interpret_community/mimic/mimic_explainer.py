@@ -19,9 +19,8 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
     transform_with_datamapper
 
 from ..common.blackbox_explainer import BlackBoxExplainer
-
 from .model_distill import _model_distill, _inverse_soft_logit
-from .models import LGBMExplainableModel
+from .models import LGBMExplainableModel, LinearExplainableModel
 from ..explanation.explanation import _create_local_explanation, _create_global_explanation, \
     _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations, \
     _create_raw_feats_global_explanation, _create_raw_feats_local_explanation, \
@@ -30,7 +29,7 @@ from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.constants import ExplainParams, ExplainType, ModelTask, \
     ShapValuesOutput, MimicSerializationConstants, ExplainableModelType, \
-    LightGBMParams, Defaults, Extension, ResetIndex
+    LightGBMParams, Defaults, Extension, ResetIndex, LinearExplainableModelParams
 import logging
 import json
 
@@ -236,6 +235,8 @@ class MimicExplainer(BlackBoxExplainer):
         """
         if transformations is not None and explain_subset is not None:
             raise ValueError("explain_subset not supported with transformations")
+        self._validate_explainable_model_args(explainable_model=explainable_model,
+                                              explainable_model_args=explainable_model_args)
         self.reset_index = reset_index
         self._datamapper = None
         if transformations is not None:
@@ -250,8 +251,7 @@ class MimicExplainer(BlackBoxExplainer):
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(MimicExplainer, self).__init__(wrapped_model, is_function=is_function,
                                              model_task=eval_ml_domain, **kwargs)
-        if explainable_model_args is None:
-            explainable_model_args = {}
+
         if categorical_features is None:
             categorical_features = []
         self._logger.debug('Initializing MimicExplainer')
@@ -288,7 +288,6 @@ class MimicExplainer(BlackBoxExplainer):
             # Index the categorical string columns for training data
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
             self._one_hot_encoder = None
-            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
         else:
             # One-hot-encode categoricals for models that don't support categoricals natively
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
@@ -304,14 +303,54 @@ class MimicExplainer(BlackBoxExplainer):
         if isinstance(training_data, DenseData):
             training_data = training_data.data
 
-        explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
-        if self._supports_shap_values_output(explainable_model):
-            explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
+        explainable_model_args = self._supplement_explainable_model_args(
+            explainable_model=explainable_model,
+            explainable_model_args=explainable_model_args,
+            categorical_features=categorical_features,
+            shap_values_output=shap_values_output)
         self.surrogate_model = _model_distill(self.function, explainable_model, training_data,
                                               original_training_data, explainable_model_args)
         self._method = self.surrogate_model._method
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
+
+    def _validate_explainable_model_args(self, explainable_model, explainable_model_args):
+        if explainable_model_args is None:
+            return
+
+        if explainable_model == LGBMExplainableModel:
+            for linear_param in LinearExplainableModelParams.ALL:
+                if linear_param in explainable_model_args:
+                    raise Exception(linear_param +
+                                    " found in params for LightGBM explainable model")
+
+        if explainable_model == LinearExplainableModel:
+            for lightgbm_param in LightGBMParams.ALL:
+                if lightgbm_param in explainable_model_args:
+                    raise Exception(lightgbm_param +
+                                    " found in params for Linear explainable model")
+
+        all_supported_explainable_model_args = [LightGBMParams.ALL, LinearExplainableModelParams.ALL]
+        for explainable_model_arg in explainable_model_args:
+            if explainable_model_arg not in all_supported_explainable_model_args:
+                raise Exception(
+                    "Found unsupported explainable model argument " + explainable_model_arg)
+
+    def _supplement_explainable_model_args(self, explainable_model, explainable_model_args,
+                                           categorical_features, shap_values_output):
+        if explainable_model_args is None:
+            explainable_model_args = {}
+
+        if explainable_model.explainable_model_type == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE and \
+                self._supports_categoricals(explainable_model):
+            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
+
+        explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
+
+        if self._supports_shap_values_output(explainable_model):
+            explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
+
+        return explainable_model_args
 
     def _get_surrogate_model_predictions(self, evaluation_examples):
         """Return the predictions given by the surrogate model.
