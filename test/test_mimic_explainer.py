@@ -519,10 +519,9 @@ class TestMimicExplainer(object):
         if if_multiclass:
             if raw_feature_transformations:
                 predictions_surrogate_model = explainer._get_surrogate_model_predictions(data_x)
-                assert classes == np.unique(predictions_surrogate_model).tolist()
             else:
                 predictions_surrogate_model = explainer._get_surrogate_model_predictions(encoded_cat_features)
-                assert classes == np.unique(predictions_surrogate_model).tolist()
+            assert classes == np.unique(predictions_surrogate_model).tolist()
 
     def test_dense_wide_data(self, mimic_explainer):
         # use 6000 rows instead for real performance testing

@@ -314,7 +314,14 @@ class MimicExplainer(BlackBoxExplainer):
         self._allow_all_transformations = allow_all_transformations
 
     def _get_surrogate_model_predictions(self, evaluation_examples):
-        """Return the predictions given by the surrogate model."""
+        """Return the predictions given by the surrogate model.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: predictions of the surrogate model.
+        :rtype: numpy.array
+        """
         if self.transformations is not None:
             _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
                 examples=evaluation_examples, transformations=self.transformations,
