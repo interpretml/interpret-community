@@ -432,8 +432,13 @@ class TestMimicExplainer(object):
                                     transformations=feat_pipe)
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
+        assert explainer._all_replication_scores is not None
+        assert 'linear' in explainer._all_replication_scores
+        assert explainer._all_replication_scores['linear'] is None
+        assert explainer._best_replication_score is None
 
-    def test_linear_explainable_model_regression(self, mimic_explainer):
+    @pytest.mark.parametrize('auto_select_explainable_model', [True, False])
+    def test_linear_explainable_model_regression(self, mimic_explainer, auto_select_explainable_model):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
@@ -445,11 +450,29 @@ class TestMimicExplainer(object):
         explainable_model = LinearExplainableModel
         explainer = mimic_explainer(model.named_steps['regressor'], x_train, explainable_model,
                                     transformations=transformations, augment_data=False,
+                                    auto_select_explainable_model=auto_select_explainable_model,
                                     explainable_model_args={'sparse_data': True}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
         assert global_explanation.method == LINEAR_METHOD
+        assert explainer._all_replication_scores is not None
+        assert explainer._best_replication_score is not None
+        if not auto_select_explainable_model:
+            assert 'linear' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['linear'] is not None
+        else:
+            assert 'linear' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['linear'] is not None
+            assert 'sgd' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['sgd'] is not None
+            assert 'lightgbm' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['lightgbm'] is not None
+            assert 'tree' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['tree'] is not None
 
-    def test_linear_explainable_model_classification(self, mimic_explainer):
+    @pytest.mark.parametrize('if_multiclass', [True, False])
+    @pytest.mark.parametrize('auto_select_explainable_model', [True, False])
+    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass,
+                                                     auto_select_explainable_model):
         n_samples = 100
         n_cat_features = 15
 
@@ -457,7 +480,12 @@ class TestMimicExplainer(object):
         cat_features = np.random.choice(['a', 'b', 'c', 'd'], (n_samples, n_cat_features))
 
         data_x = pd.DataFrame(cat_features, columns=cat_feature_names)
-        data_y = np.random.choice(['0', '1'], n_samples)
+        if if_multiclass:
+            data_y = np.random.choice([0, 1, 2, 3], n_samples)
+            classes = [0, 1, 2, 3]
+        else:
+            data_y = np.random.choice([0, 1], n_samples)
+            classes = [0, 1]
 
         # prepare feature encoders
         cat_feature_encoders = [OneHotEncoder().fit(cat_features[:, i].reshape(-1, 1)) for i in range(n_cat_features)]
@@ -479,11 +507,35 @@ class TestMimicExplainer(object):
                                     explainable_model_args={'sparse_data': True},
                                     augment_data=False,
                                     features=cat_feature_names,
-                                    classes=['0', '1'],
+                                    classes=classes,
+                                    auto_select_explainable_model=auto_select_explainable_model,
                                     transformations=cat_transformations,
                                     model_task=ModelTask.Classification)
         global_explanation = explainer.explain_global(evaluation_examples=data_x)
-        assert global_explanation.method == LINEAR_METHOD
+
+        if if_multiclass:
+            assert explainer._all_replication_scores is not None
+            assert explainer._best_replication_score is not None
+            if not auto_select_explainable_model:
+                assert global_explanation.method == LINEAR_METHOD
+                assert 'linear' in explainer._all_replication_scores
+                assert explainer._all_replication_scores['linear'] is not None
+            else:
+                assert global_explanation.method == LIGHTGBM_METHOD
+                assert 'linear' in explainer._all_replication_scores
+                assert explainer._all_replication_scores['linear'] is not None
+                assert 'sgd' in explainer._all_replication_scores
+                assert explainer._all_replication_scores['sgd'] is not None
+                assert 'lightgbm' in explainer._all_replication_scores
+                assert explainer._all_replication_scores['lightgbm'] is not None
+                assert 'tree' in explainer._all_replication_scores
+                assert explainer._all_replication_scores['tree'] is not None
+        else:
+            assert global_explanation.method == LINEAR_METHOD
+            assert explainer._all_replication_scores is not None
+            assert 'linear' in explainer._all_replication_scores
+            assert explainer._all_replication_scores['linear'] is None
+            assert explainer._best_replication_score is None
 
     def test_dense_wide_data(self, mimic_explainer):
         # use 6000 rows instead for real performance testing

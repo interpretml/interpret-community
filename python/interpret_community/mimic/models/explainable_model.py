@@ -82,6 +82,11 @@ class BaseExplainableModel(ChainedIdentity):
         """Retrieve the model type."""
         pass
 
+    @property
+    def method(self):
+        """Return the name of the explainable model."""
+        return self._method
+
     def __getstate__(self):
         """Influence how SGDExplainableModel is pickled.
 
