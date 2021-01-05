@@ -8,6 +8,7 @@ import pytest
 import logging
 from joblib import dump, load
 from os import path
+import numpy as np
 import shap
 import time
 
@@ -16,7 +17,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 from common_utils import create_sklearn_svm_classifier, create_scikit_cancer_data, get_mimic_method, \
-    LIGHTGBM_METHOD
+    create_sklearn_linear_regressor, LIGHTGBM_METHOD, create_iris_data, \
+    create_cancer_data, create_energy_data
 from constants import owner_email_tools_and_ux
 from interpret.ext.blackbox import TabularExplainer, MimicExplainer
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
@@ -75,6 +77,42 @@ class TestSerializeExplainer(object):
         assert path.exists(model_name)
         assert path.exists(surrogate_name)
         assert path.exists(tree_explainer_name)
+
+    def _validate_model_serialization(self, model, x_train, x_test, mimic_explainer):
+        explainable_model = LGBMExplainableModel
+        explainer = mimic_explainer(model, x_train, explainable_model, max_num_of_augmentations=10)
+        global_explanation = explainer.explain_global(x_test, include_local=False)
+        # Save the explainer to dictionary
+        properties = explainer._save()
+        # Restore from dictionary
+        deserialized_explainer = mimic_explainer._load(model, properties)
+        # validate we didn't miss any properties on the current explainable model
+        for key in explainer.__dict__:
+            if key not in deserialized_explainer.__dict__:
+                raise Exception('Key {} missing from serialized mimic explainable model'.format(key))
+        # Run explain global on deserialized guy
+        de_global_explanation = deserialized_explainer.explain_global(x_test, include_local=False)
+        np.testing.assert_array_equal(global_explanation.global_importance_values,
+                                      de_global_explanation.global_importance_values)
+        assert global_explanation.method == LIGHTGBM_METHOD
+
+    def test_explain_model_serialization_multiclass(self, mimic_explainer):
+        x_train, x_test, y_train, _, _, _ = create_iris_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
+
+    def test_explain_model_serialization_binary(self, mimic_explainer):
+        x_train, x_test, y_train, _, _, _ = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
+
+    def test_explain_model_serialization_regression(self, mimic_explainer):
+        x_train, x_test, y_train, _, feature_names = create_energy_data()
+        # Fit a linear model
+        model = create_sklearn_linear_regressor(x_train, y_train)
+        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
