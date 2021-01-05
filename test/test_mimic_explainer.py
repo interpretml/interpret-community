@@ -21,9 +21,8 @@ from sys import platform
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
-from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
-    create_iris_data, create_cancer_data, create_energy_data, create_timeseries_data, \
-    LIGHTGBM_METHOD, LINEAR_METHOD, create_lightgbm_regressor
+from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
+    LINEAR_METHOD, create_lightgbm_regressor
 from models import DataFrameTestModel, SkewedTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
@@ -276,24 +275,6 @@ class TestMimicExplainer(object):
         np.testing.assert_array_equal(global_explanation.global_importance_values,
                                       de_global_explanation.global_importance_values)
         assert global_explanation.method == LIGHTGBM_METHOD
-
-    def test_explain_model_serialization_multiclass(self, mimic_explainer):
-        x_train, x_test, y_train, _, _, _ = create_iris_data()
-        # Fit an SVM model
-        model = create_sklearn_svm_classifier(x_train, y_train)
-        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
-
-    def test_explain_model_serialization_binary(self, mimic_explainer):
-        x_train, x_test, y_train, _, _, _ = create_cancer_data()
-        # Fit an SVM model
-        model = create_sklearn_svm_classifier(x_train, y_train)
-        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
-
-    def test_explain_model_serialization_regression(self, mimic_explainer):
-        x_train, x_test, y_train, _, feature_names = create_energy_data()
-        # Fit a linear model
-        model = create_sklearn_linear_regressor(x_train, y_train)
-        self._validate_model_serialization(model, x_train, x_test, mimic_explainer)
 
     def test_explain_model_categorical(self, verify_mimic_regressor):
         for verifier in verify_mimic_regressor:

@@ -18,6 +18,7 @@ from common_utils import create_sklearn_random_forest_classifier, \
 from sklearn.model_selection import train_test_split
 from interpret_community.common.constants import ExplainParams
 from interpret_community.common.policy import SamplingPolicy
+from interpret_community.common.metrics import ndcg
 
 from constants import owner_email_tools_and_ux
 
@@ -142,31 +143,10 @@ def tabular_explainer_imp(model, x_train, x_test, allow_eval_sampling=True):
     return explanation.global_importance_rank
 
 
-# TODO: remove this and replace with current contrib method once azureml-contrib-explain-model moved to release
-def dcg(true_order_relevance, validate_order, top_values=10):
-    # retrieve relevance score for each value in validation order
-    relevance = np.vectorize(lambda x: true_order_relevance.get(x, 0))(validate_order[:top_values])
-    gain = 2 ** relevance - 1
-    discount = np.log2(np.arange(1, len(gain) + 1) + 1)
-    sum_dcg = np.sum(gain / discount)
-    return sum_dcg
-
-
-# TODO: remove this and replace with current contrib method once azureml-contrib-explain-model moved to release
 def validate_correlation(true_order, validate_order, threshold, top_values=10):
-    # Create map from true_order to "relevance" or reverse order index
-    true_order_relevance = {}
-    num_elems = len(true_order)
-    for index, value in enumerate(true_order):
-        # Set the range of the relevance scores to be between 0 and 10
-        # This is to prevent very large values when computing 2 ** relevance - 1
-        true_order_relevance[value] = ((num_elems - index) / float(num_elems)) * 10.0
-    # See https://en.wikipedia.org/wiki/Discounted_cumulative_gain for reference
-    dcg_p = dcg(true_order_relevance, validate_order, top_values)
-    idcg_p = dcg(true_order_relevance, true_order, top_values)
-    ndcg = dcg_p / idcg_p
-    test_logger.info("ndcg: " + str(ndcg))
-    assert(ndcg > threshold)
+    computed_ndcg = ndcg(true_order, validate_order, top_values)
+    test_logger.info("ndcg: " + str(computed_ndcg))
+    assert(computed_ndcg > threshold)
 
 
 def validate_spearman_correlation(overall_imp, shap_overall_imp, threshold):
