@@ -20,7 +20,7 @@ from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transfo
 
 from ..common.blackbox_explainer import BlackBoxExplainer
 
-from .model_distill import _model_distill
+from .model_distill import _model_distill, _inverse_soft_logit
 from .models import LGBMExplainableModel
 from ..explanation.explanation import _create_local_explanation, _create_global_explanation, \
     _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations, \
@@ -312,6 +312,31 @@ class MimicExplainer(BlackBoxExplainer):
         self._method = self.surrogate_model._method
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
+
+    def _get_surrogate_model_predictions(self, evaluation_examples):
+        """Return the predictions given by the surrogate model.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: predictions of the surrogate model.
+        :rtype: numpy.array
+        """
+        if self.transformations is not None:
+            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples, transformations=self.transformations,
+                allow_all_transformations=self._allow_all_transformations)
+        else:
+            transformed_evaluation_examples = evaluation_examples
+
+        if self.classes is not None and len(self.classes) == 2:
+            index_predictions = _inverse_soft_logit(self.surrogate_model.predict(transformed_evaluation_examples))
+            actual_predictions = []
+            for index in index_predictions:
+                actual_predictions.append(self.classes[index])
+            return np.array(actual_predictions)
+        else:
+            return self.surrogate_model.predict(transformed_evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -629,3 +654,26 @@ class MimicExplainer(BlackBoxExplainer):
         if MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS not in mimic.__dict__:
             mimic.__dict__[MimicSerializationConstants.ALLOW_ALL_TRANSFORMATIONS] = False
         return mimic
+
+    def __getstate__(self):
+        """Influence how MimicExplainer is pickled.
+
+        Removes logger which is not serializable.
+
+        :return state: The state to be pickled, with logger removed.
+        :rtype state: dict
+        """
+        odict = self.__dict__.copy()
+        del odict['_logger']
+        return odict
+
+    def __setstate__(self, state):
+        """Influence how MimicExplainer is unpickled.
+
+        Re-adds logger which is not serializable.
+
+        :param dict: A dictionary of deserialized state.
+        :type dict: dict
+        """
+        self.__dict__.update(state)
+        self._logger = logging.getLogger(__name__)
