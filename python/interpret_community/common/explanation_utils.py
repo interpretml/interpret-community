@@ -6,10 +6,11 @@
 
 import logging
 import numpy as np
-from scipy.sparse import issparse, csr_matrix, vstack as sparse_vstack
+from scipy.sparse import issparse, csr_matrix, vstack as sparse_vstack, eye
 from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
+from .constants import Scipy
 
 import warnings
 
@@ -76,6 +77,8 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
 
     raw_to_output_map = raw_to_output_feature_maps[0]
     for fmap in raw_to_output_feature_maps[1:]:
+        if _is_identity(fmap):
+            continue
         raw_to_output_map = raw_to_output_map.dot(fmap)
 
     # normalize column wise
@@ -96,12 +99,30 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
         if len(importance_values.shape) > 2:
             raw_importances = _multiply_sparse_matrix_3d_numpy_tensor(importance_values, raw_to_output_map.T)
         else:
-            raw_importances = raw_to_output_map.dot(importance_values.T).T
+            if _is_identity(raw_to_output_map):
+                raw_importances = importance_values
+            else:
+                raw_importances = raw_to_output_map.dot(importance_values.T).T
             if issparse(raw_importances):
                 raw_importances = raw_importances.toarray()
     else:
         raw_importances = importance_values.dot(raw_to_output_map.T)
     return raw_importances.squeeze(0) if orig_single_dimensional_importances else raw_importances
+
+
+def _is_identity(matrix):
+    """Checks if the given sparse matrix is identity matrix.
+
+    :param matrix: sparse matrix
+    :type matrix: scipy sparse matrix
+    :return: True if the matrix is an identity matrix.
+    :rtype: bool
+    """
+    if not issparse(matrix):
+        return False
+    sh0 = matrix.shape[0]
+    sh1 = matrix.shape[1]
+    return sh0 == sh1 and matrix.nnz == sh0 and (matrix - eye(sh0, format=Scipy.CSR_FORMAT)).nnz == 0
 
 
 def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):

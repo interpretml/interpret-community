@@ -143,6 +143,12 @@ class Spacy(object):
     TAGGER = 'tagger'
 
 
+class Scipy(object):
+    """Provide scipy related constants."""
+
+    CSR_FORMAT = 'csr'
+
+
 class ModelTask(str, Enum):
     """Provide model task constants. Can be 'classification', 'regression', or 'unknown'.
 

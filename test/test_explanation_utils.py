@@ -6,13 +6,15 @@ import pytest
 
 import numpy as np
 import logging
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, eye
 
 from interpret_community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
     _get_raw_feature_importances, _is_one_to_many, _sort_values, _sort_feature_list_single, \
-    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes
+    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes, \
+    _is_identity
 
 from raw_explain.utils import _get_feature_map_from_indices_list
+from interpret_community.common.constants import Scipy
 from constants import owner_email_tools_and_ux
 
 test_logger = logging.getLogger(__name__)
@@ -188,3 +190,11 @@ class TestExplanationUtils(object):
         assert _is_one_to_many(one_to_many)
         assert not _is_one_to_many(many_to_one)
         assert not _is_one_to_many(many_to_many)
+
+    def test_is_identity(self):
+        identity = eye(10, format=Scipy.CSR_FORMAT)
+        assert _is_identity(identity)
+        dense_not_identity = np.ones((10, 20))
+        assert not _is_identity(dense_not_identity)
+        sparse_not_identity = csr_matrix(dense_not_identity)
+        assert not _is_identity(sparse_not_identity)
