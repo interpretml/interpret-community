@@ -12,8 +12,10 @@ be used to explain the teacher model.
 
 import numpy as np
 from scipy.sparse import issparse
+from sklearn.metrics import accuracy_score, r2_score
 
 from ..common.explanation_utils import _order_imp
+from ..common.exception import ScenarioNotSupportedException
 from ..common.model_wrapper import _wrap_model
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
@@ -313,6 +315,24 @@ class MimicExplainer(BlackBoxExplainer):
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
+    def _get_transformed_data(self, evaluation_examples):
+        """Return the transformed data for some evaluation data.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: Transformed data.
+        :rtype: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        """
+        if self.transformations is not None:
+            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples, transformations=self.transformations,
+                allow_all_transformations=self._allow_all_transformations)
+        else:
+            transformed_evaluation_examples = evaluation_examples
+
+        return transformed_evaluation_examples
+
     def _get_surrogate_model_predictions(self, evaluation_examples):
         """Return the predictions given by the surrogate model.
 
@@ -322,13 +342,7 @@ class MimicExplainer(BlackBoxExplainer):
         :return: predictions of the surrogate model.
         :rtype: numpy.array
         """
-        if self.transformations is not None:
-            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
-                examples=evaluation_examples, transformations=self.transformations,
-                allow_all_transformations=self._allow_all_transformations)
-        else:
-            transformed_evaluation_examples = evaluation_examples
-
+        transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
         if self.classes is not None and len(self.classes) == 2:
             index_predictions = _inverse_soft_logit(self.surrogate_model.predict(transformed_evaluation_examples))
             actual_predictions = []
@@ -337,6 +351,18 @@ class MimicExplainer(BlackBoxExplainer):
             return np.array(actual_predictions)
         else:
             return self.surrogate_model.predict(transformed_evaluation_examples)
+
+    def _get_teacher_model_predictions(self, evaluation_examples):
+        """Return the predictions given by the teacher model.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: predictions of the surrogate model.
+        :rtype: numpy.array
+        """
+        transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
+        return self.model.predict(transformed_evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -709,3 +735,25 @@ class MimicExplainer(BlackBoxExplainer):
         """
         self.__dict__.update(state)
         self._logger = logging.getLogger(__name__)
+
+    def _get_surrogate_model_replication_measure(self, training_data):
+        """Return the metric which tells how well the surrogate model replicates the teacher model.
+        :param training_data: The data for getting the replication metric.
+        :type training_data: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+            scipy.sparse.csr_matrix
+        :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
+        :rtype: float
+        """
+        if self.classes is None and training_data.shape[0] == 1:
+            raise ScenarioNotSupportedException(
+                "Replication measure for regression surrogate not supported "
+                "because of single instance in training data")
+
+        surrogate_model_predictions = self._get_surrogate_model_predictions(training_data)
+        teacher_model_predictions = self._get_teacher_model_predictions(training_data)
+
+        if self.classes is not None:
+            replication_measure = accuracy_score(teacher_model_predictions, surrogate_model_predictions)
+        else:
+            replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
+        return replication_measure
