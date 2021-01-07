@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines different type of exceptions that this package can raise."""
+"""Defines different types of exceptions that this package can raise."""
 
 
 class ScenarioNotSupportedException(Exception):

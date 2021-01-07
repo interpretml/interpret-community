@@ -316,7 +316,8 @@ class MimicExplainer(BlackBoxExplainer):
         self._allow_all_transformations = allow_all_transformations
 
     def _get_transformed_data(self, evaluation_examples):
-        """Return the transformed data for a some evaluation data.
+        """Return the transformed data for some evaluation data.
+
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
