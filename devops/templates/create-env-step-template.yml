@@ -54,6 +54,11 @@ steps:
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
+      pip install --upgrade setuptools
+    displayName: Upgrade setuptools to latest
+
+  - bash: |
+      source activate  ${{parameters.condaEnv}} 
       pip install -r requirements.txt
     displayName: Install required pip packages
 
