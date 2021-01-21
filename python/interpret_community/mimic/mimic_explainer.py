@@ -12,8 +12,10 @@ be used to explain the teacher model.
 
 import numpy as np
 from scipy.sparse import issparse
+from sklearn.metrics import accuracy_score, r2_score
 
 from ..common.explanation_utils import _order_imp
+from ..common.exception import ScenarioNotSupportedException
 from ..common.model_wrapper import _wrap_model
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
@@ -313,6 +315,24 @@ class MimicExplainer(BlackBoxExplainer):
         self._original_eval_examples = None
         self._allow_all_transformations = allow_all_transformations
 
+    def _get_transformed_data(self, evaluation_examples):
+        """Return the transformed data for some evaluation data.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: Transformed data.
+        :rtype: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        """
+        if self.transformations is not None:
+            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
+                examples=evaluation_examples, transformations=self.transformations,
+                allow_all_transformations=self._allow_all_transformations)
+        else:
+            transformed_evaluation_examples = evaluation_examples
+
+        return transformed_evaluation_examples
+
     def _get_surrogate_model_predictions(self, evaluation_examples):
         """Return the predictions given by the surrogate model.
 
@@ -322,13 +342,7 @@ class MimicExplainer(BlackBoxExplainer):
         :return: predictions of the surrogate model.
         :rtype: numpy.array
         """
-        if self.transformations is not None:
-            _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
-                examples=evaluation_examples, transformations=self.transformations,
-                allow_all_transformations=self._allow_all_transformations)
-        else:
-            transformed_evaluation_examples = evaluation_examples
-
+        transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
         if self.classes is not None and len(self.classes) == 2:
             index_predictions = _inverse_soft_logit(self.surrogate_model.predict(transformed_evaluation_examples))
             actual_predictions = []
@@ -337,6 +351,18 @@ class MimicExplainer(BlackBoxExplainer):
             return np.array(actual_predictions)
         else:
             return self.surrogate_model.predict(transformed_evaluation_examples)
+
+    def _get_teacher_model_predictions(self, evaluation_examples):
+        """Return the predictions given by the teacher model.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
+            explain the model's output.  If specified, computes feature importance through aggregation.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: predictions of the surrogate model.
+        :rtype: numpy.array
+        """
+        transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
+        return self.model.predict(transformed_evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
         return issubclass(explainable_model, LGBMExplainableModel)
@@ -371,7 +397,7 @@ class MimicExplainer(BlackBoxExplainer):
             # explanation and then aggregating or streaming the local explanation to global
             if include_local:
                 # Get local explanation
-                local_explanation = self.explain_local(evaluation_examples)
+                local_explanation = self._explain_local(evaluation_examples, from_global=True)
                 kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
             else:
                 if classification:
@@ -460,21 +486,23 @@ class MimicExplainer(BlackBoxExplainer):
         """
         return "{}.{}".format(ExplainType.MIMIC, self._method)
 
-    def _get_explain_local_kwargs(self, evaluation_examples):
+    def _get_explain_local_kwargs(self, evaluation_examples, from_global):
         """Get the kwargs for explain_local to create a local explanation.
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param from_global: True if this is called from the explain_global API.
+        :type from_global: bool
         :return: Args for explain_local.
         :rtype: dict
         """
         if self.reset_index != ResetIndex.Ignore:
             evaluation_examples.reset_index()
         kwargs = {}
-        original_evaluation_examples = evaluation_examples.typed_dataset
         probabilities = None
         if self._shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY:
+            original_evaluation_examples = evaluation_examples.typed_dataset
             # Outputting shap values in terms of the probabilities of the teacher model
             probabilities = self.function(original_evaluation_examples)
         # if index column should not be set on surrogate model, remove it
@@ -538,13 +566,63 @@ class MimicExplainer(BlackBoxExplainer):
         kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = local_importance_values
         kwargs[ExplainParams.EXPECTED_VALUES] = np.array(expected_values)
         kwargs[ExplainParams.CLASSIFICATION] = classification
-        kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
-        kwargs[ExplainParams.EVAL_DATA] = original_evaluation_examples
-        ys_dict = self._get_ys_dict(self._original_eval_examples,
-                                    transformations=self.transformations,
-                                    allow_all_transformations=self._allow_all_transformations)
-        kwargs.update(ys_dict)
+        if not from_global:
+            ys_dict = self._get_ys_dict(self._original_eval_examples,
+                                        transformations=self.transformations,
+                                        allow_all_transformations=self._allow_all_transformations)
+            kwargs.update(ys_dict)
         return kwargs
+
+    def _explain_local_helper(self, evaluation_examples, from_global):
+        """Helper method to create the local explanation.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
+            to explain the model's output.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param from_global: True if this is called from the explain_global API.
+        :type from_global: bool
+        :return: kwargs for building the model explanation object
+        :rtype: dict
+        """
+        if not from_global:
+            if self._original_eval_examples is None:
+                if isinstance(evaluation_examples, DatasetWrapper):
+                    self._original_eval_examples = evaluation_examples.original_dataset_with_type
+                else:
+                    self._original_eval_examples = evaluation_examples
+        if self._datamapper is not None:
+            new_evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
+            # memory optimization to clear all internal references so they can be gc'ed as soon as possible
+            evaluation_examples._clear()
+            evaluation_examples = new_evaluation_examples
+
+        kwargs = self._get_explain_local_kwargs(evaluation_examples, from_global)
+        if not from_global:
+            kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
+            kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
+        return kwargs
+
+    @tabular_decorator
+    def _explain_local(self, evaluation_examples, from_global=False):
+        """Locally explains the blackbox model using the surrogate model.
+
+        :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
+            to explain the model's output.
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :param from_global: True if this is called from the explain_global API.
+        :type from_global: bool
+        :return: A model explanation object. It is guaranteed to be a LocalExplanation. If the model is a classifier,
+            it will have the properties of the ClassesMixin.
+        :rtype: DynamicLocalExplanation
+        """
+        kwargs = self._explain_local_helper(evaluation_examples, from_global)
+        explanation = _create_local_explanation(**kwargs)
+
+        # if transformations have been passed, then return raw features explanation
+        raw_kwargs = _get_raw_explainer_create_explanation_kwargs(kwargs=kwargs)
+
+        return explanation if self._datamapper is None else _create_raw_feats_local_explanation(
+            explanation, feature_maps=[self._datamapper.feature_map], features=self.features, **raw_kwargs)
 
     @tabular_decorator
     def explain_local(self, evaluation_examples):
@@ -557,27 +635,7 @@ class MimicExplainer(BlackBoxExplainer):
             it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
         """
-        if self._original_eval_examples is None:
-            if isinstance(evaluation_examples, DatasetWrapper):
-                self._original_eval_examples = evaluation_examples.original_dataset_with_type
-            else:
-                self._original_eval_examples = evaluation_examples
-        if self._datamapper is not None:
-            new_evaluation_examples = transform_with_datamapper(evaluation_examples, self._datamapper)
-            # memory optimization to clear all internal references so they can be gc'ed as soon as possible
-            evaluation_examples._clear()
-            evaluation_examples = new_evaluation_examples
-
-        kwargs = self._get_explain_local_kwargs(evaluation_examples)
-        kwargs[ExplainParams.INIT_DATA] = self.initialization_examples
-        kwargs[ExplainParams.EVAL_DATA] = evaluation_examples
-        explanation = _create_local_explanation(**kwargs)
-
-        # if transformations have been passed, then return raw features explanation
-        raw_kwargs = _get_raw_explainer_create_explanation_kwargs(kwargs=kwargs)
-
-        return explanation if self._datamapper is None else _create_raw_feats_local_explanation(
-            explanation, feature_maps=[self._datamapper.feature_map], features=self.features, **raw_kwargs)
+        return self._explain_local(evaluation_examples)
 
     def _save(self):
         """Return a string dictionary representation of the mimic explainer.
@@ -677,3 +735,25 @@ class MimicExplainer(BlackBoxExplainer):
         """
         self.__dict__.update(state)
         self._logger = logging.getLogger(__name__)
+
+    def _get_surrogate_model_replication_measure(self, training_data):
+        """Return the metric which tells how well the surrogate model replicates the teacher model.
+        :param training_data: The data for getting the replication metric.
+        :type training_data: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
+            scipy.sparse.csr_matrix
+        :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
+        :rtype: float
+        """
+        if self.classes is None and training_data.shape[0] == 1:
+            raise ScenarioNotSupportedException(
+                "Replication measure for regression surrogate not supported "
+                "because of single instance in training data")
+
+        surrogate_model_predictions = self._get_surrogate_model_predictions(training_data)
+        teacher_model_predictions = self._get_teacher_model_predictions(training_data)
+
+        if self.classes is not None:
+            replication_measure = accuracy_score(teacher_model_predictions, surrogate_model_predictions)
+        else:
+            replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
+        return replication_measure

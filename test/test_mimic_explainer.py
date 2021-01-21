@@ -18,6 +18,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 from sys import platform
+from interpret_community.common.exception import ScenarioNotSupportedException
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
@@ -396,6 +397,23 @@ class TestMimicExplainer(object):
         # There should be an explanation for each row
         assert len(local_explanation.local_importance_values) == num_rows * test_size
 
+    def _verify_predictions_and_replication_metric(self, mimic_explainer, data):
+        predictions_main_model = mimic_explainer._get_teacher_model_predictions(data)
+        predictions_surrogate_model = mimic_explainer._get_surrogate_model_predictions(data)
+        replication_score = mimic_explainer._get_surrogate_model_replication_measure(data)
+
+        assert predictions_main_model is not None
+        assert predictions_surrogate_model is not None
+        if mimic_explainer.classes is not None:
+            assert mimic_explainer.classes == np.unique(predictions_main_model).tolist()
+            assert mimic_explainer.classes == np.unique(predictions_surrogate_model).tolist()
+        assert replication_score is not None and isinstance(replication_score, float)
+
+        if mimic_explainer.classes is None:
+            with pytest.raises(ScenarioNotSupportedException):
+                mimic_explainer._get_surrogate_model_replication_measure(
+                    data[0].reshape(1, len(data[0])))
+
     def test_explain_model_string_classes(self, mimic_explainer):
         adult_census_income = retrieve_dataset('AdultCensusIncome.csv', skipinitialspace=True)
         X = adult_census_income.drop(['income'], axis=1)
@@ -433,11 +451,7 @@ class TestMimicExplainer(object):
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
 
-        predictions_main_model = model.predict(X_train)
-        assert classes == np.unique(predictions_main_model).tolist()
-
-        predictions_surrogate_model = explainer._get_surrogate_model_predictions(X.iloc[:1000])
-        assert classes == np.unique(predictions_surrogate_model).tolist()
+        self._verify_predictions_and_replication_metric(explainer, X.iloc[:1000])
 
     def test_linear_explainable_model_regression(self, mimic_explainer):
         num_features = 3
@@ -455,11 +469,7 @@ class TestMimicExplainer(object):
         global_explanation = explainer.explain_global(x_train)
         assert global_explanation.method == LINEAR_METHOD
 
-        predictions_main_model = model.predict(x_train)
-        assert predictions_main_model is not None
-
-        predictions_surrogate_model = explainer._get_surrogate_model_predictions(x_train)
-        assert predictions_surrogate_model is not None
+        self._verify_predictions_and_replication_metric(explainer, x_train)
 
     @pytest.mark.parametrize('if_multiclass', [True, False])
     @pytest.mark.parametrize('raw_feature_transformations', [True, False])
@@ -518,10 +528,9 @@ class TestMimicExplainer(object):
         assert global_explanation.method == LINEAR_METHOD
         if if_multiclass:
             if raw_feature_transformations:
-                predictions_surrogate_model = explainer._get_surrogate_model_predictions(data_x)
+                self._verify_predictions_and_replication_metric(explainer, data_x)
             else:
-                predictions_surrogate_model = explainer._get_surrogate_model_predictions(encoded_cat_features)
-            assert classes == np.unique(predictions_surrogate_model).tolist()
+                self._verify_predictions_and_replication_metric(explainer, encoded_cat_features)
 
     def test_dense_wide_data(self, mimic_explainer):
         # use 6000 rows instead for real performance testing
