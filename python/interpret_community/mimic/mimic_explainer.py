@@ -40,7 +40,10 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    from shap.common import DenseData
+    try:
+        from shap.common import DenseData
+    except:
+        from shap.utils._legacy import DenseData
 
 
 class MimicExplainer(BlackBoxExplainer):

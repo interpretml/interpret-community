@@ -14,7 +14,10 @@ from scipy.sparse import issparse
 
 from abc import ABCMeta, abstractmethod
 
-from shap.common import DenseData
+try:
+    from shap.common import DenseData
+except:
+    from shap.utils._legacy import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
 from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \

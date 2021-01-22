@@ -17,7 +17,10 @@ from common_utils import create_sklearn_svm_classifier
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
 from interpret_community.dataset.dataset_wrapper import DatasetWrapper
-from shap.common import DenseData
+try:
+    from shap.common import DenseData
+except:
+    from shap.utils._legacy import DenseData
 
 test_logger = logging.getLogger(__name__)
 
