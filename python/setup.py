@@ -41,7 +41,7 @@ DEPENDENCIES = [
     'scipy',
     'scikit-learn',
     'packaging',
-    'interpret-core[required]>=0.1.20, <=0.2.1',
+    'interpret-core[required]>=0.1.20, <=0.2.4',
     'shap>=0.20.0, <=0.34.0'
 ]
 
