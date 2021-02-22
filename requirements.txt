@@ -25,3 +25,4 @@ gevent>=1.3.6
 interpret-core[required]>=0.1.20, <=0.2.4
 shap>=0.20.0, <=0.34.0
 lime>=0.2.0.0
+raiwidgets
