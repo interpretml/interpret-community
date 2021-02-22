@@ -405,6 +405,22 @@ def create_scikit_cancer_data():
     return x_train, x_test, y_train, y_test, feature_names, classes
 
 
+def create_binary_classification_dataset():
+    from sklearn.datasets import make_classification
+    import pandas as pd
+    import numpy as np
+    X, y = make_classification()
+
+    # Split data into train and test
+    x_train, x_test, y_train, y_test = train_test_split(X,
+                                                        y,
+                                                        test_size=0.2,
+                                                        random_state=0)
+    classes = np.unique(y_train).tolist()
+
+    return pd.DataFrame(x_train), y_train, pd.DataFrame(x_test), y_test, classes
+
+
 def create_reviews_data(test_size):
     reviews_data = retrieve_dataset('reviews.json')
     papers = reviews_data['paper']

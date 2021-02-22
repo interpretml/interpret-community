@@ -5,6 +5,7 @@
 """Utilities to train a surrogate model from teacher."""
 
 import numpy as np
+import pandas as pd
 from scipy.sparse import issparse, isspmatrix_csr, vstack as sparse_vstack
 from scipy.special import expit
 
@@ -76,7 +77,10 @@ def _model_distill(teacher_model_predict_fn, uninitialized_surrogate_model, data
         surrogate_model = uninitialized_surrogate_model(**explainable_model_args)
     if is_classifier and teacher_y.shape[1] == 2:
         # Make sure output has only 1 dimension
-        teacher_y = teacher_y[:, 1]
+        if isinstance(teacher_y, pd.DataFrame):
+            teacher_y = teacher_y.iloc[:, 1]
+        else:
+            teacher_y = teacher_y[:, 1]
         # Transform to logit space and fit regression
         surrogate_model.fit(data, _soft_logit(teacher_y))
     else:

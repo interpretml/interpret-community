@@ -23,8 +23,8 @@ from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
 from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
-    LINEAR_METHOD, create_lightgbm_regressor
-from models import DataFrameTestModel, SkewedTestModel
+    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset
+from models import DataFrameTestModel, SkewedTestModel, PredictAsDataFrameTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -294,6 +294,15 @@ class TestMimicExplainer(object):
         if grains_dict:
             kwargs['categorical_features'] = ['fruit']
         mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    def test_explain_model_binary_classification_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe):
+        x_train, y_train, X_test, y_test, classes = create_binary_classification_dataset()
+        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
+        model.fit(x_train, y_train)
+        kwargs = {'explainable_model_args': {'n_jobs': 1}, 'augment_data': False, 'reset_index': True}
+        mimic_explainer(model, x_train, LGBMExplainableModel, **kwargs)
 
     def _timeseries_generated_data(self):
         # Load diabetes data and convert to data frame
