@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+nbformat
+papermill
+nteract-scrapbook
+flake8

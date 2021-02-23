@@ -25,6 +25,7 @@ steps:
       source activate ${{parameters.condaEnv}}
       conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch-cpu torchvision-cpu -c pytorch
       conda install --yes -c anaconda -n  ${{parameters.condaEnv}} jupyter pip
+      conda install --yes -c anaconda -n  ${{parameters.condaEnv}} greenlet gevent
     displayName: Install Anaconda packages
 
   - bash: |
@@ -56,6 +57,21 @@ steps:
       source activate  ${{parameters.condaEnv}} 
       pip install --upgrade setuptools
     displayName: Upgrade setuptools to latest
+
+  - bash: |
+      source activate  ${{parameters.condaEnv}} 
+      pip install -r requirements-vis.txt
+    displayName: Install vis required pip packages
+
+  - bash: |
+      source activate  ${{parameters.condaEnv}} 
+      pip install -r requirements-test.txt
+    displayName: Install test required pip packages
+
+  - bash: |
+      source activate  ${{parameters.condaEnv}} 
+      pip install -r requirements-dev.txt
+    displayName: Install dev required pip packages
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
