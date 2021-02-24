@@ -76,7 +76,7 @@ steps:
 - ${{ if eq(parameters.testRunType, 'Notebooks')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
+        python -m pytest test/ -m "notebooks" -s -v --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
     displayName: Run Notebook tests
 
 - ${{ if eq(parameters.testRunType, 'CodeCoverage')}}:

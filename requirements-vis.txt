@@ -1,0 +1,2 @@
+prompt-toolkit>=2.0.0
+raiwidgets

@@ -7,7 +7,8 @@ SORTED_LOCAL_IMPORTANCE_NAMES = 'sorted_local_importance_names'
 
 
 def append_scrapbook_commands(input_nb_path, output_nb_path, scrap_specs):
-    notebook = nbf.read(input_nb_path, as_version=nbf.NO_CONVERT)
+    notebook = nbf.read(input_nb_path, as_version=4)
+    notebook = nbf.v4.upgrade(notebook, from_version=4, from_minor=2)
 
     scrapbook_cells = []
     # Always need to import nteract-scrapbook
