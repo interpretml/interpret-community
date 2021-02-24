@@ -65,6 +65,12 @@ class logger_redirector(object):
         """
         self.logger.debug(data)
 
+    def flush(self):
+        pass
+
+    def close(self):
+        pass
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Finishes the redirection for logging."""
         try:

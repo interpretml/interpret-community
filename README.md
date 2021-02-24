@@ -437,12 +437,18 @@ tabular_explainer = TabularExplainer(clf.steps[-1][1],
 
 ## Visualizations
 
+Install the raiwidgets package, the ExplanationDashboard has moved to the [responsible-ai-widgets](https://github.com/microsoft/responsible-ai-widgets) repo:
+
+```
+pip install raiwidgets
+```
+
 Load the visualization dashboard in your notebook to understand and interpret your model:
 
 ```python
-from interpret_community.widget import ExplanationDashboard
+from raiwidgets import ExplanationDashboard
 
-ExplanationDashboard(global_explanation, model, datasetX=x_test, trueY=y_test)
+ExplanationDashboard(global_explanation, model, dataset=x_test, trueY=y_test)
 ```
 Once you load the visualization dashboard, you can investigate different aspects of your dataset and trained model via four tab views: 
 
