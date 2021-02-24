@@ -81,7 +81,7 @@ steps:
   - bash: |
       source activate  ${{parameters.condaEnv}} 
       conda install --yes -c conda-forge -n ${{parameters.condaEnv}} papermill 
-      pip install nteract-scrapbook
+      pip install scrapbook
     displayName: List Jupyter Kernel and fix
 
   - bash: mkdir ${{parameters.envInfoDirectory}}

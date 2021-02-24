@@ -2,5 +2,5 @@ pytest
 pytest-cov
 nbformat
 papermill
-nteract-scrapbook
+scrapbook
 flake8
