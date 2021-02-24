@@ -25,7 +25,7 @@ steps:
       source activate ${{parameters.condaEnv}}
       conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch-cpu torchvision-cpu -c pytorch
       conda install --yes -c anaconda -n  ${{parameters.condaEnv}} jupyter pip
-      conda install --yes -c anaconda -n  ${{parameters.condaEnv}} greenlet gevent
+      conda install --yes -c anaconda -n  ${{parameters.condaEnv}} greenlet gevent==20.6.2
     displayName: Install Anaconda packages
 
   - bash: |
