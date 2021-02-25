@@ -232,6 +232,8 @@ class ExplanationDashboard:
         if use_cdn is not None:
             warnings.warn("""use_cdn parameter is deprecated, cdn has been deleted.
                           Constructor parameter will be removed in the future""")
+        warnings.warn("""ExplanationDashboard in interpret-community package is deprecated and will be removed.
+                      Please use the ExplanationDashboard from raiwidgets package instead.""")
         # support legacy kwarg names
         if dataset is None and datasetX is not None:
             dataset = datasetX

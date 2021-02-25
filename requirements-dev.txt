@@ -1,0 +1,9 @@
+xmlrunner
+pyyaml==5.4.1
+mlflow
+tensorflow<2.0.0
+keras<=2.3.1
+hdbscan
+lightgbm
+xgboost<=1.0.0
+sklearn_pandas
