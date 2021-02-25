@@ -27,7 +27,8 @@ from interpret_community.mimic.models.tree_model import DecisionTreeExplainableM
 from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
     LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset, \
     create_iris_data
-from models import DataFrameTestModel, SkewedTestModel, PredictAsDataFrameTestModel
+from models import DataFrameTestModel, SkewedTestModel, \
+    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -617,11 +618,16 @@ class TestMimicExplainerWrappedModels(object):
                                                    SGDExplainableModel])
     def test_explain_model_binary_classification_with_different_format_predictions(
             self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
-        x_train, y_train, X_test, y_test, classes = create_binary_classification_dataset()
-        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
+        x_train, y_train, x_test, y_test, classes = create_binary_classification_dataset()
+        model = LogisticRegression(random_state=42).fit(x_train, y_train)
         model.fit(x_train, y_train)
+
+        model = PredictAsDataFrameClassificationTestModel(
+            model, return_predictions_as_dataframe=if_predictions_as_dataframe)
         kwargs = {}
-        mimic_explainer(model, x_train, explainable_model, **kwargs)
+        explainer = mimic_explainer(model, x_train, explainable_model, **kwargs)
+        global_explanation = explainer.explain_global(evaluation_examples=x_test)
+        assert global_explanation is not None
 
     @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
     @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
@@ -630,8 +636,38 @@ class TestMimicExplainerWrappedModels(object):
                                                    SGDExplainableModel])
     def test_explain_model_multiclass_classification_with_different_format_predictions(
             self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
-        x_train, y_train, X_test, y_test, _, classes = create_iris_data()
-        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
+        x_train, x_test, y_train, y_test, _, classes = create_iris_data()
+        model = LogisticRegression(random_state=42).fit(x_train, y_train)
         model.fit(x_train, y_train)
+
+        model = PredictAsDataFrameClassificationTestModel(
+            model, return_predictions_as_dataframe=if_predictions_as_dataframe)
+
         kwargs = {}
-        mimic_explainer(model, x_train, explainable_model, **kwargs)
+        explainer = mimic_explainer(model, x_train, explainable_model, **kwargs)
+        global_explanation = explainer.explain_global(evaluation_examples=x_test)
+        assert global_explanation is not None
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_regression_with_different_format_predictions(
+        self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        num_features = 3
+        x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
+        y_train = np.array([1, 2])
+        lin = LinearRegression(normalize=True)
+        one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
+        transformations = [(list(range(num_features)), one_hot_transformer)]
+        clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])
+        model = clf.fit(x_train, y_train)
+        model = PredictAsDataFrameREgressionTestModel(model.named_steps['regressor'],
+                                                      if_predictions_as_dataframe)
+        explainable_model = explainable_model
+        explainer = mimic_explainer(model, x_train, explainable_model,
+                                    transformations=transformations, augment_data=False,
+                                    explainable_model_args={}, features=['f1', 'f2', 'f3'])
+        global_explanation = explainer.explain_global(x_train)
+        global_explanation is not None

@@ -69,26 +69,42 @@ class SkewedTestModel(object):
         return np.concatenate((1 - prediction, prediction, zeros), axis=1)
 
 
-class PredictAsDataFrameTestModel(object):
-    def __init__(self, return_predictions_as_dataframe=True):
+class PredictAsDataFrameClassificationTestModel(object):
+    def __init__(self, model, return_predictions_as_dataframe=True):
         self.return_predictions_as_dataframe = return_predictions_as_dataframe
+        self.model = model
         pass
 
     def fit(self, X, y):
         pass
 
     def predict(self, X_pred):
-        result = np.repeat(0, X_pred.shape[0])
-        result[0] = 1
+        result = self.model.predict(X_pred)
         if self.return_predictions_as_dataframe:
             return pd.DataFrame(result)
         else:
             return result
 
     def predict_proba(self, X_pred):
+        prediction = self.model.predict_proba(X_pred)
         if self.return_predictions_as_dataframe:
-            prediction = self.predict(X_pred).values.reshape(-1, 1)
-            return pd.DataFrame(np.concatenate((1 - prediction, prediction), axis=1))
+            return pd.DataFrame(prediction)
         else:
-            prediction = self.predict(X_pred).reshape(-1, 1)
-            return np.concatenate((1 - prediction, prediction), axis=1)
+            return prediction
+
+
+class PredictAsDataFrameREgressionTestModel(object):
+    def __init__(self, model, return_predictions_as_dataframe=True):
+        self.return_predictions_as_dataframe = return_predictions_as_dataframe
+        self.model = model
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X_pred):
+        result = self.model.predict(X_pred)
+        if self.return_predictions_as_dataframe:
+            return pd.DataFrame(result)
+        else:
+            return result

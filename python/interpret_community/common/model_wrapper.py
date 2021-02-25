@@ -205,6 +205,8 @@ class WrappedClassificationModel(object):
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
             return self._model.predict_classes(dataset).flatten()
         preds = self._model.predict(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values
         # Handle possible case where the model has only a predict function and it outputs probabilities
         # Note this is different from WrappedClassificationWithoutProbaModel where there is no predict_proba
         # method but the predict method outputs classes
@@ -222,7 +224,11 @@ class WrappedClassificationModel(object):
         :param dataset: The dataset to predict_proba on.
         :type dataset: DatasetWrapper
         """
-        return self._eval_function(dataset)
+        proba_preds = self._eval_function(dataset)
+        if isinstance(proba_preds, pd.DataFrame):
+            proba_preds = proba_preds.values
+
+        return proba_preds
 
 
 class WrappedRegressionModel(object):
@@ -239,31 +245,11 @@ class WrappedRegressionModel(object):
         :param dataset: The dataset to predict on.
         :type dataset: DatasetWrapper
         """
-        return self._eval_function(dataset)
+        preds = self._eval_function(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values
 
-
-class WrappedDataFramePRedictModel(object):
-    """A class for wrapping a model which give pandas DataFrame as outputs of predictions."""
-
-    def __init__(self, model):
-        """Initialize the WrappedDataFramePRedictModel with the model function."""
-        self._model = model
-
-    def predict(self, dataset):
-        """Predict the output using the wrapped model.
-
-        :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
-        """
-        return self._model.predict(dataset).values
-
-    def predict_proba(self, dataset):
-        """Output of predict_proba from the wrapped model.
-
-        :param dataset: The dataset to predict_proba on.
-        :type dataset: DatasetWrapper
-        """
-        return self._model.predict_proba(dataset).values
+        return preds
 
 
 class WrappedClassificationWithoutProbaModel(object):
@@ -350,8 +336,6 @@ def _wrap_model(model, examples, model_task, is_function):
             module_logger.debug('Could not import torch, required if using a pytorch model')
         if _classifier_without_proba(model):
             model = WrappedClassificationWithoutProbaModel(model)
-        elif _does_predict_gives_dataframe(model, examples):
-            model = WrappedDataFramePRedictModel(model)
         eval_function, eval_ml_domain = _eval_model(model, examples, model_task)
         if eval_ml_domain == ModelTask.Classification:
             return WrappedClassificationModel(model, eval_function), eval_ml_domain
@@ -449,7 +433,9 @@ def _eval_function(function, examples, model_task, wrapped=False):
         # and they did not specify classifier or regressor, throw exception
         # to force the user to disambiguate the results.
         if result.shape[1] == 1:
-            if model_task == ModelTask.Unknown:
+            if isinstance(result, pd.DataFrame):
+                return (function, ModelTask.Regression)
+            elif model_task == ModelTask.Unknown:
                 raise Exception("Please specify model_task to disambiguate model type since "
                                 "result of calling function is 2D array of one column.")
             elif model_task == ModelTask.Classification:
