@@ -411,6 +411,13 @@ def create_scikit_cancer_data():
     return x_train, x_test, y_train, y_test, feature_names, classes
 
 
+def create_msx_data(test_size):
+    sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
+    sparse_matrix_x = sparse_matrix[:, :sparse_matrix.shape[1] - 2]
+    sparse_matrix_y = sparse_matrix[:, (sparse_matrix.shape[1] - 2):(sparse_matrix.shape[1] - 1)]
+    return train_test_split(sparse_matrix_x, sparse_matrix_y, test_size=test_size, random_state=7)
+
+
 def create_binary_classification_dataset():
     from sklearn.datasets import make_classification
     import pandas as pd

@@ -95,6 +95,11 @@ class ExplainParams(object):
                 vars(cls).keys())) - set(['DATA_MAPPER', 'DATA_MAPPER_INTERNAL']))
 
 
+class PrivateExplainParams(object):
+    U_LOCAL_IMPORTANCE_VALUES = '_' + ExplainParams.LOCAL_IMPORTANCE_VALUES
+    U_EVAL_DATA = '_' + ExplainParams.EVAL_DATA
+
+
 class Defaults(object):
     """Provide constants for default values to explain methods."""
 

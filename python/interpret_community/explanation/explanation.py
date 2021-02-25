@@ -17,10 +17,10 @@ from abc import ABCMeta, abstractmethod
 from shap.common import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
-from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \
-    _sort_feature_list_multiclass
-from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
-    ExplainType, ModelTask, Defaults, InterpretData
+from ..common.explanation_utils import (_sort_values, _order_imp, _sort_feature_list_single,
+                                        _sort_feature_list_multiclass)
+from ..common.constants import (Defaults, Dynamic, ExplainParams, ExplanationParams,
+                                ExplainType, InterpretData, ModelTask)
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
@@ -1242,6 +1242,8 @@ class _DatasetsMixin(object):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
+        elif isinstance(data, DenseData):
+            return data.data
         else:
             # doesn't handle sparse or string right now
             return data
@@ -1752,7 +1754,11 @@ def save_explanation(explanation, path, exist_ok=False):
         ExplainParams.GLOBAL_IMPORTANCE_VALUES,
         ExplainParams.PER_CLASS_NAMES,
         ExplainParams.PER_CLASS_RANK,
-        ExplainParams.PER_CLASS_VALUES
+        ExplainParams.PER_CLASS_VALUES,
+        ExplainParams.INIT_DATA,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.EVAL_Y_PRED,
+        ExplainParams.EVAL_Y_PRED_PROBA
     ]
     # TODO will need to add viz data on top of this
     for prop in uploadable_properties:
@@ -1819,8 +1825,8 @@ def _get_value_from_file(file_var):
     data = json_input['data']
     if meta == 'DataFrame':
         return pd.DataFrame(data)
-    elif meta == 'DatasetWrapper' or meta == 'DenseData':
-        return DenseData(data)
+    elif meta == 'DatasetWrapper':
+        return DatasetWrapper(data)
     elif meta == 'ndarray':
         return np.array(data)
     elif meta == 'list':
@@ -1830,11 +1836,19 @@ def _get_value_from_file(file_var):
 
 
 def _get_kwargs(path, params, local_explanation=None):
+    numpy_params = [
+        ExplainParams.LOCAL_IMPORTANCE_VALUES,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.INIT_DATA
+    ]
     kwargs = {}
     for param in params:
         if os.path.exists(os.path.join(path, param + '.json')):
             with open(os.path.join(path, param + '.json'), 'r') as f:
-                kwargs[param] = _get_value_from_file(f)
+                if param in numpy_params:
+                    kwargs[param] = np.array(_get_value_from_file(f))
+                else:
+                    kwargs[param] = _get_value_from_file(f)
     with open(os.path.join(path, 'explanation_metadata.json'), 'r') as f:
         metadata = json.load(f)
         param_list = [
@@ -1862,6 +1876,10 @@ def load_explanation(path):
         ExplainParams.EXPECTED_VALUES,
         ExplainParams.FEATURES,
         ExplainParams.CLASSES,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.INIT_DATA,
+        ExplainParams.EVAL_Y_PRED,
+        ExplainParams.EVAL_Y_PRED_PROBA
     ]
     global_params = [
         ExplainParams.GLOBAL_IMPORTANCE_RANK,

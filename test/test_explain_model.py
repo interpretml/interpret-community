@@ -13,10 +13,11 @@ import pandas as pd
 
 from interpret_community.common.policy import SamplingPolicy
 
-from common_utils import create_sklearn_random_forest_classifier, create_sklearn_svm_classifier, \
-    create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, create_keras_classifier, \
-    create_keras_regressor, create_lightgbm_classifier, create_pytorch_classifier, create_pytorch_regressor, \
-    create_xgboost_classifier, wrap_classifier_without_proba
+from common_utils import (create_sklearn_random_forest_classifier, create_sklearn_svm_classifier,
+                          create_sklearn_random_forest_regressor, create_sklearn_linear_regressor,
+                          create_keras_classifier, create_keras_regressor, create_lightgbm_classifier,
+                          create_pytorch_classifier, create_pytorch_regressor, create_xgboost_classifier,
+                          create_msx_data, wrap_classifier_without_proba)
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
 from constants import DatasetConstants
@@ -262,7 +263,7 @@ class TestTabularExplainer(object):
 
     def test_explain_model_npz_tree(self, tabular_explainer):
         # run explain global on a real sparse dataset from the field
-        x_train, x_test, y_train, _ = self.create_msx_data(0.1)
+        x_train, x_test, y_train, _ = create_msx_data(0.1)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
@@ -675,12 +676,6 @@ class TestTabularExplainer(object):
         explanation = exp.explain_global(x_test)
         # Validate predicted y values are boolean
         assert(np.all(np.isin(explanation.eval_y_predicted, [0, 1])))
-
-    def create_msx_data(self, test_size):
-        sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
-        sparse_matrix_x = sparse_matrix[:, :sparse_matrix.shape[1] - 2]
-        sparse_matrix_y = sparse_matrix[:, (sparse_matrix.shape[1] - 2):(sparse_matrix.shape[1] - 1)]
-        return train_test_split(sparse_matrix_x, sparse_matrix_y, test_size=test_size, random_state=7)
 
     def verify_adult_overall_features(self, ranked_global_names, ranked_global_values):
         # Verify order of features
