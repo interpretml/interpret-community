@@ -21,9 +21,12 @@ from sys import platform
 from interpret_community.common.exception import ScenarioNotSupportedException
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel
+from interpret_community.mimic.models.linear_model import LinearExplainableModel, \
+    SGDExplainableModel
+from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
 from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
-    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset
+    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset, \
+    create_iris_data
 from models import DataFrameTestModel, SkewedTestModel, PredictAsDataFrameTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
@@ -294,15 +297,6 @@ class TestMimicExplainer(object):
         if grains_dict:
             kwargs['categorical_features'] = ['fruit']
         mimic_explainer(model, X, LGBMExplainableModel, features=features, model_task=model_task, **kwargs)
-
-    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
-    def test_explain_model_binary_classification_with_different_format_predictions(
-            self, mimic_explainer, if_predictions_as_dataframe):
-        x_train, y_train, X_test, y_test, classes = create_binary_classification_dataset()
-        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
-        model.fit(x_train, y_train)
-        kwargs = {'explainable_model_args': {'n_jobs': 1}, 'augment_data': False, 'reset_index': True}
-        mimic_explainer(model, x_train, LGBMExplainableModel, **kwargs)
 
     def _timeseries_generated_data(self):
         # Load diabetes data and convert to data frame
@@ -608,3 +602,36 @@ class TestMimicExplainer(object):
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length']]]
+
+
+@pytest.mark.owner(email=owner_email_tools_and_ux)
+@pytest.mark.usefixtures('clean_dir')
+class TestMimicExplainerWrappedModels(object):
+    def test_working(self):
+        assert True
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_binary_classification_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        x_train, y_train, X_test, y_test, classes = create_binary_classification_dataset()
+        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
+        model.fit(x_train, y_train)
+        kwargs = {}
+        mimic_explainer(model, x_train, explainable_model, **kwargs)
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_multiclass_classification_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        x_train, y_train, X_test, y_test, _, classes = create_iris_data()
+        model = PredictAsDataFrameTestModel(return_predictions_as_dataframe=if_predictions_as_dataframe)
+        model.fit(x_train, y_train)
+        kwargs = {}
+        mimic_explainer(model, x_train, explainable_model, **kwargs)

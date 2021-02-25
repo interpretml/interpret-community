@@ -242,6 +242,30 @@ class WrappedRegressionModel(object):
         return self._eval_function(dataset)
 
 
+class WrappedDataFramePRedictModel(object):
+    """A class for wrapping a model which give pandas DataFrame as outputs of predictions."""
+
+    def __init__(self, model):
+        """Initialize the WrappedDataFramePRedictModel with the model function."""
+        self._model = model
+
+    def predict(self, dataset):
+        """Predict the output using the wrapped model.
+
+        :param dataset: The dataset to predict on.
+        :type dataset: DatasetWrapper
+        """
+        return self._model.predict(dataset).values
+
+    def predict_proba(self, dataset):
+        """Output of predict_proba from the wrapped model.
+
+        :param dataset: The dataset to predict_proba on.
+        :type dataset: DatasetWrapper
+        """
+        return self._model.predict_proba(dataset).values
+
+
 class WrappedClassificationWithoutProbaModel(object):
     """A class for wrapping a classifier without a predict_proba method.
 
@@ -326,6 +350,8 @@ def _wrap_model(model, examples, model_task, is_function):
             module_logger.debug('Could not import torch, required if using a pytorch model')
         if _classifier_without_proba(model):
             model = WrappedClassificationWithoutProbaModel(model)
+        elif _does_predict_gives_dataframe(model, examples):
+            model = WrappedDataFramePRedictModel(model)
         eval_function, eval_ml_domain = _eval_model(model, examples, model_task)
         if eval_ml_domain == ModelTask.Classification:
             return WrappedClassificationModel(model, eval_function), eval_ml_domain
@@ -342,6 +368,14 @@ def _classifier_without_proba(model):
     :rtype: bool
     """
     return isinstance(model, SGDClassifier) and not hasattr(model, SKLearn.PREDICT_PROBA)
+
+
+def _does_predict_gives_dataframe(model, examples):
+    import pandas as pd
+    if isinstance(model.predict(examples.dataset), pd.DataFrame) or \
+            isinstance(model.predict_proba(examples.dataset), pd.DataFrame):
+        return True
+    return False
 
 
 def _eval_model(model, examples, model_task):

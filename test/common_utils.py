@@ -16,13 +16,19 @@ from sklearn.base import TransformerMixin
 from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier
 
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation
+try:
+    from tensorflow import keras
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout, Activation
+except ImportError:
+    pass
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+except ImportError:
+    pass
 
 from pandas import read_csv
 
