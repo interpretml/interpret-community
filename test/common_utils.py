@@ -16,13 +16,19 @@ from sklearn.base import TransformerMixin
 from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier
 
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation
+try:
+    from tensorflow import keras
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout, Activation
+except ImportError:
+    pass
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+except ImportError:
+    pass
 
 from pandas import read_csv
 
@@ -403,6 +409,22 @@ def create_scikit_cancer_data():
     feature_names = breast_cancer_data.feature_names
     classes = breast_cancer_data.target_names.tolist()
     return x_train, x_test, y_train, y_test, feature_names, classes
+
+
+def create_binary_classification_dataset():
+    from sklearn.datasets import make_classification
+    import pandas as pd
+    import numpy as np
+    X, y = make_classification()
+
+    # Split data into train and test
+    x_train, x_test, y_train, y_test = train_test_split(X,
+                                                        y,
+                                                        test_size=0.2,
+                                                        random_state=0)
+    classes = np.unique(y_train).tolist()
+
+    return pd.DataFrame(x_train), y_train, pd.DataFrame(x_test), y_test, classes
 
 
 def create_reviews_data(test_size):

@@ -205,6 +205,8 @@ class WrappedClassificationModel(object):
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
             return self._model.predict_classes(dataset).flatten()
         preds = self._model.predict(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values.ravel()
         # Handle possible case where the model has only a predict function and it outputs probabilities
         # Note this is different from WrappedClassificationWithoutProbaModel where there is no predict_proba
         # method but the predict method outputs classes
@@ -222,7 +224,11 @@ class WrappedClassificationModel(object):
         :param dataset: The dataset to predict_proba on.
         :type dataset: DatasetWrapper
         """
-        return self._eval_function(dataset)
+        proba_preds = self._eval_function(dataset)
+        if isinstance(proba_preds, pd.DataFrame):
+            proba_preds = proba_preds.values
+
+        return proba_preds
 
 
 class WrappedRegressionModel(object):
@@ -239,7 +245,11 @@ class WrappedRegressionModel(object):
         :param dataset: The dataset to predict on.
         :type dataset: DatasetWrapper
         """
-        return self._eval_function(dataset)
+        preds = self._eval_function(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values.ravel()
+
+        return preds
 
 
 class WrappedClassificationWithoutProbaModel(object):
@@ -416,6 +426,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
         # to force the user to disambiguate the results.
         if result.shape[1] == 1:
             if model_task == ModelTask.Unknown:
+                if isinstance(result, pd.DataFrame):
+                    return (function, ModelTask.Regression)
                 raise Exception("Please specify model_task to disambiguate model type since "
                                 "result of calling function is 2D array of one column.")
             elif model_task == ModelTask.Classification:
