@@ -206,7 +206,7 @@ class WrappedClassificationModel(object):
             return self._model.predict_classes(dataset).flatten()
         preds = self._model.predict(dataset)
         if isinstance(preds, pd.DataFrame):
-            preds = preds.values
+            preds = preds.values.ravel()
         # Handle possible case where the model has only a predict function and it outputs probabilities
         # Note this is different from WrappedClassificationWithoutProbaModel where there is no predict_proba
         # method but the predict method outputs classes
@@ -247,7 +247,7 @@ class WrappedRegressionModel(object):
         """
         preds = self._eval_function(dataset)
         if isinstance(preds, pd.DataFrame):
-            preds = preds.values
+            preds = preds.values.ravel()
 
         return preds
 
