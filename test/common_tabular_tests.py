@@ -24,12 +24,13 @@ from interpret_community.common.constants import ExplainParams, ShapValuesOutput
 from interpret_community.common.explanation_utils import _summarize_data
 from interpret_community.common.policy import SamplingPolicy
 
-from common_utils import create_sklearn_svm_classifier, create_sklearn_linear_regressor, \
-    create_sklearn_logistic_regressor, create_iris_data, create_energy_data, create_cancer_data, \
-    create_pandas_only_svm_classifier, create_keras_regressor, create_pytorch_regressor, \
-    create_keras_multiclass_classifier, create_pytorch_multiclass_classifier, \
-    create_multiclass_sparse_newsgroups_data, create_xgboost_classifier, \
-    create_sklearn_random_forest_regressor, create_sklearn_random_forest_classifier
+from common_utils import (create_sklearn_svm_classifier, create_sklearn_linear_regressor,
+                          create_sklearn_logistic_regressor, create_iris_data, create_energy_data,
+                          create_cancer_data, create_msx_data, create_pandas_only_svm_classifier,
+                          create_keras_regressor, create_pytorch_regressor,
+                          create_keras_multiclass_classifier, create_pytorch_multiclass_classifier,
+                          create_multiclass_sparse_newsgroups_data, create_xgboost_classifier,
+                          create_sklearn_random_forest_regressor, create_sklearn_random_forest_classifier)
 from raw_explain.utils import IdentityTransformer
 from test_serialize_explanation import verify_serialization
 from constants import ModelType
@@ -456,7 +457,7 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_npz_linear(self, include_evaluation_examples=True, true_labels_required=False):
         # run explain model on a real sparse dataset from the field
-        x_train, x_test, y_train, y_test = self.create_msx_data(0.05)
+        x_train, x_test, y_train, y_test = create_msx_data(0.05)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
@@ -597,7 +598,7 @@ class VerifyTabularTests(object):
     def verify_explain_model_subset_regression_sparse(self, is_local=True,
                                                       true_labels_required=False):
         # Verify explaining a subset of the features, but on sparse regression data
-        x_train, x_test, y_train, y_test = self.create_msx_data(0.01)
+        x_train, x_test, y_train, y_test = create_msx_data(0.01)
         DATA_SLICE = slice(100)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
@@ -685,7 +686,7 @@ class VerifyTabularTests(object):
 
     def verify_explain_model_with_sampling_regression_sparse(self, true_labels_required=False):
         # Verify that evaluation dataset can be downsampled
-        x_train, x_test, y_train, y_test = self.create_msx_data(0.2)
+        x_train, x_test, y_train, y_test = create_msx_data(0.2)
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
@@ -954,12 +955,6 @@ class VerifyTabularTests(object):
                     assert(predicted_probability <= ubound and predicted_probability >= lbound)
                     if model_output is not None:
                         assert abs(predicted_probability - model_output[row_idx, class_idx]) < TOLERANCE
-
-    def create_msx_data(self, test_size):
-        sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
-        sparse_matrix_x = sparse_matrix[:, :sparse_matrix.shape[1] - 2]
-        sparse_matrix_y = sparse_matrix[:, (sparse_matrix.shape[1] - 2):(sparse_matrix.shape[1] - 1)]
-        return train_test_split(sparse_matrix_x, sparse_matrix_y, test_size=test_size, random_state=7)
 
     def verify_energy_overall_features(self,
                                        ranked_global_names,
