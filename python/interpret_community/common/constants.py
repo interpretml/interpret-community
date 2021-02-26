@@ -94,10 +94,16 @@ class ExplainParams(object):
         return (set(filter(lambda x: not x.startswith('__') and not callable(getattr(cls, x)),
                 vars(cls).keys())) - set(['DATA_MAPPER', 'DATA_MAPPER_INTERNAL']))
 
+    @classmethod
+    def get_private(cls, explain_param):
+        """Return the private version of the ExplainParams property.
 
-class PrivateExplainParams(object):
-    U_LOCAL_IMPORTANCE_VALUES = '_' + ExplainParams.LOCAL_IMPORTANCE_VALUES
-    U_EVAL_DATA = '_' + ExplainParams.EVAL_DATA
+        :param explain_param: The ExplainParams property to get private version of.
+        :type explain_param: str
+        :return: The private version of the property.
+        :rtype: str
+        """
+        return '_' + explain_param
 
 
 class Defaults(object):
