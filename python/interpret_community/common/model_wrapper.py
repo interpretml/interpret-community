@@ -354,14 +354,6 @@ def _classifier_without_proba(model):
     return isinstance(model, SGDClassifier) and not hasattr(model, SKLearn.PREDICT_PROBA)
 
 
-def _does_predict_gives_dataframe(model, examples):
-    import pandas as pd
-    if isinstance(model.predict(examples.dataset), pd.DataFrame) or \
-            isinstance(model.predict_proba(examples.dataset), pd.DataFrame):
-        return True
-    return False
-
-
 def _eval_model(model, examples, model_task):
     """Return function from model and specify the ML Domain using model evaluation on examples.
 
