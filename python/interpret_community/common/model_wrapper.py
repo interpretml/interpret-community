@@ -425,9 +425,9 @@ def _eval_function(function, examples, model_task, wrapped=False):
         # and they did not specify classifier or regressor, throw exception
         # to force the user to disambiguate the results.
         if result.shape[1] == 1:
-            if isinstance(result, pd.DataFrame):
-                return (function, ModelTask.Regression)
-            elif model_task == ModelTask.Unknown:
+            if model_task == ModelTask.Unknown:
+                if isinstance(result, pd.DataFrame):
+                    return (function, ModelTask.Regression)
                 raise Exception("Please specify model_task to disambiguate model type since "
                                 "result of calling function is 2D array of one column.")
             elif model_task == ModelTask.Classification:
