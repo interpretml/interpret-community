@@ -654,7 +654,7 @@ class TestMimicExplainerWrappedModels(object):
                                                    DecisionTreeExplainableModel,
                                                    SGDExplainableModel])
     def test_explain_model_regression_with_different_format_predictions(
-        self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
