@@ -149,21 +149,6 @@ def _is_one_to_many(feature_map):
     return ((feature_map > 0).sum(axis=0) >= 2).sum() == 0
 
 
-def _transform_data(data, data_mapper=None):
-    """Use mapper or transformer to convert raw data to engineered before explanation.
-
-    :param data: The raw data to transform.
-    :type data: numpy, pandas, dense, sparse data matrix
-    :param data_mapper: A list of lists of generated feature indices for each raw feature.
-    :type data_mapper: list[list[]]
-    :return: The transformed data.
-    :rtype: numpy, pandas, dense, sparse data matrix
-    """
-    if data_mapper is not None:
-        return data_mapper.transform(data)
-    return data
-
-
 def _get_dense_examples(examples):
     if issparse(examples):
         module_logger.debug('converting sparse examples to regular array')
@@ -358,19 +343,6 @@ def _unsort_1d(values, order):
     for i in range(len(order)):
         order_inverse[order[i]] = i
     return np.array(values)[order_inverse]
-
-
-def _unsort_2d(values, order):
-    """Unsort a sorted 2d array based on the order that was used to sort it.
-
-    :param values: The array that has been sorted.
-    :type values: numpy.array
-    :param order: The order list that was originally used to sort values.
-    :type order: numpy.ndarray
-    :return: The unsorted array.
-    :rtype: numpy.array
-    """
-    return np.array([_unsort_1d(values[i], order[i]).tolist() for i in range(len(order))])
 
 
 def _order_imp(summary):
