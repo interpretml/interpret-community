@@ -58,8 +58,6 @@ steps:
 - template: package-installation-step-template.yml
   parameters:
     installationType: ${{parameters.installationType}}
-    ${{ if eq(parameters.testRunType, 'Notebooks')}}:
-      packageOptions: '[visualization]'
     pypiUrl: ${{parameters.pypiUrl}}
     versionArtifactName: ${{parameters.versionArtifactName}}
     versionArtifactFile: ${{parameters.versionArtifactFile}}
