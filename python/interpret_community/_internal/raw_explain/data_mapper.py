@@ -200,8 +200,8 @@ class DataMapper(object):
         """Run the transform methods associated with each feature_mapper. This will set the featmaps.
 
         :param x: input data
-        :type x: numpy array or DataFrame
-        :return: numpy.array or sparse matrix
+        :type x: numpy.array or DataFrame
+        :return: numpy.array or scipy.sparse.csr_matrix
         """
         for transformer_config, feature_mapper in self._feature_mappers_pipeline:
             feature_mapper.transform(extract_column(x, transformer_config))
@@ -210,9 +210,9 @@ class DataMapper(object):
         """Transform input data given the transformations.
 
         :param x: input data
-        :type x: pandas.DataFrame or numpy array
+        :type x: pandas.DataFrame or numpy.array
         :return: transformed data
-        :rtype: numpy.array or scipy.sparse matrix
+        :rtype: numpy.array or scipy.sparse.csr_matrix
         """
         if self._feature_map is None:
             # pass a single example through the transformations list to build feature map

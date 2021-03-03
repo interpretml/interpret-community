@@ -17,7 +17,7 @@ def _explain_local_tree_surrogate(tree_model, evaluation_examples, tree_explaine
     :param tree_model: A tree-based model.
     :type tree_model: Tree-based model with scikit-learn predict and predict_proba API.
     :param evaluation_examples: The evaluation examples to compute local feature importances for.
-    :type evaluation_examples: numpy or scipy array
+    :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param tree_explainer: Tree explainer for the tree-based model.
     :type tree_explainer: TreeExplainer
     :param shap_values_output: The type of the output from explain_local when using TreeExplainer.

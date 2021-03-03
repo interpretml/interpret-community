@@ -13,7 +13,7 @@ class StructuredInitModelExplainer(BaseExplainer):
     Used on specific models that require initialization examples.
 
     :param model: The white box model to explain.
-    :type model: A white box model.
+    :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -24,7 +24,7 @@ class StructuredInitModelExplainer(BaseExplainer):
         """Initialize the StructuredInitModelExplainer.
 
         :param model: The white box model to explain.
-        :type model: A white box model.
+        :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -40,14 +40,14 @@ class PureStructuredModelExplainer(BaseExplainer):
     """The base PureStructuredModelExplainer API for explainers used on specific models.
 
     :param model: The white box model to explain.
-    :type model: A white box model.
+    :type model: object
     """
 
     def __init__(self, model, **kwargs):
         """Initialize the PureStructuredModelExplainer.
 
         :param model: The white box model to explain.
-        :type model: A white box model.
+        :type model: object
         """
         super(PureStructuredModelExplainer, self).__init__(**kwargs)
         self._logger.debug('Initializing PureStructuredModelExplainer')

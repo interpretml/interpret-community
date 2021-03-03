@@ -51,7 +51,8 @@ class MimicExplainer(BlackBoxExplainer):
 
     :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
-    :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
+        A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray.
+    :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -147,8 +148,9 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param model: The black box model or function (if is_function is True) to be explained.  Also known
             as the teacher model.
-        :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
-            ndarray
+            A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
+            ndarray.
+        :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -719,7 +721,7 @@ class MimicExplainer(BlackBoxExplainer):
         Removes logger which is not serializable.
 
         :return state: The state to be pickled, with logger removed.
-        :rtype state: dict
+        :rtype: dict
         """
         odict = self.__dict__.copy()
         del odict['_logger']

@@ -50,9 +50,9 @@ class _LGBMFunctionWrapper(object):
         """Wraps a prediction function from lightgbm learner to densify the input dataset.
 
         :param X: The model evaluation examples.
-        :type X: np.array
+        :type X: numpy.array
         :return: Prediction result.
-        :rtype: np.array
+        :rtype: numpy.array
         """
         if issparse(X):
             X = X.toarray()
@@ -127,9 +127,9 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm fit to fit the explainable model.
 
         :param dataset: The dataset to train the model on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param labels: The labels to train the model on.
-        :type labels: numpy or scipy array
+        :type labels: numpy.array
         """
         self._lgbm.fit(dataset, labels, **kwargs)
 
@@ -146,7 +146,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm predict to predict labels using the explainable model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -165,7 +165,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm predict_proba to predict probabilities using the explainable model.
 
         :param dataset: The dataset to predict probabilities on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -206,7 +206,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Use TreeExplainer to get the local feature importances from the trained explainable model.
 
         :param evaluation_examples: The evaluation examples to compute local feature importances for.
-        :type evaluation_examples: numpy or scipy array
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param probabilities: If output_type is probability, can specify the teacher model's
             probability for scaling the shap values.
         :type probabilities: numpy.ndarray

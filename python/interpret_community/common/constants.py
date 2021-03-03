@@ -91,7 +91,7 @@ class ExplainParams(object):
         :param cls: ExplainParams input class.
         :type cls: ExplainParams
         :return: A set of property names, e.g., 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
-        :rtype: set{str}
+        :rtype: set[str]
         """
         return (set(filter(lambda x: not x.startswith('__') and not callable(getattr(cls, x)),
                 vars(cls).keys())) - set(['DATA_MAPPER', 'DATA_MAPPER_INTERNAL']))

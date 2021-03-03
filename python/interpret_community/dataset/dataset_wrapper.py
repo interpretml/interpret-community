@@ -165,7 +165,7 @@ class DatasetWrapper(object):
             Off by default to convert it back to index.
         :type keep_index_as_feature: bool
         :return: A wrapper function for a given dataset to convert to original type.
-        :rtype: function that outputs the original type
+        :rtype: numpy.array or scipy.sparse.csr_matrix or pandas.DataFrame or pandas.Series
         """
         if self._dataset_is_df:
             if len(dataset.shape) == 1:
@@ -299,7 +299,7 @@ class DatasetWrapper(object):
         :param columns: Optional parameter specifying the subset of columns that may need to be string indexed.
         :type columns: list
         :return: The transformation steps to index the given dataset.
-        :rtype: ColumnTransformer
+        :rtype: sklearn.compose.ColumnTransformer
         """
         if self._string_indexed:
             return self._column_indexer
@@ -347,7 +347,7 @@ class DatasetWrapper(object):
         :param columns: Parameter specifying the subset of column indexes that may need to be one-hot-encoded.
         :type columns: list[int]
         :return: The transformation steps to one-hot-encode the given dataset.
-        :rtype: OneHotEncoder
+        :rtype: sklearn.preprocessing.OneHotEncoder
         """
         if self._one_hot_encoded:
             return self._one_hot_encoder
@@ -375,7 +375,7 @@ class DatasetWrapper(object):
         """Featurizes the timestamp columns.
 
         :return: The transformation steps to featurize the timestamp columns.
-        :rtype: DatasetWrapper
+        :rtype: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         if self._timestamp_featurized:
             return self._timestamp_featurizer
@@ -395,7 +395,7 @@ class DatasetWrapper(object):
         """Indexes categorical string features on the dataset.
 
         :param column_indexer: The transformation steps to index the given dataset.
-        :type column_indexer: ColumnTransformer
+        :type column_indexer: sklearn.compose.ColumnTransformer
         :param bucket_unknown: If true, buckets unknown values to separate categorical level.
         :type bucket_unknown: bool
         """
@@ -431,7 +431,7 @@ class DatasetWrapper(object):
         """One-hot-encode categorical string features on the dataset.
 
         :param one_hot_encoder: The transformation steps to one-hot-encode the given dataset.
-        :type one_hot_encoder: OneHotEncoder
+        :type one_hot_encoder: sklearn.preprocessing.OneHotEncoder
         """
         if self._one_hot_encoded or issparse(self._dataset):
             return
