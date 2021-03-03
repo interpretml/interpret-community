@@ -11,7 +11,7 @@ from sklearn.compose import ColumnTransformer
 from datasets import retrieve_dataset
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.common.constants import ModelTask
-from interpret_community.widget import ExplanationDashboard
+from raiwidgets import ExplanationDashboard
 from common_utils import create_lightgbm_classifier
 
 from constants import owner_email_tools_and_ux
@@ -57,4 +57,4 @@ class TestExplanationDashboard:
                                     features=features, model_task=model_task)
         explanation = explainer.explain_global(x_train)
         dashboard_pipeline = Pipeline(steps=[('preprocess', transformations), ('model', model)])
-        ExplanationDashboard(explanation, dashboard_pipeline, datasetX=x_train, trueY=y_train)
+        ExplanationDashboard(explanation, dashboard_pipeline, dataset=x_train, true_y=y_train)
