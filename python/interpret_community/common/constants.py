@@ -88,6 +88,8 @@ class ExplainParams(object):
     def get_serializable(cls):
         """Return only the ExplainParams properties that have meaningful data values for serialization.
 
+        :param cls: ExplainParams input class.
+        :type cls: ExplainParams
         :return: A set of property names, e.g., 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
         :rtype: set{str}
         """
@@ -98,6 +100,8 @@ class ExplainParams(object):
     def get_private(cls, explain_param):
         """Return the private version of the ExplainParams property.
 
+        :param cls: ExplainParams input class.
+        :type cls: ExplainParams
         :param explain_param: The ExplainParams property to get private version of.
         :type explain_param: str
         :return: The private version of the property.
