@@ -559,12 +559,16 @@ class LocalExplanation(FeatureImportanceExplanation):
                 overall_data = parent_data[InterpretData.OVERALL]
             if InterpretData.MLI in parent_data:
                 mli_data = parent_data[InterpretData.MLI]
+                intercept = []
+                if ExpectedValuesMixin._does_quack(self):
+                    intercept = self.expected_values
                 mli_data.append({
                     InterpretData.EXPLANATION_TYPE: InterpretData.LOCAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
                         InterpretData.SCORES: self.local_importance_values,
-                        InterpretData.PERF: perf_list
-                    },
+                        InterpretData.PERF: perf_list,
+                        InterpretData.INTERCEPT: intercept
+                    }
                 })
             return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts,
                     InterpretData.MLI: mli_data}
