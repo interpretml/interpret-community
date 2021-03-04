@@ -88,7 +88,7 @@ class BaseExplainableModel(ChainedIdentity):
         Removes logger which is not serializable.
 
         :return state: The state to be pickled, with logger removed.
-        :rtype state: dict
+        :rtype: dict
         """
         odict = self.__dict__.copy()
         del odict['_logger']

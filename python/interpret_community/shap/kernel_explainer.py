@@ -39,7 +39,8 @@ class KernelExplainer(BlackBoxExplainer):
     """The Kernel Explainer for explaining black box models or functions.
 
     :param model: The model to explain or function if is_function is True.
-    :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
+        A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray.
+    :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -120,8 +121,9 @@ class KernelExplainer(BlackBoxExplainer):
         """Initialize the KernelExplainer.
 
         :param model: The model to explain or function if is_function is True.
-        :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
-            ndarray
+            A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
+            ndarray.
+        :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -245,7 +247,7 @@ class KernelExplainer(BlackBoxExplainer):
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
-        :type sampling_policy: SamplingPolicy
+        :type sampling_policy: interpret_community.common.policy.SamplingPolicy
         :param include_local: Include the local explanations in the returned global explanation.
             If include_local is False, will stream the local explanations to aggregate to global.
         :type include_local: bool

@@ -232,7 +232,7 @@ class OneHotEncoderMapper(FeatureMapper):
         :param x: input data
         :type x: numpy.array
         :return: transformed data
-        :rtype x: numpy.array
+        :rtype: numpy.array
         """
         ret = self.transformer.transform(x)
         if self._feature_map is None:

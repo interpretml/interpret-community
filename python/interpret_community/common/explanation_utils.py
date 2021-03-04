@@ -62,11 +62,11 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
     :param importance_values: The importance values computed for the dataset.
-    :type importance_values: np.array or list[scipy.sparse.csr_matrix]
+    :type importance_values: numpy.array or list[scipy.sparse.csr_matrix]
     :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
-    :type raw_to_output_feature_maps: list[numpy.array or sparse matrix]
+    :type raw_to_output_feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
     :return: Raw feature importance values.
-    :rtype: np.array
+    :rtype: numpy.array
     """
     if not isinstance(raw_to_output_feature_maps, list):
         raise ValueError("raw_to_output_feature_maps should be a list of feature maps")
@@ -114,7 +114,7 @@ def _is_identity(matrix):
     """Checks if the given sparse matrix is identity matrix.
 
     :param matrix: sparse matrix
-    :type matrix: scipy sparse matrix
+    :type matrix: scipy.sparse.csr_matrix
     :return: True if the matrix is an identity matrix.
     :rtype: bool
     """
@@ -129,11 +129,11 @@ def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):
     """Multiply sparse matrix with a 3 dimension numpy array.
 
     :param np_tensor: numpy tensor of 3 dimensions.
-    :type np_tensor: numpy array
+    :type np_tensor: numpy.array
     :param sp_matrix: sparse matrix
-    :type sp_matrix: scipy sparse matrix
+    :type sp_matrix: scipy.sparse.csr_matrix
     :return: The product of numpy array and sparse matrix.
-    :rtype: numpy array
+    :rtype: numpy.array
     """
     if len(np_tensor.shape) != 3:
         raise ValueError("Expected matrix of dimension 3. Got dimension {}.".format(len(np_tensor.shape)))
@@ -173,12 +173,12 @@ def _convert_to_list(shap_values):
 def _generate_augmented_data(x, max_num_of_augmentations=np.inf):
     """Augment x by appending x with itself shuffled columnwise many times.
 
-    :param x: data that has to be augmented
-    :type x: nd array or sparse matrix of 2 dimensions
+    :param x: data that has to be augmented, array or sparse matrix of 2 dimensions
+    :type x: numpy.array or scipy.sparse.csr_matrix
     :param max_augment_data_size: number of times we stack permuted x to augment.
     :type max_augment_data_size: int
     :return: augmented data with roughly number of rows that are equal to number of columns
-    :rtype ndarray or sparse matrix
+    :rtype: numpy.array or scipy.sparse.csr_matrix
     """
     x_augmented = x
     vstack = sparse_vstack if issparse(x) else np.vstack
@@ -198,13 +198,13 @@ def _scale_tree_shap(shap_values, expected_values, prediction):
     https://github.com/slundberg/shap/issues/29#issuecomment-408385378
 
     :param shap_values: The shap values to transform from log odds to probabilities.
-    :type shap_values: np.array
+    :type shap_values: numpy.array
     :param expected_values: The expected values as probabilities.
-    :type expected_values: np.array
+    :type expected_values: numpy.array
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: np.array
+    :type prediction: numpy.array
     :return: The transformed tree shap values as probabilities.
-    :rtype list or ndarray
+    :rtype: list or numpy.array
     """
     # In multiclass case, use expected values and predictions per class
     if isinstance(shap_values, list):
@@ -225,13 +225,13 @@ def _scale_single_shap_matrix(shap_values, expectation, prediction):
     """Scale a single class matrix of shap values to sum to the teacher model prediction.
 
     :param shap_values: The shap values of the mimic model.
-    :type shap_values: np.array
+    :type shap_values: numpy.array
     :param expected_values: The expected values as probabilities (base values).
-    :type expected_values: np.array
+    :type expected_values: numpy.array
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: np.array
+    :type prediction: numpy.array
     :return: The transformed tree shap values as probabilities.
-    :rtype list or ndarray
+    :rtype: list or numpy.array
     """
     mimic_prediction = np.sum(shap_values, axis=1)
     error = prediction - mimic_prediction - expectation
@@ -258,9 +258,9 @@ def _convert_single_instance_to_multi(instance_shap_values):
     """Convert a single shap values instance to multi-instance form.
 
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: np.array or list
+    :type instance_shap_values: numpy.array or list
     :return: The instance converted to multi-instance form.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -276,11 +276,11 @@ def _append_shap_values_instance(shap_values, instance_shap_values):
     """Append a single instance of shap values to an existing multi-instance shap values list or array.
 
     :param shap_values: The existing shap values array or list.
-    :type shap_values: np.array or list
+    :type shap_values: numpy.array or list
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: np.array or list
+    :type instance_shap_values: numpy.array or list
     :return: The instance appended to the existing shap values.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -305,9 +305,9 @@ def _fix_linear_explainer_shap_values(model, shap_values):
     :param model: The linear model.
     :type model: tuple of (coefficients, intercept) or sklearn.linear.* model
     :param shap_values: The existing shap values array or list.
-    :type shap_values: np.array or list
+    :type shap_values: numpy.array or list
     :return: The shap values reshaped into the correct form for given linear model.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     # Temporary fix for a bug in shap for regression models
     if (type(model) == tuple and len(model) == 2):

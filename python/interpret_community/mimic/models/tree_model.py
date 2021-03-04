@@ -81,9 +81,9 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Call tree fit to fit the explainable model.
 
         :param dataset: The dataset to train the model on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param labels: The labels to train the model on.
-        :type labels: numpy or scipy array
+        :type labels: numpy.array
         """
         self._tree.fit(dataset, labels, **kwargs)
 
@@ -97,7 +97,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Call tree predict to predict labels using the explainable model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -113,7 +113,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Call tree predict_proba to predict probabilities using the explainable model.
 
         :param dataset: The dataset to predict probabilities on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -139,7 +139,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Use TreeExplainer to get the local feature importances from the trained explainable model.
 
         :param evaluation_examples: The evaluation examples to compute local feature importances for.
-        :type evaluation_examples: numpy or scipy array
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param probabilities: If output_type is probability, can specify the teacher model's
             probability for scaling the shap values.
         :type probabilities: numpy.ndarray
@@ -170,7 +170,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Retrieve the underlying model.
 
         :return: The decision tree model, either classifier or regressor.
-        :rtype: Union[DecisionTreeClassifier, DecisionTreeRegressor]
+        :rtype: Union[sklearn.tree.DecisionTreeClassifier, sklearn.tree.DecisionTreeRegressor]
         """
         return self._tree
 
@@ -179,6 +179,6 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         """Retrieve the model type.
 
         :return: Tree explainable model type.
-        :rtype: ExplainableModelType
+        :rtype: interpret_community.common.constants.ExplainableModelType
         """
         return ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
