@@ -21,14 +21,17 @@ from sys import platform
 from interpret_community.common.exception import ScenarioNotSupportedException
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel, \
-    SGDExplainableModel
+from interpret_community.mimic.models.linear_model import (LinearExplainableModel,
+                                                           SGDExplainableModel)
 from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
-from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
-    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset, \
-    create_iris_data
-from models import DataFrameTestModel, SkewedTestModel, \
-    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel
+from common_utils import (create_timeseries_data, LIGHTGBM_METHOD,
+                          LINEAR_METHOD, create_lightgbm_regressor,
+                          create_binary_classification_dataset,
+                          create_iris_data, create_binary_sparse_newsgroups_data)
+from sparse_utils import tile_csr_matrix
+from models import (DataFrameTestModel, SkewedTestModel,
+                    PredictAsDataFrameClassificationTestModel,
+                    PredictAsDataFrameREgressionTestModel)
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -671,3 +674,13 @@ class TestMimicExplainerWrappedModels(object):
                                     explainable_model_args={}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
         global_explanation is not None
+
+    def test_linear_surrogate_model_large_sparse(self):
+        x_train, _, y_train, _, _, _ = create_binary_sparse_newsgroups_data(n_features=2**18)
+        # tile the data
+        nsamples = 500
+        tiled_x_train = tile_csr_matrix(x_train, nsamples)
+        tiled_y_train = np.tile(y_train, nsamples)
+        linexp_model = LinearExplainableModel(multiclass=False, sparse_data=True)
+        trained_model = linexp_model.fit(tiled_x_train, tiled_y_train)
+        assert trained_model is not None

@@ -26,6 +26,7 @@ LINEAR_LBFGS = 'lbfgs'
 LINEAR_MULTICLASS = 'multi_class'
 LINEAR_MULTINOMIAL = 'multinomial'
 LINEAR_RANDOM_STATE = 'random_state'
+LINEAR_FIT_INTERCEPT = 'fit_intercept'
 
 
 class LinearExplainer(shap.LinearExplainer):
@@ -198,6 +199,7 @@ class LinearExplainableModel(BaseExplainableModel):
         else:
             if self._sparse_data:
                 initializer = Lasso
+                kwargs[LINEAR_FIT_INTERCEPT] = False
             else:
                 initializer = LinearRegression
         initializer_args = _get_initializer_args(kwargs)

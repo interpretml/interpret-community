@@ -56,7 +56,7 @@ def get_mimic_method(surrogate_model):
         raise Exception("Unsupported surrogate model")
 
 
-def create_binary_sparse_newsgroups_data():
+def create_binary_sparse_newsgroups_data(n_features=2**16):
     categories = ['alt.atheism', 'soc.religion.christian']
     newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
     newsgroups_test = fetch_20newsgroups(subset='test', categories=categories)
@@ -67,7 +67,7 @@ def create_binary_sparse_newsgroups_data():
     y_validation = newsgroups_test.target
     from sklearn.feature_extraction.text import HashingVectorizer
     vectorizer = HashingVectorizer(stop_words='english', alternate_sign=False,
-                                   n_features=2**16)
+                                   n_features=n_features)
     x_train = vectorizer.transform(x_train)
     x_test = vectorizer.transform(x_test)
     return x_train, x_test, y_train, y_validation, class_names, vectorizer
