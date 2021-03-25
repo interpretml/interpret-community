@@ -282,8 +282,10 @@ class TestMimicExplainer(object):
         assert global_explanation.method == LIGHTGBM_METHOD
 
     def test_explain_model_categorical(self, verify_mimic_regressor):
-        for verifier in verify_mimic_regressor:
-            verifier.verify_explain_model_categorical(pass_categoricals=True)
+        for idx, verifier in enumerate(verify_mimic_regressor):
+            verify_same_shape = idx == LGBM_MODEL_IDX
+            verifier.verify_explain_model_categorical(pass_categoricals=True,
+                                                      verify_same_shape=verify_same_shape)
 
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
         (240, {}),

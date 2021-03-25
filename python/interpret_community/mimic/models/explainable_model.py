@@ -78,7 +78,7 @@ class BaseExplainableModel(ChainedIdentity):
         pass
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type."""
         pass
 

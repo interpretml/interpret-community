@@ -175,7 +175,7 @@ class DecisionTreeExplainableModel(BaseExplainableModel):
         return self._tree
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type.
 
         :return: Tree explainable model type.
