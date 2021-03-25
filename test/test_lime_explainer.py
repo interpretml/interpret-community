@@ -97,7 +97,8 @@ class TestLIMEExplainer(object):
         self.verify_tabular.verify_explain_model_local_single()
 
     def test_explain_model_categorical(self):
-        self.verify_tabular.verify_explain_model_categorical(pass_categoricals=True)
+        self.verify_tabular.verify_explain_model_categorical(pass_categoricals=True,
+                                                             verify_same_shape=True)
 
     def test_explain_with_transformations_list_classification(self):
         self.verify_tabular.verify_explain_model_transformations_list_classification()

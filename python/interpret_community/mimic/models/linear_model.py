@@ -327,7 +327,7 @@ class LinearExplainableModel(BaseExplainableModel):
         return self._linear
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type.
 
         :return: Linear explainable model type.

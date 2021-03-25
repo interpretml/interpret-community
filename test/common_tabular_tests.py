@@ -869,7 +869,7 @@ class VerifyTabularTests(object):
         self.validate_explanation(explanation, is_probability=False, is_regression=True,
                                   model_output=model_output)
 
-    def verify_explain_model_categorical(self, pass_categoricals=False):
+    def verify_explain_model_categorical(self, pass_categoricals=False, verify_same_shape=False):
         headers = ["symboling", "normalized_losses", "make", "fuel_type", "aspiration",
                    "num_doors", "body_style", "drive_wheels", "engine_location",
                    "wheel_base", "length", "width", "height", "curb_weight",
@@ -918,6 +918,9 @@ class VerifyTabularTests(object):
             explainer = self.create_explainer(pipeline, imp_train_X)
         explanation = explainer.explain_global(imp_X.transform(df_test_X))
         verify_serialization(explanation, exist_ok=True)
+        # validate explanation when passing categoricals is for raw features for some specific explainers
+        if pass_categoricals and verify_same_shape:
+            assert np.array(explanation.local_importance_values).shape[1] == df_train_X.shape[1]
 
     def validate_explanation(self, explanation, is_multiclass=False, is_probability=False,
                              is_regression=False, model_output=None):

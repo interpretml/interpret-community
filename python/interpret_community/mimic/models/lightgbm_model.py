@@ -239,7 +239,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         return self._lgbm
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type.
 
         :return: Tree explainable model type.

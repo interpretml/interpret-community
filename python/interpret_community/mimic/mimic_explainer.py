@@ -287,7 +287,7 @@ class MimicExplainer(BlackBoxExplainer):
         self._timestamp_featurizer = initialization_examples.timestamp_featurizer()
 
         # If model is a linear model or isn't able to handle categoricals, one-hot-encode categoricals
-        is_tree_model = explainable_model.explainable_model_type == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
+        is_tree_model = explainable_model.explainable_model_type() == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
         if is_tree_model and self._supports_categoricals(explainable_model):
             # Index the categorical string columns for training data
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
