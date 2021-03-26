@@ -22,9 +22,10 @@ from interpret_community.common.progress import get_tqdm
 
 # Soft dependency for LIME
 try:
+    lime_import_failed = False
     from lime.lime_tabular import LimeTabularExplainer
 except ImportError:
-    print("Could not import LIME, required for LIMEExplainer")
+    lime_import_failed = True
 
 import warnings
 
@@ -194,6 +195,8 @@ class LIMEExplainer(BlackBoxExplainer):
             outputs a 1 dimensional array.
         :type model_task: str
         """
+        if lime_import_failed:
+            raise Exception("Could not import LIME, required for LIMEExplainer")
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
