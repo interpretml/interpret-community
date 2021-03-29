@@ -2,7 +2,7 @@
 
 ### This package has been tested with Python 3.5, 3.6 and 3.7
 
-The Interpret Community builds on Interpret, an open source python package from Microsoft Research for training interpretable models, and helps to explain blackbox systems by adding additional extensions from the community to interpret ML models.
+The Interpret Community SDK builds on Interpret, an open source python package from Microsoft Research for training interpretable models, and helps to explain blackbox systems by adding additional extensions from the community to interpret ML models.
 
 Interpret-Community is an experimental repository that hosts a wide range of community developed machine learning interpretability techniques. This repository makes it easy for anyone involved in the development of a machine learning system to improve transparency around their machine learning models. Data scientists, machine learning engineers, and researchers can easily add their own interpretability techniques via the set of extension hooks built into the peer repository, Interpret, and expand this repository to include their custom-made interpretability techniques.
 
@@ -28,3 +28,6 @@ https://github.com/interpretml/interpret-community
 
 Auto-generated sphinx API documentation can be found here:
 https://interpret-community.readthedocs.io/en/latest/index.html
+
+More information on the ExplanationDashboard can be found here:
+https://github.com/microsoft/responsible-ai-widgets
