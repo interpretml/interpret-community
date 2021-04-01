@@ -12,7 +12,7 @@ import gc
 import os
 from scipy.sparse import issparse
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from shap.common import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
@@ -26,7 +26,7 @@ from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
 
 
-class BaseExplanation(ChainedIdentity):
+class BaseExplanation(ABC, ChainedIdentity):
 
     """The common explanation returned by explainers.
 
@@ -40,8 +40,6 @@ class BaseExplanation(ChainedIdentity):
     :param explanation_id: The unique identifier for the explanation.
     :type explanation_id: str
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, method, model_task, model_type=None, explanation_id=None, **kwargs):
         """Create the common base explanation.
