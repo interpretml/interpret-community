@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 import numpy as np
 from scipy.sparse import eye, csr_matrix
 from sklearn.pipeline import Pipeline
@@ -36,10 +36,8 @@ def get_feature_mapper_for_pipeline(pipeline_obj):
     return PipelineFeatureMapper(Pipeline(steps))
 
 
-class FeatureMapper(object):
+class FeatureMapper(ABC):
     """A class that supports both feature map from raw to engineered as well as a transform method."""
-
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, transformer):

@@ -80,7 +80,7 @@ class TestDeepExplainer(object):
                     classification=False))
                 break
             except AssertionError:
-                print("Retrying deep explainer test: " + i)
+                print("Retrying deep explainer test: " + str(i))
                 pass
 
     def test_deep_explainer_raw_transformations_column_transformer_regression(self):
