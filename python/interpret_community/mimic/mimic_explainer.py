@@ -292,7 +292,8 @@ class MimicExplainer(BlackBoxExplainer):
             # Index the categorical string columns for training data
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
             self._one_hot_encoder = None
-            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
+            if categorical_features:
+                explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
         else:
             # One-hot-encode categoricals for models that don't support categoricals natively
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
