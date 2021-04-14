@@ -1,7 +1,7 @@
 # ---------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
-
+import json
 import pytest
 import datetime
 import numpy as np
@@ -62,7 +62,7 @@ class TestSerializationUtils(object):
 
     def test_serialize_via_json_timestamp(self):
         timestamp_obj = pd.Timestamp(2020, 1, 1)
-        assert isinstance(timestamp_obj, pd._libs.tslibs.timestamps.Timestamp)
-        result = _serialize_json_safe(timestamp_obj)
+        assert isinstance(timestamp_obj, pd.Timestamp)
+        result = json.dumps(_serialize_json_safe(timestamp_obj))
         assert result is not None
         assert "2020" in result
