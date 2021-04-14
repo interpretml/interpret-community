@@ -66,3 +66,8 @@ class TestSerializationUtils(object):
         result = json.dumps(_serialize_json_safe(timestamp_obj))
         assert result is not None
         assert "2020" in result
+
+        timestamp_obj_array = np.array([pd.Timestamp(2020, 1, 1)])
+        result = json.dumps(_serialize_json_safe(timestamp_obj_array))
+        assert result is not None
+        assert "2020" in result
