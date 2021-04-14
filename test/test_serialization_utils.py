@@ -1,10 +1,11 @@
 # ---------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
-
+import json
 import pytest
 import datetime
 import numpy as np
+import pandas as pd
 
 from interpret_community.common.serialization_utils import _serialize_json_safe
 
@@ -58,3 +59,15 @@ class TestSerializationUtils(object):
         datetime_object = datetime.datetime.strptime(datetime_str, "%Y-%m-%d")
         result = _serialize_json_safe(datetime_object)
         assert datetime_str in result
+
+    def test_serialize_via_json_timestamp(self):
+        timestamp_obj = pd.Timestamp(2020, 1, 1)
+        assert isinstance(timestamp_obj, pd.Timestamp)
+        result = json.dumps(_serialize_json_safe(timestamp_obj))
+        assert result is not None
+        assert "2020" in result
+
+        timestamp_obj_array = np.array([pd.Timestamp(2020, 1, 1)])
+        result = json.dumps(_serialize_json_safe(timestamp_obj_array))
+        assert result is not None
+        assert "2020" in result
