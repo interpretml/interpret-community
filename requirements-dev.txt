@@ -7,3 +7,5 @@ hdbscan
 lightgbm
 xgboost<=1.0.0
 sklearn_pandas
+# pinning here due to mlflow -> alembic -> SQLAlchemy -> greenlet==1.0.0
+greenlet==0.4.17

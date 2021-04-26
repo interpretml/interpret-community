@@ -26,9 +26,9 @@ CLASSIFIERS = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
@@ -42,7 +42,7 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]>=0.1.20, <=0.2.4',
-    'shap>=0.20.0, <=0.34.0'
+    'shap>=0.20.0, <=0.39.0'
 ]
 
 EXTRAS = {
