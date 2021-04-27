@@ -19,10 +19,6 @@ from common_utils import (create_sklearn_svm_classifier, create_sklearn_linear_r
 from constants import DatasetConstants
 from constants import owner_email_tools_and_ux
 from interpret_community.dataset.dataset_wrapper import DatasetWrapper
-try:
-    from shap.common import DenseData
-except ImportError:
-    from shap.utils._legacy import DenseData
 
 test_logger = logging.getLogger(__name__)
 
@@ -85,7 +81,7 @@ def _assert_explanation_equivalence(actual, expected):
         param = getattr(ExplainParams, paramkey)
         actual_value = getattr(actual, param, None)
         expected_value = getattr(expected, param, None)
-        if isinstance(actual_value, DatasetWrapper) or isinstance(actual_value, DenseData):
+        if isinstance(actual_value, DatasetWrapper):
             if isinstance(actual_value.original_dataset, np.ndarray):
                 actual_dataset = actual_value.original_dataset.tolist()
             else:

@@ -43,8 +43,7 @@ class KernelExplainer(BlackBoxExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param is_function: Default is False. Set to True if passing function instead of a model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
@@ -126,8 +125,7 @@ class KernelExplainer(BlackBoxExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param is_function: Default is False. Set to True if passing function instead of a model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the

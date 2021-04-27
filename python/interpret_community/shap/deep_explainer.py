@@ -105,8 +105,7 @@ def _get_summary_data(initialization_examples, nclusters, framework):
 
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
         samples weighted by the number of data points they each represent. When the number of initialization
         examples is larger than (10 x nclusters), those examples will be summarized with k-means where
@@ -116,8 +115,7 @@ def _get_summary_data(initialization_examples, nclusters, framework):
     :type framework: str
     :return: A summarized matrix of feature vector examples (# examples x # features)
         for initializing the explainer.
-    :rtype: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix or torch.autograd.Variable
+    :rtype: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix or torch.autograd.Variable
     """
     initialization_examples.compute_summary(nclusters=nclusters)
     summary = initialization_examples.dataset
@@ -138,8 +136,7 @@ class DeepExplainer(StructuredInitModelExplainer):
     :type model: PyTorch or TensorFlow model
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. The subset can be the top-k features
         from the model summary.
@@ -204,8 +201,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         :type model: PyTorch or TensorFlow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. The subset can be the top-k features
             from the model summary.

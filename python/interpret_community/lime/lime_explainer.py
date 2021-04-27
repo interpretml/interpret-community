@@ -31,10 +31,6 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 
 @add_prepare_function_and_summary_method
@@ -51,8 +47,7 @@ class LIMEExplainer(BlackBoxExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param is_function: Default set to false, set to True if passing function instead of model.
     :type is_function: bool
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
@@ -132,8 +127,7 @@ class LIMEExplainer(BlackBoxExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param is_function: Default set to false, set to True if passing function instead of model.
         :type is_function: bool
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
@@ -227,8 +221,6 @@ class LIMEExplainer(BlackBoxExplainer):
         function, summary = self._prepare_function_and_summary(self.function, self.original_data_ref,
                                                                self.current_index_list, nclusters=nclusters,
                                                                explain_subset=explain_subset, **kwargs)
-        if isinstance(summary, DenseData):
-            summary = summary.data
         self._lime_feature_names = [str(i) for i in range(summary.shape[1])]
         result = function(summary[0].reshape((1, -1)))
         # If result is 2D array, this is classification scenario, otherwise regression

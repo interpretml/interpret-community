@@ -16,8 +16,7 @@ class StructuredInitModelExplainer(BaseExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     """
 
     def __init__(self, model, initialization_examples, **kwargs):
@@ -27,8 +26,7 @@ class StructuredInitModelExplainer(BaseExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         """
         super(StructuredInitModelExplainer, self).__init__(**kwargs)
         self._logger.debug('Initializing StructuredInitModelExplainer')
