@@ -3,7 +3,7 @@ import os
 
 def retrieve_dataset(dataset, **kwargs):
     # if data not extracted, download zip and extract
-    outdirname = 'datasets.10.29.2020'
+    outdirname = 'datasets.4.27.2021'
     if not os.path.exists(outdirname):
         try:
             from urllib import urlretrieve

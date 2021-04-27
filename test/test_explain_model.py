@@ -29,6 +29,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransfo
 from sklearn.linear_model import LogisticRegression
 from sklearn.compose import ColumnTransformer
 
+from lightgbm import LGBMClassifier
+
 from constants import owner_email_tools_and_ux
 from datasets import retrieve_dataset
 
@@ -617,6 +619,75 @@ class TestTabularExplainer(object):
                                       allow_all_transformations=True)
         explainer.explain_global(x_test)
         explainer.explain_local(x_test)
+
+    @pytest.mark.parametrize('drop', ['first', 'if_binary'])
+    def test_explain_with_ohe_drop_column(self, tabular_explainer, drop):
+        attritionData = retrieve_dataset('WA_Fn-UseC_-HR-Employee-Attrition.csv')
+        # Dropping Employee count as all values are 1 and hence attrition is independent of this feature
+        attritionData = attritionData.drop(['EmployeeCount'], axis=1)
+        # Dropping Employee Number since it is merely an identifier
+        attritionData = attritionData.drop(['EmployeeNumber'], axis=1)
+
+        attritionData = attritionData.drop(['Over18'], axis=1)
+
+        # Since all values are 80
+        attritionData = attritionData.drop(['StandardHours'], axis=1)
+
+        # Converting target variables from string to numerical values
+        target_map = {'Yes': 1, 'No': 0}
+        attritionData["Attrition_numerical"] = attritionData["Attrition"].apply(lambda x: target_map[x])
+        target = attritionData["Attrition_numerical"]
+
+        attritionXData = attritionData.drop(['Attrition_numerical', 'Attrition'], axis=1)
+
+        # creating dummy columns for each categorical feature
+        categorical = []
+        for col, value in attritionXData.iteritems():
+            if value.dtype == 'object':
+                categorical.append(col)
+
+        # store the numerical columns
+        numerical = attritionXData.columns.difference(categorical)
+
+        # We create the preprocessing pipelines for both numeric and categorical data.
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())])
+
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='error', drop=drop))])
+
+        transformations = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numerical),
+                ('cat', categorical_transformer, categorical)])
+
+        x_train, x_test, y_train, y_test = train_test_split(attritionXData,
+                                                            target,
+                                                            test_size=0.2,
+                                                            random_state=0,
+                                                            stratify=target)
+
+        # Append classifier to preprocessing pipeline.
+        # Now we have a full prediction pipeline.
+        clf = Pipeline(steps=[('preprocessor', transformations),
+                              ('classifier', LGBMClassifier())])
+
+        clf.fit(x_train, y_train)
+
+        explainer = tabular_explainer(clf.steps[-1][1],
+                                      initialization_examples=x_train,
+                                      features=attritionXData.columns,
+                                      classes=['Leaving', 'Staying'],
+                                      transformations=transformations)
+        global_explanation = explainer.explain_global(x_test)
+        local_shape = global_explanation._local_importance_values.shape
+        num_rows_expected = len(x_test)
+        num_cols = len(x_test.columns)
+        assert local_shape == (2, num_rows_expected, num_cols)
+        assert len(global_explanation.global_importance_values) == num_cols
+        assert global_explanation.num_features == num_cols
 
     def test_explain_with_transformations_list_classification(self, verify_tabular):
         verify_tabular.verify_explain_model_transformations_list_classification()

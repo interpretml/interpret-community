@@ -211,9 +211,26 @@ class OneHotEncoderMapper(FeatureMapper):
         """
         super(OneHotEncoderMapper, self).__init__(transformer)
 
+    def _cat_len(self, cat, drop):
+        """Internal method to compute the output length of OHE for categoricals.
+
+        :param cat: The categorical features per column.
+        :type cat: list
+        :param drop: The drop parameter for OHE.  Can be 'None', 'first' or 'if_binary'.
+        :type drop: str
+        """
+        cat_len = len(cat)
+        if drop == 'first':
+            return cat_len - 1
+        elif drop == 'if_binary':
+            if cat_len == 2:
+                return 1
+        return cat_len
+
     def _build_feature_map(self):
         """Build feature map when transformer is a one hot encoder."""
-        cat_lens = [len(cat) for cat in self.transformer.categories_]
+        drop = self.transformer.drop
+        cat_lens = [self._cat_len(cat, drop) for cat in self.transformer.categories_]
         output_cols = int(sum(cat_lens))
         input_cols = len(self.transformer.categories_)
         feature_map = csr_matrix((input_cols, output_cols))
