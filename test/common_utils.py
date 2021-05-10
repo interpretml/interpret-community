@@ -149,7 +149,7 @@ def create_cuml_svm_classifier(X, y):
     try:
         import cuml
     except:
-        raise ImportError("cuml not installed. Make sure you installed RAPIDS libraries")
+        raise Warning("RAPIDS libraries not installed. Visit https://rapids.ai/start.html for more information on how to install it.")
 
     clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
     model = clf.fit(X, y)
