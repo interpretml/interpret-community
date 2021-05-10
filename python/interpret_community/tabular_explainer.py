@@ -12,6 +12,7 @@ from .shap.tree_explainer import TreeExplainer
 from .shap.deep_explainer import DeepExplainer
 from .shap.kernel_explainer import KernelExplainer
 from .shap.linear_explainer import LinearExplainer
+from .shap.gpu_kernel_explainer import GPUKernelExplainer
 
 InvalidExplainerErr = 'Could not find valid explainer to explain model'
 
@@ -79,7 +80,7 @@ class TabularExplainer(BaseExplainer):
     """
 
     def __init__(self, model, initialization_examples, explain_subset=None, features=None, classes=None,
-                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown, **kwargs):
+                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown, use_gpu=False, **kwargs):
         """Initialize the TabularExplainer.
 
         :param model: The model or pipeline to explain.
@@ -159,7 +160,10 @@ class TabularExplainer(BaseExplainer):
         uninitialized_explainers = self._get_uninitialized_explainers()
         is_valid = False
         last_exception = None
+
         for uninitialized_explainer in uninitialized_explainers:
+            if use_gpu and uninitialized_explainer != GPUKernelExplainer:
+                continue
             try:
                 if issubclass(uninitialized_explainer, PureStructuredModelExplainer):
                     self.explainer = uninitialized_explainer(
@@ -193,7 +197,7 @@ class TabularExplainer(BaseExplainer):
         :return: A list of the uninitialized explainers.
         :rtype: list
         """
-        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer]
+        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer, GPUKernelExplainer]
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None, include_local=True,

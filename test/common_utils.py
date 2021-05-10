@@ -145,6 +145,15 @@ def create_sklearn_svm_classifier(X, y, probability=True):
     model = clf.fit(X, y)
     return model
 
+def create_cuml_svm_classifier(X, y):
+    try:
+        import cuml
+    except:
+        raise ImportError("cuml not installed. Make sure you installed RAPIDS libraries")
+
+    clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
+    model = clf.fit(X, y)
+    return model
 
 def create_pandas_only_svm_classifier(X, y, probability=True):
     class PandasOnlyEstimator(TransformerMixin):
