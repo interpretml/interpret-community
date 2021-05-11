@@ -46,7 +46,8 @@ try:
 except ImportError:
     rapids_installed = False
     warnings.warn(
-        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html \
+        for more information on how to install it.")
 
 
 @add_prepare_function_and_summary_method
