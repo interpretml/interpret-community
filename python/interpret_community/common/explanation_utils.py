@@ -11,7 +11,7 @@ from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
 from .constants import Scipy
-
+from .gpu_kmeans import kmeans
 import warnings
 
 with warnings.catch_warnings():
@@ -22,11 +22,12 @@ with warnings.catch_warnings():
     except ImportError:
         from shap.utils._legacy import DenseData
 
+
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-def _summarize_data(X, k=10, to_round_values=True):
+def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     """Summarize a dataset.
 
     For dense dataset, use k mean samples weighted by the number of data points they
@@ -56,7 +57,10 @@ def _summarize_data(X, k=10, to_round_values=True):
             module_logger.debug('Create dense data summary with k-means')
             # use kmeans to summarize the examples for initialization
             # if there are more than 10 x k of them
-            return shap.kmeans(X, k, to_round_values)
+            if use_gpu:
+                return kmeans(X, k, to_round_values)
+            else:
+                return shap.kmeans(X, k, to_round_values)
     return X
 
 
