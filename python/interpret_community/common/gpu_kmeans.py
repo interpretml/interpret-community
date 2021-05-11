@@ -25,7 +25,9 @@ import scipy as sp
 try:
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
+    rapids_installed = True
 except:
+    rapids_installed = False
     import warnings
     warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
 from scipy.sparse import issparse
@@ -48,6 +50,8 @@ def kmeans(X, k, round_values=True):
     DenseData object.
     """
 
+    if not rapids_installed:
+        raise RuntimeError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
     group_names = [str(i) for i in range(X.shape[1])]
     if str(type(X)).endswith("'pandas.core.frame.DataFrame'>"):
         group_names = X.columns

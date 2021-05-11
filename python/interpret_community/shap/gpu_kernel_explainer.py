@@ -41,8 +41,11 @@ try:
         from cuml.experimental.explainer import KernelExplainer as cuml_Kernel_SHAP
     elif cuml.__version__ == '0.19.0':
         from cuml.explainer import KernelExplainer as cuml_Kernel_SHAP
+    rapids_installed = True
 except:
-    raise RuntimeError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+    rapids_installed = False
+    import warnings
+    warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
 
 @add_prepare_function_and_summary_method
 @add_explain_global_method
@@ -142,6 +145,8 @@ class GPUKernelExplainer(BlackBoxExplainer):
         """
         Initialize GPU Kernel Explainer.
         """
+        if not rapids_installed:
+            raise RuntimeError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
