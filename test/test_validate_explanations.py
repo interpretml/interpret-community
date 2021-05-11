@@ -17,7 +17,7 @@ try:
     elif cuml.__version__ == '0.19.0':
         from cuml.explainer import KernelExplainer
     rapids_installed = True
-except:
+except ImportError:
     rapids_installed = False
 
 from interpret_community.tabular_explainer import TabularExplainer
@@ -147,7 +147,8 @@ class TestExplainerValidity(object):
         else:
             test_logger.info("Running GPU non tree classifiers in test_validate_against_shap")
             x_train, x_test, y_train, y_validation, _, _ = create_cancer_data()
-            gpu_non_tree_classifiers = [create_cuml_svm_classifier(x_train.astype(np.float32), y_train.astype(np.float32))]
+            gpu_non_tree_classifiers = [create_cuml_svm_classifier(x_train.astype(np.float32),
+                                                                   y_train.astype(np.float32))]
             for model in gpu_non_tree_classifiers:
                 exp = KernelExplainer(model=model.predict_proba,
                                       data=x_train.astype(np.float32))
@@ -156,7 +157,7 @@ class TestExplainerValidity(object):
                 overall_imp = tabular_explainer_imp(model,
                                                     x_train.astype(np.float32),
                                                     x_test.astype(np.float32),
-                                                   use_gpu=True)
+                                                    use_gpu=True)
                 validate_correlation(overall_imp, shap_overall_imp, 0.95)
 
 

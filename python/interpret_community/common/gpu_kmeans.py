@@ -14,7 +14,7 @@
 #
 
 """
-The code is based on the similar utility function from SHAP: 
+The code is based on the similar utility function from SHAP:
 https://github.com/slundberg/shap/blob/9411b68e8057a6c6f3621765b89b24d82bee13d4/shap/utils/_legacy.py
 This version makes use of cuml kmeans instead of sklearn for speed.
 """
@@ -26,10 +26,11 @@ try:
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
     rapids_installed = True
-except:
+except BaseException:
     rapids_installed = False
     import warnings
-    warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+    warnings.warn(
+        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
 from scipy.sparse import issparse
 
 
@@ -51,7 +52,8 @@ def kmeans(X, k, round_values=True):
     """
 
     if not rapids_installed:
-        raise RuntimeError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+        raise RuntimeError(
+            "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
     group_names = [str(i) for i in range(X.shape[1])]
     if str(type(X)).endswith("'pandas.core.frame.DataFrame'>"):
         group_names = X.columns
@@ -66,27 +68,39 @@ def kmeans(X, k, round_values=True):
     if round_values:
         for i in range(k):
             for j in range(X.shape[1]):
-                xj = X[:,j].toarray().flatten() if issparse(X) else X[:, j] # sparse support courtesy of @PrimozGodec
-                ind = np.argmin(np.abs(xj - kmeans.cluster_centers_[i,j]))
-                kmeans.cluster_centers_[i,j] = X[ind,j]
-    return DenseData(kmeans.cluster_centers_, group_names, None, 1.0*np.bincount(kmeans.labels_))
+                xj = X[:, j].toarray().flatten() if issparse(
+                    X) else X[:, j]  # sparse support courtesy of @PrimozGodec
+                ind = np.argmin(np.abs(xj - kmeans.cluster_centers_[i, j]))
+                kmeans.cluster_centers_[i, j] = X[ind, j]
+    return DenseData(
+        kmeans.cluster_centers_,
+        group_names,
+        None,
+        1.0 *
+        np.bincount(
+            kmeans.labels_))
+
 
 class Data:
     def __init__(self):
         pass
 
+
 class DenseData(Data):
     def __init__(self, data, group_names, *args):
-        self.groups = args[0] if len(args) > 0 and args[0] is not None else [np.array([i]) for i in range(len(group_names))]
+        self.groups = args[0] if len(args) > 0 and args[0] is not None else [
+            np.array([i]) for i in range(len(group_names))]
 
-        l = sum(len(g) for g in self.groups)
+        length = sum(len(g) for g in self.groups)
         num_samples = data.shape[0]
         t = False
-        if l != data.shape[1]:
+        if length != data.shape[1]:
             t = True
             num_samples = data.shape[1]
 
-        valid = (not t and l == data.shape[1]) or (t and l == data.shape[0])
+        valid = (
+            not t and length == data.shape[1]) or (
+            t and length == data.shape[0])
         assert valid, "# of names must match data matrix!"
 
         self.weights = args[1] if len(args) > 1 else np.ones(num_samples)

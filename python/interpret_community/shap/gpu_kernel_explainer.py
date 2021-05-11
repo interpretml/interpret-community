@@ -27,6 +27,7 @@ from ..common.model_wrapper import _wrap_model
 from ..common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask, \
     Extension
 from ..explanation.explanation import _create_local_explanation
+from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator, init_tabular_decorator
 from ..explanation.explanation import _create_raw_feats_local_explanation, \
     _get_raw_explainer_create_explanation_kwargs
@@ -42,10 +43,11 @@ try:
     elif cuml.__version__ == '0.19.0':
         from cuml.explainer import KernelExplainer as cuml_Kernel_SHAP
     rapids_installed = True
-except:
+except ImportError:
     rapids_installed = False
-    import warnings
-    warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+    warnings.warn(
+        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+
 
 @add_prepare_function_and_summary_method
 @add_explain_global_method
@@ -54,11 +56,11 @@ class GPUKernelExplainer(BlackBoxExplainer):
     explainer_type = Extension.BLACKBOX
 
     """
-    GPU version of the Kernel Explainer for explaining black box models or functions. 
+    GPU version of the Kernel Explainer for explaining black box models or functions.
 
     Uses cuml's GPU Kernel SHAP.
     https://docs.rapids.ai/api/cuml/stable/api.html#shap-kernel-explainer
-    
+
     Characteristics of the GPU version:
      * Unlike the SHAP package, ``nsamples`` is a parameter at the
        initialization of the explainer and there is a small initialization
@@ -146,7 +148,9 @@ class GPUKernelExplainer(BlackBoxExplainer):
         Initialize GPU Kernel Explainer.
         """
         if not rapids_installed:
-            raise RuntimeError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+            raise RuntimeError(
+                "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more \
+                information on how to install it.")
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
@@ -156,7 +160,7 @@ class GPUKernelExplainer(BlackBoxExplainer):
         self._column_indexer = initialization_examples.string_index()
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(GPUKernelExplainer, self).__init__(wrapped_model, is_function=is_function,
-                                              model_task=eval_ml_domain, **kwargs)
+                                                 model_task=eval_ml_domain, **kwargs)
         self._logger.debug('Initializing GPUKernelExplainer')
         self._method = 'cuml.explainer.kernel'
         self.initialization_examples = initialization_examples
@@ -198,7 +202,7 @@ class GPUKernelExplainer(BlackBoxExplainer):
         self.current_index_list = [0]
         self.original_data_ref = [None]
         self.initialization_examples = DatasetWrapper(self.initialization_examples.original_dataset)
-    
+
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None,
                        include_local=True, batch_size=Defaults.DEFAULT_BATCH_SIZE):
@@ -258,7 +262,7 @@ class GPUKernelExplainer(BlackBoxExplainer):
         evaluation_examples = evaluation_examples.dataset
 
         self._logger.debug('Running GPUKernelExplainer')
-        
+
         if self.explain_subset:
             # Need to reset state before and after explaining a subset of data with wrapper function
             self._reset_wrapper()

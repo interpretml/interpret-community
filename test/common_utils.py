@@ -145,16 +145,20 @@ def create_sklearn_svm_classifier(X, y, probability=True):
     model = clf.fit(X, y)
     return model
 
+
 def create_cuml_svm_classifier(X, y):
     try:
         import cuml
-    except:
+    except ImportError:
         import warnings
-        warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+        warnings.warn(
+            "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for \
+            more information on how to install it.")
 
     clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
     model = clf.fit(X, y)
     return model
+
 
 def create_pandas_only_svm_classifier(X, y, probability=True):
     class PandasOnlyEstimator(TransformerMixin):

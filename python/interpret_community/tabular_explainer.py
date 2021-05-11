@@ -80,7 +80,8 @@ class TabularExplainer(BaseExplainer):
     """
 
     def __init__(self, model, initialization_examples, explain_subset=None, features=None, classes=None,
-                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown, use_gpu=False, **kwargs):
+                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown,
+                 use_gpu=False, **kwargs):
         """Initialize the TabularExplainer.
 
         :param model: The model or pipeline to explain.
