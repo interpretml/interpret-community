@@ -26,7 +26,8 @@ try:
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
 except:
-    raise ImportError("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
+    import warnings
+    warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
 from scipy.sparse import issparse
 
 

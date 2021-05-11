@@ -150,7 +150,7 @@ def create_cuml_svm_classifier(X, y):
         import cuml
     except:
         import warnings
-        warnings.warn("cuML not installed", ImportWarning)
+        warnings.warn("cuML is required to use GPU explainers. Check https://rapids.ai/start.html for more information on how to install it.")
 
     clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
     model = clf.fit(X, y)
