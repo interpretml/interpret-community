@@ -452,11 +452,11 @@ class DatasetWrapper(object):
         self._dataset = timestamp_featurizer.transform(self._dataset)
         self._timestamp_featurized = True
 
-    def compute_summary(self, nclusters=10, **kwargs):
+    def compute_summary(self, nclusters=10, use_gpu=False, **kwargs):
         """Summarizes the dataset if it hasn't been summarized yet."""
         if self._summary_computed:
             return
-        self._summary_dataset = _summarize_data(self._dataset, nclusters)
+        self._summary_dataset = _summarize_data(self._dataset, nclusters, use_gpu)
         self._dataset = self._summary_dataset
         self._summary_computed = True
 
