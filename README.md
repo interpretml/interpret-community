@@ -209,7 +209,7 @@ Besides the interpretability techniques described above, Interpret-Community sup
   | Tree-based models | SHAP TreeExplainer|
   | Deep Neural Network models| SHAP DeepExplainer|
   | Linear models | SHAP LinearExplainer |
-  | None of the above  | SHAP KernelExplainer or GPU SHAP KernelExplainer |
+  | None of the above  | SHAP KernelExplainer or GPUKernelExplainer |
 
 
 ## Example Notebooks
