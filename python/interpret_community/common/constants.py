@@ -41,6 +41,7 @@ class ExplainType(object):
     SHAP_TREE = 'shap_tree'
     SHAP_LINEAR = 'shap_linear'
     TABULAR = 'tabular'
+    SHAP_GPU_KERNEL = 'shap_gpu_kernel'
 
 
 class ExplainParams(object):
