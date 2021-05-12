@@ -15,13 +15,14 @@ Highlights of the package include:
 - The API supports both dense (numpy or pandas) and sparse (scipy) datasets
 - There are utilities provided to convert engineered explanations, based on preprocessed data before training a model, to raw explanations on the original dataset
 - For more advanced users, individual explainers can be used
-- The KernelExplainer, PFIExplainer and MimicExplainer are for BlackBox models
+- The KernelExplainer, GPUKernelExplainer, PFIExplainer and MimicExplainer are for BlackBox models
 - The MimicExplainer is faster but less accurate than the KernelExplainer, and supports various surrogate model types
 - The TreeExplainer is for tree-based models
 - The LinearExplainer is for linear models
 - The DeepExplainer is for DNN tensorflow or pytorch models
 - The PFIExplainer can quickly compute global importance values
 - LIMEExplainer builds local linear approximations of the model's behavior by perturbing each instance
+- GPUKernelExplainer is GPU-accelerated implementation of SHAP's KernelExplainer as a part of RAPIDS's cuML library, and is optimized for GPU models, like those in cuML. It can be used with CPU-based estimators too.
 
 Please see the github website for the documentation and sample notebooks:
 https://github.com/interpretml/interpret-community
