@@ -192,7 +192,8 @@ The following are a list of the experimental explainers available in the communi
 Interpretability Technique|Description|Type
 |--|--|--------------------|
 |SHAP Kernel Explainer| [SHAP](https://github.com/slundberg/shap)'s Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for **any model**.|Model-agnostic|
-|GPU SHAP Kernel Explainer| [cuML](https://docs.rapids.ai/api/cuml/stable/index.html)'s Kernel explainer is the GPU accelerated version of SHAP's Kernel Explainer to estimate SHAP values for **any model**. It is intended to be used with fast GPU models, like those in cuML. But it can also be used with CPU-based models, where the speedups might be limited due to data transfer and speed of models.|Model-agnostic|
+|GPU SHAP Kernel Explainer| 
+GPU Kernel explainer uses [cuML](https://docs.rapids.ai/api/cuml/stable/index.html)'s GPU accelerated version of SHAP's Kernel Explainer to estimate SHAP values for **any model**. It's main advantage is to provide acceleration to fast GPU models, like those in cuML. But it can also be used with CPU-based models, where speedups can still be achieved but they might be limited due to data transfers and speed of models themselves.|Model-agnostic|
 |SHAP Tree Explainer| [SHAP](https://github.com/slundberg/shap)’s Tree explainer, which focuses on the polynomial time fast SHAP value estimation algorithm specific to **trees and ensembles of trees**.|Model-specific|
 |SHAP Deep Explainer| Based on the explanation from [SHAP](https://github.com/slundberg/shap), Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the [SHAP NIPS paper](https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions). **TensorFlow** models and **Keras** models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".|Model-specific|
 |SHAP Linear Explainer| [SHAP](https://github.com/slundberg/shap)'s Linear explainer computes SHAP values for a **linear model**, optionally accounting for inter-feature correlations.|Model-specific|
@@ -257,8 +258,8 @@ https://interpret-community.readthedocs.io/en/latest/index.html
     model = clf.fit(x_train, y_train)
     
     # alternatively, a cuML estimator can be trained here for GPU model
-    import cuml. ensure RAPIDS is installed first
-    # refer to https://rapids.ai/ for more information
+    # ensure RAPIDS is installed - refer to https://rapids.ai/ for more information
+    import cuml
     from cuml.model_selection import train_test_split
     x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,            
                                                         breast_cancer_data.target,  
@@ -278,12 +279,7 @@ https://interpret-community.readthedocs.io/en/latest/index.html
                                  x_train, 
                                  features=breast_cancer_data.feature_names, 
                                  classes=classes)
-   # to utilise the GPU KernelExplainer, set parameter `use_gpu=True`
-    explainer = TabularExplainer(model, 
-                                 x_train, 
-                                 features=breast_cancer_data.feature_names, 
-                                 classes=classes,
-                                 use_gpu=True)                            
+   # to utilise the GPU KernelExplainer, set parameter `use_gpu=True`                    
     ```
 
     or
