@@ -192,6 +192,7 @@ The following are a list of the experimental explainers available in the communi
 Interpretability Technique|Description|Type
 |--|--|--------------------|
 |SHAP Kernel Explainer| [SHAP](https://github.com/slundberg/shap)'s Kernel explainer uses a specially weighted local linear regression to estimate SHAP values for **any model**.|Model-agnostic|
+|GPU SHAP Kernel Explainer| GPU Kernel explainer uses [cuML](https://docs.rapids.ai/api/cuml/stable/index.html)'s GPU accelerated version of SHAP's Kernel Explainer to estimate SHAP values for **any model**. It's main advantage is to provide acceleration to fast GPU models, like those in cuML. But it can also be used with CPU-based models, where speedups can still be achieved but they might be limited due to data transfers and speed of models themselves.|Model-agnostic|
 |SHAP Tree Explainer| [SHAP](https://github.com/slundberg/shap)’s Tree explainer, which focuses on the polynomial time fast SHAP value estimation algorithm specific to **trees and ensembles of trees**.|Model-specific|
 |SHAP Deep Explainer| Based on the explanation from [SHAP](https://github.com/slundberg/shap), Deep Explainer "is a high-speed approximation algorithm for SHAP values in deep learning models that builds on a connection with DeepLIFT described in the [SHAP NIPS paper](https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions). **TensorFlow** models and **Keras** models using the TensorFlow backend are supported (there is also preliminary support for PyTorch)".|Model-specific|
 |SHAP Linear Explainer| [SHAP](https://github.com/slundberg/shap)'s Linear explainer computes SHAP values for a **linear model**, optionally accounting for inter-feature correlations.|Model-specific|
@@ -208,7 +209,7 @@ Besides the interpretability techniques described above, Interpret-Community sup
   | Tree-based models | SHAP TreeExplainer|
   | Deep Neural Network models| SHAP DeepExplainer|
   | Linear models | SHAP LinearExplainer |
-  | None of the above  | SHAP KernelExplainer |
+  | None of the above  | SHAP KernelExplainer or GPUKernelExplainer |
 
 
 ## Example Notebooks
@@ -254,9 +255,20 @@ https://interpret-community.readthedocs.io/en/latest/index.html
                                                         random_state=0)
     clf = svm.SVC(gamma=0.001, C=100., probability=True)
     model = clf.fit(x_train, y_train)
+    
+    # alternatively, a cuML estimator can be trained here for GPU model
+    # ensure RAPIDS is installed - refer to https://rapids.ai/ for more information
+    import cuml
+    from cuml.model_selection import train_test_split
+    x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,            
+                                                        breast_cancer_data.target,  
+                                                        test_size=0.2,
+                                                        random_state=0)
+    clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
+    model = clf.fit(x_train, y_train)
     ```
 
-2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, or `KernelExplainer`), and automatically selects the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
+2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, `KernelExplainer`, or `GPUKernelExplainer`), and automatically selects the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
 
     ```python
     from interpret.ext.blackbox import TabularExplainer
@@ -266,6 +278,7 @@ https://interpret-community.readthedocs.io/en/latest/index.html
                                  x_train, 
                                  features=breast_cancer_data.feature_names, 
                                  classes=classes)
+   # to utilise the GPU KernelExplainer, set parameter `use_gpu=True`                    
     ```
 
     or
