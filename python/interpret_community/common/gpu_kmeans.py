@@ -26,10 +26,6 @@ try:
     rapids_installed = True
 except BaseException:
     rapids_installed = False
-    import warnings
-    warnings.warn(
-        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html \
-        for more information on how to install it.")
 from scipy.sparse import issparse
 
 
