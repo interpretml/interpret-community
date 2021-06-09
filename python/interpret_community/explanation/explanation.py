@@ -20,8 +20,14 @@ except ImportError:
     from shap.utils._legacy import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
-from ..common.explanation_utils import (_sort_values, _order_imp, _sort_feature_list_single,
-                                        _sort_feature_list_multiclass)
+from ..common.explanation_utils import (_sort_values,
+                                        _order_imp,
+                                        _sparse_order_imp,
+                                        _sort_feature_list_single,
+                                        _sort_feature_list_multiclass,
+                                        _RANKING,
+                                        _VALUES,
+                                        _FEATURES)
 from ..common.constants import (Defaults, Dynamic, ExplainParams, ExplanationParams,
                                 ExplainType, InterpretData, ModelTask)
 from ..dataset.dataset_wrapper import DatasetWrapper
@@ -396,7 +402,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The feature indexes sorted by importance.
         :rtype: list[list[int]] or list[list[list[int]]]
         """
-        return _order_imp(self._local_importance_values).tolist()
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values, values_type=_RANKING)
+        else:
+            return _order_imp(self._local_importance_values).tolist()
 
     def get_ranked_local_names(self, top_k=None):
         """Get feature names sorted by local feature importance values, highest to lowest.
@@ -409,18 +418,24 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The list of sorted features unless feature names are unavailable, feature indexes otherwise.
         :rtype: list[list[int or str]] or list[list[list[int or str]]]
         """
-        if self._features is not None:
-            self._ranked_local_names = _sort_values(self._features, np.array(self.get_local_importance_rank()))
-            ranked_local_names = self._ranked_local_names
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values,
+                                     values_type=_FEATURES,
+                                     features=self._features,
+                                     top_k=top_k)
         else:
-            ranked_local_names = np.array(self.get_local_importance_rank())
+            if self._features is not None:
+                self._ranked_local_names = _sort_values(self._features, np.array(self.get_local_importance_rank()))
+                ranked_local_names = self._ranked_local_names
+            else:
+                ranked_local_names = np.array(self.get_local_importance_rank())
 
-        if top_k is not None:
-            # Note: only slice at the last dimension for top_k
-            # Classification is 3D array and regression is 2D, but we only want to select
-            # top_k features on the last dimension
-            ranked_local_names = ranked_local_names[..., :top_k]
-        return ranked_local_names.tolist()
+            if top_k is not None:
+                # Note: only slice at the last dimension for top_k
+                # Classification is 3D array and regression is 2D, but we only want to select
+                # top_k features on the last dimension
+                ranked_local_names = ranked_local_names[..., :top_k]
+            return ranked_local_names.tolist()
 
     def get_ranked_local_values(self, top_k=None):
         """Get local feature importance sorted from highest to lowest.
@@ -433,6 +448,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The list of sorted values.
         :rtype: list[list[float]] or list[list[list[float]]]
         """
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values,
+                                     values_type=_VALUES,
+                                     top_k=top_k)
         if len(self._local_importance_values.shape) == 1:
             sorted_values = _sort_values(self._local_importance_values, np.array(self.get_local_importance_rank()))
             self._ranked_local_values = sorted_values
@@ -506,6 +525,15 @@ class LocalExplanation(FeatureImportanceExplanation):
             di["residual"] = y[i] - y_hat[i]
         return di
 
+    def _convert_local_importances_to_dense_list(self):
+        if isinstance(self.local_importance_values, list):
+            local_importances_as_list = []
+            for sparse_matrix in self.local_importance_values:
+                local_importances_as_list.append(sparse_matrix.toarray().tolist())
+        else:
+            local_importances_as_list = self.local_importance_values.toarray().tolist()
+        return local_importances_as_list
+
     def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
 
@@ -519,7 +547,11 @@ class LocalExplanation(FeatureImportanceExplanation):
         parent_data[InterpretData.NAMES] = self.features
         # Note: we currently don't have access to predictions and y values from original dataset on explanation
         parent_data[InterpretData.PERF] = None
-        parent_data[InterpretData.SCORES] = self._local_importance_values
+        if self.is_local_sparse:
+            scores = self._convert_local_importances_to_dense_list()
+        else:
+            scores = self._local_importance_values
+        parent_data[InterpretData.SCORES] = scores
         if ExpectedValuesMixin._does_quack(self):
             parent_data[InterpretData.INTERCEPT] = self.expected_values
         # Note: we currently don't have access to instances on explanation
@@ -548,7 +580,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         if key is None:
             return parent_data
         elif key == -1:
-            num_rows = self._local_importance_values.shape[-2]
+            num_rows = self.num_examples
             data_dicts = []
             perf_list = []
             for i in range(0, num_rows):
@@ -563,10 +595,14 @@ class LocalExplanation(FeatureImportanceExplanation):
                 intercept = []
                 if ExpectedValuesMixin._does_quack(self):
                     intercept = self.expected_values
+                if self.is_local_sparse:
+                    scores = self._convert_local_importances_to_dense_list()
+                else:
+                    scores = self.local_importance_values
                 mli_data.append({
                     InterpretData.EXPLANATION_TYPE: InterpretData.LOCAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
-                        InterpretData.SCORES: self.local_importance_values,
+                        InterpretData.SCORES: scores,
                         InterpretData.PERF: perf_list,
                         InterpretData.INTERCEPT: intercept
                     }
@@ -585,7 +621,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :rtype: pandas.DataFrame
         """
         predicted = self._eval_y_predicted
-        dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
+        dataset_shape = np.empty((self.num_examples, 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
 
     @classmethod

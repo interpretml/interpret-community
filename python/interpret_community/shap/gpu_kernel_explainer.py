@@ -35,7 +35,6 @@ from .kwargs_utils import _get_explain_global_kwargs
 from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
     transform_with_datamapper
 
-import warnings
 try:
     import cuml
     if cuml.__version__ == '0.18.0':
@@ -45,9 +44,6 @@ try:
     rapids_installed = True
 except ImportError:
     rapids_installed = False
-    warnings.warn(
-        "cuML is required to use GPU explainers. Check https://rapids.ai/start.html \
-        for more information on how to install it.")
 
 
 @add_prepare_function_and_summary_method
