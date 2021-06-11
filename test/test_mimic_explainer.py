@@ -479,8 +479,10 @@ class TestMimicExplainer(object):
 
     @pytest.mark.parametrize('if_multiclass', [True, False])
     @pytest.mark.parametrize('raw_feature_transformations', [True, False])
-    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass,
-                                                     raw_feature_transformations):
+    @pytest.mark.parametrize('explainable_model', [LinearExplainableModel, LGBMExplainableModel])
+    def test_sparse_explainable_model_classification(self, mimic_explainer, if_multiclass,
+                                                     raw_feature_transformations,
+                                                     explainable_model):
         n_samples = 100
         n_cat_features = 15
 
@@ -510,11 +512,16 @@ class TestMimicExplainer(object):
         cat_transformations = [([cat_feature_name], encoder) for cat_feature_name, encoder in
                                zip(cat_feature_names, cat_feature_encoders)]
 
+        if explainable_model == LinearExplainableModel:
+            explainable_model_args = {'sparse_data': True}
+        else:
+            explainable_model_args = {}
+
         if raw_feature_transformations:
             explainer = mimic_explainer(model=model,
                                         initialization_examples=data_x,
-                                        explainable_model=LinearExplainableModel,
-                                        explainable_model_args={'sparse_data': True},
+                                        explainable_model=explainable_model,
+                                        explainable_model_args=explainable_model_args,
                                         augment_data=False,
                                         features=cat_feature_names,
                                         classes=classes,
@@ -524,14 +531,24 @@ class TestMimicExplainer(object):
         else:
             explainer = mimic_explainer(model=model,
                                         initialization_examples=encoded_cat_features,
-                                        explainable_model=LinearExplainableModel,
-                                        explainable_model_args={'sparse_data': True},
+                                        explainable_model=explainable_model,
+                                        explainable_model_args=explainable_model_args,
                                         augment_data=False,
                                         classes=classes,
                                         model_task=ModelTask.Classification)
             global_explanation = explainer.explain_global(evaluation_examples=encoded_cat_features)
 
-        assert global_explanation.method == LINEAR_METHOD
+        if explainable_model == LinearExplainableModel:
+            assert global_explanation.method == LINEAR_METHOD
+        else:
+            assert global_explanation.method == LIGHTGBM_METHOD
+        if raw_feature_transformations:
+            assert len(global_explanation.get_feature_importance_dict()) == data_x.shape[1]
+        else:
+            assert len(global_explanation.get_feature_importance_dict()) == encoded_cat_features.shape[1]
+        sorted_local_importance_values = global_explanation.get_ranked_local_values()[0]
+        sorted_local_importance_names = global_explanation.get_ranked_local_names()[0]
+        assert len(sorted_local_importance_values) == len(sorted_local_importance_names)
         if if_multiclass:
             if raw_feature_transformations:
                 self._verify_predictions_and_replication_metric(explainer, data_x)

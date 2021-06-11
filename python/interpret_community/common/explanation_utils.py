@@ -26,6 +26,10 @@ with warnings.catch_warnings():
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+_VALUES = 'values'
+_RANKING = 'ranking'
+_FEATURES = 'features'
+
 
 def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     """Summarize a dataset.
@@ -64,6 +68,28 @@ def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     return X
 
 
+def _should_compress_sparse_matrix(matrix):
+    """Returns whether to compress the matrix, which can be sparse or dense format depending on optimal storage.
+
+    If more than a third of the values are non-zero in the sparse matrix, we convert it to dense format.
+
+    :param matrix: The matrix to compress.
+    :type matrix: scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :return: Whether the matrix should be compressed.
+    :rtype: bool
+    """
+    nnz = 0
+    num_cells = 0
+    if isinstance(matrix, list):
+        for class_matrix in matrix:
+            nnz += class_matrix.nnz
+            num_cells += class_matrix.shape[0] * class_matrix.shape[1]
+    else:
+        nnz += matrix.nnz
+        num_cells += matrix.shape[0] * matrix.shape[1]
+    return nnz > num_cells / 3
+
+
 def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
@@ -94,8 +120,17 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     if isinstance(importance_values, list):
         raw_importances = []
         for class_matrix in importance_values:
-            raw_importances.append(class_matrix.dot(raw_to_output_map.T))
-        return np.array(raw_importances)
+            raw_matrix = class_matrix.dot(raw_to_output_map.T)
+            raw_importances.append(raw_matrix)
+        is_sparse_matrix = len(raw_importances) > 0 and issparse(raw_importances[0])
+        if is_sparse_matrix:
+            if _should_compress_sparse_matrix(raw_importances):
+                for i in range(len(raw_importances)):
+                    raw_importances[i] = raw_importances[i].toarray()
+                raw_importances = np.array(raw_importances)
+        else:
+            raw_importances = np.array(raw_importances)
+        return raw_importances
 
     if len(importance_values.shape) < 2:
         importance_values = importance_values.reshape(1, -1)
@@ -109,7 +144,7 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
                 raw_importances = importance_values
             else:
                 raw_importances = raw_to_output_map.dot(importance_values.T).T
-            if issparse(raw_importances):
+            if issparse(raw_importances) and _should_compress_sparse_matrix(raw_importances):
                 raw_importances = raw_importances.toarray()
     else:
         raw_importances = importance_values.dot(raw_to_output_map.T)
@@ -360,6 +395,92 @@ def _order_imp(summary):
     :rtype: numpy.ndarray
     """
     return summary.argsort()[..., ::-1]
+
+
+def _sparse_order_imp_csr_matrix(local_importance_values, values_type=_RANKING, features=None, top_k=None):
+    """Compute the ranking, names or values for sparse feature importance values on a single csr_matrix.
+
+    :param local_importance_values: The local importance values to compute the ranking for.
+    :type local_importance_values: scipy.sparse.csr_matrix
+    :param values_type: The type of values, can be 'ranking', which returns the sorted
+        indices, 'values', which returns the sorted values, or 'features', which returns
+        the feature names.
+    :type values_type: str
+    :param features: The feature names.
+    :type features: list[str]
+    :param top_k: If specified, only the top k values will be returned.
+    :type top_k: int
+    :return: The rank of the non-zero sparse feature importance values.
+    :rtype: list
+    """
+    sparse_ranking = []
+    data = local_importance_values.data
+    indices = local_importance_values.indices
+    indptr = local_importance_values.indptr
+    for i in range(len(indptr) - 1):
+        rowstart = indptr[i]
+        rowend = indptr[i + 1]
+        row_values = data[rowstart:rowend]
+        # compute the ranking of the values for each row
+        values_ranking = row_values.argsort()[..., ::-1]
+        if values_type == _VALUES:
+            sorted_values = row_values[values_ranking]
+            if top_k is not None:
+                sorted_values = sorted_values[:top_k]
+            sparse_ranking.append(sorted_values.tolist())
+        elif values_type == _FEATURES:
+            row_indices = indices[rowstart:rowend]
+            indices_ranking = row_indices[values_ranking]
+            if features is not None:
+                ranked_features = np.array(features)[indices_ranking]
+                if top_k is not None:
+                    ranked_features = ranked_features[:top_k]
+                sparse_ranking.append(ranked_features.tolist())
+            else:
+                if top_k is not None:
+                    indices_ranking = indices_ranking[:top_k]
+                sparse_ranking.append(indices_ranking.tolist())
+        elif values_type == _RANKING:
+            row_indices = indices[rowstart:rowend]
+            # re-shuffle indices based on the ranking values
+            indices_ranking = row_indices[values_ranking]
+            if top_k is not None:
+                indices_ranking = indices_ranking[:top_k]
+            sparse_ranking.append(indices_ranking.tolist())
+        else:
+            raise ValueError("Unknown values_type specified: {}.".format(values_type))
+    return sparse_ranking
+
+
+def _sparse_order_imp(local_importance_values, values_type=_RANKING, features=None, top_k=None):
+    """Compute the ranking for sparse feature importance values.
+
+    :param local_importance_values: The local importance values to compute the ranking for.
+    :type local_importance_values: scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :param values_type: The type of values, can be 'ranking', which returns the sorted
+        indices, 'values', which returns the sorted values, or 'features', which returns
+        the feature names.
+    :type values_type: str
+    :param features: The feature names.
+    :type features: list[str]
+    :param top_k: If specified, only the top k values will be returned.
+    :type top_k: int
+    :return: The rank of the non-zero sparse feature importance values.
+    :rtype: list
+    """
+    if isinstance(local_importance_values, list):
+        per_class_sparse_ranking = []
+        for class_importance_values in local_importance_values:
+            per_class_sparse_ranking.append(_sparse_order_imp_csr_matrix(class_importance_values,
+                                                                         values_type=values_type,
+                                                                         features=features,
+                                                                         top_k=top_k))
+        return per_class_sparse_ranking
+    else:
+        return _sparse_order_imp_csr_matrix(local_importance_values,
+                                            values_type=values_type,
+                                            features=features,
+                                            top_k=top_k)
 
 
 # sorts a single dimensional feature list according to order

@@ -8,10 +8,12 @@ import numpy as np
 import logging
 from scipy.sparse import csr_matrix, eye
 
-from interpret_community.common.explanation_utils import _convert_to_list, _generate_augmented_data, \
-    _get_raw_feature_importances, _is_one_to_many, _sort_values, _sort_feature_list_single, \
-    _sort_feature_list_multiclass, _two_dimensional_slice, _get_feature_map_from_list_of_indexes, \
-    _is_identity
+from interpret_community.common.explanation_utils import (
+    _convert_to_list, _generate_augmented_data, _get_raw_feature_importances,
+    _is_one_to_many, _sort_values, _sort_feature_list_single,
+    _sort_feature_list_multiclass, _two_dimensional_slice,
+    _get_feature_map_from_list_of_indexes, _is_identity, _sparse_order_imp,
+    _should_compress_sparse_matrix, _RANKING, _FEATURES, _VALUES)
 
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import Scipy
@@ -198,3 +200,40 @@ class TestExplanationUtils(object):
         assert not _is_identity(dense_not_identity)
         sparse_not_identity = csr_matrix(dense_not_identity)
         assert not _is_identity(sparse_not_identity)
+
+    def test_sparse_order_imp(self):
+        x = csr_matrix(np.array([[1, 2, 3, 0, 0, 0], [5, 6, 7, 0, 0, 0], [8, 9, 10, 0, 0, 0]]))
+        assert np.array_equal(_sparse_order_imp(x, values_type=_RANKING), [[2, 1, 0], [2, 1, 0], [2, 1, 0]])
+        assert np.array_equal(_sparse_order_imp(x, values_type=_RANKING, top_k=2), [[2, 1], [2, 1], [2, 1]])
+        assert np.array_equal(_sparse_order_imp(x, values_type=_VALUES), [[3, 2, 1], [7, 6, 5], [10, 9, 8]])
+        assert np.array_equal(_sparse_order_imp(x, values_type=_VALUES, top_k=2), [[3, 2], [7, 6], [10, 9]])
+        assert np.array_equal(_sparse_order_imp(x, values_type=_FEATURES), [[2, 1, 0], [2, 1, 0], [2, 1, 0]])
+        feats = ["one", "two", "three", "four", "five", "six"]
+        assert np.array_equal(_sparse_order_imp(x, values_type=_FEATURES, features=feats),
+                              [['three', 'two', 'one'], ['three', 'two', 'one'], ['three', 'two', 'one']])
+        assert np.array_equal(_sparse_order_imp(x, values_type=_FEATURES, features=feats, top_k=2),
+                              [['three', 'two'], ['three', 'two'], ['three', 'two']])
+
+    def test_should_compress_sparse_matrix(self):
+        # Create a single sparse matrix that is sparse, validate we keep it as sparse
+        sparse_matrix = csr_matrix((3, 4))
+        assert not _should_compress_sparse_matrix(sparse_matrix)
+        # Create a single sparse matrix that is mostly dense, validate we make it dense
+        dense_matrix = csr_matrix(np.array([[1, 2, 3, 0], [5, 6, 7, 0], [8, 9, 10, 0]]))
+        assert _should_compress_sparse_matrix(dense_matrix)
+        # Create a (multiclass) list of sparse matrices that are mostly sparse, validate we keep as sparse
+        sparse_matrix2 = sparse_matrix.copy()
+        # Set some random values
+        sparse_matrix2[:, 1] = 5.7
+        sparse_matrices = [sparse_matrix, sparse_matrix, sparse_matrix2]
+        assert not _should_compress_sparse_matrix(sparse_matrices)
+        # Create a (multiclass) list of sparse matrices that are mostly dense, validate we keep as dense
+        dense_matrix2 = csr_matrix(np.array([[4, 3, 2, 1], [8, 7, 6, 5], [12, 11, 10, 9]]))
+        dense_matrices = [dense_matrix, dense_matrix, dense_matrix2]
+        assert _should_compress_sparse_matrix(dense_matrices)
+        # Create a (multiclass) list of sparse and dense matrices, more dense than sparse
+        mixed_more_dense_matrices = [sparse_matrix, sparse_matrix2, dense_matrix, dense_matrix2, dense_matrix]
+        assert _should_compress_sparse_matrix(mixed_more_dense_matrices)
+        # Create a (multiclass) list of sparse and dense matrices, more sparse than dense
+        mixed_more_sparse_matrices = [sparse_matrix, sparse_matrix2, sparse_matrix, sparse_matrix2, dense_matrix]
+        assert not _should_compress_sparse_matrix(mixed_more_sparse_matrices)
