@@ -1,7 +1,3 @@
-prompt-toolkit>=2.0.0
-# see issue https://github.com/gevent/gevent/issues/1674
-greenlet==0.4.17
-gevent==20.9.0
 raiwidgets
 # used by interpret show method
 dash
