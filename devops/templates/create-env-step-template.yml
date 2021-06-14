@@ -23,6 +23,7 @@ steps:
 
   - bash: |
       source activate ${{parameters.condaEnv}}
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.18.5
       conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch-cpu torchvision-cpu -c pytorch
       conda install --yes -c anaconda -n  ${{parameters.condaEnv}} jupyter pip
     displayName: Install Anaconda packages
