@@ -39,7 +39,7 @@ def add_explain_global_method(cls):
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
-        :type sampling_policy: SamplingPolicy
+        :type sampling_policy: interpret_community.common.policy.SamplingPolicy
         :return: Arguments for aggregating local to global.
         :rtype: dict
         """
@@ -60,7 +60,7 @@ def add_explain_global_method(cls):
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
-        :type sampling_policy: SamplingPolicy
+        :type sampling_policy: interpret_community.common.policy.SamplingPolicy
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local
             explanations to aggregate to global.

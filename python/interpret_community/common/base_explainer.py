@@ -4,14 +4,12 @@
 
 """Defines the base explainer API to create explanations."""
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from .chained_identity import ChainedIdentity
 
 
-class GlobalExplainer(ChainedIdentity):
+class GlobalExplainer(ABC, ChainedIdentity):
     """The base class for explainers that create global explanations."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
         """Initialize the GlobalExplainer."""
@@ -39,10 +37,8 @@ class GlobalExplainer(ChainedIdentity):
         return "{}".format(self.__class__.__name__)
 
 
-class LocalExplainer(ChainedIdentity):
+class LocalExplainer(ABC, ChainedIdentity):
     """The base class for explainers that create local explanations."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
         """Initialize the LocalExplainer."""
@@ -71,8 +67,6 @@ class LocalExplainer(ChainedIdentity):
 
 class BaseExplainer(GlobalExplainer, LocalExplainer):
     """The base class for explainers that create global and local explanations."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, *args, **kwargs):
         """Initialize the BaseExplainer."""

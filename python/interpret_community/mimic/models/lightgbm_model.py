@@ -29,6 +29,7 @@ with warnings.catch_warnings():
 DEFAULT_RANDOM_STATE = 123
 _N_FEATURES = '_n_features'
 _N_CLASSES = '_n_classes'
+NUM_ITERATIONS = 'num_iterations'
 
 
 class _LGBMFunctionWrapper(object):
@@ -47,16 +48,81 @@ class _LGBMFunctionWrapper(object):
         self._function = function
 
     def predict_wrapper(self, X, *args, **kwargs):
-        """Wraps a prediction function from lightgbm learner to densify the input dataset.
+        """Wraps a prediction function from lightgbm learner.
+
+        If version is ==3.0.0, densifies the input dataset.
 
         :param X: The model evaluation examples.
-        :type X: np.array
+        :type X: numpy.array
         :return: Prediction result.
-        :rtype: np.array
+        :rtype: numpy.array
         """
         if issparse(X):
             X = X.toarray()
         return self._function(X, *args, **kwargs)
+
+
+class _SparseTreeExplainer(object):
+
+    """Wraps the lightgbm model to enable sparse feature contributions.
+
+    If version is >=3.1.0, runs on sparse input data by calling predict function directly.
+
+    :param lgbm: The lightgbm model to wrap.
+    :type lgbm: LGBMModel
+    :param tree_explainer: The tree_explainer used for dense data.
+    :type tree_explainer: shap.TreeExplainer
+    """
+
+    def __init__(self, lgbm, tree_explainer):
+        """Wraps the lightgbm model to enable sparse feature contributions.
+
+        :param lgbm: The lightgbm model to wrap.
+        :type lgbm: LGBMModel
+        :param tree_explainer: The tree_explainer used for dense data.
+        :type tree_explainer: shap.TreeExplainer
+        """
+        self._lgbm = lgbm
+        self._tree_explainer = tree_explainer
+        self._num_iters = -1
+        # Get the number of iterations trained for from the booster
+        if hasattr(self._lgbm._Booster, 'params'):
+            if NUM_ITERATIONS in self._lgbm._Booster.params:
+                self._num_iters = self._lgbm._Booster.params[NUM_ITERATIONS]
+        # If best iteration specified, use that
+        if self._lgbm._best_iteration is not None:
+            self._num_iters = self._lgbm._best_iteration
+        self.expected_value = None
+
+    def shap_values(self, X):
+        """Calls lightgbm predict directly for sparse case.
+
+        If lightgbm version is >=3.1.0, runs on sparse input data
+        by calling predict function directly with pred_contrib=True.
+        Uses tree explainer for dense input data.
+
+        :param X: The model evaluation examples.
+        :type X: numpy.array or scipy.sparse.csr_matrix
+        :return: The feature importance values.
+        :rtype: numpy.array, scipy.sparse or list of scipy.sparse
+        """
+        if issparse(X):
+            shap_values = self._lgbm.predict(X,
+                                             num_iteration=self._num_iters,
+                                             pred_contrib=True)
+            if isinstance(shap_values, list):
+                shape = shap_values[0].shape
+                self.expected_value = shap_values[0][0, shape[1] - 1]
+                for idx, class_values in enumerate(shap_values):
+                    shap_values[idx] = class_values[:, :shape[1] - 1]
+            else:
+                shape = shap_values.shape
+                self.expected_value = shap_values[0, shape[1] - 1]
+                shap_values = shap_values[:, :shape[1] - 1]
+        else:
+            shap_values = self._tree_explainer.shap_values(X)
+            self.expected_value = self._tree_explainer.expected_value
+        return shap_values
 
 
 class LGBMExplainableModel(BaseExplainableModel):
@@ -127,9 +193,9 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm fit to fit the explainable model.
 
         :param dataset: The dataset to train the model on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param labels: The labels to train the model on.
-        :type labels: numpy or scipy array
+        :type labels: numpy.array
         """
         self._lgbm.fit(dataset, labels, **kwargs)
 
@@ -146,7 +212,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm predict to predict labels using the explainable model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -165,7 +231,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Call lightgbm predict_proba to predict probabilities using the explainable model.
 
         :param dataset: The dataset to predict probabilities on.
-        :type dataset: numpy or scipy array
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -194,11 +260,17 @@ class LGBMExplainableModel(BaseExplainableModel):
     def _init_tree_explainer(self):
         """Creates the TreeExplainer.
 
-        Includes a temporary fix for lightgbm 3.0 by wrapping predict method for sparse case to output dense data.
+        Includes a temporary fix for lightgbm 3.0 by wrapping predict method
+        for sparse case to output dense data.
+        Includes another temporary fix for lightgbm >= 3.1 to call predict
+        function directly for sparse input data until shap TreeExplainer
+        support is added.
         """
         if self._tree_explainer is None:
             self._tree_explainer = shap.TreeExplainer(self._lgbm)
-            if version.parse('3.0.0') <= version.parse(lightgbm.__version__):
+            if version.parse('3.1.0') <= version.parse(lightgbm.__version__):
+                self._tree_explainer = _SparseTreeExplainer(self._lgbm, self._tree_explainer)
+            elif version.parse('3.0.0') == version.parse(lightgbm.__version__):
                 wrapper = _LGBMFunctionWrapper(self._tree_explainer.model.original_model.predict)
                 self._tree_explainer.model.original_model.predict = wrapper.predict_wrapper
 
@@ -206,7 +278,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         """Use TreeExplainer to get the local feature importances from the trained explainable model.
 
         :param evaluation_examples: The evaluation examples to compute local feature importances for.
-        :type evaluation_examples: numpy or scipy array
+        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param probabilities: If output_type is probability, can specify the teacher model's
             probability for scaling the shap values.
         :type probabilities: numpy.ndarray
@@ -239,7 +311,7 @@ class LGBMExplainableModel(BaseExplainableModel):
         return self._lgbm
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type.
 
         :return: Tree explainable model type.

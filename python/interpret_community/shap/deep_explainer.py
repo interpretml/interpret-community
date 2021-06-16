@@ -65,6 +65,12 @@ class logger_redirector(object):
         """
         self.logger.debug(data)
 
+    def flush(self):
+        pass
+
+    def close(self):
+        pass
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Finishes the redirection for logging."""
         try:
@@ -288,7 +294,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
-        :type sampling_policy: SamplingPolicy
+        :type sampling_policy: interpret_community.common.policy.SamplingPolicy
         :param include_local: Include the local explanations in the returned global explanation.
             If include_local is False, will stream the local explanations to aggregate to global.
         :type include_local: bool

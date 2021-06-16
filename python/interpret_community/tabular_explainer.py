@@ -12,6 +12,7 @@ from .shap.tree_explainer import TreeExplainer
 from .shap.deep_explainer import DeepExplainer
 from .shap.kernel_explainer import KernelExplainer
 from .shap.linear_explainer import LinearExplainer
+from .shap.gpu_kernel_explainer import GPUKernelExplainer
 
 InvalidExplainerErr = 'Could not find valid explainer to explain model'
 
@@ -23,8 +24,9 @@ class TabularExplainer(BaseExplainer):
     """The tabular explainer meta-api for returning the best explanation result based on the given model.
 
     :param model: The model or pipeline to explain.
-    :type model: model that implements sklearn.predict() or sklearn.predict_proba() or pipeline function that accepts
+        A model that implements sklearn.predict() or sklearn.predict_proba() or pipeline function that accepts
         a 2d ndarray
+    :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -78,12 +80,14 @@ class TabularExplainer(BaseExplainer):
     """
 
     def __init__(self, model, initialization_examples, explain_subset=None, features=None, classes=None,
-                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown, **kwargs):
+                 transformations=None, allow_all_transformations=False, model_task=ModelTask.Unknown,
+                 use_gpu=False, **kwargs):
         """Initialize the TabularExplainer.
 
         :param model: The model or pipeline to explain.
-        :type model: model that implements sklearn.predict or sklearn.predict_proba or pipeline function that accepts
+            A model that implements sklearn.predict() or sklearn.predict_proba() or pipeline function that accepts
             a 2d ndarray
+        :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -157,7 +161,10 @@ class TabularExplainer(BaseExplainer):
         uninitialized_explainers = self._get_uninitialized_explainers()
         is_valid = False
         last_exception = None
+
         for uninitialized_explainer in uninitialized_explainers:
+            if use_gpu and uninitialized_explainer != GPUKernelExplainer:
+                continue
             try:
                 if issubclass(uninitialized_explainer, PureStructuredModelExplainer):
                     self.explainer = uninitialized_explainer(
@@ -191,7 +198,7 @@ class TabularExplainer(BaseExplainer):
         :return: A list of the uninitialized explainers.
         :rtype: list
         """
-        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer]
+        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer, GPUKernelExplainer]
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None, include_local=True,
@@ -203,7 +210,7 @@ class TabularExplainer(BaseExplainer):
         :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
-        :type sampling_policy: SamplingPolicy
+        :type sampling_policy: interpret_community.common.policy.SamplingPolicy
         :param include_local: Include the local explanations in the returned global explanation.
             If include_local is False, will stream the local explanations to aggregate to global.
         :type include_local: bool

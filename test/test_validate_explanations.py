@@ -10,11 +10,20 @@ from scipy import stats
 import shap
 import logging
 from sklearn.pipeline import Pipeline
+try:
+    import cuml
+    if cuml.__version__ == '0.18.0':
+        from cuml.experimental.explainer import KernelExplainer
+    elif cuml.__version__ == '0.19.0':
+        from cuml.explainer import KernelExplainer
+    rapids_installed = True
+except ImportError:
+    rapids_installed = False
 
 from interpret_community.tabular_explainer import TabularExplainer
 from common_utils import create_sklearn_random_forest_classifier, \
     create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, \
-    create_sklearn_logistic_regressor
+    create_sklearn_logistic_regressor, create_cuml_svm_classifier, create_cancer_data
 from sklearn.model_selection import train_test_split
 from interpret_community.common.constants import ExplainParams
 from interpret_community.common.policy import SamplingPolicy
@@ -133,10 +142,28 @@ class TestExplainerValidity(object):
             overall_imp = tabular_explainer_imp(model, x_train, x_test)
             validate_correlation(overall_imp, shap_overall_imp, 0.95)
 
+        if not rapids_installed:
+            pytest.skip("cuML not installed; will skip testing GPU Explainer")
+        else:
+            test_logger.info("Running GPU non tree classifiers in test_validate_against_shap")
+            x_train, x_test, y_train, y_validation, _, _ = create_cancer_data()
+            gpu_non_tree_classifiers = [create_cuml_svm_classifier(x_train.astype(np.float32),
+                                                                   y_train.astype(np.float32))]
+            for model in gpu_non_tree_classifiers:
+                exp = KernelExplainer(model=model.predict_proba,
+                                      data=x_train.astype(np.float32))
+                explanation = exp.shap_values(x_test.astype(np.float32))
+                shap_overall_imp = get_shap_imp_classification(explanation)
+                overall_imp = tabular_explainer_imp(model,
+                                                    x_train.astype(np.float32),
+                                                    x_test.astype(np.float32),
+                                                    use_gpu=True)
+                validate_correlation(overall_imp, shap_overall_imp, 0.95)
 
-def tabular_explainer_imp(model, x_train, x_test, allow_eval_sampling=True):
+
+def tabular_explainer_imp(model, x_train, x_test, allow_eval_sampling=True, use_gpu=False):
     # Create tabular explainer
-    exp = TabularExplainer(model, x_train, features=list(range(x_train.shape[1])))
+    exp = TabularExplainer(model, x_train, features=list(range(x_train.shape[1])), use_gpu=use_gpu)
     # Validate evaluation sampling
     policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=allow_eval_sampling)}
     explanation = exp.explain_global(x_test, **policy)

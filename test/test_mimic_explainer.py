@@ -21,10 +21,14 @@ from sys import platform
 from interpret_community.common.exception import ScenarioNotSupportedException
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel
+from interpret_community.mimic.models.linear_model import LinearExplainableModel, \
+    SGDExplainableModel
+from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
 from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
-    LINEAR_METHOD, create_lightgbm_regressor
-from models import DataFrameTestModel, SkewedTestModel
+    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset, \
+    create_iris_data
+from models import DataFrameTestModel, SkewedTestModel, \
+    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -278,8 +282,10 @@ class TestMimicExplainer(object):
         assert global_explanation.method == LIGHTGBM_METHOD
 
     def test_explain_model_categorical(self, verify_mimic_regressor):
-        for verifier in verify_mimic_regressor:
-            verifier.verify_explain_model_categorical(pass_categoricals=True)
+        for idx, verifier in enumerate(verify_mimic_regressor):
+            verify_same_shape = idx == LGBM_MODEL_IDX
+            verifier.verify_explain_model_categorical(pass_categoricals=True,
+                                                      verify_same_shape=verify_same_shape)
 
     @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
         (240, {}),
@@ -473,8 +479,10 @@ class TestMimicExplainer(object):
 
     @pytest.mark.parametrize('if_multiclass', [True, False])
     @pytest.mark.parametrize('raw_feature_transformations', [True, False])
-    def test_linear_explainable_model_classification(self, mimic_explainer, if_multiclass,
-                                                     raw_feature_transformations):
+    @pytest.mark.parametrize('explainable_model', [LinearExplainableModel, LGBMExplainableModel])
+    def test_sparse_explainable_model_classification(self, mimic_explainer, if_multiclass,
+                                                     raw_feature_transformations,
+                                                     explainable_model):
         n_samples = 100
         n_cat_features = 15
 
@@ -504,11 +512,16 @@ class TestMimicExplainer(object):
         cat_transformations = [([cat_feature_name], encoder) for cat_feature_name, encoder in
                                zip(cat_feature_names, cat_feature_encoders)]
 
+        if explainable_model == LinearExplainableModel:
+            explainable_model_args = {'sparse_data': True}
+        else:
+            explainable_model_args = {}
+
         if raw_feature_transformations:
             explainer = mimic_explainer(model=model,
                                         initialization_examples=data_x,
-                                        explainable_model=LinearExplainableModel,
-                                        explainable_model_args={'sparse_data': True},
+                                        explainable_model=explainable_model,
+                                        explainable_model_args=explainable_model_args,
                                         augment_data=False,
                                         features=cat_feature_names,
                                         classes=classes,
@@ -518,14 +531,24 @@ class TestMimicExplainer(object):
         else:
             explainer = mimic_explainer(model=model,
                                         initialization_examples=encoded_cat_features,
-                                        explainable_model=LinearExplainableModel,
-                                        explainable_model_args={'sparse_data': True},
+                                        explainable_model=explainable_model,
+                                        explainable_model_args=explainable_model_args,
                                         augment_data=False,
                                         classes=classes,
                                         model_task=ModelTask.Classification)
             global_explanation = explainer.explain_global(evaluation_examples=encoded_cat_features)
 
-        assert global_explanation.method == LINEAR_METHOD
+        if explainable_model == LinearExplainableModel:
+            assert global_explanation.method == LINEAR_METHOD
+        else:
+            assert global_explanation.method == LIGHTGBM_METHOD
+        if raw_feature_transformations:
+            assert len(global_explanation.get_feature_importance_dict()) == data_x.shape[1]
+        else:
+            assert len(global_explanation.get_feature_importance_dict()) == encoded_cat_features.shape[1]
+        sorted_local_importance_values = global_explanation.get_ranked_local_values()[0]
+        sorted_local_importance_names = global_explanation.get_ranked_local_names()[0]
+        assert len(sorted_local_importance_values) == len(sorted_local_importance_names)
         if if_multiclass:
             if raw_feature_transformations:
                 self._verify_predictions_and_replication_metric(explainer, data_x)
@@ -599,3 +622,71 @@ class TestMimicExplainer(object):
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length']]]
+
+
+@pytest.mark.owner(email=owner_email_tools_and_ux)
+@pytest.mark.usefixtures('clean_dir')
+class TestMimicExplainerWrappedModels(object):
+    def test_working(self):
+        assert True
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_binary_classification_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        x_train, y_train, x_test, y_test, classes = create_binary_classification_dataset()
+        model = LogisticRegression(random_state=42).fit(x_train, y_train)
+        model.fit(x_train, y_train)
+
+        model = PredictAsDataFrameClassificationTestModel(
+            model, return_predictions_as_dataframe=if_predictions_as_dataframe)
+        kwargs = {}
+        explainer = mimic_explainer(model, x_train, explainable_model, **kwargs)
+        global_explanation = explainer.explain_global(evaluation_examples=x_test)
+        assert global_explanation is not None
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_multiclass_classification_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        x_train, x_test, y_train, y_test, _, classes = create_iris_data()
+        model = LogisticRegression(random_state=42).fit(x_train, y_train)
+        model.fit(x_train, y_train)
+
+        model = PredictAsDataFrameClassificationTestModel(
+            model, return_predictions_as_dataframe=if_predictions_as_dataframe)
+
+        kwargs = {}
+        explainer = mimic_explainer(model, x_train, explainable_model, **kwargs)
+        global_explanation = explainer.explain_global(evaluation_examples=x_test)
+        assert global_explanation is not None
+
+    @pytest.mark.parametrize('if_predictions_as_dataframe', [True, False])
+    @pytest.mark.parametrize('explainable_model', [LGBMExplainableModel,
+                                                   LinearExplainableModel,
+                                                   DecisionTreeExplainableModel,
+                                                   SGDExplainableModel])
+    def test_explain_model_regression_with_different_format_predictions(
+            self, mimic_explainer, if_predictions_as_dataframe, explainable_model):
+        num_features = 3
+        x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
+        y_train = np.array([1, 2])
+        lin = LinearRegression(normalize=True)
+        one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
+        transformations = [(list(range(num_features)), one_hot_transformer)]
+        clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])
+        model = clf.fit(x_train, y_train)
+        model = PredictAsDataFrameREgressionTestModel(model.named_steps['regressor'],
+                                                      if_predictions_as_dataframe)
+        explainable_model = explainable_model
+        explainer = mimic_explainer(model, x_train, explainable_model,
+                                    transformations=transformations, augment_data=False,
+                                    explainable_model_args={}, features=['f1', 'f2', 'f3'])
+        global_explanation = explainer.explain_global(x_train)
+        global_explanation is not None

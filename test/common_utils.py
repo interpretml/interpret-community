@@ -16,13 +16,19 @@ from sklearn.base import TransformerMixin
 from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier
 
-# from tensorflow import keras
-# from tensorflow.keras.models import Sequential
-# from tensorflow.keras.layers import Dense, Dropout, Activation
+try:
+    from tensorflow import keras
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, Dropout, Activation
+except ImportError:
+    pass
 
-# import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+except ImportError:
+    pass
 
 from pandas import read_csv
 
@@ -136,6 +142,20 @@ def create_xgboost_classifier(X, y):
 
 def create_sklearn_svm_classifier(X, y, probability=True):
     clf = svm.SVC(gamma=0.001, C=100., probability=probability, random_state=777)
+    model = clf.fit(X, y)
+    return model
+
+
+def create_cuml_svm_classifier(X, y):
+    try:
+        import cuml
+    except ImportError:
+        import warnings
+        warnings.warn(
+            "cuML is required to use GPU explainers. Check https://rapids.ai/start.html for \
+            more information on how to install it.")
+
+    clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
     model = clf.fit(X, y)
     return model
 
@@ -403,6 +423,29 @@ def create_scikit_cancer_data():
     feature_names = breast_cancer_data.feature_names
     classes = breast_cancer_data.target_names.tolist()
     return x_train, x_test, y_train, y_test, feature_names, classes
+
+
+def create_msx_data(test_size):
+    sparse_matrix = retrieve_dataset('msx_transformed_2226.npz')
+    sparse_matrix_x = sparse_matrix[:, :sparse_matrix.shape[1] - 2]
+    sparse_matrix_y = sparse_matrix[:, (sparse_matrix.shape[1] - 2):(sparse_matrix.shape[1] - 1)]
+    return train_test_split(sparse_matrix_x, sparse_matrix_y, test_size=test_size, random_state=7)
+
+
+def create_binary_classification_dataset():
+    from sklearn.datasets import make_classification
+    import pandas as pd
+    import numpy as np
+    X, y = make_classification()
+
+    # Split data into train and test
+    x_train, x_test, y_train, y_test = train_test_split(X,
+                                                        y,
+                                                        test_size=0.2,
+                                                        random_state=0)
+    classes = np.unique(y_train).tolist()
+
+    return pd.DataFrame(x_train), y_train, pd.DataFrame(x_test), y_test, classes
 
 
 def create_reviews_data(test_size):

@@ -11,20 +11,27 @@ from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
 from .constants import Scipy
-
+from .gpu_kmeans import kmeans
 import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     import shap
-    from shap.common import DenseData
+    try:
+        from shap.common import DenseData
+    except ImportError:
+        from shap.utils._legacy import DenseData
 
 
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+_VALUES = 'values'
+_RANKING = 'ranking'
+_FEATURES = 'features'
 
-def _summarize_data(X, k=10, to_round_values=True):
+
+def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     """Summarize a dataset.
 
     For dense dataset, use k mean samples weighted by the number of data points they
@@ -54,19 +61,44 @@ def _summarize_data(X, k=10, to_round_values=True):
             module_logger.debug('Create dense data summary with k-means')
             # use kmeans to summarize the examples for initialization
             # if there are more than 10 x k of them
-            return shap.kmeans(X, k, to_round_values)
+            if use_gpu:
+                return kmeans(X, k, to_round_values)
+            else:
+                return shap.kmeans(X, k, to_round_values)
     return X
+
+
+def _should_compress_sparse_matrix(matrix):
+    """Returns whether to compress the matrix, which can be sparse or dense format depending on optimal storage.
+
+    If more than a third of the values are non-zero in the sparse matrix, we convert it to dense format.
+
+    :param matrix: The matrix to compress.
+    :type matrix: scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :return: Whether the matrix should be compressed.
+    :rtype: bool
+    """
+    nnz = 0
+    num_cells = 0
+    if isinstance(matrix, list):
+        for class_matrix in matrix:
+            nnz += class_matrix.nnz
+            num_cells += class_matrix.shape[0] * class_matrix.shape[1]
+    else:
+        nnz += matrix.nnz
+        num_cells += matrix.shape[0] * matrix.shape[1]
+    return nnz > num_cells / 3
 
 
 def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
     :param importance_values: The importance values computed for the dataset.
-    :type importance_values: np.array or list[scipy.sparse.csr_matrix]
+    :type importance_values: numpy.array or list[scipy.sparse.csr_matrix]
     :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
-    :type raw_to_output_feature_maps: list[numpy.array or sparse matrix]
+    :type raw_to_output_feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
     :return: Raw feature importance values.
-    :rtype: np.array
+    :rtype: numpy.array
     """
     if not isinstance(raw_to_output_feature_maps, list):
         raise ValueError("raw_to_output_feature_maps should be a list of feature maps")
@@ -88,8 +120,17 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     if isinstance(importance_values, list):
         raw_importances = []
         for class_matrix in importance_values:
-            raw_importances.append(class_matrix.dot(raw_to_output_map.T))
-        return np.array(raw_importances)
+            raw_matrix = class_matrix.dot(raw_to_output_map.T)
+            raw_importances.append(raw_matrix)
+        is_sparse_matrix = len(raw_importances) > 0 and issparse(raw_importances[0])
+        if is_sparse_matrix:
+            if _should_compress_sparse_matrix(raw_importances):
+                for i in range(len(raw_importances)):
+                    raw_importances[i] = raw_importances[i].toarray()
+                raw_importances = np.array(raw_importances)
+        else:
+            raw_importances = np.array(raw_importances)
+        return raw_importances
 
     if len(importance_values.shape) < 2:
         importance_values = importance_values.reshape(1, -1)
@@ -103,7 +144,7 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
                 raw_importances = importance_values
             else:
                 raw_importances = raw_to_output_map.dot(importance_values.T).T
-            if issparse(raw_importances):
+            if issparse(raw_importances) and _should_compress_sparse_matrix(raw_importances):
                 raw_importances = raw_importances.toarray()
     else:
         raw_importances = importance_values.dot(raw_to_output_map.T)
@@ -114,7 +155,7 @@ def _is_identity(matrix):
     """Checks if the given sparse matrix is identity matrix.
 
     :param matrix: sparse matrix
-    :type matrix: scipy sparse matrix
+    :type matrix: scipy.sparse.csr_matrix
     :return: True if the matrix is an identity matrix.
     :rtype: bool
     """
@@ -129,11 +170,11 @@ def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):
     """Multiply sparse matrix with a 3 dimension numpy array.
 
     :param np_tensor: numpy tensor of 3 dimensions.
-    :type np_tensor: numpy array
+    :type np_tensor: numpy.array
     :param sp_matrix: sparse matrix
-    :type sp_matrix: scipy sparse matrix
+    :type sp_matrix: scipy.sparse.csr_matrix
     :return: The product of numpy array and sparse matrix.
-    :rtype: numpy array
+    :rtype: numpy.array
     """
     if len(np_tensor.shape) != 3:
         raise ValueError("Expected matrix of dimension 3. Got dimension {}.".format(len(np_tensor.shape)))
@@ -147,21 +188,6 @@ def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):
 
 def _is_one_to_many(feature_map):
     return ((feature_map > 0).sum(axis=0) >= 2).sum() == 0
-
-
-def _transform_data(data, data_mapper=None):
-    """Use mapper or transformer to convert raw data to engineered before explanation.
-
-    :param data: The raw data to transform.
-    :type data: numpy, pandas, dense, sparse data matrix
-    :param data_mapper: A list of lists of generated feature indices for each raw feature.
-    :type data_mapper: list[list[]]
-    :return: The transformed data.
-    :rtype: numpy, pandas, dense, sparse data matrix
-    """
-    if data_mapper is not None:
-        return data_mapper.transform(data)
-    return data
 
 
 def _get_dense_examples(examples):
@@ -188,12 +214,12 @@ def _convert_to_list(shap_values):
 def _generate_augmented_data(x, max_num_of_augmentations=np.inf):
     """Augment x by appending x with itself shuffled columnwise many times.
 
-    :param x: data that has to be augmented
-    :type x: nd array or sparse matrix of 2 dimensions
+    :param x: data that has to be augmented, array or sparse matrix of 2 dimensions
+    :type x: numpy.array or scipy.sparse.csr_matrix
     :param max_augment_data_size: number of times we stack permuted x to augment.
     :type max_augment_data_size: int
     :return: augmented data with roughly number of rows that are equal to number of columns
-    :rtype ndarray or sparse matrix
+    :rtype: numpy.array or scipy.sparse.csr_matrix
     """
     x_augmented = x
     vstack = sparse_vstack if issparse(x) else np.vstack
@@ -213,13 +239,13 @@ def _scale_tree_shap(shap_values, expected_values, prediction):
     https://github.com/slundberg/shap/issues/29#issuecomment-408385378
 
     :param shap_values: The shap values to transform from log odds to probabilities.
-    :type shap_values: np.array
+    :type shap_values: numpy.array
     :param expected_values: The expected values as probabilities.
-    :type expected_values: np.array
+    :type expected_values: numpy.array
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: np.array
+    :type prediction: numpy.array
     :return: The transformed tree shap values as probabilities.
-    :rtype list or ndarray
+    :rtype: list or numpy.array
     """
     # In multiclass case, use expected values and predictions per class
     if isinstance(shap_values, list):
@@ -240,13 +266,13 @@ def _scale_single_shap_matrix(shap_values, expectation, prediction):
     """Scale a single class matrix of shap values to sum to the teacher model prediction.
 
     :param shap_values: The shap values of the mimic model.
-    :type shap_values: np.array
+    :type shap_values: numpy.array
     :param expected_values: The expected values as probabilities (base values).
-    :type expected_values: np.array
+    :type expected_values: numpy.array
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: np.array
+    :type prediction: numpy.array
     :return: The transformed tree shap values as probabilities.
-    :rtype list or ndarray
+    :rtype: list or numpy.array
     """
     mimic_prediction = np.sum(shap_values, axis=1)
     error = prediction - mimic_prediction - expectation
@@ -273,9 +299,9 @@ def _convert_single_instance_to_multi(instance_shap_values):
     """Convert a single shap values instance to multi-instance form.
 
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: np.array or list
+    :type instance_shap_values: numpy.array or list
     :return: The instance converted to multi-instance form.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -291,11 +317,11 @@ def _append_shap_values_instance(shap_values, instance_shap_values):
     """Append a single instance of shap values to an existing multi-instance shap values list or array.
 
     :param shap_values: The existing shap values array or list.
-    :type shap_values: np.array or list
+    :type shap_values: numpy.array or list
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: np.array or list
+    :type instance_shap_values: numpy.array or list
     :return: The instance appended to the existing shap values.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -320,9 +346,9 @@ def _fix_linear_explainer_shap_values(model, shap_values):
     :param model: The linear model.
     :type model: tuple of (coefficients, intercept) or sklearn.linear.* model
     :param shap_values: The existing shap values array or list.
-    :type shap_values: np.array or list
+    :type shap_values: numpy.array or list
     :return: The shap values reshaped into the correct form for given linear model.
-    :rtype np.array or list
+    :rtype: numpy.array or list
     """
     # Temporary fix for a bug in shap for regression models
     if (type(model) == tuple and len(model) == 2):
@@ -360,19 +386,6 @@ def _unsort_1d(values, order):
     return np.array(values)[order_inverse]
 
 
-def _unsort_2d(values, order):
-    """Unsort a sorted 2d array based on the order that was used to sort it.
-
-    :param values: The array that has been sorted.
-    :type values: numpy.array
-    :param order: The order list that was originally used to sort values.
-    :type order: numpy.ndarray
-    :return: The unsorted array.
-    :rtype: numpy.array
-    """
-    return np.array([_unsort_1d(values[i], order[i]).tolist() for i in range(len(order))])
-
-
 def _order_imp(summary):
     """Compute the ranking of feature importance values.
 
@@ -382,6 +395,92 @@ def _order_imp(summary):
     :rtype: numpy.ndarray
     """
     return summary.argsort()[..., ::-1]
+
+
+def _sparse_order_imp_csr_matrix(local_importance_values, values_type=_RANKING, features=None, top_k=None):
+    """Compute the ranking, names or values for sparse feature importance values on a single csr_matrix.
+
+    :param local_importance_values: The local importance values to compute the ranking for.
+    :type local_importance_values: scipy.sparse.csr_matrix
+    :param values_type: The type of values, can be 'ranking', which returns the sorted
+        indices, 'values', which returns the sorted values, or 'features', which returns
+        the feature names.
+    :type values_type: str
+    :param features: The feature names.
+    :type features: list[str]
+    :param top_k: If specified, only the top k values will be returned.
+    :type top_k: int
+    :return: The rank of the non-zero sparse feature importance values.
+    :rtype: list
+    """
+    sparse_ranking = []
+    data = local_importance_values.data
+    indices = local_importance_values.indices
+    indptr = local_importance_values.indptr
+    for i in range(len(indptr) - 1):
+        rowstart = indptr[i]
+        rowend = indptr[i + 1]
+        row_values = data[rowstart:rowend]
+        # compute the ranking of the values for each row
+        values_ranking = row_values.argsort()[..., ::-1]
+        if values_type == _VALUES:
+            sorted_values = row_values[values_ranking]
+            if top_k is not None:
+                sorted_values = sorted_values[:top_k]
+            sparse_ranking.append(sorted_values.tolist())
+        elif values_type == _FEATURES:
+            row_indices = indices[rowstart:rowend]
+            indices_ranking = row_indices[values_ranking]
+            if features is not None:
+                ranked_features = np.array(features)[indices_ranking]
+                if top_k is not None:
+                    ranked_features = ranked_features[:top_k]
+                sparse_ranking.append(ranked_features.tolist())
+            else:
+                if top_k is not None:
+                    indices_ranking = indices_ranking[:top_k]
+                sparse_ranking.append(indices_ranking.tolist())
+        elif values_type == _RANKING:
+            row_indices = indices[rowstart:rowend]
+            # re-shuffle indices based on the ranking values
+            indices_ranking = row_indices[values_ranking]
+            if top_k is not None:
+                indices_ranking = indices_ranking[:top_k]
+            sparse_ranking.append(indices_ranking.tolist())
+        else:
+            raise ValueError("Unknown values_type specified: {}.".format(values_type))
+    return sparse_ranking
+
+
+def _sparse_order_imp(local_importance_values, values_type=_RANKING, features=None, top_k=None):
+    """Compute the ranking for sparse feature importance values.
+
+    :param local_importance_values: The local importance values to compute the ranking for.
+    :type local_importance_values: scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :param values_type: The type of values, can be 'ranking', which returns the sorted
+        indices, 'values', which returns the sorted values, or 'features', which returns
+        the feature names.
+    :type values_type: str
+    :param features: The feature names.
+    :type features: list[str]
+    :param top_k: If specified, only the top k values will be returned.
+    :type top_k: int
+    :return: The rank of the non-zero sparse feature importance values.
+    :rtype: list
+    """
+    if isinstance(local_importance_values, list):
+        per_class_sparse_ranking = []
+        for class_importance_values in local_importance_values:
+            per_class_sparse_ranking.append(_sparse_order_imp_csr_matrix(class_importance_values,
+                                                                         values_type=values_type,
+                                                                         features=features,
+                                                                         top_k=top_k))
+        return per_class_sparse_ranking
+    else:
+        return _sparse_order_imp_csr_matrix(local_importance_values,
+                                            values_type=values_type,
+                                            features=features,
+                                            top_k=top_k)
 
 
 # sorts a single dimensional feature list according to order

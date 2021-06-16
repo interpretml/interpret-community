@@ -4,7 +4,7 @@
 
 """Defines the base API for explainable models."""
 import logging
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from ...common.chained_identity import ChainedIdentity
 
 
@@ -30,10 +30,8 @@ def _clean_doc(doc):
     return doc.replace('-', '').replace(':term:', '').replace('**', '')
 
 
-class BaseExplainableModel(ChainedIdentity):
+class BaseExplainableModel(ABC, ChainedIdentity):
     """The base class for models that can be explained."""
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, **kwargs):
         """Initialize the Explainable Model."""
@@ -78,7 +76,7 @@ class BaseExplainableModel(ChainedIdentity):
         pass
 
     @staticmethod
-    def explainable_model_type(self):
+    def explainable_model_type():
         """Retrieve the model type."""
         pass
 
@@ -88,7 +86,7 @@ class BaseExplainableModel(ChainedIdentity):
         Removes logger which is not serializable.
 
         :return state: The state to be pickled, with logger removed.
-        :rtype state: dict
+        :rtype: dict
         """
         odict = self.__dict__.copy()
         del odict['_logger']

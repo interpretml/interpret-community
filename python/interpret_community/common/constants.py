@@ -41,6 +41,7 @@ class ExplainType(object):
     SHAP_TREE = 'shap_tree'
     SHAP_LINEAR = 'shap_linear'
     TABULAR = 'tabular'
+    SHAP_GPU_KERNEL = 'shap_gpu_kernel'
 
 
 class ExplainParams(object):
@@ -88,11 +89,26 @@ class ExplainParams(object):
     def get_serializable(cls):
         """Return only the ExplainParams properties that have meaningful data values for serialization.
 
+        :param cls: ExplainParams input class.
+        :type cls: ExplainParams
         :return: A set of property names, e.g., 'GLOBAL_IMPORTANCE_VALUES', 'MODEL_TYPE', etc.
-        :rtype: set{str}
+        :rtype: set[str]
         """
         return (set(filter(lambda x: not x.startswith('__') and not callable(getattr(cls, x)),
                 vars(cls).keys())) - set(['DATA_MAPPER', 'DATA_MAPPER_INTERNAL']))
+
+    @classmethod
+    def get_private(cls, explain_param):
+        """Return the private version of the ExplainParams property.
+
+        :param cls: ExplainParams input class.
+        :type cls: ExplainParams
+        :param explain_param: The ExplainParams property to get private version of.
+        :type explain_param: str
+        :return: The private version of the property.
+        :rtype: str
+        """
+        return '_' + explain_param
 
 
 class Defaults(object):

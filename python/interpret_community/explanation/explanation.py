@@ -12,21 +12,30 @@ import gc
 import os
 from scipy.sparse import issparse
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
-from shap.common import DenseData
+try:
+    from shap.common import DenseData
+except ImportError:
+    from shap.utils._legacy import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
-from ..common.explanation_utils import _sort_values, _order_imp, _sort_feature_list_single, \
-    _sort_feature_list_multiclass
-from ..common.constants import Dynamic, ExplainParams, ExplanationParams, \
-    ExplainType, ModelTask, Defaults, InterpretData
+from ..common.explanation_utils import (_sort_values,
+                                        _order_imp,
+                                        _sparse_order_imp,
+                                        _sort_feature_list_single,
+                                        _sort_feature_list_multiclass,
+                                        _RANKING,
+                                        _VALUES,
+                                        _FEATURES)
+from ..common.constants import (Defaults, Dynamic, ExplainParams, ExplanationParams,
+                                ExplainType, InterpretData, ModelTask)
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
 
 
-class BaseExplanation(ChainedIdentity):
+class BaseExplanation(ABC, ChainedIdentity):
 
     """The common explanation returned by explainers.
 
@@ -40,8 +49,6 @@ class BaseExplanation(ChainedIdentity):
     :param explanation_id: The unique identifier for the explanation.
     :type explanation_id: str
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, method, model_task, model_type=None, explanation_id=None, **kwargs):
         """Create the common base explanation.
@@ -193,7 +200,7 @@ class BaseExplanation(ChainedIdentity):
         """Get the local or global selector.
 
         :return: The selector as a pandas dataframe of records.
-        :rtype: pd.DataFrame
+        :rtype: pandas.DataFrame
         """
         return None
 
@@ -395,7 +402,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The feature indexes sorted by importance.
         :rtype: list[list[int]] or list[list[list[int]]]
         """
-        return _order_imp(self._local_importance_values).tolist()
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values, values_type=_RANKING)
+        else:
+            return _order_imp(self._local_importance_values).tolist()
 
     def get_ranked_local_names(self, top_k=None):
         """Get feature names sorted by local feature importance values, highest to lowest.
@@ -408,18 +418,24 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The list of sorted features unless feature names are unavailable, feature indexes otherwise.
         :rtype: list[list[int or str]] or list[list[list[int or str]]]
         """
-        if self._features is not None:
-            self._ranked_local_names = _sort_values(self._features, np.array(self.get_local_importance_rank()))
-            ranked_local_names = self._ranked_local_names
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values,
+                                     values_type=_FEATURES,
+                                     features=self._features,
+                                     top_k=top_k)
         else:
-            ranked_local_names = np.array(self.get_local_importance_rank())
+            if self._features is not None:
+                self._ranked_local_names = _sort_values(self._features, np.array(self.get_local_importance_rank()))
+                ranked_local_names = self._ranked_local_names
+            else:
+                ranked_local_names = np.array(self.get_local_importance_rank())
 
-        if top_k is not None:
-            # Note: only slice at the last dimension for top_k
-            # Classification is 3D array and regression is 2D, but we only want to select
-            # top_k features on the last dimension
-            ranked_local_names = ranked_local_names[..., :top_k]
-        return ranked_local_names.tolist()
+            if top_k is not None:
+                # Note: only slice at the last dimension for top_k
+                # Classification is 3D array and regression is 2D, but we only want to select
+                # top_k features on the last dimension
+                ranked_local_names = ranked_local_names[..., :top_k]
+            return ranked_local_names.tolist()
 
     def get_ranked_local_values(self, top_k=None):
         """Get local feature importance sorted from highest to lowest.
@@ -432,6 +448,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The list of sorted values.
         :rtype: list[list[float]] or list[list[list[float]]]
         """
+        if self.is_local_sparse:
+            return _sparse_order_imp(self._local_importance_values,
+                                     values_type=_VALUES,
+                                     top_k=top_k)
         if len(self._local_importance_values.shape) == 1:
             sorted_values = _sort_values(self._local_importance_values, np.array(self.get_local_importance_rank()))
             self._ranked_local_values = sorted_values
@@ -455,13 +475,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     def get_raw_explanation(self, feature_maps, raw_feature_names=None, eval_data=None):
         """Get raw explanation using input feature maps.
 
-        :param feature_maps: list of feature maps from raw to generated feature
-        :type feature_maps: list of numpy arrays or sparse matrices where each array entry
-            (raw_index, generated_index) is the weight for each raw, generated feature pair. The other entries are set
-            to zero. For a sequence of transformations [t1, t2, ..., tn] generating generated features from raw
-            features, the list of feature maps correspond to the raw to generated maps in the same order as t1, t2,
-            etc. If the overall raw to generated feature map from t1 to tn is available, then just that feature map
-            in a single element list can be passed
+        :param feature_maps: list of feature maps from raw to generated feature where each array entry
+            (raw_index, generated_index) is the weight for each raw, generated feature pair.
+            The other entries are set to zero. For a sequence of transformations [t1, t2, ..., tn]
+            generating generated features from raw features, the list of feature maps correspond to
+            the raw to generated maps in the same order as t1, t2, etc. If the overall raw to
+            generated feature map from t1 to tn is available, then just that feature map
+            in a single element list can be passed.
+        :type feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
@@ -506,6 +527,15 @@ class LocalExplanation(FeatureImportanceExplanation):
             di["residual"] = y[i] - y_hat[i]
         return di
 
+    def _convert_local_importances_to_dense_list(self):
+        if isinstance(self.local_importance_values, list):
+            local_importances_as_list = []
+            for sparse_matrix in self.local_importance_values:
+                local_importances_as_list.append(sparse_matrix.toarray().tolist())
+        else:
+            local_importances_as_list = self.local_importance_values.toarray().tolist()
+        return local_importances_as_list
+
     def _local_data(self, parent_data, key=None):
         """Get the local data for given key.
 
@@ -519,7 +549,11 @@ class LocalExplanation(FeatureImportanceExplanation):
         parent_data[InterpretData.NAMES] = self.features
         # Note: we currently don't have access to predictions and y values from original dataset on explanation
         parent_data[InterpretData.PERF] = None
-        parent_data[InterpretData.SCORES] = self._local_importance_values
+        if self.is_local_sparse:
+            scores = self._convert_local_importances_to_dense_list()
+        else:
+            scores = self._local_importance_values
+        parent_data[InterpretData.SCORES] = scores
         if ExpectedValuesMixin._does_quack(self):
             parent_data[InterpretData.INTERCEPT] = self.expected_values
         # Note: we currently don't have access to instances on explanation
@@ -548,7 +582,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         if key is None:
             return parent_data
         elif key == -1:
-            num_rows = self._local_importance_values.shape[-2]
+            num_rows = self.num_examples
             data_dicts = []
             perf_list = []
             for i in range(0, num_rows):
@@ -560,12 +594,20 @@ class LocalExplanation(FeatureImportanceExplanation):
                 overall_data = parent_data[InterpretData.OVERALL]
             if InterpretData.MLI in parent_data:
                 mli_data = parent_data[InterpretData.MLI]
+                intercept = []
+                if ExpectedValuesMixin._does_quack(self):
+                    intercept = self.expected_values
+                if self.is_local_sparse:
+                    scores = self._convert_local_importances_to_dense_list()
+                else:
+                    scores = self.local_importance_values
                 mli_data.append({
                     InterpretData.EXPLANATION_TYPE: InterpretData.LOCAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {
-                        InterpretData.SCORES: self.local_importance_values,
-                        InterpretData.PERF: perf_list
-                    },
+                        InterpretData.SCORES: scores,
+                        InterpretData.PERF: perf_list,
+                        InterpretData.INTERCEPT: intercept
+                    }
                 })
             return {InterpretData.OVERALL: overall_data, InterpretData.SPECIFIC: data_dicts,
                     InterpretData.MLI: mli_data}
@@ -578,10 +620,10 @@ class LocalExplanation(FeatureImportanceExplanation):
         """Get the local selector.
 
         :return: The selector as a pandas dataframe of records.
-        :rtype: pd.DataFrame
+        :rtype: pandas.DataFrame
         """
         predicted = self._eval_y_predicted
-        dataset_shape = np.empty((self._local_importance_values.shape[-2], 1))
+        dataset_shape = np.empty((self.num_examples, 1))
         return gen_local_selector(dataset_shape, None, predicted.flatten())
 
     @classmethod
@@ -718,17 +760,18 @@ class GlobalExplanation(FeatureImportanceExplanation):
     def get_raw_explanation(self, feature_maps, raw_feature_names=None, eval_data=None):
         """Get raw explanation given input feature maps.
 
-        :param feature_maps: list of feature maps from raw to generated feature
-        :type feature_maps: list of numpy arrays or sparse matrices where each array entry
-            (raw_index, generated_index) is the weight for each raw, generated feature pair. The other entries are set
-            to zero. For a sequence of transformations [t1, t2, ..., tn] generating generated features from raw
-            features, the list of feature maps correspond to the raw to generated maps in the same order as t1, t2,
-            etc. If the overall raw to generated feature map from t1 to tn is available, then just that feature map
+        :param feature_maps: list of feature maps from raw to generated feature where each array entry
+            (raw_index, generated_index) is the weight for each raw, generated feature pair.
+            The other entries are set to zero. For a sequence of transformations [t1, t2, ..., tn]
+            generating generated features from raw features, the list of feature maps correspond to
+            the raw to generated maps in the same order as t1, t2, etc. If the overall raw to
+            generated feature map from t1 to tn is available, then just that feature map
             in a single element list can be passed.
+        :type feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: np.ndarray or pd.DataFrame
+        :type eval_data: numpy.array or pandas.DataFrame
         :return: raw explanation
         :rtype: GlobalExplanation
         """
@@ -761,7 +804,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :param top_k: If specified, only the top k names and values will be returned.
         :type top_k: int
         :return: A dictionary of feature names and their importance values.
-        :rtype: dict{str: float}
+        :rtype: dict
         """
         names = self.get_ranked_global_names(top_k=top_k)
         values = self.get_ranked_global_values(top_k=top_k)
@@ -819,7 +862,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         """Get the global selector if this is only a global explanation otherwise local.
 
         :return: The selector as a pandas dataframe of records.
-        :rtype: pd.DataFrame
+        :rtype: pandas.DataFrame
         """
         if LocalExplanation._does_quack(self):
             return LocalExplanation.selector.__get__(self)
@@ -852,14 +895,14 @@ class ExpectedValuesMixin(object):
     """The explanation mixin for expected values.
 
     :param expected_values: The expected values of the model.
-    :type expected_values: np.array
+    :type expected_values: numpy.array
     """
 
     def __init__(self, expected_values=None, **kwargs):
         """Create the expected values mixin and set the expected values.
 
         :param expected_values: The expected values of the model.
-        :type expected_values: np.array
+        :type expected_values: numpy.array
         """
         super(ExpectedValuesMixin, self).__init__(**kwargs)
         self._expected_values = expected_values
@@ -1160,15 +1203,15 @@ class _DatasetsMixin(object):
     If this explanation has been downloaded from run history, these will always be ID strings.
 
     :param init_data: The initialization (background) data used in the explanation, or a Dataset ID.
-    :type init_data: np.array or str
+    :type init_data: numpy.array or str
     :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
-    :type eval_data: np.array or str
+    :type eval_data: numpy.array or str
     :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
         Not available from the DeepExplainer.
-    :type eval_y_predicted: np.array or str
+    :type eval_y_predicted: numpy.array or str
     :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
         Not available from the DeepExplainer.
-    :type eval_y_predicted_proba: np.array or str
+    :type eval_y_predicted_proba: numpy.array or str
     """
 
     def __init__(self,
@@ -1182,15 +1225,15 @@ class _DatasetsMixin(object):
         If this explanation has been downloaded from run history, these will always be ID strings.
 
         :param init_data: The initialization (background) data used in the explanation, or a Dataset ID.
-        :type init_data: np.array or str
+        :type init_data: numpy.array or str
         :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
-        :type eval_data: np.array or str
+        :type eval_data: numpy.array or str
         :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
             Not available from the DeepExplainer.
-        :type eval_y_predicted: np.array or str
+        :type eval_y_predicted: numpy.array or str
         :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
             Not available from the DeepExplainer.
-        :type eval_y_predicted_proba: np.array or str
+        :type eval_y_predicted_proba: numpy.array or str
         """
         super(_DatasetsMixin, self).__init__(**kwargs)
         self._init_data = init_data
@@ -1203,7 +1246,7 @@ class _DatasetsMixin(object):
         """Get initialization (background) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list[input data base type] | sparse | str
+        :rtype: list[input data base type] or sparse or str
         """
         return self._convert_to_list(self._init_data)
 
@@ -1212,7 +1255,7 @@ class _DatasetsMixin(object):
         """Get evaluation (testing) data or the Dataset ID.
 
         :return: The dataset or dataset ID.
-        :rtype: list[input data base type] | sparse | str
+        :rtype: list[input data base type] or sparse or str
         """
         return self._convert_to_list(self._eval_data)
 
@@ -1221,7 +1264,7 @@ class _DatasetsMixin(object):
         """Get predicted ys for the evaluation data or the Dataset ID.
 
         :return: The predicted ys for the evaluation data or dataset ID.
-        :rtype: list[input data base type] | sparse | str
+        :rtype: list[input data base type] or sparse or str
         """
         return self._convert_to_list(self._eval_y_predicted)
 
@@ -1230,7 +1273,7 @@ class _DatasetsMixin(object):
         """Get predicted probability ys for the evaluation data or the Dataset ID.
 
         :return: The predicted probability ys for the evaluation data or dataset ID.
-        :rtype: list[list[input data base type]] | sparse | str
+        :rtype: list[list[input data base type]] or sparse or str
         """
         return self._convert_to_list(self._eval_y_predicted_proba)
 
@@ -1238,14 +1281,16 @@ class _DatasetsMixin(object):
         """Convert data to a Python list.
 
         :param data: The data to be converted.
-        :type data: np.array, pd.DataFrame, list, scipy.sparse
+        :type data: Union[numpy.array, pandas.DataFrame, list, scipy.sparse]
         :return: The data converted to a list (except for sparse or dataset ID which is unchanged).
-        :rtype: list | scipy.sparse | list[scipy.sparse] | str
+        :rtype: list or scipy.sparse or list[scipy.sparse] or str
         """
         if isinstance(data, np.ndarray):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
+        elif isinstance(data, DenseData):
+            return data.data
         else:
             # doesn't handle sparse or string right now
             return data
@@ -1336,9 +1381,9 @@ def _create_local_explanation(expected_values=None, classification=True, explana
     :param eval_data: The evaluation (testing) data for the explanation.
     :type eval_data: list
     :param eval_ys_predicted: The predicted ys for the evaluation data.
-    :type eval_ys_predicted: np.array
+    :type eval_ys_predicted: numpy.array
     :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-    :type eval_ys_predicted_proba: np.array
+    :type eval_ys_predicted_proba: numpy.array
     :param model_id: The model ID.
     :type model_id: str
     :return: A model explanation object. It is guaranteed to be a LocalExplanation. If expected_values is not None, it
@@ -1395,9 +1440,9 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     :param eval_data: The evaluation (testing) data for the explanation.
     :type eval_data: list
     :param eval_ys_predicted: The predicted ys for the evaluation data.
-    :type eval_ys_predicted: np.array
+    :type eval_ys_predicted: numpy.array
     :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-    :type eval_ys_predicted_proba: np.array
+    :type eval_ys_predicted_proba: numpy.array
     :param eval_data: list
     :param model_id: The model ID.
     :type model_id: str
@@ -1616,7 +1661,7 @@ def _get_local_explanation_row(explainer, evaluation_examples, i, batch_size):
         local explanations to global.
     :type batch_size: int
     :return: The local explanation for the slice of rows.
-    :rtype DynamicLocalExplanation
+    :rtype: DynamicLocalExplanation
     """
     rows = evaluation_examples.dataset[i:i + batch_size]
     return explainer.explain_local(rows)
@@ -1639,7 +1684,7 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         local explanations to global.
     :type batch_size: int
     :return: kwargs to create a global explanation
-    :rtype dict
+    :rtype: dict
     """
     if batch_size <= 0:
         raise ValueError("Specified argument batch_size must be greater than 0")
@@ -1756,7 +1801,11 @@ def save_explanation(explanation, path, exist_ok=False):
         ExplainParams.GLOBAL_IMPORTANCE_VALUES,
         ExplainParams.PER_CLASS_NAMES,
         ExplainParams.PER_CLASS_RANK,
-        ExplainParams.PER_CLASS_VALUES
+        ExplainParams.PER_CLASS_VALUES,
+        ExplainParams.INIT_DATA,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.EVAL_Y_PRED,
+        ExplainParams.EVAL_Y_PRED_PROBA
     ]
     # TODO will need to add viz data on top of this
     for prop in uploadable_properties:
@@ -1823,8 +1872,8 @@ def _get_value_from_file(file_var):
     data = json_input['data']
     if meta == 'DataFrame':
         return pd.DataFrame(data)
-    elif meta == 'DatasetWrapper' or meta == 'DenseData':
-        return DenseData(data)
+    elif meta == 'DatasetWrapper':
+        return DatasetWrapper(data)
     elif meta == 'ndarray':
         return np.array(data)
     elif meta == 'list':
@@ -1834,11 +1883,19 @@ def _get_value_from_file(file_var):
 
 
 def _get_kwargs(path, params, local_explanation=None):
+    numpy_params = [
+        ExplainParams.LOCAL_IMPORTANCE_VALUES,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.INIT_DATA
+    ]
     kwargs = {}
     for param in params:
         if os.path.exists(os.path.join(path, param + '.json')):
             with open(os.path.join(path, param + '.json'), 'r') as f:
-                kwargs[param] = _get_value_from_file(f)
+                if param in numpy_params:
+                    kwargs[param] = np.array(_get_value_from_file(f))
+                else:
+                    kwargs[param] = _get_value_from_file(f)
     with open(os.path.join(path, 'explanation_metadata.json'), 'r') as f:
         metadata = json.load(f)
         param_list = [
@@ -1866,6 +1923,10 @@ def load_explanation(path):
         ExplainParams.EXPECTED_VALUES,
         ExplainParams.FEATURES,
         ExplainParams.CLASSES,
+        ExplainParams.EVAL_DATA,
+        ExplainParams.INIT_DATA,
+        ExplainParams.EVAL_Y_PRED,
+        ExplainParams.EVAL_Y_PRED_PROBA
     ]
     global_params = [
         ExplainParams.GLOBAL_IMPORTANCE_RANK,

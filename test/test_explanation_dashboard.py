@@ -11,8 +11,9 @@ from sklearn.compose import ColumnTransformer
 from datasets import retrieve_dataset
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.common.constants import ModelTask
-from interpret_community.widget import ExplanationDashboard
-from common_utils import create_lightgbm_classifier
+from raiwidgets import ExplanationDashboard
+from common_utils import (create_lightgbm_classifier, create_sklearn_svm_classifier,
+                          create_cancer_data)
 
 from constants import owner_email_tools_and_ux
 
@@ -57,4 +58,14 @@ class TestExplanationDashboard:
                                     features=features, model_task=model_task)
         explanation = explainer.explain_global(x_train)
         dashboard_pipeline = Pipeline(steps=[('preprocess', transformations), ('model', model)])
-        ExplanationDashboard(explanation, dashboard_pipeline, datasetX=x_train, trueY=y_train)
+        ExplanationDashboard(explanation, dashboard_pipeline, dataset=x_train, true_y=y_train)
+
+    def test_local_explanation(self, mimic_explainer):
+        # Validate visualizing ExplanationDashboard with a local explanation
+        x_train, x_test, y_train, y_test, feature_names, target_names = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
+                                    features=feature_names, classes=target_names)
+        explanation = explainer.explain_local(x_test)
+        ExplanationDashboard(explanation, model, dataset=x_test, true_y=y_test)

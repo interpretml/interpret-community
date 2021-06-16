@@ -40,7 +40,10 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    from shap.common import DenseData
+    try:
+        from shap.common import DenseData
+    except ImportError:
+        from shap.utils._legacy import DenseData
 
 
 class MimicExplainer(BlackBoxExplainer):
@@ -51,7 +54,8 @@ class MimicExplainer(BlackBoxExplainer):
 
     :param model: The black box model or function (if is_function is True) to be explained. Also known
         as the teacher model.
-    :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray
+        A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d ndarray.
+    :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
     :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -147,8 +151,9 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param model: The black box model or function (if is_function is True) to be explained.  Also known
             as the teacher model.
-        :type model: model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
-            ndarray
+            A model that implements sklearn.predict or sklearn.predict_proba or function that accepts a 2d
+            ndarray.
+        :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
         :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
@@ -285,12 +290,13 @@ class MimicExplainer(BlackBoxExplainer):
         self._timestamp_featurizer = initialization_examples.timestamp_featurizer()
 
         # If model is a linear model or isn't able to handle categoricals, one-hot-encode categoricals
-        is_tree_model = explainable_model.explainable_model_type == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
+        is_tree_model = explainable_model.explainable_model_type() == ExplainableModelType.TREE_EXPLAINABLE_MODEL_TYPE
         if is_tree_model and self._supports_categoricals(explainable_model):
             # Index the categorical string columns for training data
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
             self._one_hot_encoder = None
-            explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
+            if categorical_features:
+                explainable_model_args[LightGBMParams.CATEGORICAL_FEATURE] = categorical_features
         else:
             # One-hot-encode categoricals for models that don't support categoricals natively
             self._column_indexer = initialization_examples.string_index(columns=categorical_features)
@@ -719,7 +725,7 @@ class MimicExplainer(BlackBoxExplainer):
         Removes logger which is not serializable.
 
         :return state: The state to be pickled, with logger removed.
-        :rtype state: dict
+        :rtype: dict
         """
         odict = self.__dict__.copy()
         del odict['_logger']

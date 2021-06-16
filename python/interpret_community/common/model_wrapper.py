@@ -15,7 +15,10 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    from shap.common import DenseData
+    try:
+        from shap.common import DenseData
+    except ImportError:
+        from shap.utils._legacy import DenseData
 
 
 module_logger = logging.getLogger(__name__)
@@ -48,7 +51,7 @@ class _FunctionWrapper(object):
         """Wraps a function that reshapes the input dataset to be 2D from 1D.
 
         :param dataset: The model evaluation examples.
-        :type dataset: np.array
+        :type dataset: numpy.array
         :return: A wrapped function.
         :rtype: function
         """
@@ -60,7 +63,7 @@ class _FunctionWrapper(object):
         """Wraps a function that flattens the input dataset from 2D to 1D.
 
         :param dataset: The model evaluation examples.
-        :type dataset: np.array
+        :type dataset: numpy.array
         :return: A wrapped function.
         :rtype: function
         """
@@ -70,7 +73,7 @@ class _FunctionWrapper(object):
         """Wraps a function that creates two columns, [1-p, p], from 2D array of one column evaluation result.
 
         :param dataset: The model evaluation examples.
-        :type dataset: np.array
+        :type dataset: numpy.array
         :return: A wrapped function.
         :rtype: function
         """
@@ -81,7 +84,7 @@ class _FunctionWrapper(object):
         """Wraps a function that creates two columns, [1-p, p], from evaluation result that is a 1D array.
 
         :param dataset: The model evaluation examples.
-        :type dataset: np.array
+        :type dataset: numpy.array
         :return: A wrapped function.
         :rtype: function
         """
@@ -92,7 +95,7 @@ class _FunctionWrapper(object):
         """Wraps a function that creates one column in rare edge case scenario for multiclass one-class result.
 
         :param dataset: The model evaluation examples.
-        :type dataset: np.array
+        :type dataset: numpy.array
         :return: A wrapped function.
         :rtype: function
         """
@@ -106,7 +109,7 @@ def _convert_to_two_cols(function, examples):
     :param function: The prediction function to evaluate on the examples.
     :type function: function
     :param examples: The model evaluation examples.
-    :type examples: np.array or list
+    :type examples: numpy.array or list
     :return: The function chosen from given model and classification domain.
     :rtype: (function, str)
     """
@@ -148,7 +151,7 @@ class WrappedPytorchModel(object):
         """Predict the output using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         # Convert the data to pytorch Variable
         if isinstance(dataset, pd.DataFrame):
@@ -165,7 +168,7 @@ class WrappedPytorchModel(object):
         """Predict the class using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         # Convert the data to pytorch Variable
         if isinstance(dataset, pd.DataFrame):
@@ -182,7 +185,7 @@ class WrappedPytorchModel(object):
         """Predict the output probability using the wrapped PyTorch model.
 
         :param dataset: The dataset to predict_proba on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         return self.predict(dataset)
 
@@ -199,12 +202,14 @@ class WrappedClassificationModel(object):
         """Predict the output using the wrapped classification model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         is_sequential = str(type(self._model)).endswith("tensorflow.python.keras.engine.sequential.Sequential'>")
         if is_sequential or isinstance(self._model, WrappedPytorchModel):
             return self._model.predict_classes(dataset).flatten()
         preds = self._model.predict(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values.ravel()
         # Handle possible case where the model has only a predict function and it outputs probabilities
         # Note this is different from WrappedClassificationWithoutProbaModel where there is no predict_proba
         # method but the predict method outputs classes
@@ -220,9 +225,13 @@ class WrappedClassificationModel(object):
         """Predict the output probability using the wrapped model.
 
         :param dataset: The dataset to predict_proba on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
-        return self._eval_function(dataset)
+        proba_preds = self._eval_function(dataset)
+        if isinstance(proba_preds, pd.DataFrame):
+            proba_preds = proba_preds.values
+
+        return proba_preds
 
 
 class WrappedRegressionModel(object):
@@ -237,9 +246,13 @@ class WrappedRegressionModel(object):
         """Predict the output using the wrapped regression model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
-        return self._eval_function(dataset)
+        preds = self._eval_function(dataset)
+        if isinstance(preds, pd.DataFrame):
+            preds = preds.values.ravel()
+
+        return preds
 
 
 class WrappedClassificationWithoutProbaModel(object):
@@ -262,7 +275,7 @@ class WrappedClassificationWithoutProbaModel(object):
         """Predict the output using the wrapped regression model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         return self._model.predict(dataset)
 
@@ -270,7 +283,7 @@ class WrappedClassificationWithoutProbaModel(object):
         """Predict the output probability using the wrapped model.
 
         :param dataset: The dataset to predict_proba on.
-        :type dataset: DatasetWrapper
+        :type dataset: interpret_community.dataset.dataset_wrapper.DatasetWrapper
         """
         predictions = self.predict(dataset)
         # Generate trivial boolean array for predictions
@@ -287,7 +300,7 @@ def wrap_model(model, examples, model_task):
     :param model: The model to evaluate on the examples.
     :type model: model with a predict or predict_proba function.
     :param examples: The model evaluation examples.
-    :type examples: DatasetWrapper
+    :type examples: interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
         has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
@@ -305,7 +318,7 @@ def _wrap_model(model, examples, model_task, is_function):
     :param model: The model or function to evaluate on the examples.
     :type model: function or model with a predict or predict_proba function
     :param examples: The model evaluation examples.
-    :type examples: DatasetWrapper
+    :type examples: interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
         has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
@@ -350,7 +363,7 @@ def _eval_model(model, examples, model_task):
     :param model: The model to evaluate on the examples.
     :type model: model with a predict or predict_proba function
     :param examples: The model evaluation examples.
-    :type examples: DatasetWrapper
+    :type examples: interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
         has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
@@ -385,7 +398,7 @@ def _eval_function(function, examples, model_task, wrapped=False):
     :param function: The prediction function to evaluate on the examples.
     :type function: function
     :param examples: The model evaluation examples.
-    :type examples: DatasetWrapper
+    :type examples: interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
         In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
         has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
@@ -416,6 +429,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
         # to force the user to disambiguate the results.
         if result.shape[1] == 1:
             if model_task == ModelTask.Unknown:
+                if isinstance(result, pd.DataFrame):
+                    return (function, ModelTask.Regression)
                 raise Exception("Please specify model_task to disambiguate model type since "
                                 "result of calling function is 2D array of one column.")
             elif model_task == ModelTask.Classification:
