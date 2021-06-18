@@ -215,9 +215,16 @@ class TestRawExplanations:
         assert np.array(raw_explanation.local_importance_values).shape[-1] == feature_map.shape[0]
 
         assert raw_explanation.is_raw
-        assert hasattr(raw_explanation, 'eval_data') == has_raw_eval_data
         assert not raw_explanation.is_engineered
         assert np.array(raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
+
+        # Test the y_pred and y_pred_proba on the raw explanations
+        assert raw_explanation.eval_y_predicted is not None
+        assert raw_explanation.eval_y_predicted_proba is None
+
+        # Test the raw data on the raw explanations
+        assert hasattr(raw_explanation, 'eval_data')
+        assert (raw_explanation.eval_data is not None) == has_raw_eval_data
 
     def validate_global_explanation_classification(self, eng_explanation, raw_explanation,
                                                    feature_map, classes, feature_names, is_sparse=False,
@@ -234,12 +241,11 @@ class TestRawExplanations:
         assert len(raw_explanation.get_ranked_per_class_names()[0]) == feature_map.shape[0]
         feat_imps_global_local = np.array(raw_explanation.local_importance_values)
         assert feat_imps_global_local.shape[-1] == feature_map.shape[0]
-
         assert raw_explanation.is_raw
-        assert hasattr(raw_explanation, 'eval_data') == has_raw_eval_data
         assert not raw_explanation.is_engineered
         assert len(raw_explanation.get_ranked_global_values()) == feature_map.shape[0]
         assert len(raw_explanation.get_ranked_global_names()) == feature_map.shape[0]
+
         if isinstance(classes, list):
             assert raw_explanation.classes == classes
         else:
@@ -250,3 +256,11 @@ class TestRawExplanations:
         feat_imps_global = np.array(raw_explanation.global_importance_values)
 
         assert feat_imps_global.shape[-1] == feature_map.shape[0]
+
+        # Test the y_pred and y_pred_proba on the raw explanations
+        assert raw_explanation.eval_y_predicted is not None
+        assert raw_explanation.eval_y_predicted_proba is not None
+
+        # Test the raw data on the raw explanations
+        assert hasattr(raw_explanation, 'eval_data')
+        assert (raw_explanation.eval_data is not None) == has_raw_eval_data

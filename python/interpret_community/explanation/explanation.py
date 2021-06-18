@@ -494,6 +494,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
         raw_kwargs[ExplainParams.EVAL_DATA] = eval_data
+        raw_kwargs[ExplainParams.EVAL_Y_PRED] = self.eval_y_predicted
+        raw_kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.eval_y_predicted_proba
         self._is_eng = True
         return _create_raw_feats_local_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
@@ -777,6 +779,8 @@ class GlobalExplanation(FeatureImportanceExplanation):
         raw_kwargs[ExplainParams.FEATURES] = raw_feature_names
         raw_kwargs[ExplainParams.IS_RAW] = True
         raw_kwargs[ExplainParams.EVAL_DATA] = eval_data
+        raw_kwargs[ExplainParams.EVAL_Y_PRED] = self.eval_y_predicted
+        raw_kwargs[ExplainParams.EVAL_Y_PRED_PROBA] = self.eval_y_predicted_proba
         self._is_eng = True
         return _create_raw_feats_global_explanation(self, feature_maps=feature_maps, **raw_kwargs)
 
@@ -1398,7 +1402,8 @@ def _create_local_explanation(expected_values=None, classification=True, explana
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-    if init_data is not None or eval_data is not None:
+    if init_data is not None or eval_data is not None or kwargs.get(ExplainParams.EVAL_Y_PRED) is not None or \
+            kwargs.get(ExplainParams.EVAL_Y_PRED_PROBA) is not None:
         mixins.append(_DatasetsMixin)
         if init_data is not None:
             kwargs[ExplainParams.INIT_DATA] = init_data
@@ -1473,7 +1478,8 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
     else:
         kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-    if init_data is not None or eval_data is not None:
+    if init_data is not None or eval_data is not None or kwargs.get(ExplainParams.EVAL_Y_PRED) is not None or \
+            kwargs.get(ExplainParams.EVAL_Y_PRED_PROBA) is not None:
         mixins.append(_DatasetsMixin)
         if init_data is not None:
             kwargs[ExplainParams.INIT_DATA] = init_data
