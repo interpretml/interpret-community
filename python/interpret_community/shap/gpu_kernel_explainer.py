@@ -39,7 +39,7 @@ try:
     import cuml
     if cuml.__version__ == '0.18.0':
         from cuml.experimental.explainer import KernelExplainer as cuml_Kernel_SHAP
-    elif cuml.__version__ == '0.19.0':
+    elif cuml.__version__ > '0.18.0':
         from cuml.explainer import KernelExplainer as cuml_Kernel_SHAP
     rapids_installed = True
 except ImportError:
