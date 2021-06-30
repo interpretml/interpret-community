@@ -48,7 +48,7 @@ class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
         # If the data was previously successfully summarized, then there are no
         # timestamp columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no timestamps
-        if issparse(X):
+        if str(type(X)).endswith(".DenseData'>") or issparse(X):
             return self
         tmp_dataset = X
         # If numpy array, temporarily convert to pandas for easier and uniform timestamp handling
@@ -303,7 +303,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if issparse(self._dataset):
+        if str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OrdinalEncoder, don't do encoding
         try:
@@ -351,7 +351,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if not columns or issparse(self._dataset):
+        if not columns or str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OneHotEncoder, don't do encoding
         try:
@@ -379,7 +379,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if issparse(self._dataset):
+        if str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         typed_dataset_without_index = self.typed_wrapper_func(self._dataset, keep_index_as_feature=True)
         self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(typed_dataset_without_index)

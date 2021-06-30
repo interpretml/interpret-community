@@ -221,6 +221,8 @@ class LIMEExplainer(BlackBoxExplainer):
         function, summary = self._prepare_function_and_summary(self.function, self.original_data_ref,
                                                                self.current_index_list, nclusters=nclusters,
                                                                explain_subset=explain_subset, **kwargs)
+        if str(type(summary)).endswith(".DenseData'>"):
+            summary = summary.data
         self._lime_feature_names = [str(i) for i in range(summary.shape[1])]
         result = function(summary[0].reshape((1, -1)))
         # If result is 2D array, this is classification scenario, otherwise regression

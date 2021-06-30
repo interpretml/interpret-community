@@ -141,7 +141,7 @@ def _compute_background_data(dataset):
     :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     """
     background = _summarize_data(dataset)
-    if hasattr(background, 'data'):
+    if str(type(background)).endswith(".DenseData'>"):
         background = background.data
     if not issparse(background) and len(background.shape) == 2:
         mean_shape = background.shape[1]

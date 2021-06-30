@@ -47,19 +47,20 @@ def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     :rtype: numpy.array or scipy.sparse.csr_matrix or DenseData
     """
     is_sparse = issparse(X)
-    if is_sparse:
-        module_logger.debug('Creating sparse data summary as csr matrix')
-        # calculate median of sparse background data
-        median_dense = csc_median_axis_0(X.tocsc())
-        return csr_matrix(median_dense)
-    elif len(X) > 10 * k:
-        module_logger.debug('Create dense data summary with k-means')
-        # use kmeans to summarize the examples for initialization
-        # if there are more than 10 x k of them
-        if use_gpu:
-            return kmeans(X, k, to_round_values)
-        else:
-            return shap.kmeans(X, k, to_round_values)
+    if not str(type(X)).endswith(".DenseData'>"):
+        if is_sparse:
+            module_logger.debug('Creating sparse data summary as csr matrix')
+            # calculate median of sparse background data
+            median_dense = csc_median_axis_0(X.tocsc())
+            return csr_matrix(median_dense)
+        elif len(X) > 10 * k:
+            module_logger.debug('Create dense data summary with k-means')
+            # use kmeans to summarize the examples for initialization
+            # if there are more than 10 x k of them
+            if use_gpu:
+                return kmeans(X, k, to_round_values)
+            else:
+                return shap.kmeans(X, k, to_round_values)
     return X
 
 

@@ -409,6 +409,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
     # it in a function that converts a 1D array to 2D for those functions
     # that only support 2D arrays as input
     examples_dataset = examples.dataset
+    if str(type(examples_dataset)).endswith(".DenseData'>"):
+        examples_dataset = examples_dataset.data
     try:
         result = function(examples.typed_wrapper_func(examples_dataset[0]))
     except Exception as ex:

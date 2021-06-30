@@ -303,6 +303,8 @@ class MimicExplainer(BlackBoxExplainer):
         # Train the mimic model on the given model
         training_data = initialization_examples.dataset
         self.initialization_examples = initialization_examples
+        if str(type(training_data)).endswith(".DenseData'>"):
+            training_data = training_data.data
 
         explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
         if self._supports_shap_values_output(explainable_model):
