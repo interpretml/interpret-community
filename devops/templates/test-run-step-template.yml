@@ -65,6 +65,11 @@ steps:
     wheelArtifactName: ${{parameters.wheelArtifactName}}
     condaEnv: ${{parameters.condaEnv}}
 
+- bash: |
+    source activate  ${{parameters.condaEnv}} 
+    pip install -r requirements-vis.txt
+  displayName: Install vis required pip packages
+
 - ${{ if eq(parameters.testRunType, 'Unit')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
