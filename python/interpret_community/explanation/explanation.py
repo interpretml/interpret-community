@@ -14,10 +14,6 @@ from scipy.sparse import issparse
 
 from abc import ABC, abstractmethod
 
-try:
-    from shap.common import DenseData
-except ImportError:
-    from shap.utils._legacy import DenseData
 from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
 
 from ..common.explanation_utils import (_sort_values,
@@ -1289,8 +1285,6 @@ class _DatasetsMixin(object):
             return data.tolist()
         elif isinstance(data, pd.DataFrame):
             return data.values.tolist()
-        elif isinstance(data, DenseData):
-            return data.data
         else:
             # doesn't handle sparse or string right now
             return data
@@ -1819,9 +1813,6 @@ def save_explanation(explanation, path, exist_ok=False):
             elif isinstance(value, DatasetWrapper):
                 value = value.original_dataset.tolist()
                 metadata = 'DatasetWrapper'
-            elif isinstance(value, DenseData):
-                value = value.data
-                metadata = 'DenseData'
             elif isinstance(value, np.ndarray):
                 value = value.tolist()
                 metadata = 'ndarray'

@@ -17,10 +17,6 @@ import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     import shap
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 
 module_logger = logging.getLogger(__name__)
@@ -47,11 +43,11 @@ def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
         from X in the corresponding dimension. This ensures discrete features
         always get a valid value.  Ignored for sparse data sample.
     :type to_round_values: bool
-    :return: DenseData or SparseData object.
-    :rtype: iml.datatypes.DenseData or iml.datatypes.SparseData
+    :return: summarized numpy array or csr_matrix object.
+    :rtype: numpy.array or scipy.sparse.csr_matrix or DenseData
     """
     is_sparse = issparse(X)
-    if not isinstance(X, DenseData):
+    if not str(type(X)).endswith(".DenseData'>"):
         if is_sparse:
             module_logger.debug('Creating sparse data summary as csr matrix')
             # calculate median of sparse background data

@@ -15,10 +15,6 @@ import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     import shap
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 DEFAULT_RANDOM_STATE = 123
 FEATURE_DEPENDENCE = 'interventional'
@@ -145,7 +141,7 @@ def _compute_background_data(dataset):
     :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     """
     background = _summarize_data(dataset)
-    if isinstance(background, DenseData):
+    if str(type(background)).endswith(".DenseData'>"):
         background = background.data
     if not issparse(background) and len(background.shape) == 2:
         mean_shape = background.shape[1]

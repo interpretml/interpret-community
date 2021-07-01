@@ -37,8 +37,7 @@ class LinearExplainer(StructuredInitModelExplainer):
     :type model: (coef, intercept) or sklearn.linear_model.*
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. The subset can be the top-k features
         from the model summary.
@@ -94,8 +93,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         :type model: (coef, intercept) or sklearn.linear_model.*
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. The subset can be the top-k features
             from the model summary.

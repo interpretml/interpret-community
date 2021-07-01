@@ -18,10 +18,6 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 SAMPLED_STRING_ROWS = 10
 
@@ -47,13 +43,12 @@ class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
         """Fits the CustomTimestampFeaturizer.
 
         :param X: The dataset containing timestamp columns to featurize.
-        :type X: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type X: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         """
         # If the data was previously successfully summarized, then there are no
         # timestamp columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no timestamps
-        if isinstance(X, DenseData) or issparse(X):
+        if str(type(X)).endswith(".DenseData'>") or issparse(X):
             return self
         tmp_dataset = X
         # If numpy array, temporarily convert to pandas for easier and uniform timestamp handling
@@ -73,10 +68,9 @@ class CustomTimestampFeaturizer(BaseEstimator, TransformerMixin):
         since min timestamp in the training dataset.
 
         :param X: The dataset containing timestamp columns to featurize.
-        :type X: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type X: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The transformed dataset.
-        :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse.csr_matrix
+        :rtype: numpy.array or scipy.sparse.csr_matrix
         """
         tmp_dataset = X
         if len(self._time_col_names) > 0:
@@ -103,8 +97,7 @@ class DatasetWrapper(object):
 
     :param dataset: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type dataset: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     """
 
     def __init__(self, dataset, clear_references=False):
@@ -112,8 +105,7 @@ class DatasetWrapper(object):
 
         :param dataset: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type dataset: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param clear_references: A memory optimization that clears all references after use in explainers.
         :type clear_references: bool
         """
@@ -145,7 +137,7 @@ class DatasetWrapper(object):
         """Get the dataset.
 
         :return: The underlying dataset.
-        :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse.csr_matrix
+        :rtype: numpy.array or scipy.sparse.csr_matrix
         """
         return self._dataset
 
@@ -154,7 +146,7 @@ class DatasetWrapper(object):
         """Get the dataset in the original type, pandas DataFrame or Series.
 
         :return: The underlying dataset.
-        :rtype: numpy.array or pandas.DataFrame or pandas.Series or iml.datatypes.DenseData or scipy.sparse matrix
+        :rtype: numpy.array or pandas.DataFrame or pandas.Series or scipy.sparse matrix
         """
         wrapper_func = self.typed_wrapper_func
         return wrapper_func(self._dataset)
@@ -197,7 +189,7 @@ class DatasetWrapper(object):
         Note: if the original dataset was a pandas dataframe, this will return the numpy version.
 
         :return: The original dataset.
-        :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse matrix
+        :rtype: numpy.array or scipy.sparse matrix
         """
         return self._original_dataset
 
@@ -206,7 +198,7 @@ class DatasetWrapper(object):
         """Get the original typed dataset which could be a numpy array or pandas DataFrame or pandas Series.
 
         :return: The original dataset.
-        :rtype: numpy.array or pandas.DataFrame or pandas.Series or iml.datatypes.DenseData or scipy.sparse matrix
+        :rtype: numpy.array or pandas.DataFrame or pandas.Series or scipy.sparse matrix
         """
         return self._original_dataset_with_type
 
@@ -232,7 +224,7 @@ class DatasetWrapper(object):
         """Get the summary dataset without any subsetting.
 
         :return: The original dataset or None if summary was not computed.
-        :rtype: numpy.array or iml.datatypes.DenseData or scipy.sparse.csr_matrix
+        :rtype: numpy.array or scipy.sparse.csr_matrix
         """
         return self._summary_dataset
 
@@ -311,7 +303,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if isinstance(self._dataset, DenseData) or issparse(self._dataset):
+        if str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OrdinalEncoder, don't do encoding
         try:
@@ -359,7 +351,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if not columns or isinstance(self._dataset, DenseData) or issparse(self._dataset):
+        if not columns or str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         # If the user doesn't have a newer version of scikit-learn with OneHotEncoder, don't do encoding
         try:
@@ -387,7 +379,7 @@ class DatasetWrapper(object):
         # If the data was previously successfully summarized, then there are no
         # categorical columns as it must be numeric.
         # Also, if the dataset is sparse, we can assume there are no categorical strings
-        if isinstance(self._dataset, DenseData) or issparse(self._dataset):
+        if str(type(self._dataset)).endswith(".DenseData'>") or issparse(self._dataset):
             return None
         typed_dataset_without_index = self.typed_wrapper_func(self._dataset, keep_index_as_feature=True)
         self._timestamp_featurizer = CustomTimestampFeaturizer(self._features).fit(typed_dataset_without_index)
@@ -479,11 +471,7 @@ class DatasetWrapper(object):
         # Edge case: Take the subset of the summary in this case,
         # more optimal than recomputing the summary!
         explain_subset = np.array(explain_subset)
-        if isinstance(self._dataset, DenseData):
-            group_names = np.array(self._dataset.group_names)[explain_subset].tolist()
-            self._dataset = DenseData(self._dataset.data[:, explain_subset], group_names)
-        else:
-            self._dataset = self._dataset[:, explain_subset]
+        self._dataset = self._dataset[:, explain_subset]
         self._subset_taken = True
 
     def _reduce_examples(self, max_dim_clustering=Defaults.MAX_DIM):

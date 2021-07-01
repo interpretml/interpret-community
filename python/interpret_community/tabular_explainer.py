@@ -29,8 +29,7 @@ class TabularExplainer(BaseExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
         process when number of features is large and the user already knows the set of interested
@@ -90,8 +89,7 @@ class TabularExplainer(BaseExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation, which will speed up the explanation
             process when number of features is large and the user already knows the set of interested

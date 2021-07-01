@@ -15,10 +15,6 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 
 module_logger = logging.getLogger(__name__)
@@ -413,7 +409,7 @@ def _eval_function(function, examples, model_task, wrapped=False):
     # it in a function that converts a 1D array to 2D for those functions
     # that only support 2D arrays as input
     examples_dataset = examples.dataset
-    if isinstance(examples_dataset, DenseData):
+    if str(type(examples_dataset)).endswith(".DenseData'>"):
         examples_dataset = examples_dataset.data
     try:
         result = function(examples.typed_wrapper_func(examples_dataset[0]))

@@ -40,10 +40,6 @@ import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
-    try:
-        from shap.common import DenseData
-    except ImportError:
-        from shap.utils._legacy import DenseData
 
 
 class MimicExplainer(BlackBoxExplainer):
@@ -58,8 +54,7 @@ class MimicExplainer(BlackBoxExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-        scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explainable_model: The uninitialized surrogate model used to explain the black box model.
         Also known as the student model.
     :type explainable_model: interpret_community.mimic.models.BaseExplainableModel
@@ -156,8 +151,7 @@ class MimicExplainer(BlackBoxExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explainable_model: The uninitialized surrogate model used to explain the black box model.
             Also known as the student model.
         :type explainable_model: BaseExplainableModel
@@ -309,7 +303,7 @@ class MimicExplainer(BlackBoxExplainer):
         # Train the mimic model on the given model
         training_data = initialization_examples.dataset
         self.initialization_examples = initialization_examples
-        if isinstance(training_data, DenseData):
+        if str(type(training_data)).endswith(".DenseData'>"):
             training_data = training_data.data
 
         explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
@@ -745,8 +739,7 @@ class MimicExplainer(BlackBoxExplainer):
     def _get_surrogate_model_replication_measure(self, training_data):
         """Return the metric which tells how well the surrogate model replicates the teacher model.
         :param training_data: The data for getting the replication metric.
-        :type training_data: numpy.array or pandas.DataFrame or iml.datatypes.DenseData or
-            scipy.sparse.csr_matrix
+        :type training_data: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """
