@@ -6,7 +6,7 @@
 
 import numpy as np
 from scipy.sparse import issparse, isspmatrix_csr, vstack as sparse_vstack
-from scipy.special import expit
+from scipy.special import expit, logit
 
 
 def _soft_logit(values, clip_val=5):
@@ -17,7 +17,7 @@ def _soft_logit(values, clip_val=5):
     :param clip_val: Clipping threshold for logit output.
     :type clip_val: Union[Int, Float]
     """
-    new_values = np.log(values / (1 - values))
+    new_values = logit(values)
     return np.clip(new_values, -clip_val, clip_val)
 
 
