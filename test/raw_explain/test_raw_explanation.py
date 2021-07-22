@@ -6,13 +6,18 @@ import pytest
 
 import numpy as np
 
-from common_utils import create_sklearn_svm_classifier, create_sklearn_random_forest_regressor, \
-    create_sklearn_linear_regressor, create_multiclass_sparse_newsgroups_data, \
-    create_sklearn_logistic_regressor, create_binary_sparse_newsgroups_data, LINEAR_METHOD
+from common_utils import (
+    create_sklearn_svm_classifier, create_sklearn_random_forest_regressor,
+    create_sklearn_linear_regressor, create_multiclass_sparse_newsgroups_data,
+    create_sklearn_logistic_regressor, create_binary_sparse_newsgroups_data,
+    LINEAR_METHOD, LIGHTGBM_METHOD)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from sklearn.model_selection import train_test_split
 from interpret_community.mimic.models.linear_model import LinearExplainableModel
+from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
+from interpret_community.explanation.explanation import _DatasetsMixin, _create_local_explanation
+from interpret_community.common.constants import ExplainParams, ExplainType
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -206,8 +211,49 @@ class TestRawExplanations:
         self.validate_global_explanation_regression(global_explanation, global_raw_explanation, feature_map,
                                                     has_raw_eval_data=True)
 
+    def test_get_raw_explanation_no_datasets_mixin(self, boston, mimic_explainer):
+        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
+                                                       boston[DatasetConstants.Y_TRAIN])
+
+        explainer = mimic_explainer(model, boston[DatasetConstants.X_TRAIN], LGBMExplainableModel)
+        global_explanation = explainer.explain_global(boston[DatasetConstants.X_TEST])
+        assert global_explanation.method == LIGHTGBM_METHOD
+
+        kwargs = {ExplainParams.METHOD: global_explanation.method}
+        kwargs[ExplainParams.FEATURES] = global_explanation.features
+        kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
+        kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = global_explanation._local_importance_values
+        kwargs[ExplainParams.EXPECTED_VALUES] = 0
+        kwargs[ExplainParams.CLASSIFICATION] = False
+        kwargs[ExplainParams.IS_ENG] = True
+        synthetic_explanation = _create_local_explanation(**kwargs)
+
+        num_engineered_feats = boston[DatasetConstants.X_TRAIN].shape[1]
+        feature_map = np.eye(5, num_engineered_feats)
+        feature_names = [str(i) for i in range(feature_map.shape[0])]
+        raw_names = feature_names[:feature_map.shape[0]]
+        assert not _DatasetsMixin._does_quack(synthetic_explanation)
+        global_raw_explanation = synthetic_explanation.get_raw_explanation([feature_map],
+                                                                           raw_feature_names=raw_names)
+        self.validate_local_explanation_regression(synthetic_explanation,
+                                                   global_raw_explanation,
+                                                   feature_map,
+                                                   has_eng_eval_data=False,
+                                                   has_raw_eval_data=False,
+                                                   has_dataset_data=False)
+
     def validate_global_explanation_regression(self, eng_explanation, raw_explanation, feature_map,
                                                has_eng_eval_data=True, has_raw_eval_data=False):
+        self.validate_local_explanation_regression(eng_explanation,
+                                                   raw_explanation,
+                                                   feature_map,
+                                                   has_eng_eval_data,
+                                                   has_raw_eval_data)
+        assert np.array(raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
+
+    def validate_local_explanation_regression(self, eng_explanation, raw_explanation, feature_map,
+                                              has_eng_eval_data=True, has_raw_eval_data=False,
+                                              has_dataset_data=True):
         assert not eng_explanation.is_raw
         assert hasattr(eng_explanation, 'eval_data') == has_eng_eval_data
         assert eng_explanation.is_engineered
@@ -216,15 +262,15 @@ class TestRawExplanations:
 
         assert raw_explanation.is_raw
         assert not raw_explanation.is_engineered
-        assert np.array(raw_explanation.global_importance_values).shape[-1] == feature_map.shape[0]
 
-        # Test the y_pred and y_pred_proba on the raw explanations
-        assert raw_explanation.eval_y_predicted is not None
-        assert raw_explanation.eval_y_predicted_proba is None
+        if has_dataset_data:
+            # Test the y_pred and y_pred_proba on the raw explanations
+            assert raw_explanation.eval_y_predicted is not None
+            assert raw_explanation.eval_y_predicted_proba is None
 
-        # Test the raw data on the raw explanations
-        assert hasattr(raw_explanation, 'eval_data')
-        assert (raw_explanation.eval_data is not None) == has_raw_eval_data
+            # Test the raw data on the raw explanations
+            assert hasattr(raw_explanation, 'eval_data')
+            assert (raw_explanation.eval_data is not None) == has_raw_eval_data
 
     def validate_global_explanation_classification(self, eng_explanation, raw_explanation,
                                                    feature_map, classes, feature_names, is_sparse=False,
