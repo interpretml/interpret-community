@@ -433,10 +433,16 @@ def create_msx_data(test_size):
 
 
 def create_binary_classification_dataset():
+    return create_multiclass_classification_dataset(num_classes=2)
+
+
+def create_multiclass_classification_dataset(num_classes=5, num_features=20, num_informative=2):
     from sklearn.datasets import make_classification
     import pandas as pd
     import numpy as np
-    X, y = make_classification()
+    X, y = make_classification(n_classes=num_classes,
+                               n_features=num_features,
+                               n_informative=num_informative)
 
     # Split data into train and test
     x_train, x_test, y_train, y_test = train_test_split(X,
