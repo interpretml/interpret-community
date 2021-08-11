@@ -10,7 +10,7 @@ from common_utils import (
     create_sklearn_svm_classifier, create_sklearn_random_forest_regressor,
     create_sklearn_linear_regressor, create_multiclass_sparse_newsgroups_data,
     create_sklearn_logistic_regressor, create_binary_sparse_newsgroups_data,
-    LINEAR_METHOD, LIGHTGBM_METHOD)
+    LINEAR_METHOD, LIGHTGBM_METHOD, create_multiclass_classification_dataset)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from sklearn.model_selection import train_test_split
@@ -42,6 +42,32 @@ class TestRawExplanations:
 
         self.validate_global_explanation_classification(global_explanation, global_raw_explanation, feature_map,
                                                         iris[DatasetConstants.CLASSES], feature_names)
+
+    def test_get_global_raw_explanations_classification_complex_mapping(self, mimic_explainer):
+        x_train, y_train, x_test, y_test, classes = create_multiclass_classification_dataset(num_features=21,
+                                                                                             num_informative=10)
+        model = create_sklearn_svm_classifier(x_train, y_train)
+
+        exp = mimic_explainer(model, x_train, LGBMExplainableModel, classes=classes)
+
+        global_explanation = exp.explain_global(x_test)
+        assert not global_explanation.is_raw
+        assert not global_explanation.is_engineered
+
+        feature_map = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1]]
+        feature_map = np.array(feature_map)
+        feature_names = [str(i) for i in range(feature_map.shape[0])]
+
+        global_raw_explanation = global_explanation.get_raw_explanation(
+            [feature_map], raw_feature_names=feature_names[:feature_map.shape[0]])
+
+        self.validate_global_explanation_classification(global_explanation, global_raw_explanation, feature_map,
+                                                        classes, feature_names)
 
     def test_get_global_raw_explanations_regression(self, boston, tabular_explainer):
         model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
@@ -310,3 +336,9 @@ class TestRawExplanations:
         # Test the raw data on the raw explanations
         assert hasattr(raw_explanation, 'eval_data')
         assert (raw_explanation.eval_data is not None) == has_raw_eval_data
+
+        # Validate feature importances on the raw explanation are consistent
+        # for global and local case when taking abs mean
+        local_imp_values = raw_explanation.local_importance_values
+        global_imp_values = np.mean(np.mean(np.absolute(local_imp_values), axis=1), axis=0)
+        assert np.array_equal(raw_explanation.global_importance_values, global_imp_values)

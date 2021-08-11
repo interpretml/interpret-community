@@ -482,7 +482,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: np.ndarray or pd.DataFrame
+        :type eval_data: numpy.array or pandas.DataFrame
         :return: raw explanation
         :rtype: LocalExplanation
         """
@@ -755,7 +755,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         return ranked_global_values
 
     def get_raw_explanation(self, feature_maps, raw_feature_names=None, eval_data=None):
-        """Get raw explanation given input feature maps.
+        """Get raw explanation using input feature maps.
 
         :param feature_maps: list of feature maps from raw to generated feature where each array entry
             (raw_index, generated_index) is the weight for each raw, generated feature pair.
@@ -1600,10 +1600,8 @@ def _aggregate_global_from_local_explanation(local_explanation=None, include_loc
 
 def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_maps=None, **kwargs):
     raw_importances = engineered_feats_explanation.get_raw_feature_importances(feature_maps)
-    order = _order_imp(np.array(raw_importances))
     kwargs[ExplainParams.NUM_FEATURES] = len(raw_importances)
     new_kwargs = kwargs.copy()
-    new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
     if hasattr(engineered_feats_explanation, ExplainParams.LOCAL_IMPORTANCE_VALUES):
         engineered_local_importance_values = engineered_feats_explanation.local_importance_values
@@ -1623,6 +1621,11 @@ def _create_raw_feats_global_explanation(engineered_feats_explanation, feature_m
             per_class_rank = _order_imp(np.array(per_class_values))
             new_kwargs[ExplainParams.PER_CLASS_VALUES] = per_class_values
             new_kwargs[ExplainParams.PER_CLASS_RANK] = per_class_rank
+            raw_importances = np.mean(per_class_values, axis=0)
+        else:
+            raw_importances = np.mean(np.absolute(raw_local_importances), axis=0)
+    order = _order_imp(np.array(raw_importances))
+    new_kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = order
 
     return _create_global_explanation(global_importance_values=np.array(raw_importances), **new_kwargs)
 
