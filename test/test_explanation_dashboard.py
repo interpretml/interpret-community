@@ -13,7 +13,7 @@ from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.common.constants import ModelTask
 from raiwidgets import ExplanationDashboard
 from common_utils import (create_lightgbm_classifier, create_sklearn_svm_classifier,
-                          create_cancer_data)
+                          create_cancer_data, create_cancer_data_booleans)
 
 from constants import owner_email_tools_and_ux
 
@@ -63,6 +63,16 @@ class TestExplanationDashboard:
     def test_local_explanation(self, mimic_explainer):
         # Validate visualizing ExplanationDashboard with a local explanation
         x_train, x_test, y_train, y_test, feature_names, target_names = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
+                                    features=feature_names, classes=target_names)
+        explanation = explainer.explain_local(x_test)
+        ExplanationDashboard(explanation, model, dataset=x_test, true_y=y_test)
+
+    def test_boolean_labels(self, mimic_explainer):
+        # Validate visualizing ExplanationDashboard with a local explanation
+        x_train, x_test, y_train, y_test, feature_names, target_names = create_cancer_data_booleans()
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
         explainer = mimic_explainer(model, x_train, LGBMExplainableModel,

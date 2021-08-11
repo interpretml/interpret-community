@@ -411,6 +411,20 @@ def create_cancer_data():
     return x_train, x_test, y_train, y_validation, feature_names, target_names
 
 
+def create_cancer_data_booleans():
+    # Import cancer dataset
+    cancer = retrieve_dataset('breast-cancer.train.csv', na_values='?').interpolate().astype('int64')
+    cancer_target = cancer.iloc[:, 0]
+    cancer_data = cancer.iloc[:, 1:]
+    feature_names = cancer_data.columns.values
+    target_names = [False, True]
+    cancer_target = cancer_target.astype(bool)
+    # Split data into train and test
+    x_train, x_test, y_train, y_validation = train_test_split(cancer_data, cancer_target,
+                                                              test_size=0.2, random_state=0)
+    return x_train, x_test, y_train, y_validation, feature_names, target_names
+
+
 def create_scikit_cancer_data():
     breast_cancer_data = load_breast_cancer()
     classes = breast_cancer_data.target_names.tolist()

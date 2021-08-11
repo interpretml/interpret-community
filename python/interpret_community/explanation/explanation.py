@@ -518,7 +518,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         di = {}
         di["actual"] = y[i]
         di["predicted"] = y_hat[i]
-        if isinstance(y[i], str) or isinstance(y_hat, str):
+        if any(isinstance(v, (str, bool, np.bool_)) for v in [y[i], y_hat[i]]):
             di["residual"] = int(y[i] == y_hat[i])
         else:
             di["residual"] = y[i] - y_hat[i]
