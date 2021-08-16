@@ -23,6 +23,7 @@ import numpy as np
 try:
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
+    import cuml
     rapids_installed = True
 except BaseException:
     rapids_installed = False
@@ -50,6 +51,15 @@ def kmeans(X, k, round_values=True):
         raise RuntimeError(
             "cuML is required to use GPU explainers. Check https://rapids.ai/start.html \
             for more information on how to install it.")
+    if cuml.__version__ >= '21.06':
+        from cuml.explainer.sampling import kmeans_sampling
+        summary, group_names, labels = kmeans_sampling(X, k, round_values, detailed=True)
+
+        return DenseData(summary,
+                         group_names,
+                         None,
+                         1.0 * np.bincount(labels))
+    # For backward compatibility
     group_names = [str(i) for i in range(X.shape[1])]
     if str(type(X)).endswith("'pandas.core.frame.DataFrame'>"):
         group_names = X.columns
