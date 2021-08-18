@@ -51,7 +51,7 @@ def kmeans(X, k, round_values=True):
         raise RuntimeError(
             "cuML is required to use GPU explainers. Check https://rapids.ai/start.html \
             for more information on how to install it.")
-    if cuml.__version__ >= '21.06':
+    if cuml.__version__ >= '21.08':
         from cuml.explainer.sampling import kmeans_sampling
         summary, group_names, labels = kmeans_sampling(X, k, round_values, detailed=True)
 
