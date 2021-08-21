@@ -37,6 +37,7 @@ CLASSIFIERS = [
 
 DEPENDENCIES = [
     'numpy',
+    'numba<0.54.0',
     'pandas',
     'scipy',
     'scikit-learn',
