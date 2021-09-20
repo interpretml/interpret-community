@@ -60,13 +60,6 @@ EXTRAS = {
     ],
     'lime': [
         'lime>=0.2.0.0'
-    ],
-    'visualization': [
-        'flask',
-        'flask-cors',
-        'gevent>=1.3.6',
-        'jinja2',
-        'ipython'
     ]
 }
 
@@ -110,13 +103,6 @@ setup(
             "LinearExplainableModel = interpret_community.mimic.models:LinearExplainableModel",
             "SGDExplainableModel = interpret_community.mimic.models:SGDExplainableModel",
             "DecisionTreeExplainableModel = interpret_community.mimic.models:DecisionTreeExplainableModel"
-        ]
-    },
-    include_package_data=True,
-    package_data={
-        '': [
-            'interpret_community/widget/templates/inlineDashboard.html',
-            'interpret_community/widget/static/index.js'
         ]
     },
     zip_safe=False,
