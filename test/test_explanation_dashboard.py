@@ -12,6 +12,8 @@ from datasets import retrieve_dataset
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
 from interpret_community.common.constants import ModelTask
 from raiwidgets import ExplanationDashboard
+from interpret import show
+from interpret_community.widget import ExplanationDashboard as OldExplanationDashboard
 from common_utils import (create_lightgbm_classifier, create_sklearn_svm_classifier,
                           create_cancer_data, create_cancer_data_booleans)
 
@@ -79,3 +81,26 @@ class TestExplanationDashboard:
                                     features=feature_names, classes=target_names)
         explanation = explainer.explain_local(x_test)
         ExplanationDashboard(explanation, model, dataset=x_test, true_y=y_test)
+
+    def test_old_explanation_dashboard(self, mimic_explainer):
+        # Validate old explanation dashboard namespace works but only prints a warning
+        x_train, x_test, y_train, y_test, feature_names, target_names = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
+                                    features=feature_names, classes=target_names)
+        explanation = explainer.explain_local(x_test)
+        err = ("ExplanationDashboard in interpret-community package is deprecated and removed."
+               "Please use the ExplanationDashboard from raiwidgets package instead.")
+        with pytest.warns(UserWarning, match=err):
+            OldExplanationDashboard(explanation, model, dataset=x_test, true_y=y_test)
+
+    def test_interpret_dashboard(self, mimic_explainer):
+        # Validate our explanation works with the interpret dashboard
+        x_train, x_test, y_train, y_test, feature_names, target_names = create_cancer_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
+                                    features=feature_names, classes=target_names)
+        explanation = explainer.explain_global(x_test)
+        show(explanation)

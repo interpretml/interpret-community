@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-"""Defines the Explanation dashboard class."""
+"""Defines the DEPRECATED Explanation dashboard class."""
 
 import warnings
 
@@ -52,8 +52,5 @@ class ExplanationDashboard:
                  true_y=None, classes=None, features=None, port=None,
                  datasetX=None, trueY=None, locale=None, public_ip=None,
                  with_credentials=False, use_cdn=None):
-        if use_cdn is not None:
-            warnings.warn("""use_cdn parameter is deprecated, cdn has been deleted.
-                          Constructor parameter will be removed in the future""")
-        warnings.warn("""ExplanationDashboard in interpret-community package is deprecated and removed.
-                      Please use the ExplanationDashboard from raiwidgets package instead.""")
+        warnings.warn("ExplanationDashboard in interpret-community package is deprecated and removed."
+                      "Please use the ExplanationDashboard from raiwidgets package instead.")
