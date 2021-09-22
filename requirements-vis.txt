@@ -3,3 +3,6 @@ prompt-toolkit>=2.0.0
 greenlet==0.4.17
 gevent==20.9.0
 raiwidgets
+# used by interpret show method
+dash
+dash-cytoscape

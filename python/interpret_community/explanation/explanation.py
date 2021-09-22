@@ -522,6 +522,9 @@ class LocalExplanation(FeatureImportanceExplanation):
             di["residual"] = int(y[i] == y_hat[i])
         else:
             di["residual"] = y[i] - y_hat[i]
+        # TODO: for classification case these should be the probabilities
+        di["actual_score"] = y[i]
+        di["predicted_score"] = y_hat[i]
         return di
 
     def _convert_local_importances_to_dense_list(self):
@@ -619,9 +622,8 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The selector as a pandas dataframe of records.
         :rtype: pandas.DataFrame
         """
-        predicted = self._eval_y_predicted
-        dataset_shape = np.empty((self.num_examples, 1))
-        return gen_local_selector(dataset_shape, None, predicted.flatten())
+        data = self.data(key=-1)[InterpretData.SPECIFIC]
+        return gen_local_selector(data)
 
     @classmethod
     def _does_quack(cls, explanation):
