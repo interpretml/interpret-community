@@ -17,6 +17,18 @@ from .shap.gpu_kernel_explainer import GPUKernelExplainer
 InvalidExplainerErr = 'Could not find valid explainer to explain model'
 
 
+def _get_uninitialized_explainers(use_gpu):
+    """Return the uninitialized explainers used by the tabular explainer.
+
+    :return: A list of the uninitialized explainers.
+    :rtype: list
+    """
+    if use_gpu:
+        return [GPUKernelExplainer]
+    else:
+        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer]
+
+
 class TabularExplainer(BaseExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
     explainer_type = Extension.BLACKBOX
@@ -156,13 +168,11 @@ class TabularExplainer(BaseExplainer):
         kwargs[ExplainParams.EXPLAIN_SUBSET] = self.explain_subset
         kwargs[ExplainParams.FEATURES] = features
         kwargs[ExplainParams.CLASSES] = classes
-        uninitialized_explainers = self._get_uninitialized_explainers()
+        uninitialized_explainers = _get_uninitialized_explainers(use_gpu)
         is_valid = False
         last_exception = None
 
         for uninitialized_explainer in uninitialized_explainers:
-            if use_gpu and uninitialized_explainer != GPUKernelExplainer:
-                continue
             try:
                 if issubclass(uninitialized_explainer, PureStructuredModelExplainer):
                     self.explainer = uninitialized_explainer(
@@ -189,14 +199,6 @@ class TabularExplainer(BaseExplainer):
         if not is_valid:
             self._logger.info(InvalidExplainerErr)
             raise ValueError(InvalidExplainerErr) from last_exception
-
-    def _get_uninitialized_explainers(self):
-        """Return the uninitialized explainers used by the tabular explainer.
-
-        :return: A list of the uninitialized explainers.
-        :rtype: list
-        """
-        return [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer, GPUKernelExplainer]
 
     @tabular_decorator
     def explain_global(self, evaluation_examples, sampling_policy=None, include_local=True,
