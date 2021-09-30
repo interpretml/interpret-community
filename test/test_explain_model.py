@@ -20,6 +20,9 @@ from common_utils import (create_sklearn_random_forest_classifier, create_sklear
                           create_msx_data, wrap_classifier_without_proba)
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
+from interpret_community.tabular_explainer import _get_uninitialized_explainers
+from interpret_community.shap import (KernelExplainer, LinearExplainer, DeepExplainer, TreeExplainer,
+                                      GPUKernelExplainer)
 from constants import DatasetConstants
 
 from sklearn.model_selection import train_test_split
@@ -748,6 +751,12 @@ class TestTabularExplainer(object):
         explanation = exp.explain_global(x_test)
         # Validate predicted y values are boolean
         assert(np.all(np.isin(explanation.eval_y_predicted, [0, 1])))
+
+    def test_tabular_explainer_get_explainers(self):
+        non_gpu_explainers = _get_uninitialized_explainers(use_gpu=False)
+        assert non_gpu_explainers == [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer]
+        gpu_explainers = _get_uninitialized_explainers(use_gpu=True)
+        assert gpu_explainers == [GPUKernelExplainer]
 
     def verify_adult_overall_features(self, ranked_global_names, ranked_global_values):
         # Verify order of features
