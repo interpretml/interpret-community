@@ -171,7 +171,12 @@ class WrappedPytorchModel(object):
             dataset = dataset.values
         wrapped_dataset = torch.Tensor(dataset)
         with torch.no_grad():
-            result = torch.max(self._model(wrapped_dataset), 1)[1].numpy()
+            result = self._model(wrapped_dataset)
+        result_len = len(result.shape)
+        if result_len == 1 or (result_len > 1 and result.shape[1] == 1):
+            result = np.where(result.numpy() > 0.5, 1, 0)
+        else:
+            result = torch.max(result, 1)[1].numpy()
         # Reshape to 2D if output is 1D and input has one row
         if len(dataset.shape) == 1:
             result = result.reshape(1, -1)
