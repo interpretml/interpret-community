@@ -21,14 +21,16 @@ from sys import platform
 from interpret_community.common.exception import ScenarioNotSupportedException
 from interpret_community.common.constants import ShapValuesOutput, ModelTask
 from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel, \
-    SGDExplainableModel
+from interpret_community.mimic.models.linear_model import (LinearExplainableModel,
+                                                           SGDExplainableModel)
 from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
-from common_utils import create_timeseries_data, LIGHTGBM_METHOD, \
-    LINEAR_METHOD, create_lightgbm_regressor, create_binary_classification_dataset, \
-    create_iris_data
-from models import DataFrameTestModel, SkewedTestModel, \
-    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel
+from common_utils import (
+    create_cancer_data, create_timeseries_data, LIGHTGBM_METHOD, LINEAR_METHOD,
+    create_lightgbm_regressor, create_binary_classification_dataset,
+    create_iris_data, create_pytorch_single_output_classifier)
+from models import (
+    DataFrameTestModel, SkewedTestModel,
+    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel)
 from datasets import retrieve_dataset
 from sklearn import datasets
 import uuid
@@ -684,9 +686,24 @@ class TestMimicExplainerWrappedModels(object):
         model = clf.fit(x_train, y_train)
         model = PredictAsDataFrameREgressionTestModel(model.named_steps['regressor'],
                                                       if_predictions_as_dataframe)
-        explainable_model = explainable_model
         explainer = mimic_explainer(model, x_train, explainable_model,
                                     transformations=transformations, augment_data=False,
                                     explainable_model_args={}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
         global_explanation is not None
+
+    def test_mimic_pytorch_binary_single_output(self, mimic_explainer):
+        x_train, x_test, y_train, _, feature_names, _ = create_cancer_data()
+        # Fit a pytorch DNN model
+        model = create_pytorch_single_output_classifier(x_train.values, y_train)
+        test_logger.info('Running explain global for test_mimic_pytorch_binary_single_output')
+        model_task = ModelTask.Classification
+        explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
+                                    features=feature_names, model_task=model_task)
+        global_explanation = explainer.explain_global(x_train)
+        global_explanation is not None
+        predicted_y = explainer.model.predict(x_train)
+        # assert not all predictions zeros
+        assert np.any(predicted_y)
+        # also assert there are many nonzeros predicted
+        assert np.count_nonzero(predicted_y) > predicted_y.shape[0] / 4

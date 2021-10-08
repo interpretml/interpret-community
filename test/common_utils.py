@@ -261,9 +261,7 @@ def _common_pytorch_generator(numCols, numClasses=None):
             X = F.relu(self.fc1(X))
             X = self.fc2(X)
             X = self.fc3(X)
-            X = self.output(X)
-
-            return X
+            return self.output(X)
     return Net()
 
 
@@ -321,6 +319,33 @@ def create_pytorch_classifier(X, y):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
     return _train_pytorch_model(epochs, criterion, optimizer, net, torch_X, torch_y)
+
+
+def create_pytorch_single_output_classifier(X, y):
+    # create simple (dummy) Pytorch DNN model for binary classification that only outputs
+    # the probabilities for the positive class
+    epochs = 100
+    torch_X = torch.Tensor(X).float()
+    torch_y = torch.Tensor(y).float()
+
+    class Net(nn.Module):
+        def __init__(self, input_shape):
+            super(Net, self).__init__()
+            self.fc1 = nn.Linear(input_shape, 32)
+            self.fc2 = nn.Linear(32, 64)
+            self.fc3 = nn.Linear(64, 1)
+
+        def forward(self, X):
+            X = torch.relu(self.fc1(X))
+            X = torch.relu(self.fc2(X))
+            return torch.sigmoid(self.fc3(X))
+
+    # Create network structure
+    net = Net(X.shape[1])
+    # Train the model
+    criterion = nn.BCELoss()
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
+    return _train_pytorch_model(epochs, criterion, optimizer, net, torch_X, torch_y.reshape(-1, 1))
 
 
 def create_keras_multiclass_classifier(X, y):

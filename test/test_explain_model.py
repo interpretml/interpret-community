@@ -17,7 +17,8 @@ from common_utils import (create_sklearn_random_forest_classifier, create_sklear
                           create_sklearn_random_forest_regressor, create_sklearn_linear_regressor,
                           create_keras_classifier, create_keras_regressor, create_lightgbm_classifier,
                           create_pytorch_classifier, create_pytorch_regressor, create_xgboost_classifier,
-                          create_msx_data, wrap_classifier_without_proba)
+                          create_msx_data, wrap_classifier_without_proba,
+                          create_pytorch_single_output_classifier)
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
 from interpret_community.tabular_explainer import _get_uninitialized_explainers
@@ -398,6 +399,14 @@ class TestTabularExplainer(object):
         # Fit a pytorch DNN model
         model = create_pytorch_classifier(x_train.values, y_train)
         test_logger.info('Running explain global for test_explain_model_pytorch')
+        self._explain_model_dnn_common(tabular_explainer, model, x_train, x_test, y_train, X.columns.values)
+
+    def test_explain_model_pytorch_binary_single_output(self, tabular_explainer):
+        X, y = shap.datasets.adult()
+        x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=7)
+        # Fit a pytorch DNN model
+        model = create_pytorch_single_output_classifier(x_train.values, y_train)
+        test_logger.info('Running explain global for test_explain_model_pytorch_binary_single_output')
         self._explain_model_dnn_common(tabular_explainer, model, x_train, x_test, y_train, X.columns.values)
 
     def test_explain_model_random_forest_regression(self, boston, tabular_explainer):
