@@ -113,7 +113,7 @@ Pytorch installation if desired:
 
 lightgbm installation if desired:
 ```
-    conda install --yes -c conda-forge lightgbm
+    pip install --upgrade lightgbm
 ```
 
 </details>
@@ -127,7 +127,7 @@ Pytorch installation if desired:
 
 lightgbm installation if desired:
 ```
-    conda install --yes -c conda-forge lightgbm
+    pip install --upgrade lightgbm
 ```
 </details>
 
@@ -142,7 +142,7 @@ Pytorch installation if desired:
 lightgbm installation if desired (requires Homebrew):
 ```
     brew install libomp
-    conda install --yes -c conda-forge lightgbm
+    pip install --upgrade lightgbm
 ```
 
 If installing the package generally gives an error about the `certifi` package, run this first:

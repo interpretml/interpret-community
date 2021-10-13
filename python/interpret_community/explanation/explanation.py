@@ -840,7 +840,10 @@ class GlobalExplanation(FeatureImportanceExplanation):
                 mli_data = parent_data[InterpretData.MLI]
                 for local_mli_data in mli_data:
                     if local_mli_data[InterpretData.EXPLANATION_TYPE] == InterpretData.LOCAL_FEATURE_IMPORTANCE:
-                        local_mli_data[InterpretData.VALUE][InterpretData.INTERCEPT] = self.expected_values
+                        expected_values = None
+                        if ExpectedValuesMixin._does_quack(self):
+                            expected_values = self.expected_values
+                        local_mli_data[InterpretData.VALUE][InterpretData.INTERCEPT] = expected_values
                 mli_global_entry = {
                     InterpretData.EXPLANATION_TYPE: InterpretData.GLOBAL_FEATURE_IMPORTANCE,
                     InterpretData.VALUE: {

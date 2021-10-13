@@ -23,22 +23,22 @@ steps:
 
   - bash: |
       source activate ${{parameters.condaEnv}}
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.18.5
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch-cpu torchvision-cpu -c pytorch
-      conda install --yes -c anaconda -n  ${{parameters.condaEnv}} jupyter pip
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.20.3
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision captum cpuonly -c pytorch
     displayName: Install Anaconda packages
+    condition:  ne(variables['Agent.OS'], 'Darwin')
+
+  - bash: |
+      source activate ${{parameters.condaEnv}}
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.20.3
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision captum -c pytorch
+    displayName: Install Anaconda packages on MacOS, which should not include cpuonly according to official docs
+    condition:  eq(variables['Agent.OS'], 'Darwin')
 
   - bash: |
       source activate  ${{parameters.condaEnv}}
       conda install --yes -c conda-forge lightgbm
     displayName: Install lightgbm from conda on MacOS
-    condition:  eq(variables['Agent.OS'], 'Darwin')
-
-  - bash: |
-      source activate ${{parameters.condaEnv}}
-      pip install torch
-      pip install torchvision
-    displayName: Install torch from pip on MacOS
     condition:  eq(variables['Agent.OS'], 'Darwin')
 
   - bash: |
@@ -60,6 +60,11 @@ steps:
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
+      pip install --upgrade jupyter
+    displayName: Install jupyter
+
+  - bash: |
+      source activate  ${{parameters.condaEnv}} 
       pip install -r requirements-test.txt
     displayName: Install test required pip packages
 
@@ -75,7 +80,7 @@ steps:
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
-      conda install --yes -c conda-forge -n ${{parameters.condaEnv}} papermill 
+      pip install papermill
       pip install scrapbook
     displayName: List Jupyter Kernel and fix
 

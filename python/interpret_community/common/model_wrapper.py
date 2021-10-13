@@ -310,7 +310,7 @@ def wrap_model(model, examples, model_task):
     :return: The wrapper model.
     :rtype: model
     """
-    return _wrap_model(model, examples, model_task, False)
+    return _wrap_model(model, examples, model_task, False)[0]
 
 
 def _wrap_model(model, examples, model_task, is_function):
