@@ -101,3 +101,16 @@ def test_simple_feature_transformations_explain_local():
     pm.execute_notebook(processed_notebook, output_notebook)
     nb = sb.read_notebook(output_notebook)
     assert 'TotalWorkingYears' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES][0]
+
+
+@pytest.mark.notebooks
+def test_captum_integration_example():
+    notebookname = 'captum-integration-example'
+    input_notebook = input_notebook_path(notebookname)
+    output_notebook = output_notebook_path(notebookname)
+    processed_notebook = processed_notebook_path(notebookname)
+    test_values = {SORTED_LOCAL_IMPORTANCE_NAMES: SORTED_LOCAL_IMPORTANCE_NAMES}
+    append_scrapbook_commands(input_notebook, processed_notebook, test_values)
+    pm.execute_notebook(processed_notebook, output_notebook)
+    nb = sb.read_notebook(output_notebook)
+    assert 'B' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
