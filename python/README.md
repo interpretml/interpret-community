@@ -23,6 +23,7 @@ Highlights of the package include:
 - The PFIExplainer can quickly compute global importance values
 - LIMEExplainer builds local linear approximations of the model's behavior by perturbing each instance
 - GPUKernelExplainer is GPU-accelerated implementation of SHAP's KernelExplainer as a part of RAPIDS's cuML library, and is optimized for GPU models, like those in cuML. It can be used with CPU-based estimators too.
+- An adapter to convert any feature importance values to an interpret-community style explanation
 
 Please see the github website for the documentation and sample notebooks:
 https://github.com/interpretml/interpret-community
