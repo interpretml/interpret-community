@@ -47,7 +47,7 @@ class TestSerializeExplainer(object):
         with open(explainer_name, 'wb') as stream:
             dump(explainer.explainer.explainer, stream)
         with open(model_name, 'wb') as stream:
-            dump(explainer.model.predict_proba, stream)
+            dump(explainer.model, stream)
         assert path.exists(model_name)
         assert path.exists(explainer_name)
 
@@ -69,7 +69,7 @@ class TestSerializeExplainer(object):
         surrogate_name = 'surrogate_model.joblib'
         tree_explainer_name = 'tree_explainer_model.joblib'
         with open(model_name, 'wb') as stream:
-            dump(explainer.model.predict_proba, stream)
+            dump(explainer.model, stream)
         with open(surrogate_name, 'wb') as stream:
             dump(explainer.surrogate_model.model, stream)
         with open(tree_explainer_name, 'wb') as stream:
