@@ -29,14 +29,14 @@ except ImportError:
 
 
 class _FunctionWrapper(object):
-    """Wraps a function to reshape the input data.
+    """Wraps a function to reshape the input and output data.
 
     :param function: The prediction function to evaluate on the examples.
     :type function: function
     """
 
     def __init__(self, function):
-        """Wraps a function to reshape the input data.
+        """Wraps a function to reshape the input and output data.
 
         :param function: The prediction function to evaluate on the examples.
         :type function: function
@@ -453,6 +453,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
         examples_dataset = examples_dataset.data
     try:
         result = function(examples.typed_wrapper_func(examples_dataset[0]))
+        if result is None:
+            raise Exception("Wrapped function returned None in model wrapper when called on dataset")
     except Exception as ex:
         # If function has already been wrapped, re-throw error to prevent stack overflow
         if wrapped:
@@ -489,3 +491,8 @@ def _eval_function(function, examples, model_task, wrapped=False):
         elif model_task == ModelTask.Classification:
             return _convert_to_two_cols(function, examples_dataset)
         return (function, model_task)
+    elif len(result.shape) == 0:
+        # single value returned, flatten output array
+        wrapper = _FunctionWrapper(function)
+        return (wrapper._function_flatten, model_task)
+    raise Exception("Failed to wrap function, may require custom wrapper for input function or model")

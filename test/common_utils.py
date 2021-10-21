@@ -20,6 +20,8 @@ try:
     from tensorflow import keras
     from tensorflow.keras.models import Sequential
     from tensorflow.keras.layers import Dense, Dropout, Activation
+    from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
+    from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 except ImportError:
     pass
 
@@ -234,6 +236,37 @@ def create_keras_regressor(X, y):
               epochs=epochs,
               verbose=1,
               validation_data=(X, y))
+    return model
+
+
+def create_scikit_keras_model_func(feature_number):
+    def common_scikit_keras_model():
+        model = Sequential()
+        model.add(Dense(12, input_dim=feature_number, activation='relu'))
+        model.add(Dense(8, activation='relu'))
+        model.add(Dense(1))
+        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mse'])
+        return model
+    return common_scikit_keras_model
+
+
+def create_scikit_keras_regressor(X, y):
+    # create simple (dummy) Keras DNN model for regression
+    batch_size = 500
+    epochs = 10
+    model_func = create_scikit_keras_model_func(X.shape[1])
+    model = KerasRegressor(build_fn=model_func, nb_epoch=epochs, batch_size=batch_size, verbose=1)
+    model.fit(X, y)
+    return model
+
+
+def create_scikit_keras_classifier(X, y):
+    # create simple (dummy) Keras DNN model for classification
+    batch_size = 500
+    epochs = 10
+    model_func = create_scikit_keras_model_func(X.shape[1])
+    model = KerasClassifier(build_fn=model_func, nb_epoch=epochs, batch_size=batch_size, verbose=1)
+    model.fit(X, y)
     return model
 
 
