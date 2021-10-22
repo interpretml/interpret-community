@@ -18,7 +18,8 @@ from common_utils import (create_sklearn_random_forest_classifier, create_sklear
                           create_keras_classifier, create_keras_regressor, create_lightgbm_classifier,
                           create_pytorch_classifier, create_pytorch_regressor, create_xgboost_classifier,
                           create_msx_data, wrap_classifier_without_proba,
-                          create_pytorch_single_output_classifier)
+                          create_pytorch_single_output_classifier, create_scikit_keras_regressor,
+                          create_scikit_keras_classifier)
 from raw_explain.utils import _get_feature_map_from_indices_list
 from interpret_community.common.constants import ModelTask
 from interpret_community.tabular_explainer import _get_uninitialized_explainers
@@ -766,6 +767,48 @@ class TestTabularExplainer(object):
         assert non_gpu_explainers == [TreeExplainer, DeepExplainer, LinearExplainer, KernelExplainer]
         gpu_explainers = _get_uninitialized_explainers(use_gpu=True)
         assert gpu_explainers == [GPUKernelExplainer]
+
+    def test_explain_model_keras_regressor(self, boston, tabular_explainer):
+        # verify that no errors get thrown when calling get_raw_feat_importances
+        x_train = boston[DatasetConstants.X_TRAIN][DATA_SLICE]
+        x_test = boston[DatasetConstants.X_TEST][DATA_SLICE]
+        y_train = boston[DatasetConstants.Y_TRAIN][DATA_SLICE]
+
+        model = create_scikit_keras_regressor(x_train, y_train)
+
+        explainer = tabular_explainer(model, x_train)
+
+        global_explanation = explainer.explain_global(x_test)
+        local_explanation = explainer.explain_local(x_test)
+        global_importance_values = global_explanation.global_importance_values
+        num_feats = x_train.shape[1]
+        num_samples = x_train.shape[0]
+        assert len(global_importance_values) == num_feats, ('length of global importances '
+                                                            'does not match number of features')
+        local_importance_values = local_explanation.local_importance_values
+        assert len(local_importance_values) == num_samples, ('length of local importances does not match number '
+                                                             'of samples')
+
+    def test_explain_model_keras_classifier(self, iris, tabular_explainer):
+        # verify that no errors get thrown when calling get_raw_feat_importances
+        x_train = iris[DatasetConstants.X_TRAIN][DATA_SLICE]
+        x_test = iris[DatasetConstants.X_TEST][DATA_SLICE]
+        y_train = iris[DatasetConstants.Y_TRAIN][DATA_SLICE]
+
+        model = create_scikit_keras_classifier(x_train, y_train)
+
+        explainer = tabular_explainer(model, x_train)
+
+        global_explanation = explainer.explain_global(x_test)
+        local_explanation = explainer.explain_local(x_test)
+        global_importance_values = global_explanation.global_importance_values
+        num_feats = x_train.shape[1]
+        num_classes = 2
+        assert len(global_importance_values) == num_feats, ('length of global importances '
+                                                            'does not match number of features')
+        local_importance_values = local_explanation.local_importance_values
+        assert len(local_importance_values) == num_classes, ('length of local importances does not match number '
+                                                             'of classes')
 
     def verify_adult_overall_features(self, ranked_global_names, ranked_global_values):
         # Verify order of features
