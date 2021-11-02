@@ -30,6 +30,7 @@ DEFAULT_RANDOM_STATE = 123
 _N_FEATURES = '_n_features'
 _N_CLASSES = '_n_classes'
 NUM_ITERATIONS = 'num_iterations'
+_FITTED = 'fitted_'
 
 
 class _LGBMFunctionWrapper(object):
@@ -344,6 +345,8 @@ class LGBMExplainableModel(BaseExplainableModel):
         # And if classification case need to add _n_classes
         if self.multiclass:
             properties[_N_CLASSES] = self._lgbm._n_classes
+        if hasattr(self._lgbm, _FITTED):
+            properties[_FITTED] = json.dumps(getattr(self._lgbm, _FITTED))
         return properties
 
     @staticmethod
@@ -356,12 +359,18 @@ class LGBMExplainableModel(BaseExplainableModel):
         :rtype: interpret_community.mimic.models.LGBMExplainableModel
         """
         # create the LGBMExplainableModel without any properties using the __new__ function, similar to pickle
-        lightgbm = LGBMExplainableModel.__new__(LGBMExplainableModel)
+        lgbm_model = LGBMExplainableModel.__new__(LGBMExplainableModel)
         # Get _n_features
         _n_features = properties.pop(_N_FEATURES)
         # If classification case get _n_classes
         if json.loads(properties[LightGBMSerializationConstants.MULTICLASS]):
             _n_classes = properties.pop(_N_CLASSES)
+        fitted_ = None
+        if _FITTED in properties:
+            fitted_ = json.loads(properties[_FITTED])
+        elif version.parse('3.3.1') <= version.parse(lightgbm.__version__):
+            # If deserializing older model in newer version set this to true to prevent errors on calls
+            fitted_ = True
         # load all of the properties
         for key, value in properties.items():
             # Regenerate the properties on the fly
@@ -369,9 +378,9 @@ class LGBMExplainableModel(BaseExplainableModel):
                 if key == LightGBMSerializationConstants.LOGGER:
                     parent = logging.getLogger(__name__)
                     lightgbm_identity = json.loads(properties[LightGBMSerializationConstants.IDENTITY])
-                    lightgbm.__dict__[key] = parent.getChild(lightgbm_identity)
+                    lgbm_model.__dict__[key] = parent.getChild(lightgbm_identity)
                 elif key == LightGBMSerializationConstants.TREE_EXPLAINER:
-                    lightgbm.__dict__[key] = None
+                    lgbm_model.__dict__[key] = None
                 else:
                     raise Exception("Unknown nonify key on deserialize in LightGBMExplainableModel: {}".format(key))
             elif key in LightGBMSerializationConstants.save_properties:
@@ -400,11 +409,14 @@ class LGBMExplainableModel(BaseExplainableModel):
                 else:
                     new_lgbm = LGBMRegressor()
                     new_lgbm._Booster = lgbm_booster
+                # Specify fitted_ for newer versions of lightgbm on deserialize
+                if fitted_ is not None:
+                    new_lgbm.fitted_ = fitted_
                 new_lgbm._n_features = _n_features
-                lightgbm.__dict__[key] = new_lgbm
+                lgbm_model.__dict__[key] = new_lgbm
             elif key in LightGBMSerializationConstants.enum_properties:
                 # NOTE: If more enums added in future, will need to handle this differently
-                lightgbm.__dict__[key] = ShapValuesOutput(json.loads(value))
+                lgbm_model.__dict__[key] = ShapValuesOutput(json.loads(value))
             else:
-                lightgbm.__dict__[key] = json.loads(value)
-        return lightgbm
+                lgbm_model.__dict__[key] = json.loads(value)
+        return lgbm_model
