@@ -1,23 +1,23 @@
-import pytest
-
 # Tests for explanation dashboard
 import numpy as np
-
+import pytest
+from common_utils import (create_cancer_data, create_cancer_data_booleans,
+                          create_lightgbm_classifier,
+                          create_sklearn_svm_classifier)
+from constants import owner_email_tools_and_ux
+from datasets import retrieve_dataset
+from interpret import show
+from interpret_community.common.constants import ModelTask
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
+from interpret_community.widget import \
+    ExplanationDashboard as OldExplanationDashboard
+from raiwidgets import ExplanationDashboard
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from datasets import retrieve_dataset
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.common.constants import ModelTask
-from raiwidgets import ExplanationDashboard
-from interpret import show
-from interpret_community.widget import ExplanationDashboard as OldExplanationDashboard
-from common_utils import (create_lightgbm_classifier, create_sklearn_svm_classifier,
-                          create_cancer_data, create_cancer_data_booleans)
-
-from constants import owner_email_tools_and_ux
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

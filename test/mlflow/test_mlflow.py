@@ -1,13 +1,11 @@
 import os
-import pytest
+
 import mlflow
-
+import pytest
 from common_utils import create_sklearn_random_forest_classifier
-
-from interpret_community.mlflow.mlflow import log_explanation, get_explanation
-from constants import owner_email_tools_and_ux, DatasetConstants
+from constants import DatasetConstants, owner_email_tools_and_ux
+from interpret_community.mlflow.mlflow import get_explanation, log_explanation
 from test_serialize_explanation import _assert_explanation_equivalence
-
 
 TEST_DOWNLOAD = 'test_download'
 TEST_EXPERIMENT = 'test_experiment'

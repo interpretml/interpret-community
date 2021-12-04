@@ -5,14 +5,14 @@
 """Defines the tabular explainer meta-api for returning the best explanation result based on the given model."""
 
 from .common.base_explainer import BaseExplainer
+from .common.constants import Defaults, ExplainParams, Extension, ModelTask
 from .common.structured_model_explainer import PureStructuredModelExplainer
 from .dataset.decorator import tabular_decorator
-from .common.constants import ExplainParams, Defaults, ModelTask, Extension
-from .shap.tree_explainer import TreeExplainer
 from .shap.deep_explainer import DeepExplainer
+from .shap.gpu_kernel_explainer import GPUKernelExplainer
 from .shap.kernel_explainer import KernelExplainer
 from .shap.linear_explainer import LinearExplainer
-from .shap.gpu_kernel_explainer import GPUKernelExplainer
+from .shap.tree_explainer import TreeExplainer
 
 InvalidExplainerErr = 'Could not find valid explainer to explain model'
 

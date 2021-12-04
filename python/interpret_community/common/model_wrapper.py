@@ -4,14 +4,14 @@
 
 """Defines helpful model wrapper and utils for implicitly rewrapping the model to conform to explainer contracts."""
 
+import logging
+import warnings
+
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import SGDClassifier
 
 from .constants import ModelTask, SKLearn
-
-import logging
-import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

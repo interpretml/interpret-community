@@ -1,9 +1,11 @@
-from tempfile import TemporaryDirectory
 import os
-import yaml
+from tempfile import TemporaryDirectory
 
 import interpret_community
-from ..explanation.explanation import save_explanation, load_explanation, _get_explanation_metadata
+import yaml
+
+from ..explanation.explanation import (_get_explanation_metadata,
+                                       load_explanation, save_explanation)
 
 
 def _load_pyfunc(path):
@@ -39,8 +41,8 @@ def save_model(path, loader_module=None, data_path=None, conda_env=None, mlflow_
     try:
         import mlflow
         from mlflow.models import Model
-        from mlflow.utils.file_utils import _copy_file_or_tree
         from mlflow.pyfunc.model import get_default_conda_env
+        from mlflow.utils.file_utils import _copy_file_or_tree
     except ImportError as e:
         raise Exception("Could not log_explanation to mlflow. Missing mlflow dependency, "
                         "pip install mlflow to resolve the error: {}.".format(e))

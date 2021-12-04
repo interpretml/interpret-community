@@ -10,13 +10,13 @@ confidence in the model.
 from .tabular_explainer import TabularExplainer
 from .version import name, version
 
-
 __all__ = ["TabularExplainer"]
 
+import atexit
 # Setup logging infrustructure
 import logging
 import os
-import atexit
+
 # Only log to disk if environment variable specified
 interpret_c_logs = os.environ.get('INTERPRET_C_LOGS')
 if interpret_c_logs is not None:

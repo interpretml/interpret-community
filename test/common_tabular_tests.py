@@ -4,43 +4,44 @@
 
 # Common tests for tabular explainers
 from enum import Enum
+
 import numpy as np
-from scipy.sparse import csr_matrix
-import shap
 import pandas as pd
 import pytest
-from scipy.special import expit
-
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
-from sklearn.impute import SimpleImputer
-from sklearn.base import TransformerMixin, BaseEstimator
-from sklearn.model_selection import train_test_split
-
-from lightgbm import LGBMRegressor
-
-from interpret_community.common.constants import ExplainParams, ShapValuesOutput, ModelTask, InterpretData
+import shap
+from common_utils import (create_cancer_data, create_energy_data,
+                          create_iris_data, create_keras_multiclass_classifier,
+                          create_keras_regressor, create_msx_data,
+                          create_multiclass_sparse_newsgroups_data,
+                          create_pandas_only_svm_classifier,
+                          create_pytorch_multiclass_classifier,
+                          create_pytorch_regressor,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_logistic_regressor,
+                          create_sklearn_random_forest_classifier,
+                          create_sklearn_random_forest_regressor,
+                          create_sklearn_svm_classifier,
+                          create_xgboost_classifier)
+from constants import ModelType
+from datasets import retrieve_dataset
+from interpret_community.common.constants import (ExplainParams, InterpretData,
+                                                  ModelTask, ShapValuesOutput)
 from interpret_community.common.explanation_utils import _summarize_data
 from interpret_community.common.policy import SamplingPolicy
-
-from common_utils import (create_sklearn_svm_classifier, create_sklearn_linear_regressor,
-                          create_sklearn_logistic_regressor, create_iris_data, create_energy_data,
-                          create_cancer_data, create_msx_data, create_pandas_only_svm_classifier,
-                          create_keras_regressor, create_pytorch_regressor,
-                          create_keras_multiclass_classifier, create_pytorch_multiclass_classifier,
-                          create_multiclass_sparse_newsgroups_data, create_xgboost_classifier,
-                          create_sklearn_random_forest_regressor, create_sklearn_random_forest_classifier)
-
-from transformation_utils import (
-    get_transformations_one_to_many_smaller, get_transformations_one_to_many_greater,
-    get_transformations_many_to_many, get_transformations_from_col_transformer)
-
+from lightgbm import LGBMRegressor
+from scipy.sparse import csr_matrix
+from scipy.special import expit
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from test_serialize_explanation import verify_serialization
-from constants import ModelType
-
-from datasets import retrieve_dataset
-
+from transformation_utils import (get_transformations_from_col_transformer,
+                                  get_transformations_many_to_many,
+                                  get_transformations_one_to_many_greater,
+                                  get_transformations_one_to_many_smaller)
 
 DATA_SLICE = slice(10)
 

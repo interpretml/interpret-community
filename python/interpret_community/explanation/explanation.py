@@ -4,31 +4,28 @@
 
 """Defines the explanations that are returned from explaining models."""
 
-import numpy as np
-import uuid
-import json
-import pandas as pd
 import gc
+import json
 import os
-from scipy.sparse import issparse
-
+import uuid
 from abc import ABC, abstractmethod
 
-from interpret.utils import gen_local_selector, gen_global_selector, gen_name_from_class
+import numpy as np
+import pandas as pd
+from interpret.utils import (gen_global_selector, gen_local_selector,
+                             gen_name_from_class)
+from scipy.sparse import issparse
 
-from ..common.explanation_utils import (_sort_values,
-                                        _order_imp,
-                                        _sparse_order_imp,
-                                        _sort_feature_list_single,
-                                        _sort_feature_list_multiclass,
-                                        _RANKING,
-                                        _VALUES,
-                                        _FEATURES)
-from ..common.constants import (Defaults, Dynamic, ExplainParams, ExplanationParams,
-                                ExplainType, InterpretData, ModelTask)
-from ..dataset.dataset_wrapper import DatasetWrapper
-from ..common.explanation_utils import _get_raw_feature_importances
 from ..common.chained_identity import ChainedIdentity
+from ..common.constants import (Defaults, Dynamic, ExplainParams, ExplainType,
+                                ExplanationParams, InterpretData, ModelTask)
+from ..common.explanation_utils import (_FEATURES, _RANKING, _VALUES,
+                                        _get_raw_feature_importances,
+                                        _order_imp,
+                                        _sort_feature_list_multiclass,
+                                        _sort_feature_list_single,
+                                        _sort_values, _sparse_order_imp)
+from ..dataset.dataset_wrapper import DatasetWrapper
 
 
 class BaseExplanation(ABC, ChainedIdentity):
@@ -113,18 +110,11 @@ class BaseExplanation(ABC, ChainedIdentity):
         return {InterpretData.MLI: []}
 
     def visualize(self, key=None):
-        from interpret.visual.plot import (
-            plot_line,
-            plot_bar,
-            plot_horizontal_bar,
-            mli_plot_horizontal_bar,
-        )
-        from interpret.visual.plot import (
-            get_sort_indexes,
-            sort_take,
-            mli_sort_take,
-            plot_pairwise_heatmap,
-        )
+        from interpret.visual.plot import (get_sort_indexes,
+                                           mli_plot_horizontal_bar,
+                                           mli_sort_take, plot_bar,
+                                           plot_horizontal_bar, plot_line,
+                                           plot_pairwise_heatmap, sort_take)
         data_dict = self.data(key)
         if data_dict is None:  # pragma: no cover
             return None

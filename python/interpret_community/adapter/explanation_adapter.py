@@ -5,11 +5,12 @@
 """Defines an adapter for creating an interpret-community style explanation from other frameworks."""
 
 import numpy as np
-
+from interpret_community.common.constants import (Defaults, ExplainParams,
+                                                  ExplainType, ModelTask)
 from interpret_community.explanation.explanation import (
-    ExpectedValuesMixin, _create_local_explanation, _create_global_explanation,
-    _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations)
-from interpret_community.common.constants import ExplainParams, ExplainType, Defaults, ModelTask
+    ExpectedValuesMixin, _aggregate_global_from_local_explanation,
+    _aggregate_streamed_local_explanations, _create_global_explanation,
+    _create_local_explanation)
 
 
 class ExplanationAdapter(object):

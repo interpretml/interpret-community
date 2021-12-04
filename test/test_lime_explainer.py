@@ -2,16 +2,13 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
-
 # Tests for LIME Explainer
 import logging
 
-from interpret_community.lime.lime_explainer import LIMEExplainer
-
-from constants import owner_email_tools_and_ux
-
+import pytest
 from common_tabular_tests import VerifyTabularTests
+from constants import owner_email_tools_and_ux
+from interpret_community.lime.lime_explainer import LIMEExplainer
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)

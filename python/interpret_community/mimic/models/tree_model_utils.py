@@ -5,6 +5,7 @@
 """Defines utilities for tree-based explainable models."""
 
 from scipy.special import expit
+
 from ...common.constants import ShapValuesOutput
 from ...common.explanation_utils import _scale_tree_shap
 

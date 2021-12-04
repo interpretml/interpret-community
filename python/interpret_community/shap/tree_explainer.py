@@ -4,23 +4,25 @@
 
 """Defines the TreeExplainer for returning explanations for tree-based models."""
 
+import warnings
+
 import numpy as np
 
+from .._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
+from ..common.aggregate import (add_explain_global_method,
+                                init_aggregator_decorator)
+from ..common.constants import (Defaults, ExplainParams, ExplainType,
+                                Extension, ShapValuesOutput, SKLearn)
+from ..common.explanation_utils import (_convert_to_list, _get_dense_examples,
+                                        _scale_tree_shap)
 from ..common.structured_model_explainer import PureStructuredModelExplainer
-from ..common.explanation_utils import _get_dense_examples, _convert_to_list
-from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
-from ..common.explanation_utils import _scale_tree_shap
-from ..dataset.decorator import tabular_decorator
-from ..explanation.explanation import _create_local_explanation, \
-    _create_raw_feats_local_explanation, _get_raw_explainer_create_explanation_kwargs
-from .kwargs_utils import _get_explain_global_kwargs
-from ..common.constants import ExplainParams, ExplainType, ShapValuesOutput, \
-    Defaults, Extension, SKLearn
-from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
 from ..dataset.dataset_wrapper import DatasetWrapper
-
-import warnings
+from ..dataset.decorator import tabular_decorator
+from ..explanation.explanation import (
+    _create_local_explanation, _create_raw_feats_local_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
+from .kwargs_utils import _get_explain_global_kwargs
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

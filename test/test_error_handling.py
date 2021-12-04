@@ -3,10 +3,8 @@
 # ---------------------------------------------------------
 
 import pytest
-
-from interpret_community.common.error_handling import _format_exception
-
 from constants import owner_email_tools_and_ux
+from interpret_community.common.error_handling import _format_exception
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

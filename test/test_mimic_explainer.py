@@ -2,40 +2,44 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
-
 # Tests for MIMIC Explainer
 import json
 import logging
+import uuid
+from sys import platform
+
 import numpy as np
 import pandas as pd
+import pytest
 import scipy
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import SGDClassifier, LinearRegression, LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split
-from sys import platform
-from interpret_community.common.exception import ScenarioNotSupportedException
-from interpret_community.common.constants import ShapValuesOutput, ModelTask
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import (LinearExplainableModel,
-                                                           SGDExplainableModel)
-from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
-from common_utils import (
-    create_cancer_data, create_timeseries_data, LIGHTGBM_METHOD, LINEAR_METHOD,
-    create_lightgbm_regressor, create_binary_classification_dataset,
-    create_iris_data, create_pytorch_single_output_classifier)
-from models import (
-    DataFrameTestModel, SkewedTestModel,
-    PredictAsDataFrameClassificationTestModel, PredictAsDataFrameREgressionTestModel)
+from common_utils import (LIGHTGBM_METHOD, LINEAR_METHOD,
+                          create_binary_classification_dataset,
+                          create_cancer_data, create_iris_data,
+                          create_lightgbm_regressor,
+                          create_pytorch_single_output_classifier,
+                          create_timeseries_data)
+from constants import ModelType, owner_email_tools_and_ux
 from datasets import retrieve_dataset
+from interpret_community.common.constants import ModelTask, ShapValuesOutput
+from interpret_community.common.exception import ScenarioNotSupportedException
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import (
+    LinearExplainableModel, SGDExplainableModel)
+from interpret_community.mimic.models.tree_model import \
+    DecisionTreeExplainableModel
+from models import (DataFrameTestModel,
+                    PredictAsDataFrameClassificationTestModel,
+                    PredictAsDataFrameREgressionTestModel, SkewedTestModel)
 from sklearn import datasets
-import uuid
-
-from constants import owner_email_tools_and_ux, ModelType
+from sklearn.compose import ColumnTransformer
+from sklearn.datasets import make_regression
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import (LinearRegression, LogisticRegression,
+                                  SGDClassifier)
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)

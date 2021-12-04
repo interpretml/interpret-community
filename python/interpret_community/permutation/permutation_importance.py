@@ -10,31 +10,33 @@ Although very fast for computing global explanations, PFI does not support local
 and can be inaccurate when there are feature interactions.
 """
 
-import numpy as np
-from scipy.sparse import issparse, isspmatrix_csc, SparseEfficiencyWarning
-from sklearn.metrics import mean_absolute_error, explained_variance_score, mean_squared_error, \
-    mean_squared_log_error, median_absolute_error, r2_score, average_precision_score, f1_score, \
-    fbeta_score, precision_score, recall_score
 import logging
-
-from ..common.base_explainer import GlobalExplainer
-from ..common.blackbox_explainer import BlackBoxMixin
-from ..common.model_wrapper import _wrap_model, WrappedPytorchModel
-from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
-from ..dataset.decorator import tabular_decorator
-from ..explanation.explanation import _create_raw_feats_global_explanation, \
-    _get_raw_explainer_create_explanation_kwargs, _create_global_explanation
-from ..common.constants import ExplainParams, ExplainType, ModelTask, Extension
-from ..common.explanation_utils import _order_imp
-from .metric_constants import MetricConstants, error_metrics
-from ..common.progress import get_tqdm
-
 # Although we get a sparse efficiency warning when using csr matrix format for setting the
 # values, if we use lil scikit-learn converts the matrix to csr which has much worse performance
 import warnings
 from functools import wraps
 
+import numpy as np
+from scipy.sparse import SparseEfficiencyWarning, issparse, isspmatrix_csc
+from sklearn.metrics import (average_precision_score, explained_variance_score,
+                             f1_score, fbeta_score, mean_absolute_error,
+                             mean_squared_error, mean_squared_log_error,
+                             median_absolute_error, precision_score, r2_score,
+                             recall_score)
+
+from .._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
+from ..common.base_explainer import GlobalExplainer
+from ..common.blackbox_explainer import BlackBoxMixin
+from ..common.constants import ExplainParams, ExplainType, Extension, ModelTask
+from ..common.explanation_utils import _order_imp
+from ..common.model_wrapper import WrappedPytorchModel, _wrap_model
+from ..common.progress import get_tqdm
+from ..dataset.decorator import tabular_decorator
+from ..explanation.explanation import (
+    _create_global_explanation, _create_raw_feats_global_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
+from .metric_constants import MetricConstants, error_metrics
 
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)

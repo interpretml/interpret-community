@@ -4,26 +4,28 @@
 
 """Defines the KernelExplainer for computing explanations on black box models or functions."""
 
+import warnings
+
 import numpy as np
 
-from ..common.blackbox_explainer import BlackBoxExplainer, add_prepare_function_and_summary_method, \
-    init_blackbox_decorator
+from .._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
 from ..common.aggregate import add_explain_global_method
-from ..common.explanation_utils import _convert_to_list, _append_shap_values_instance, \
-    _convert_single_instance_to_multi
+from ..common.blackbox_explainer import (
+    BlackBoxExplainer, add_prepare_function_and_summary_method,
+    init_blackbox_decorator)
+from ..common.constants import (Attributes, Defaults, ExplainParams,
+                                ExplainType, Extension, ModelTask)
+from ..common.explanation_utils import (_append_shap_values_instance,
+                                        _convert_single_instance_to_multi,
+                                        _convert_to_list)
 from ..common.model_wrapper import _wrap_model
-from ..common.constants import Defaults, Attributes, ExplainParams, ExplainType, ModelTask, \
-    Extension
-from ..explanation.explanation import _create_local_explanation
 from ..dataset.dataset_wrapper import DatasetWrapper
-from ..dataset.decorator import tabular_decorator, init_tabular_decorator
-from ..explanation.explanation import _create_raw_feats_local_explanation, \
-    _get_raw_explainer_create_explanation_kwargs
+from ..dataset.decorator import init_tabular_decorator, tabular_decorator
+from ..explanation.explanation import (
+    _create_local_explanation, _create_raw_feats_local_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
 from .kwargs_utils import _get_explain_global_kwargs
-from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
-
-import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

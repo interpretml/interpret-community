@@ -3,14 +3,17 @@
 # ---------------------------------------------------------
 
 """Defines an explainable linear model."""
-import numpy as np
-from scipy.sparse import issparse, csr_matrix
+import warnings
 
-from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
-from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor, Lasso
+import numpy as np
+from scipy.sparse import csr_matrix, issparse
+from sklearn.linear_model import (Lasso, LinearRegression, LogisticRegression,
+                                  SGDClassifier, SGDRegressor)
+
 from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
 from ...common.explanation_utils import _summarize_data
-import warnings
+from .explainable_model import (BaseExplainableModel, _clean_doc,
+                                _get_initializer_args)
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

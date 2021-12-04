@@ -10,33 +10,34 @@ Once trained to reproduce the output of the teacher model, the surrogate model's
 be used to explain the teacher model.
 """
 
+import json
+import logging
+import warnings
+
 import numpy as np
 from scipy.sparse import issparse
 from sklearn.metrics import accuracy_score, r2_score
 
-from ..common.explanation_utils import _order_imp
-from ..common.exception import ScenarioNotSupportedException
-from ..common.model_wrapper import _wrap_model
-from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
-
+from .._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
 from ..common.blackbox_explainer import BlackBoxExplainer
-
-from .model_distill import _model_distill, _inverse_soft_logit
-from .models import LGBMExplainableModel
-from ..explanation.explanation import _create_local_explanation, _create_global_explanation, \
-    _aggregate_global_from_local_explanation, _aggregate_streamed_local_explanations, \
-    _create_raw_feats_global_explanation, _create_raw_feats_local_explanation, \
-    _get_raw_explainer_create_explanation_kwargs
-from ..dataset.decorator import tabular_decorator, init_tabular_decorator
+from ..common.constants import (Defaults, ExplainableModelType, ExplainParams,
+                                ExplainType, Extension, LightGBMParams,
+                                MimicSerializationConstants, ModelTask,
+                                ResetIndex, ShapValuesOutput)
+from ..common.exception import ScenarioNotSupportedException
+from ..common.explanation_utils import _order_imp
+from ..common.model_wrapper import _wrap_model
 from ..dataset.dataset_wrapper import DatasetWrapper
-from ..common.constants import ExplainParams, ExplainType, ModelTask, \
-    ShapValuesOutput, MimicSerializationConstants, ExplainableModelType, \
-    LightGBMParams, Defaults, Extension, ResetIndex
-import logging
-import json
-
-import warnings
+from ..dataset.decorator import init_tabular_decorator, tabular_decorator
+from ..explanation.explanation import (
+    _aggregate_global_from_local_explanation,
+    _aggregate_streamed_local_explanations, _create_global_explanation,
+    _create_local_explanation, _create_raw_feats_global_explanation,
+    _create_raw_feats_local_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
+from .model_distill import _inverse_soft_logit, _model_distill
+from .models import LGBMExplainableModel
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

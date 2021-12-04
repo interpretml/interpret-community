@@ -5,23 +5,24 @@
 # Defines common utilities for explanations
 import numpy as np
 import pandas as pd
-from sklearn import svm, ensemble, linear_model
-from sklearn.datasets import load_iris, load_boston, load_breast_cancer, fetch_20newsgroups
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.base import TransformerMixin
 from lightgbm import LGBMClassifier, LGBMRegressor
+from sklearn import ensemble, linear_model, svm
+from sklearn.base import TransformerMixin
+from sklearn.datasets import (fetch_20newsgroups, load_boston,
+                              load_breast_cancer, load_iris)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 try:
     from tensorflow import keras
+    from tensorflow.keras.layers import Activation, Dense, Dropout
     from tensorflow.keras.models import Sequential
-    from tensorflow.keras.layers import Dense, Dropout, Activation
-    from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
-    from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+    from tensorflow.keras.wrappers.scikit_learn import (KerasClassifier,
+                                                        KerasRegressor)
 except ImportError:
     pass
 
@@ -32,9 +33,8 @@ try:
 except ImportError:
     pass
 
-from pandas import read_csv
-
 from datasets import retrieve_dataset
+from pandas import read_csv
 
 LIGHTGBM_METHOD = 'mimic.lightgbm'
 LINEAR_METHOD = 'mimic.linear'
@@ -43,9 +43,12 @@ TREE_METHOD = 'mimic.tree'
 
 
 def get_mimic_method(surrogate_model):
-    from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-    from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
-    from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+    from interpret_community.mimic.models.lightgbm_model import \
+        LGBMExplainableModel
+    from interpret_community.mimic.models.linear_model import (
+        LinearExplainableModel, SGDExplainableModel)
+    from interpret_community.mimic.models.tree_model import \
+        DecisionTreeExplainableModel
     if surrogate_model == LGBMExplainableModel:
         return LIGHTGBM_METHOD
     elif surrogate_model == LinearExplainableModel:
@@ -509,9 +512,9 @@ def create_binary_classification_dataset():
 
 
 def create_multiclass_classification_dataset(num_classes=5, num_features=20, num_informative=2):
-    from sklearn.datasets import make_classification
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+    from sklearn.datasets import make_classification
     X, y = make_classification(n_classes=num_classes,
                                n_features=num_features,
                                n_informative=num_informative)

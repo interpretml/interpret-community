@@ -4,14 +4,17 @@
 
 """Defines an explainable tree model."""
 
-from ...common.constants import ShapValuesOutput, ExplainableModelType, Extension
-from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
-from .tree_model_utils import _explain_local_tree_surrogate, \
-    _expected_values_tree_surrogate
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from ...common.explanation_utils import _get_dense_examples
-
 import warnings
+
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
+from ...common.constants import (ExplainableModelType, Extension,
+                                 ShapValuesOutput)
+from ...common.explanation_utils import _get_dense_examples
+from .explainable_model import (BaseExplainableModel, _clean_doc,
+                                _get_initializer_args)
+from .tree_model_utils import (_expected_values_tree_surrogate,
+                               _explain_local_tree_surrogate)
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

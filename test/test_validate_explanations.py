@@ -2,14 +2,15 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
+import logging
 
 # Tests for model explainability SDK
 import numpy as np
-from scipy import stats
+import pytest
 import shap
-import logging
+from scipy import stats
 from sklearn.pipeline import Pipeline
+
 try:
     import cuml
     if cuml.__version__ == '0.18.0':
@@ -20,16 +21,17 @@ try:
 except ImportError:
     rapids_installed = False
 
-from interpret_community.tabular_explainer import TabularExplainer
-from common_utils import create_sklearn_random_forest_classifier, \
-    create_sklearn_random_forest_regressor, create_sklearn_linear_regressor, \
-    create_sklearn_logistic_regressor, create_cuml_svm_classifier, create_cancer_data
-from sklearn.model_selection import train_test_split
-from interpret_community.common.constants import ExplainParams
-from interpret_community.common.policy import SamplingPolicy
-from interpret_community.common.metrics import ndcg
-
+from common_utils import (create_cancer_data, create_cuml_svm_classifier,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_logistic_regressor,
+                          create_sklearn_random_forest_classifier,
+                          create_sklearn_random_forest_regressor)
 from constants import owner_email_tools_and_ux
+from interpret_community.common.constants import ExplainParams
+from interpret_community.common.metrics import ndcg
+from interpret_community.common.policy import SamplingPolicy
+from interpret_community.tabular_explainer import TabularExplainer
+from sklearn.model_selection import train_test_split
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.INFO)

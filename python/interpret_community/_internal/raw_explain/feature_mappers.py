@@ -3,11 +3,15 @@
 # ---------------------------------------------------------
 
 from abc import ABC, abstractmethod
+
 import numpy as np
-from scipy.sparse import eye, csr_matrix
+from scipy.sparse import csr_matrix, eye
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Binarizer, KernelCenterer, LabelEncoder, MaxAbsScaler, MinMaxScaler, Normalizer, \
-    OneHotEncoder, QuantileTransformer, RobustScaler, StandardScaler
+from sklearn.preprocessing import (Binarizer, KernelCenterer, LabelEncoder,
+                                   MaxAbsScaler, MinMaxScaler, Normalizer,
+                                   OneHotEncoder, QuantileTransformer,
+                                   RobustScaler, StandardScaler)
+
 from ...common.constants import Scipy
 
 
@@ -328,7 +332,8 @@ encoders_to_mappers_dict = {
 
 try:
     from sklearn.impute import MissingIndicator, SimpleImputer
-    from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder, PowerTransformer
+    from sklearn.preprocessing import (KBinsDiscretizer, OrdinalEncoder,
+                                       PowerTransformer)
 
     encoders_to_mappers_dict.update([
         (SimpleImputer, IdentityMapper),

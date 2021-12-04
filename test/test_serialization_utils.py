@@ -1,15 +1,14 @@
 # ---------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
-import json
-import pytest
 import datetime
+import json
+
 import numpy as np
 import pandas as pd
-
-from interpret_community.common.serialization_utils import _serialize_json_safe
-
+import pytest
 from constants import owner_email_tools_and_ux
+from interpret_community.common.serialization_utils import _serialize_json_safe
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

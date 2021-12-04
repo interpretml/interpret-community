@@ -2,19 +2,24 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
 import logging
-import tempfile
 import os
-from common_utils import create_iris_data, create_boston_data, create_simple_titanic_data, \
-    create_complex_titanic_data
-from constants import DatasetConstants
-from interpret_community.tabular_explainer import TabularExplainer
+import tempfile
+
+import pytest
 from common_tabular_tests import VerifyTabularTests
+from common_utils import (create_boston_data, create_complex_titanic_data,
+                          create_iris_data, create_simple_titanic_data)
+from constants import DatasetConstants
 from interpret_community.mimic.mimic_explainer import MimicExplainer
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
-from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import (
+    LinearExplainableModel, SGDExplainableModel)
+from interpret_community.mimic.models.tree_model import \
+    DecisionTreeExplainableModel
+from interpret_community.tabular_explainer import TabularExplainer
+
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
 

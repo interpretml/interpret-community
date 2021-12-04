@@ -1,7 +1,7 @@
 import nbformat as nbf
 import papermill as pm
-import scrapbook as sb
 import pytest
+import scrapbook as sb
 
 SORTED_LOCAL_IMPORTANCE_NAMES = 'sorted_local_importance_names'
 

@@ -4,27 +4,31 @@
 
 """Tests serializing the explainers or models"""
 
-import pytest
 import logging
-from joblib import dump, load
-from os import path
-import numpy as np
-import shap
 import time
+from os import path
 
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-
-from common_utils import create_sklearn_svm_classifier, create_scikit_cancer_data, get_mimic_method, \
-    create_sklearn_linear_regressor, LIGHTGBM_METHOD, create_iris_data, \
-    create_cancer_data, create_energy_data
+import numpy as np
+import pytest
+import shap
+from common_utils import (LIGHTGBM_METHOD, create_cancer_data,
+                          create_energy_data, create_iris_data,
+                          create_scikit_cancer_data,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_svm_classifier, get_mimic_method)
 from constants import owner_email_tools_and_ux
-from interpret.ext.blackbox import TabularExplainer, MimicExplainer
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.mimic.models.linear_model import LinearExplainableModel, SGDExplainableModel
-from interpret_community.mimic.models.tree_model import DecisionTreeExplainableModel
+from interpret.ext.blackbox import MimicExplainer, TabularExplainer
 from interpret_community.common.constants import ModelTask
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import (
+    LinearExplainableModel, SGDExplainableModel)
+from interpret_community.mimic.models.tree_model import \
+    DecisionTreeExplainableModel
+from joblib import dump, load
+from sklearn.datasets import make_regression
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 
 test_logger = logging.getLogger(__name__)
 

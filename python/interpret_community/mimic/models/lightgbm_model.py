@@ -4,23 +4,28 @@
 
 """Defines an explainable lightgbm model."""
 
-from .explainable_model import BaseExplainableModel, _get_initializer_args, _clean_doc
-from .tree_model_utils import _explain_local_tree_surrogate, _expected_values_tree_surrogate
-from ...common.constants import ShapValuesOutput, LightGBMSerializationConstants, \
-    ExplainableModelType, Extension
-import json
-import warnings
-import logging
 import inspect
+import json
+import logging
+import warnings
+
 from packaging import version
 from scipy.sparse import issparse
+
+from ...common.constants import (ExplainableModelType, Extension,
+                                 LightGBMSerializationConstants,
+                                 ShapValuesOutput)
+from .explainable_model import (BaseExplainableModel, _clean_doc,
+                                _get_initializer_args)
+from .tree_model_utils import (_expected_values_tree_surrogate,
+                               _explain_local_tree_surrogate)
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
     import shap
     try:
-        from lightgbm import LGBMRegressor, LGBMClassifier, Booster
         import lightgbm
+        from lightgbm import Booster, LGBMClassifier, LGBMRegressor
         if (version.parse(lightgbm.__version__) <= version.parse('2.2.1')):
             print("Using older than supported version of lightgbm, please upgrade to version greater than 2.2.1")
     except ImportError:
