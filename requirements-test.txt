@@ -4,3 +4,4 @@ nbformat
 papermill
 scrapbook
 flake8
+isort
