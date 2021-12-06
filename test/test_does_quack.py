@@ -2,16 +2,16 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
 import logging
 
 import numpy as np
-from scipy.sparse import csr_matrix
-
-from interpret_community.explanation.explanation import BaseExplanation, FeatureImportanceExplanation, \
-    LocalExplanation, GlobalExplanation, ExpectedValuesMixin, ClassesMixin, PerClassMixin, _DatasetsMixin, \
-    _ModelIdMixin
+import pytest
 from constants import owner_email_tools_and_ux
+from interpret_community.explanation.explanation import (
+    BaseExplanation, ClassesMixin, ExpectedValuesMixin,
+    FeatureImportanceExplanation, GlobalExplanation, LocalExplanation,
+    PerClassMixin, _DatasetsMixin, _ModelIdMixin)
+from scipy.sparse import csr_matrix
 
 test_logger = logging.getLogger(__name__)
 

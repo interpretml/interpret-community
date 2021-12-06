@@ -5,9 +5,11 @@
 """Defines the aggregate explainer decorator for aggregating local explanations to global."""
 
 from functools import wraps
-from ..explanation.explanation import _aggregate_global_from_local_explanation, _create_global_explanation, \
-    _aggregate_streamed_local_explanations
-from .constants import ExplainParams, ModelTask, Defaults
+
+from ..explanation.explanation import (
+    _aggregate_global_from_local_explanation,
+    _aggregate_streamed_local_explanations, _create_global_explanation)
+from .constants import Defaults, ExplainParams, ModelTask
 
 
 def init_aggregator_decorator(init_func):

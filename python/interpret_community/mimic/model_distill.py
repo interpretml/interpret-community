@@ -5,7 +5,8 @@
 """Utilities to train a surrogate model from teacher."""
 
 import numpy as np
-from scipy.sparse import issparse, isspmatrix_csr, vstack as sparse_vstack
+from scipy.sparse import issparse, isspmatrix_csr
+from scipy.sparse import vstack as sparse_vstack
 from scipy.special import expit, logit
 
 

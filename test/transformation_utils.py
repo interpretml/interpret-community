@@ -6,12 +6,10 @@
 
 import numpy as np
 import pandas as pd
-
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import FunctionTransformer, StandardScaler
-from sklearn.pipeline import Pipeline
-
 from raw_explain.utils import IdentityTransformer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 
 def get_transformations_one_to_many_smaller(feature_names):

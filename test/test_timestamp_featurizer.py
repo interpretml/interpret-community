@@ -2,15 +2,15 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
 import logging
 
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
-
-from interpret_community.dataset.dataset_wrapper import CustomTimestampFeaturizer
-from constants import DatasetConstants, owner_email_tools_and_ux
+import pytest
 from common_utils import create_timeseries_data
+from constants import DatasetConstants, owner_email_tools_and_ux
+from interpret_community.dataset.dataset_wrapper import \
+    CustomTimestampFeaturizer
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 test_logger = logging.getLogger(__name__)
 

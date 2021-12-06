@@ -2,26 +2,29 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
-
 import numpy as np
 import pandas as pd
-
-from common_utils import (
-    create_sklearn_svm_classifier, create_sklearn_random_forest_regressor,
-    create_sklearn_linear_regressor, create_multiclass_sparse_newsgroups_data,
-    create_sklearn_logistic_regressor, create_binary_sparse_newsgroups_data,
-    LINEAR_METHOD, LIGHTGBM_METHOD, create_multiclass_classification_dataset)
+import pytest
+from common_utils import (LIGHTGBM_METHOD, LINEAR_METHOD,
+                          create_binary_sparse_newsgroups_data,
+                          create_multiclass_classification_dataset,
+                          create_multiclass_sparse_newsgroups_data,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_logistic_regressor,
+                          create_sklearn_random_forest_regressor,
+                          create_sklearn_svm_classifier)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
-from sklearn.model_selection import train_test_split
-from interpret_community.mimic.models.linear_model import LinearExplainableModel
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from interpret_community.explanation.explanation import _DatasetsMixin, _create_local_explanation
 from interpret_community.common.constants import ExplainParams, ExplainType
-
-from transformation_utils import (
-    get_transformations_one_to_many_smaller, get_transformations_from_col_transformer)
+from interpret_community.explanation.explanation import (
+    _create_local_explanation, _DatasetsMixin)
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
+from interpret_community.mimic.models.linear_model import \
+    LinearExplainableModel
+from sklearn.model_selection import train_test_split
+from transformation_utils import (get_transformations_from_col_transformer,
+                                  get_transformations_one_to_many_smaller)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

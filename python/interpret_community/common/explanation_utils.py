@@ -5,14 +5,17 @@
 """Defines helpful utilities for summarizing and uploading data."""
 
 import logging
+import warnings
+
 import numpy as np
-from scipy.sparse import issparse, csr_matrix, vstack as sparse_vstack, eye
+from scipy.sparse import csr_matrix, eye, issparse
+from scipy.sparse import vstack as sparse_vstack
 from sklearn.preprocessing import normalize
 from sklearn.utils import shuffle
 from sklearn.utils.sparsefuncs import csc_median_axis_0
+
 from .constants import Scipy
 from .gpu_kmeans import kmeans
-import warnings
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

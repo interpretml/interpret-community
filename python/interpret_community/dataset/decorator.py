@@ -4,8 +4,9 @@
 
 """Defines a decorator for tabular data which wraps pandas dataframes, scipy and numpy arrays in a DatasetWrapper."""
 
-from .dataset_wrapper import DatasetWrapper
 from functools import wraps
+
+from .dataset_wrapper import DatasetWrapper
 
 
 def tabular_decorator(explain_func):

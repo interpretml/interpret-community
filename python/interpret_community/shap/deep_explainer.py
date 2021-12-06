@@ -4,24 +4,27 @@
 
 """Defines an explainer for DNN models."""
 
-import numpy as np
-import sys
 import logging
-
-from ..common.structured_model_explainer import StructuredInitModelExplainer
-from ..common.explanation_utils import _get_dense_examples, _convert_to_list
-from ..explanation.explanation import _create_local_explanation
-from ..common.aggregate import add_explain_global_method, init_aggregator_decorator
-from ..dataset.decorator import tabular_decorator, init_tabular_decorator
-from ..explanation.explanation import _create_raw_feats_local_explanation, \
-    _get_raw_explainer_create_explanation_kwargs
-from .kwargs_utils import _get_explain_global_kwargs
-from interpret_community.common.constants import ExplainParams, Attributes, ExplainType, \
-    Defaults, ModelTask, DNNFramework, Extension
-from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
-
+import sys
 import warnings
+
+import numpy as np
+from interpret_community._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
+from interpret_community.common.constants import (Attributes, Defaults,
+                                                  DNNFramework, ExplainParams,
+                                                  ExplainType, Extension,
+                                                  ModelTask)
+
+from ..common.aggregate import (add_explain_global_method,
+                                init_aggregator_decorator)
+from ..common.explanation_utils import _convert_to_list, _get_dense_examples
+from ..common.structured_model_explainer import StructuredInitModelExplainer
+from ..dataset.decorator import init_tabular_decorator, tabular_decorator
+from ..explanation.explanation import (
+    _create_local_explanation, _create_raw_feats_local_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
+from .kwargs_utils import _get_explain_global_kwargs
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)

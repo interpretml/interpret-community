@@ -5,6 +5,7 @@
 """Defines utility functions for serialization of data."""
 
 import datetime
+
 import numpy as np
 
 

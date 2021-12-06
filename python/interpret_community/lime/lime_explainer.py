@@ -5,20 +5,23 @@
 """Defines the LIMEExplainer for computing explanations on black box models using LIME."""
 
 import numpy as np
-
-from interpret_community._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data, \
-    transform_with_datamapper
+from interpret_community._internal.raw_explain.raw_explain_utils import (
+    get_datamapper_and_transformed_data, transform_with_datamapper)
 from interpret_community.common.aggregate import add_explain_global_method
+from interpret_community.common.blackbox_explainer import (
+    BlackBoxExplainer, add_prepare_function_and_summary_method,
+    init_blackbox_decorator)
+from interpret_community.common.constants import (Defaults, ExplainParams,
+                                                  ExplainType,
+                                                  ExplanationParams, Extension,
+                                                  ModelTask)
 from interpret_community.common.model_wrapper import _wrap_model
-from interpret_community.common.blackbox_explainer import BlackBoxExplainer, \
-    add_prepare_function_and_summary_method, init_blackbox_decorator
-from interpret_community.dataset.decorator import tabular_decorator, init_tabular_decorator
-from interpret_community.explanation.explanation import _create_local_explanation
-from interpret_community.common.constants import ExplanationParams, ExplainParams, \
-    ExplainType, Defaults, ModelTask, Extension
-from interpret_community.explanation.explanation import _create_raw_feats_local_explanation, \
-    _get_raw_explainer_create_explanation_kwargs
 from interpret_community.common.progress import get_tqdm
+from interpret_community.dataset.decorator import (init_tabular_decorator,
+                                                   tabular_decorator)
+from interpret_community.explanation.explanation import (
+    _create_local_explanation, _create_raw_feats_local_explanation,
+    _get_raw_explainer_create_explanation_kwargs)
 
 # Soft dependency for LIME
 try:

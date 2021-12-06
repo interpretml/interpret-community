@@ -4,14 +4,16 @@
 
 import numpy as np
 import pandas
-from scipy.sparse import issparse, hstack, csr_matrix
+from scipy.sparse import csr_matrix, hstack, issparse
 from sklearn.pipeline import Pipeline
 
-from .feature_mappers import encoders_to_mappers_dict, get_feature_mapper_for_pipeline, IdentityMapper, \
-    PassThroughMapper, FuncTransformer, ManytoManyMapper
-
-from .data_mapper_utils import extract_column, get_transformer_config_tuples_from_column_transformer, \
-    get_transformer_config_tuples_from_transformations_list
+from .data_mapper_utils import (
+    extract_column, get_transformer_config_tuples_from_column_transformer,
+    get_transformer_config_tuples_from_transformations_list)
+from .feature_mappers import (FuncTransformer, IdentityMapper,
+                              ManytoManyMapper, PassThroughMapper,
+                              encoders_to_mappers_dict,
+                              get_feature_mapper_for_pipeline)
 
 try:
     from sklearn.compose import ColumnTransformer

@@ -20,10 +20,11 @@ This version makes use of cuml kmeans instead of sklearn for speed.
 """
 
 import numpy as np
+
 try:
+    import cuml
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
-    import cuml
     rapids_installed = True
 except BaseException:
     rapids_installed = False

@@ -5,6 +5,7 @@
 """Defines the base API for explainable models."""
 import logging
 from abc import ABC, abstractmethod
+
 from ...common.chained_identity import ChainedIdentity
 
 

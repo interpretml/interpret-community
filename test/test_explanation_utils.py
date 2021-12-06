@@ -2,22 +2,20 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
+import logging
 
 import numpy as np
-import logging
-from scipy.sparse import csr_matrix, eye
-
-from interpret_community.common.explanation_utils import (
-    _convert_to_list, _generate_augmented_data, _get_raw_feature_importances,
-    _is_one_to_many, _sort_values, _sort_feature_list_single,
-    _sort_feature_list_multiclass, _two_dimensional_slice,
-    _get_feature_map_from_list_of_indexes, _is_identity, _sparse_order_imp,
-    _should_compress_sparse_matrix, _RANKING, _FEATURES, _VALUES)
-
-from raw_explain.utils import _get_feature_map_from_indices_list
-from interpret_community.common.constants import Scipy
+import pytest
 from constants import owner_email_tools_and_ux
+from interpret_community.common.constants import Scipy
+from interpret_community.common.explanation_utils import (
+    _FEATURES, _RANKING, _VALUES, _convert_to_list, _generate_augmented_data,
+    _get_feature_map_from_list_of_indexes, _get_raw_feature_importances,
+    _is_identity, _is_one_to_many, _should_compress_sparse_matrix,
+    _sort_feature_list_multiclass, _sort_feature_list_single, _sort_values,
+    _sparse_order_imp, _two_dimensional_slice)
+from raw_explain.utils import _get_feature_map_from_indices_list
+from scipy.sparse import csr_matrix, eye
 
 test_logger = logging.getLogger(__name__)
 

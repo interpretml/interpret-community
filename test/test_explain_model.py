@@ -2,42 +2,43 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
+import logging
 
 # Tests for model explainability SDK
 import numpy as np
-from scipy.sparse import csr_matrix
-import shap
-import logging
 import pandas as pd
-
-from interpret_community.common.policy import SamplingPolicy
-
-from common_utils import (create_sklearn_random_forest_classifier, create_sklearn_svm_classifier,
-                          create_sklearn_random_forest_regressor, create_sklearn_linear_regressor,
-                          create_keras_classifier, create_keras_regressor, create_lightgbm_classifier,
-                          create_pytorch_classifier, create_pytorch_regressor, create_xgboost_classifier,
-                          create_msx_data, wrap_classifier_without_proba,
-                          create_pytorch_single_output_classifier, create_scikit_keras_regressor,
-                          create_scikit_keras_classifier)
-from raw_explain.utils import _get_feature_map_from_indices_list
+import pytest
+import shap
+from common_utils import (create_keras_classifier, create_keras_regressor,
+                          create_lightgbm_classifier, create_msx_data,
+                          create_pytorch_classifier, create_pytorch_regressor,
+                          create_pytorch_single_output_classifier,
+                          create_scikit_keras_classifier,
+                          create_scikit_keras_regressor,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_random_forest_classifier,
+                          create_sklearn_random_forest_regressor,
+                          create_sklearn_svm_classifier,
+                          create_xgboost_classifier,
+                          wrap_classifier_without_proba)
+from constants import DatasetConstants, owner_email_tools_and_ux
+from datasets import retrieve_dataset
 from interpret_community.common.constants import ModelTask
+from interpret_community.common.policy import SamplingPolicy
+from interpret_community.shap import (DeepExplainer, GPUKernelExplainer,
+                                      KernelExplainer, LinearExplainer,
+                                      TreeExplainer)
 from interpret_community.tabular_explainer import _get_uninitialized_explainers
-from interpret_community.shap import (KernelExplainer, LinearExplainer, DeepExplainer, TreeExplainer,
-                                      GPUKernelExplainer)
-from constants import DatasetConstants
-
+from lightgbm import LGBMClassifier
+from raw_explain.utils import _get_feature_map_from_indices_list
+from scipy.sparse import csr_matrix
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer
-from sklearn.linear_model import LogisticRegression
-from sklearn.compose import ColumnTransformer
-
-from lightgbm import LGBMClassifier
-
-from constants import owner_email_tools_and_ux
-from datasets import retrieve_dataset
+from sklearn.preprocessing import (FunctionTransformer, OneHotEncoder,
+                                   StandardScaler)
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)

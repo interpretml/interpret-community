@@ -3,10 +3,10 @@
 # ---------------------------------------------------------
 
 """Setup file for interpret-community package."""
-from setuptools import setup, find_packages
 import os
 import shutil
 
+from setuptools import find_packages, setup
 
 with open('interpret_community/version.py') as f:
     code = compile(f.read(), f.name, 'exec')

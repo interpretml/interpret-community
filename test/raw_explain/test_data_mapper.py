@@ -4,15 +4,15 @@
 
 import numpy as np
 import pytest
-from scipy.sparse import issparse, csr_matrix
+from constants import owner_email_tools_and_ux
+from interpret_community._internal.raw_explain import DataMapper
+from raw_explain.utils import (FuncTransformer, IdentityTransformer,
+                               SparseTransformer)
+from scipy.sparse import csr_matrix, issparse
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from interpret_community._internal.raw_explain import DataMapper
-from raw_explain.utils import FuncTransformer, IdentityTransformer, SparseTransformer
-
-from constants import owner_email_tools_and_ux
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

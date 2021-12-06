@@ -16,8 +16,9 @@ def test_import_tabular():
         os.remove(not_existing_path)
         os.rmdir(not_existing_dir)
     os.environ[INTERPRET_C_LOGS] = not_existing_path
-    import interpret_community
     import importlib
+
+    import interpret_community
     importlib.reload(interpret_community)
     assert(os.path.exists(not_existing_path))
 

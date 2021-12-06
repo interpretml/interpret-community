@@ -4,20 +4,21 @@
 
 # Tests for kernel, tree and deep explainers.
 
-import pytest
 import logging
 
-from lightgbm import LGBMClassifier, LGBMRegressor
-
-from interpret_community.shap.kernel_explainer import KernelExplainer
-from interpret_community.shap.tree_explainer import TreeExplainer
-from interpret_community.shap.deep_explainer import DeepExplainer
-from interpret_community.shap.linear_explainer import LinearExplainer
-from interpret_community.common.constants import ShapValuesOutput
+import pytest
 from common_tabular_tests import VerifyTabularTests
-from common_utils import create_keras_multiclass_classifier, create_keras_regressor, \
-    create_sklearn_linear_regressor, create_sklearn_logistic_regressor
-from constants import owner_email_tools_and_ux, ModelType
+from common_utils import (create_keras_multiclass_classifier,
+                          create_keras_regressor,
+                          create_sklearn_linear_regressor,
+                          create_sklearn_logistic_regressor)
+from constants import ModelType, owner_email_tools_and_ux
+from interpret_community.common.constants import ShapValuesOutput
+from interpret_community.shap.deep_explainer import DeepExplainer
+from interpret_community.shap.kernel_explainer import KernelExplainer
+from interpret_community.shap.linear_explainer import LinearExplainer
+from interpret_community.shap.tree_explainer import TreeExplainer
+from lightgbm import LGBMClassifier, LGBMRegressor
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.INFO)

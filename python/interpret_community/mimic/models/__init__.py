@@ -5,7 +5,7 @@
 """Module for explainable surrogate models."""
 from .explainable_model import BaseExplainableModel
 from .lightgbm_model import LGBMExplainableModel
-from .linear_model import SGDExplainableModel, LinearExplainableModel
+from .linear_model import LinearExplainableModel, SGDExplainableModel
 from .tree_model import DecisionTreeExplainableModel
 
 __all__ = ["BaseExplainableModel", "LGBMExplainableModel",

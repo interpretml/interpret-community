@@ -2,16 +2,14 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
-import pytest
-
 # Tests for Permutation Feature Importance Explainer
 import logging
 
-from interpret_community.permutation.permutation_importance import PFIExplainer
-from constants import owner_email_tools_and_ux
-
+import pytest
 from common_tabular_tests import VerifyTabularTests
-from common_utils import create_sklearn_svm_classifier, create_cancer_data
+from common_utils import create_cancer_data, create_sklearn_svm_classifier
+from constants import owner_email_tools_and_ux
+from interpret_community.permutation.permutation_importance import PFIExplainer
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)

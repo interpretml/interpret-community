@@ -4,17 +4,18 @@
 
 """Defines the black box explainer API, which can either take in a black box model or function."""
 
-import numpy as np
-from scipy.sparse import issparse, isspmatrix_csr, csr_matrix
 from functools import wraps
 
-from .base_explainer import BaseExplainer
-from .aggregate import init_aggregator_decorator
-from .constants import ModelTask, ExplainParams, SKLearn
-from .chained_identity import ChainedIdentity
+import numpy as np
+from scipy.sparse import csr_matrix, issparse, isspmatrix_csr
 
-from .._internal.raw_explain.raw_explain_utils import get_datamapper_and_transformed_data
+from .._internal.raw_explain.raw_explain_utils import \
+    get_datamapper_and_transformed_data
 from ..dataset.dataset_wrapper import DatasetWrapper
+from .aggregate import init_aggregator_decorator
+from .base_explainer import BaseExplainer
+from .chained_identity import ChainedIdentity
+from .constants import ExplainParams, ModelTask, SKLearn
 
 
 class _Wrapper(object):

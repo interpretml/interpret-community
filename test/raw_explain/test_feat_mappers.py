@@ -4,15 +4,14 @@
 
 import numpy as np
 import pytest
+from constants import owner_email_tools_and_ux
+from interpret_community._internal.raw_explain.feature_mappers import (
+    IdentityMapper, ManytoManyMapper, PassThroughMapper,
+    get_feature_mapper_for_pipeline)
+from raw_explain.utils import FuncTransformer, IdentityTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-
-from interpret_community._internal.raw_explain.feature_mappers import get_feature_mapper_for_pipeline, \
-    IdentityMapper, PassThroughMapper, ManytoManyMapper
-
-from raw_explain.utils import FuncTransformer, IdentityTransformer
-from constants import owner_email_tools_and_ux
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)

@@ -5,20 +5,21 @@
 """Tests the Explanation JSON serializer"""
 
 import collections.abc
-import pytest
 import logging
-import numpy as np
-import pandas as pd
 import os
 
+import numpy as np
+import pandas as pd
+import pytest
+from common_utils import (create_msx_data, create_sklearn_linear_regressor,
+                          create_sklearn_svm_classifier)
+from constants import DatasetConstants, owner_email_tools_and_ux
 from interpret_community.common.constants import ExplainParams
-from interpret_community.explanation.explanation import save_explanation, load_explanation
-from interpret_community.mimic.models.lightgbm_model import LGBMExplainableModel
-from common_utils import (create_sklearn_svm_classifier, create_sklearn_linear_regressor,
-                          create_msx_data)
-from constants import DatasetConstants
-from constants import owner_email_tools_and_ux
 from interpret_community.dataset.dataset_wrapper import DatasetWrapper
+from interpret_community.explanation.explanation import (load_explanation,
+                                                         save_explanation)
+from interpret_community.mimic.models.lightgbm_model import \
+    LGBMExplainableModel
 
 test_logger = logging.getLogger(__name__)
 

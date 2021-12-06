@@ -106,6 +106,7 @@ steps:
 
 - bash: |
       source activate ${{parameters.condaEnv}}
-      python -m pip install flake8
+      python -m pip install flake8, isort
       flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-  displayName: 'Run flake8'
+      isort . -c
+  displayName: 'Run flake8 and make sure imports are sorted'

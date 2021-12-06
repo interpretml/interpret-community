@@ -5,6 +5,7 @@
 """Defines the base explainer API to create explanations."""
 
 from abc import ABC, abstractmethod
+
 from .chained_identity import ChainedIdentity
 
 

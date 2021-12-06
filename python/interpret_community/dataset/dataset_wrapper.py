@@ -4,17 +4,17 @@
 
 """Defines a helpful dataset wrapper to allow operations such as summarizing data, taking the subset or sampling."""
 
-import pandas as pd
-from scipy.sparse import issparse
-import numpy as np
-
-from ..common.explanation_utils import _summarize_data, _generate_augmented_data
-from ..common.explanation_utils import module_logger
-from ..common.constants import Defaults
-from sklearn.base import TransformerMixin, BaseEstimator
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
-
 import warnings
+
+import numpy as np
+import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
+from scipy.sparse import issparse
+from sklearn.base import BaseEstimator, TransformerMixin
+
+from ..common.constants import Defaults
+from ..common.explanation_utils import (_generate_augmented_data,
+                                        _summarize_data, module_logger)
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
@@ -486,7 +486,7 @@ class DatasetWrapper(object):
         :param max_dim_clustering: Dimensionality threshold for performing reduction.
         :type max_dim_clustering: int
         """
-        from sklearn.decomposition import TruncatedSVD, PCA
+        from sklearn.decomposition import PCA, TruncatedSVD
         from sklearn.preprocessing import StandardScaler
         num_cols = self._dataset.shape[1]
         # Run PCA or SVD on input data and reduce to about MAX_DIM features prior to clustering
@@ -516,9 +516,10 @@ class DatasetWrapper(object):
         :param max_dim_clustering: Dimensionality threshold for performing reduction.
         :type max_dim_clustering: int
         """
+        from math import ceil, isnan, log
+
         from sklearn.cluster import KMeans
         from sklearn.metrics import silhouette_score
-        from math import log, isnan, ceil
         reduced_examples = self._reduce_examples(max_dim_clustering)
         num_rows = self._dataset.shape[0]
         k_upper_bound = 2000
@@ -591,6 +592,7 @@ class DatasetWrapper(object):
         :type sampling_method: str
         """
         from sklearn.utils import resample
+
         # bounds are rough estimates that came from manual investigation
         lower_bound = 200
         upper_bound = 10000
