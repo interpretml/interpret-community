@@ -196,7 +196,7 @@ class TestMimicExplainer(object):
             iris_overall_expected_features = self.iris_overall_expected_features_special_args
             iris_per_class_expected_features = self.iris_per_class_expected_features_special_args
             # retrying 4 times in case this test fails due to a lightgbm bug
-            for i in range(4):
+            for _ in range(4):
                 try:
                     verifier.verify_explain_model_local(iris_overall_expected_features[idx],
                                                         iris_per_class_expected_features[idx],
@@ -694,7 +694,7 @@ class TestMimicExplainerWrappedModels(object):
                                     transformations=transformations, augment_data=False,
                                     explainable_model_args={}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
-        global_explanation is not None
+        assert global_explanation is not None
 
     def test_mimic_pytorch_binary_single_output(self, mimic_explainer):
         x_train, x_test, y_train, _, feature_names, _ = create_cancer_data()
@@ -705,7 +705,7 @@ class TestMimicExplainerWrappedModels(object):
         explainer = mimic_explainer(model, x_train, LGBMExplainableModel,
                                     features=feature_names, model_task=model_task)
         global_explanation = explainer.explain_global(x_train)
-        global_explanation is not None
+        assert global_explanation is not None
         predicted_y = explainer.model.predict(x_train)
         # assert not all predictions zeros
         assert np.any(predicted_y)

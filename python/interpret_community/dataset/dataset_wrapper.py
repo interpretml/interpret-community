@@ -525,7 +525,7 @@ class DatasetWrapper(object):
         k_upper_bound = 2000
         k_list = []
         k = min(num_rows / 2, k_upper_bound)
-        for i in range(int(ceil(log(num_rows, 2) - 7))):
+        for _ in range(int(ceil(log(num_rows, 2) - 7))):
             k_list.append(int(k))
             k /= 2
         prev_highest_score = -1

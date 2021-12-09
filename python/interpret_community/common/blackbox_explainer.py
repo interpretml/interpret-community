@@ -257,6 +257,6 @@ def add_prepare_function_and_summary_method(cls):
         summary = self.initialization_examples.dataset
         return wrapped_function, summary
 
-    setattr(cls, '_function_subset_wrapper', _function_subset_wrapper)
-    setattr(cls, '_prepare_function_and_summary', _prepare_function_and_summary)
+    cls._function_subset_wrapper = _function_subset_wrapper
+    cls._prepare_function_and_summary = _prepare_function_and_summary
     return cls

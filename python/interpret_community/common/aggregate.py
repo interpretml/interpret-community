@@ -89,6 +89,6 @@ def add_explain_global_method(cls):
             kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task,
                                                             self.features, batch_size, **kwargs)
             return _create_global_explanation(**kwargs)
-    setattr(cls, '_get_explain_global_agg_kwargs', _get_explain_global_agg_kwargs)
-    setattr(cls, '_explain_global', _explain_global)
+    cls._get_explain_global_agg_kwargs = _get_explain_global_agg_kwargs
+    cls._explain_global = _explain_global
     return cls
