@@ -1866,7 +1866,7 @@ def _get_value_from_file(file_var):
     if meta == 'DataFrame':
         return pd.DataFrame(data)
     elif meta == 'DatasetWrapper':
-        return DatasetWrapper(data)
+        return DatasetWrapper(np.array(data))
     elif meta == 'ndarray':
         return np.array(data)
     elif meta == 'list':
