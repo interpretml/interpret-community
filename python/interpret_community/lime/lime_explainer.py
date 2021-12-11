@@ -119,7 +119,8 @@ class LIMEExplainer(BlackBoxExplainer):
     @init_tabular_decorator
     @init_blackbox_decorator
     def __init__(self, model, initialization_examples, is_function=False, explain_subset=None,
-                 nclusters=10, features=None, classes=None, verbose=False, categorical_features=[],
+                 nclusters=10, features=None, classes=None, verbose=False,
+                 categorical_features=[],  # noqa: B006
                  show_progress=True, transformations=None, allow_all_transformations=False,
                  model_task=ModelTask.Unknown, **kwargs):
         """Initialize the LIME Explainer.
@@ -351,7 +352,7 @@ class LIMEExplainer(BlackBoxExplainer):
                                                                          labels=labels))
             self.current_index_list = [0]
         else:
-            for ex_idx, example in tqdm(enumerate(evaluation_examples)):
+            for _, example in tqdm(enumerate(evaluation_examples)):
                 lime_explanations.append(self.explainer.explain_instance(example,
                                                                          self.explainer.function,
                                                                          labels=labels))

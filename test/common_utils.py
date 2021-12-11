@@ -572,9 +572,11 @@ def create_complex_titanic_data():
 def create_timeseries_data(sample_cnt_per_grain,
                            time_column_name,
                            target_column_name,
-                           grains_dict={},
+                           grains_dict=None,
                            freq='D'):
     data = []
+    if grains_dict is None:
+        grains_dict = {}
     for grain_comb in _get_all_combinations(grains_dict):
         row_data = {
             time_column_name: pd.date_range(start='2000-01-01',
