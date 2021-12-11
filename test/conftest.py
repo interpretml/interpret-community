@@ -103,7 +103,9 @@ def mimic_explainer():
     return MimicExplainer
 
 
-def generate_create_method(explainable_model, is_sparse=False, explainable_model_args={}):
+def generate_create_method(explainable_model, is_sparse=False, explainable_model_args=None):
+    if explainable_model_args is None:
+        explainable_model_args = {}
     if is_sparse:
         def create_explainer(model, x_train, **kwargs):
             return MimicExplainer(model, x_train, explainable_model, max_num_of_augmentations=10,

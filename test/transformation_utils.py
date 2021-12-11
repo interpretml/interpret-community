@@ -69,7 +69,7 @@ def get_transformations_many_to_many(feature_names):
 
 def get_transformations_from_col_transformer(col_transformer):
     transformers = []
-    for name, tr, column_name, in col_transformer.transformers_:
+    for _, tr, column_name, in col_transformer.transformers_:
         if tr == "passthrough":
             tr = None
         if tr != "drop":
