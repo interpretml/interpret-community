@@ -109,6 +109,11 @@ class DatasetWrapper(object):
         :param clear_references: A memory optimization that clears all references after use in explainers.
         :type clear_references: bool
         """
+        if (not isinstance(dataset, pd.DataFrame) and not isinstance(dataset, pd.Series) and
+                not isinstance(dataset, np.ndarray) and not issparse(dataset)):
+            raise TypeError("Got type {0} which is not not supported in DatasetWrapper".format(
+                type(dataset))
+            )
         self._features = None
         self._original_dataset_with_type = dataset
         self._dataset_is_df = isinstance(dataset, pd.DataFrame)
