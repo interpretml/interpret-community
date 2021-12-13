@@ -63,6 +63,14 @@ class TestSerializeExplanation(object):
         explanation = explainer.explain_global(iris[DatasetConstants.X_TEST])
         verify_serialization(explanation, assert_numpy_types=True)
 
+    def test_save_and_load_explanation_global_and_local_multiple_times(
+            self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST])
+        verify_serialization(explanation, assert_numpy_types=True, num_times=5)
+
     @pytest.mark.skip(reason="save_explanation and load_explanation do not support sparse data yet")
     def test_save_and_load_sparse_explanation(self, mimic_explainer):
         x_train, x_test, y_train, y_test = create_msx_data(0.05)
@@ -116,12 +124,16 @@ def _assert_numpy_explanation_types(actual, expected):
 # tests to verify that the de-serialized result is equivalent to the original
 # exposed outside this module to allow any test involving an explanation to
 # incorporate serialization testing
-def verify_serialization(explanation, extra_path=None, exist_ok=False, assert_numpy_types=False):
-    path = 'brand/new/path'
-    if extra_path is not None:
-        path = os.path.join(path, extra_path)
-    save_explanation(explanation, path, exist_ok=exist_ok)
-    loaded_explanation = load_explanation(path)
-    _assert_explanation_equivalence(explanation, loaded_explanation)
-    if assert_numpy_types:
-        _assert_numpy_explanation_types(explanation, loaded_explanation)
+def verify_serialization(
+        explanation, extra_path=None, exist_ok=False, assert_numpy_types=False,
+        num_times=1):
+    loaded_explanation = explanation
+    for index in range(num_times):
+        path = 'brand/new/path' + str(index)
+        if extra_path is not None:
+            path = os.path.join(path, extra_path)
+        save_explanation(loaded_explanation, path, exist_ok=exist_ok)
+        loaded_explanation = load_explanation(path)
+        _assert_explanation_equivalence(explanation, loaded_explanation)
+        if assert_numpy_types:
+            _assert_numpy_explanation_types(explanation, loaded_explanation)
