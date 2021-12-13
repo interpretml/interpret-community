@@ -97,7 +97,7 @@ class DatasetWrapper(object):
 
     :param dataset: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type dataset: numpy.array or pandas.DataFrame or panads.Series or scipy.sparse.csr_matrix
     """
 
     def __init__(self, dataset, clear_references=False):

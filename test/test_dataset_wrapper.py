@@ -28,6 +28,5 @@ class TestDatasetWrapper:
         DatasetWrapper(dataset=sparse_matrix)
 
         test_list = test_array.tolist()
-        DatasetWrapper(test_list)
         with pytest.raises(TypeError):
             DatasetWrapper(test_list)
