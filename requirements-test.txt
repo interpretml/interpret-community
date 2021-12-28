@@ -6,5 +6,6 @@ scrapbook
 flake8
 flake8-bugbear==21.11.29
 flake8-blind-except==0.1.1
+flake8-breakpoint
 flake8-logging-format==0.6.0
 isort
