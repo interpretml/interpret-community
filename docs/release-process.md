@@ -1,6 +1,6 @@
 # Release process for interpret-community
 
-When ready to release, create a separate PR in interpret-community to bump up the version in the \_\_init__.py file under the python/interpret_community directory:
+When ready to release, create a separate PR in interpret-community to bump up the version in the version.py file under the python/interpret_community directory:
 
 ```
 _major = '0'
@@ -28,7 +28,19 @@ For a guide on the pypi release process, please see:
 
 https://packaging.python.org/tutorials/packaging-projects/
 
-### pypi file
+## Pipeline automatic release process
+
+Go to the PyPI-Release pipeline located at the build definition:
+
+https://dev.azure.com/responsibleai/interpret-community/_build?definitionId=70
+
+Sign in and trigger a release by selecting the "Run pipeline" button.  Select Release Type = "Test" to trigger a test release.  After build is complete and validated, select Release Type = "Production" to release to PyPI prod.
+
+## Manual process
+
+If the release pipeline is not working or there is some justification to release manually, the old direct release process can be used with local commands outlined below.
+
+### PyPI file
 
 Create a .pypirc file in the users home directory, it should look similar to:
 
@@ -83,25 +95,30 @@ dist/
   interpret-community-0.0.1.tar.gz
 ```
 
-Upgrade twine before uploading to pypi:
+Upgrade twine before uploading to PyPI:
+```
+pip install --upgrade twine
+```
+
+Note: you may need to specify --user on some environments:
 ```
 pip install --user --upgrade twine
 ```
 
-Run twine upload to the pypi test repository:
+Run twine upload to the PyPI test repository:
 ```
 twine upload --repository pypitest dist/*
 ```
 The twine install location may not be on PATH by default; either add it or call twine using its full path.
 
-Validate that the page looks correct on the pypi release page.
+Validate that the page looks correct on the PyPI release page.
 
 OPTIONAL:
 You can install and validate the package locally:
 
 pip install --index-url https://test.pypi.org/simple/ --no-deps interpret-community
 
-Run twine upload to the pypi repository:
+Run twine upload to the PyPI repository:
 ```
 twine upload --repository pypi dist/*
 ```
