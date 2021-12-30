@@ -4,8 +4,8 @@ from tempfile import TemporaryDirectory
 import interpret_community
 import yaml
 
-from ..explanation.explanation import (_get_explanation_metadata,
-                                       load_explanation, save_explanation)
+from ..explanation.serialization import (_get_explanation_metadata,
+                                         load_explanation, save_explanation)
 
 
 def _load_pyfunc(path):
