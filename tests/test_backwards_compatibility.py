@@ -23,7 +23,7 @@ def test_model_backcompat_global(mimic_explainer):
     dummy_model = DummyModel()
     model_file = 'old_mimic_model.json'
     if not path.exists(model_file):
-        model_file = path.join('test', model_file)
+        model_file = path.join('tests', model_file)
     with open(model_file, 'r') as file:
         data = file.read()
     properties = json.loads(data)
@@ -42,7 +42,7 @@ def test_model_backcompat_local(mimic_explainer):
     dummy_model = DummyModel()
     model_file = 'old_mimic_model2.json'
     if not path.exists(model_file):
-        model_file = path.join('test', model_file)
+        model_file = path.join('tests', model_file)
     with open(model_file, 'r') as file:
         data = file.read()
     properties = json.loads(data)

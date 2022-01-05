@@ -73,19 +73,19 @@ steps:
 - ${{ if eq(parameters.testRunType, 'Unit')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Unit"
+        python -m pytest tests/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Unit"
     displayName: Run Unit tests
 
 - ${{ if eq(parameters.testRunType, 'Notebooks')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "notebooks" -s -v --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
+        python -m pytest tests/ -m "notebooks" -s -v --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Notebooks"
     displayName: Run Notebook tests
 
 - ${{ if eq(parameters.testRunType, 'CodeCoverage')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
-        python -m pytest test/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Coverage"  --cov=python --cov-report=xml --cov-report=html -o unit_suite_name="UnitCoverage"
+        python -m pytest tests/ -m "not notebooks" --junitxml=./TEST--TEST.xml -o junit_suite_name="$(Agent.JobName)-Coverage"  --cov=python --cov-report=xml --cov-report=html -o unit_suite_name="UnitCoverage"
     displayName: Run Code Coverage tests
 
   - task: PublishCodeCoverageResults@1
