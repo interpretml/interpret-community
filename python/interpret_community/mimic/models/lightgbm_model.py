@@ -15,21 +15,24 @@ from scipy.sparse import issparse
 from ...common.constants import (ExplainableModelType, Extension,
                                  LightGBMSerializationConstants,
                                  ShapValuesOutput)
+from ...common.warnings_suppressor import shap_warnings_suppressor
 from .explainable_model import (BaseExplainableModel, _clean_doc,
                                 _get_initializer_args)
 from .tree_model_utils import (_expected_values_tree_surrogate,
                                _explain_local_tree_surrogate)
 
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
+with shap_warnings_suppressor():
     import shap
-    try:
-        import lightgbm
-        from lightgbm import Booster, LGBMClassifier, LGBMRegressor
-        if (version.parse(lightgbm.__version__) <= version.parse('2.2.1')):
-            print("Using older than supported version of lightgbm, please upgrade to version greater than 2.2.1")
-    except ImportError:
-        print("Could not import lightgbm, required if using LGBMExplainableModel")
+
+
+try:
+    import lightgbm
+    from lightgbm import Booster, LGBMClassifier, LGBMRegressor
+    if (version.parse(lightgbm.__version__) <= version.parse('2.2.1')):
+        print("Using older than supported version of lightgbm, please upgrade to version greater than 2.2.1")
+except ImportError:
+    print("Could not import lightgbm, required if using LGBMExplainableModel")
+
 
 DEFAULT_RANDOM_STATE = 123
 _N_FEATURES = '_n_features'

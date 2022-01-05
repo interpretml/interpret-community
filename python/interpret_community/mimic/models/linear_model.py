@@ -3,7 +3,6 @@
 # ---------------------------------------------------------
 
 """Defines an explainable linear model."""
-import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
@@ -12,11 +11,11 @@ from sklearn.linear_model import (Lasso, LinearRegression, LogisticRegression,
 
 from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
 from ...common.explanation_utils import _summarize_data
+from ...common.warnings_suppressor import shap_warnings_suppressor
 from .explainable_model import (BaseExplainableModel, _clean_doc,
                                 _get_initializer_args)
 
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
+with shap_warnings_suppressor():
     import shap
 
 DEFAULT_RANDOM_STATE = 123

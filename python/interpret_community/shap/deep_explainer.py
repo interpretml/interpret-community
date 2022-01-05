@@ -6,7 +6,6 @@
 
 import logging
 import sys
-import warnings
 
 import numpy as np
 from interpret_community._internal.raw_explain.raw_explain_utils import (
@@ -20,14 +19,15 @@ from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
 from ..common.explanation_utils import _convert_to_list, _get_dense_examples
 from ..common.structured_model_explainer import StructuredInitModelExplainer
+from ..common.warnings_suppressor import (shap_warnings_suppressor,
+                                          tf_warnings_suppressor)
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,
     _get_raw_explainer_create_explanation_kwargs)
 from .kwargs_utils import _get_explain_global_kwargs
 
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
+with shap_warnings_suppressor():
     import shap
 
 
