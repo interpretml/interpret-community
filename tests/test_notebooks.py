@@ -31,11 +31,11 @@ def input_notebook_path(notebookname):
 
 
 def processed_notebook_path(notebookname):
-    return "./test/{0}.processed.ipynb".format(notebookname)
+    return "./tests/{0}.processed.ipynb".format(notebookname)
 
 
 def output_notebook_path(notebookname):
-    return "./test/{0}.output.ipynb".format(notebookname)
+    return "./tests/{0}.output.ipynb".format(notebookname)
 
 
 @pytest.mark.notebooks
