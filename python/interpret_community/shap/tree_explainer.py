@@ -4,8 +4,6 @@
 
 """Defines the TreeExplainer for returning explanations for tree-based models."""
 
-import warnings
-
 import numpy as np
 
 from .._internal.raw_explain.raw_explain_utils import (
@@ -17,6 +15,7 @@ from ..common.constants import (Defaults, ExplainParams, ExplainType,
 from ..common.explanation_utils import (_convert_to_list, _get_dense_examples,
                                         _scale_tree_shap)
 from ..common.structured_model_explainer import PureStructuredModelExplainer
+from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import (
@@ -24,8 +23,7 @@ from ..explanation.explanation import (
     _get_raw_explainer_create_explanation_kwargs)
 from .kwargs_utils import _get_explain_global_kwargs
 
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
+with shap_warnings_suppressor():
     import shap
 
 

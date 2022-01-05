@@ -5,7 +5,6 @@
 """Defines helpful utilities for summarizing and uploading data."""
 
 import logging
-import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix, eye, issparse
@@ -16,11 +15,10 @@ from sklearn.utils.sparsefuncs import csc_median_axis_0
 
 from .constants import Scipy
 from .gpu_kmeans import kmeans
+from .warnings_suppressor import shap_warnings_suppressor
 
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
+with shap_warnings_suppressor():
     import shap
-
 
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
