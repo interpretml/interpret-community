@@ -39,7 +39,7 @@ DEPENDENCIES = [
     'numpy',
     'pandas',
     'scipy',
-    'ml-wrappers==0.0.3',
+    'ml-wrappers==0.0.4',
     'scikit-learn',
     'packaging',
     'interpret-core[required]>=0.1.20, <=0.2.7',
