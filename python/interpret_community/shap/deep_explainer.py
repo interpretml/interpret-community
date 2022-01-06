@@ -19,8 +19,7 @@ from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
 from ..common.explanation_utils import _convert_to_list, _get_dense_examples
 from ..common.structured_model_explainer import StructuredInitModelExplainer
-from ..common.warnings_suppressor import (shap_warnings_suppressor,
-                                          tf_warnings_suppressor)
+from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,
