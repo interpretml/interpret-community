@@ -10,7 +10,7 @@ confidence in the model.
 from .tabular_explainer import TabularExplainer
 from .version import name, version
 
-__all__ = ["TabularExplainer"]
+__all__ = ['TabularExplainer']
 
 import atexit
 # Setup logging infrustructure

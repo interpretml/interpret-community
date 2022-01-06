@@ -16,10 +16,10 @@ from common_utils import (create_msx_data, create_sklearn_linear_regressor,
 from constants import DatasetConstants, owner_email_tools_and_ux
 from interpret_community.common.constants import ExplainParams
 from interpret_community.dataset.dataset_wrapper import DatasetWrapper
-from interpret_community.explanation.explanation import (load_explanation,
-                                                         save_explanation)
+from interpret_community.explanation import load_explanation, save_explanation
 from interpret_community.mimic.models.lightgbm_model import \
     LGBMExplainableModel
+from scipy.sparse import issparse
 
 test_logger = logging.getLogger(__name__)
 
@@ -71,7 +71,6 @@ class TestSerializeExplanation(object):
         explanation = explainer.explain_global(iris[DatasetConstants.X_TEST])
         verify_serialization(explanation, assert_numpy_types=True, num_times=5)
 
-    @pytest.mark.skip(reason="save_explanation and load_explanation do not support sparse data yet")
     def test_save_and_load_sparse_explanation(self, mimic_explainer):
         x_train, x_test, y_train, y_test = create_msx_data(0.05)
         # Fit a linear regression model
@@ -99,13 +98,25 @@ def _assert_explanation_equivalence(actual, expected):
                 expected_dataset = expected_value.original_dataset.tolist()
             else:
                 expected_dataset = expected_value.original_dataset
-            np.testing.assert_array_equal(actual_dataset, expected_dataset)
+            if issparse(actual_dataset) and issparse(expected_dataset):
+                _assert_sparse_data_equivalence(actual_dataset, expected_dataset)
+            else:
+                np.testing.assert_array_equal(actual_dataset, expected_dataset)
         elif isinstance(actual_value, (np.ndarray, collections.abc.Sequence)):
             np.testing.assert_array_equal(actual_value, expected_value)
         elif isinstance(actual_value, pd.DataFrame) and isinstance(expected_value, pd.DataFrame):
             np.testing.assert_array_equal(actual_value.values, expected_value.values)
+        elif issparse(actual_value) and issparse(expected_value):
+            _assert_sparse_data_equivalence(actual_value, expected_value)
         else:
             assert actual_value == expected_value
+
+
+def _assert_sparse_data_equivalence(actual, expected):
+    np.testing.assert_array_equal(actual.data, expected.data)
+    np.testing.assert_array_equal(actual.indices, expected.indices)
+    np.testing.assert_array_equal(actual.indptr, expected.indptr)
+    np.testing.assert_array_equal(actual.shape, expected.shape)
 
 
 def _assert_numpy_explanation_types(actual, expected):
