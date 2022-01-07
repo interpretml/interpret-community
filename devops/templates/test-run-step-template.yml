@@ -70,6 +70,18 @@ steps:
     pip install -r requirements-vis.txt
   displayName: Install vis required pip packages
 
+- bash: |
+      source activate ${{parameters.condaEnv}}
+      flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
+  failOnStderr: true
+  displayName: 'Run flake8'
+
+- bash: |
+      source activate ${{parameters.condaEnv}}
+      isort . -c
+  failOnStderr: true
+  displayName: 'Make sure imports are sorted'
+
 - ${{ if eq(parameters.testRunType, 'Unit')}}:
   - bash: |
         source activate ${{parameters.condaEnv}}
@@ -103,10 +115,3 @@ steps:
     failTaskOnFailedTests: true
   condition: succeededOrFailed()
   displayName: 'Publish Test Results'
-
-- bash: |
-      source activate ${{parameters.condaEnv}}
-      python -m pip install flake8, flake8-bugbear==21.11.29, flake8-blind-except==0.1.1, flake8-breakpoint, flake8-logging-format==0.6.0, isort
-      flake8 --max-line-length=119 --exclude=.git/,__pycache__/,dist/ .
-      isort . -c
-  displayName: 'Run flake8 and make sure imports are sorted'
