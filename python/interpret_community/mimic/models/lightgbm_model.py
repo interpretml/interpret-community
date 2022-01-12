@@ -7,7 +7,6 @@
 import inspect
 import json
 import logging
-import warnings
 
 from packaging import version
 from scipy.sparse import issparse
