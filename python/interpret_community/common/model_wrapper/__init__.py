@@ -4,6 +4,8 @@
 
 """Reimports helpful model wrapper and utils for implicitly rewrapping the model to conform to explainer contracts."""
 
-from ml_wrappers.model import WrappedPytorchModel, _wrap_model, wrap_model
+from ml_wrappers.model import (WrappedClassificationModel, WrappedPytorchModel,
+                               WrappedRegressionModel, _wrap_model, wrap_model)
 
-__all__ = ['WrappedPytorchModel', '_wrap_model', 'wrap_model']
+__all__ = ['WrappedClassificationModel', 'WrappedPytorchModel',
+           'WrappedRegressionModel', '_wrap_model', 'wrap_model']
