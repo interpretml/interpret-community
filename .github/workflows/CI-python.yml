@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         packageDirectory: ["interpret_community"]
-        operatingSystem: [ubuntu-latest, windows-latest]
-        pythonVersion: [3.6, 3.7, 3.8]
+        operatingSystem: [ubuntu-latest]
+        pythonVersion: [3.6, 3.8]
 
     runs-on: ${{ matrix.operatingSystem }}
 
