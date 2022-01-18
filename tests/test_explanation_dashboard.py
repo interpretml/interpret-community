@@ -92,7 +92,7 @@ class TestExplanationDashboard:
         explanation = explainer.explain_local(x_test)
         err = ("ExplanationDashboard in interpret-community package is deprecated and removed."
                "Please use the ExplanationDashboard from raiwidgets package instead.")
-        with pytest.warns(UserWarning, match=err):
+        with pytest.warns(DeprecationWarning, match=err):
             OldExplanationDashboard(explanation, model, dataset=x_test, true_y=y_test)
 
     def test_interpret_dashboard(self, mimic_explainer):
