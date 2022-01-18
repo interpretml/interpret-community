@@ -31,9 +31,12 @@ def pytest_itemcollected(item):
 
 @pytest.fixture()
 def clean_dir():
+    old_cwd = os.getcwd()
     new_path = tempfile.mkdtemp()
     print("tmp test directory: " + new_path)
     os.chdir(new_path)
+    yield
+    os.chdir(old_cwd)
 
 
 @pytest.fixture(scope='session')

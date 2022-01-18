@@ -204,7 +204,9 @@ def _get_kwargs(path, params, local_explanation=None):
     with open(os.path.join(path, EXPLANATION_METADATA), 'r') as f:
         metadata = json.load(f)
     numpy_params = {ExplainParams.EVAL_DATA, ExplainParams.INIT_DATA}
-    is_local_sparse = metadata[ExplainParams.IS_LOCAL_SPARSE]
+    is_local_sparse = False
+    if ExplainParams.IS_LOCAL_SPARSE in metadata:
+        is_local_sparse = metadata[ExplainParams.IS_LOCAL_SPARSE]
     if not is_local_sparse:
         numpy_params.add(ExplainParams.LOCAL_IMPORTANCE_VALUES)
 

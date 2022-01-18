@@ -1,0 +1,1 @@
+{"explanation_id": "38b07aad-7edb-4d27-bbd7-41721cdd50e7", "model_type": "classification", "data_type": "tabular", "model_task": "classification", "method": "shap_kernel", "model_class": null, "is_raw": false, "is_engineered": false, "global": true, "local": false, "num_classes": 3, "num_examples": 0, "num_features": 4, "serialization_version": 1}
