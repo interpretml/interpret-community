@@ -16,15 +16,6 @@ pool:
 jobs:
 - template: templates/all-tests-job-template.yml
   parameters:
-    platforms:  { Linux: ubuntu-latest }
-    testRunTypes: ['Unit']
-    pyVersions: [3.6]
-    installationType: PipLocal
-    envArtifactStem: $(EnvArtifactStem)
-    envFileStem: $(EnvFileStem)
-
-- template: templates/all-tests-job-template.yml
-  parameters:
     platforms:  { MacOS: macos-latest }
     testRunTypes: ['Notebooks']
     pyVersions: [3.7]
