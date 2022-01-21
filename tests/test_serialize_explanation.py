@@ -40,7 +40,7 @@ class TestSerializeExplanation(object):
                                       iris[DatasetConstants.X_TRAIN],
                                       features=iris[DatasetConstants.FEATURES])
         explanation = explainer.explain_local(iris[DatasetConstants.X_TEST])
-        save_explanation(explanation, 'brand/new/path')
+        save_explanation(explanation, os.path.join('brand', 'new', 'path'))
 
     def test_save_and_load_explanation_local_only(self, iris, tabular_explainer, iris_svm_model):
         explainer = tabular_explainer(iris_svm_model,
@@ -81,7 +81,30 @@ class TestSerializeExplanation(object):
         verify_serialization(explanation)
 
 
-def _assert_explanation_equivalence(actual, expected):
+@pytest.mark.owner(email=owner_email_tools_and_ux)
+class TestSerializeExplanationBackcompat(object):
+    def test_old_load_explanation_backcompat(self, iris, tabular_explainer, iris_svm_model):
+        explainer = tabular_explainer(iris_svm_model,
+                                      iris[DatasetConstants.X_TRAIN],
+                                      features=iris[DatasetConstants.FEATURES])
+        explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
+        loaded_explanation = load_explanation(os.path.join('.', 'tests', 'backcompat_explanation'))
+        explanation._id = loaded_explanation._id
+        _assert_explanation_equivalence(explanation, loaded_explanation, rtol=1e-7)
+        _assert_numpy_explanation_types(explanation, loaded_explanation, rtol=1e-7)
+
+
+def _generate_old_explanation(iris, tabular_explainer, iris_svm_model):
+    # Code used to generate an explanation from an older version
+    explainer = tabular_explainer(iris_svm_model,
+                                  iris[DatasetConstants.X_TRAIN],
+                                  features=iris[DatasetConstants.FEATURES])
+    explanation = explainer.explain_global(iris[DatasetConstants.X_TEST], include_local=False)
+    path = os.path.join('.', 'tests', 'backcompat_explanation')
+    save_explanation(explanation, path, exist_ok=False)
+
+
+def _assert_explanation_equivalence(actual, expected, rtol=None):
     # get the non-null properties in the expected explanation
     paramkeys = filter(lambda x, expected=expected: hasattr(expected, getattr(ExplainParams, x)),
                        list(ExplainParams.get_serializable()))
@@ -99,36 +122,53 @@ def _assert_explanation_equivalence(actual, expected):
             else:
                 expected_dataset = expected_value.original_dataset
             if issparse(actual_dataset) and issparse(expected_dataset):
-                _assert_sparse_data_equivalence(actual_dataset, expected_dataset)
+                _assert_sparse_data_equivalence(actual_dataset, expected_dataset, rtol=rtol)
             else:
-                np.testing.assert_array_equal(actual_dataset, expected_dataset)
+                _assert_allclose_or_eq(actual_dataset, expected_dataset, rtol=rtol)
         elif isinstance(actual_value, (np.ndarray, collections.abc.Sequence)):
-            np.testing.assert_array_equal(actual_value, expected_value)
+            _assert_allclose_or_eq(actual_value, expected_value, rtol=rtol)
         elif isinstance(actual_value, pd.DataFrame) and isinstance(expected_value, pd.DataFrame):
-            np.testing.assert_array_equal(actual_value.values, expected_value.values)
+            _assert_allclose_or_eq(actual_value.values, expected_value.values, rtol=rtol)
         elif issparse(actual_value) and issparse(expected_value):
-            _assert_sparse_data_equivalence(actual_value, expected_value)
+            _assert_sparse_data_equivalence(actual_value, expected_value, rtol=rtol)
         else:
             assert actual_value == expected_value
 
 
-def _assert_sparse_data_equivalence(actual, expected):
-    np.testing.assert_array_equal(actual.data, expected.data)
-    np.testing.assert_array_equal(actual.indices, expected.indices)
-    np.testing.assert_array_equal(actual.indptr, expected.indptr)
-    np.testing.assert_array_equal(actual.shape, expected.shape)
+def _assert_allclose_or_eq(actual, expected, rtol=None):
+    if rtol is not None:
+        try:
+            return np.testing.assert_allclose(actual, expected, rtol=rtol)
+        except TypeError:
+            print("Caught type error, defaulting to regular compare")
+    np.testing.assert_array_equal(actual, expected)
 
 
-def _assert_numpy_explanation_types(actual, expected):
+def _assert_sparse_data_equivalence(actual, expected, rtol=None):
+    _assert_allclose_or_eq(actual.data, expected.data, rtol=rtol)
+    _assert_allclose_or_eq(actual.indices, expected.indices, rtol=rtol)
+    _assert_allclose_or_eq(actual.indptr, expected.indptr, rtol=rtol)
+    _assert_allclose_or_eq(actual.shape, expected.shape, rtol=rtol)
+
+
+def _assert_numpy_explanation_types(actual, expected, rtol=None):
     # assert "_" variables equivalence
     if hasattr(actual, ExplainParams.get_private(ExplainParams.LOCAL_IMPORTANCE_VALUES)):
         assert(isinstance(actual._local_importance_values, np.ndarray))
         assert(isinstance(expected._local_importance_values, np.ndarray))
-        np.testing.assert_array_equal(actual._local_importance_values, expected._local_importance_values)
+        if rtol is None:
+            np.testing.assert_array_equal(actual._local_importance_values,
+                                          expected._local_importance_values)
+        else:
+            np.testing.assert_allclose(actual._local_importance_values,
+                                       expected._local_importance_values, rtol=rtol)
     if hasattr(actual, ExplainParams.get_private(ExplainParams.EVAL_DATA)):
         assert(isinstance(actual._eval_data, np.ndarray))
         assert(isinstance(expected._eval_data, np.ndarray))
-        np.testing.assert_array_equal(actual._eval_data, expected._eval_data)
+        if rtol is None:
+            np.testing.assert_array_equal(actual._eval_data, expected._eval_data)
+        else:
+            np.testing.assert_allclose(actual._eval_data, expected._eval_data, rtol=rtol)
 
 
 # performs serialization and de-serialization for any explanation
@@ -140,7 +180,7 @@ def verify_serialization(
         num_times=1):
     loaded_explanation = explanation
     for index in range(num_times):
-        path = 'brand/new/path' + str(index)
+        path = os.path.join('brand', 'new', 'path') + str(index)
         if extra_path is not None:
             path = os.path.join(path, extra_path)
         save_explanation(loaded_explanation, path, exist_ok=exist_ok)
