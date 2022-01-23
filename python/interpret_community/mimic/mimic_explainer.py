@@ -248,7 +248,7 @@ class MimicExplainer(BlackBoxExplainer):
             initialization_examples._clear()
             initialization_examples = new_initialization_examples
         if reset_index != ResetIndex.Ignore:
-        initialization_examples.reset_index()
+            initialization_examples.reset_index()
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(MimicExplainer, self).__init__(wrapped_model, is_function=is_function,
                                              model_task=eval_ml_domain, **kwargs)
