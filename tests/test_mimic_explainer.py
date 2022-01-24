@@ -412,7 +412,7 @@ class TestMimicExplainer(object):
     def _verify_predictions_and_replication_metric(self, mimic_explainer, data):
         predictions_main_model = mimic_explainer._get_teacher_model_predictions(data)
         predictions_surrogate_model = mimic_explainer._get_surrogate_model_predictions(data)
-        replication_score = mimic_explainer._get_surrogate_model_replication_measure(data)
+        replication_score = mimic_explainer.get_surrogate_model_replication_measure(data)
 
         assert predictions_main_model is not None
         assert predictions_surrogate_model is not None
@@ -422,8 +422,11 @@ class TestMimicExplainer(object):
         assert replication_score is not None and isinstance(replication_score, float)
 
         if mimic_explainer.classes is None:
-            with pytest.raises(ScenarioNotSupportedException):
-                mimic_explainer._get_surrogate_model_replication_measure(
+            with pytest.raises(
+                    ScenarioNotSupportedException,
+                    match="Replication measure for regression surrogate not supported "
+                          "because of single instance in training data"):
+                mimic_explainer.get_surrogate_model_replication_measure(
                     data[0].reshape(1, len(data[0])))
 
     def test_explain_model_string_classes(self, mimic_explainer):
