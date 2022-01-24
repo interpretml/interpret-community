@@ -751,6 +751,10 @@ class MimicExplainer(BlackBoxExplainer):
 
     def _get_surrogate_model_replication_measure(self, training_data):
         """Return the metric which tells how well the surrogate model replicates the teacher model.
+
+        For classification scenarios, this function will return accuracy. For regression scenarios,
+        this function will return r2_score.
+
         :param training_data: The data for getting the replication metric.
         :type training_data: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
@@ -769,3 +773,16 @@ class MimicExplainer(BlackBoxExplainer):
         else:
             replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
         return replication_measure
+
+    def get_surrogate_model_replication_measure(self, training_data):
+        """Return the metric which tells how well the surrogate model replicates the teacher model.
+
+        For classification scenarios, this function will return accuracy. For regression scenarios,
+        this function will return r2_score.
+
+        :param training_data: The data for getting the replication metric.
+        :type training_data: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
+        :rtype: float
+        """
+        return self._get_surrogate_model_replication_measure(training_data=training_data)
