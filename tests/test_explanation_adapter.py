@@ -49,12 +49,12 @@ class TestExplanationAdapter(object):
         verify_serialization(local_explanation, exist_ok=True)
         validate_local_classification_explanation_shape(local_explanation, x_test)
 
-    def test_explanation_adapter_shap_regressor(self, boston):
-        x_train = boston[DatasetConstants.X_TRAIN]
-        x_test = boston[DatasetConstants.X_TEST]
-        features = boston[DatasetConstants.FEATURES]
+    def test_explanation_adapter_shap_regressor(self, housing):
+        x_train = housing[DatasetConstants.X_TRAIN]
+        x_test = housing[DatasetConstants.X_TEST]
+        features = housing[DatasetConstants.FEATURES]
         model = create_sklearn_random_forest_regressor(x_train,
-                                                       boston[DatasetConstants.Y_TRAIN])
+                                                       housing[DatasetConstants.Y_TRAIN])
         explainer = shap.KernelExplainer(model.predict, shap.kmeans(x_train, 10))
         shap_values = explainer.shap_values(x_test, nsamples=1000)
         adapter = ExplanationAdapter(features=features, classification=False)
@@ -82,12 +82,12 @@ class TestExplanationAdapter(object):
         verify_serialization(local_explanation, exist_ok=True)
         validate_local_classification_explanation_shape(local_explanation, x_test)
 
-    def test_explanation_adapter_captum_regressor(self, boston):
-        x_train = boston[DatasetConstants.X_TRAIN]
-        x_test = boston[DatasetConstants.X_TEST]
-        features = boston[DatasetConstants.FEATURES]
+    def test_explanation_adapter_captum_regressor(self, housing):
+        x_train = housing[DatasetConstants.X_TRAIN]
+        x_test = housing[DatasetConstants.X_TEST]
+        features = housing[DatasetConstants.FEATURES]
         # Fit a pytorch DNN model
-        model = create_pytorch_regressor(x_train, boston[DatasetConstants.Y_TRAIN])
+        model = create_pytorch_regressor(x_train, housing[DatasetConstants.Y_TRAIN])
         ig = IntegratedGradients(model)
         attributions, delta = ig.attribute(torch.Tensor(x_test).float(),
                                            return_convergence_delta=True)
