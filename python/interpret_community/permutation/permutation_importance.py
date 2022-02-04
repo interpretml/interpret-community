@@ -420,10 +420,10 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param true_labels: An array of true labels used for reference to compute the evaluation metric
             for base case and after each permutation.
-        :type true_labels: numpy.array or pandas.DataFrame
+        :type true_labels: numpy.ndarray or pandas.DataFrame
         :return: Args for explain_global.
         :rtype: dict
         """
@@ -525,10 +525,10 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output through permutation feature importance.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param true_labels: An array of true labels used for reference to compute the evaluation metric
             for base case and after each permutation.
-        :type true_labels: numpy.array or pandas.DataFrame
+        :type true_labels: numpy.ndarray or pandas.DataFrame
         :return: A model explanation object. It is guaranteed to be a GlobalExplanation.
             If the model is a classifier (has predict_proba), it will have the properties of ClassesMixin.
         :rtype: DynamicGlobalExplanation

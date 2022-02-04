@@ -37,7 +37,7 @@ def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     median for dense columns.
 
     :param X: Matrix of data samples to summarize (# samples x # features).
-    :type X: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type X: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     :param k: Number of cluster centroids to use for approximation.
     :type k: int
     :param to_round_values: When using kmeans, for each element of every cluster centroid to match the nearest value
@@ -45,7 +45,7 @@ def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
         always get a valid value.  Ignored for sparse data sample.
     :type to_round_values: bool
     :return: summarized numpy array or csr_matrix object.
-    :rtype: numpy.array or scipy.sparse.csr_matrix or DenseData
+    :rtype: numpy.ndarray or scipy.sparse.csr_matrix or DenseData
     """
     is_sparse = issparse(X)
     if not str(type(X)).endswith(".DenseData'>"):
@@ -91,11 +91,11 @@ def _get_raw_feature_importances(importance_values, raw_to_output_feature_maps):
     """Return raw feature importance values.
 
     :param importance_values: The importance values computed for the dataset.
-    :type importance_values: numpy.array or list[scipy.sparse.csr_matrix]
+    :type importance_values: numpy.ndarray or list[scipy.sparse.csr_matrix]
     :param raw_to_output_feature_maps: A list of feature maps from raw to generated feature.
-    :type raw_to_output_feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
+    :type raw_to_output_feature_maps: list[Union[numpy.ndarray, scipy.sparse.csr_matrix]]
     :return: Raw feature importance values.
-    :rtype: numpy.array
+    :rtype: numpy.ndarray
     """
     if not isinstance(raw_to_output_feature_maps, list):
         raise ValueError("raw_to_output_feature_maps should be a list of feature maps")
@@ -167,11 +167,11 @@ def _multiply_sparse_matrix_3d_numpy_tensor(np_tensor, sp_matrix):
     """Multiply sparse matrix with a 3 dimension numpy array.
 
     :param np_tensor: numpy tensor of 3 dimensions.
-    :type np_tensor: numpy.array
+    :type np_tensor: numpy.ndarray
     :param sp_matrix: sparse matrix
     :type sp_matrix: scipy.sparse.csr_matrix
     :return: The product of numpy array and sparse matrix.
-    :rtype: numpy.array
+    :rtype: numpy.ndarray
     """
     if len(np_tensor.shape) != 3:
         raise ValueError("Expected matrix of dimension 3. Got dimension {}.".format(len(np_tensor.shape)))
@@ -212,11 +212,11 @@ def _generate_augmented_data(x, max_num_of_augmentations=np.inf):
     """Augment x by appending x with itself shuffled columnwise many times.
 
     :param x: data that has to be augmented, array or sparse matrix of 2 dimensions
-    :type x: numpy.array or scipy.sparse.csr_matrix
+    :type x: numpy.ndarray or scipy.sparse.csr_matrix
     :param max_augment_data_size: number of times we stack permuted x to augment.
     :type max_augment_data_size: int
     :return: augmented data with roughly number of rows that are equal to number of columns
-    :rtype: numpy.array or scipy.sparse.csr_matrix
+    :rtype: numpy.ndarray or scipy.sparse.csr_matrix
     """
     x_augmented = x
     vstack = sparse_vstack if issparse(x) else np.vstack
@@ -236,13 +236,13 @@ def _scale_tree_shap(shap_values, expected_values, prediction):
     https://github.com/slundberg/shap/issues/29#issuecomment-408385378
 
     :param shap_values: The shap values to transform from log odds to probabilities.
-    :type shap_values: numpy.array
+    :type shap_values: numpy.ndarray
     :param expected_values: The expected values as probabilities.
-    :type expected_values: numpy.array
+    :type expected_values: numpy.ndarray
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: numpy.array
+    :type prediction: numpy.ndarray
     :return: The transformed tree shap values as probabilities.
-    :rtype: list or numpy.array
+    :rtype: list or numpy.ndarray
     """
     # In multiclass case, use expected values and predictions per class
     if isinstance(shap_values, list):
@@ -263,13 +263,13 @@ def _scale_single_shap_matrix(shap_values, expectation, prediction):
     """Scale a single class matrix of shap values to sum to the teacher model prediction.
 
     :param shap_values: The shap values of the mimic model.
-    :type shap_values: numpy.array
+    :type shap_values: numpy.ndarray
     :param expected_values: The expected values as probabilities (base values).
-    :type expected_values: numpy.array
+    :type expected_values: numpy.ndarray
     :param prediction: The predicted probability from the teacher model.
-    :type prediction: numpy.array
+    :type prediction: numpy.ndarray
     :return: The transformed tree shap values as probabilities.
-    :rtype: list or numpy.array
+    :rtype: list or numpy.ndarray
     """
     mimic_prediction = np.sum(shap_values, axis=1)
     error = prediction - mimic_prediction - expectation
@@ -296,9 +296,9 @@ def _convert_single_instance_to_multi(instance_shap_values):
     """Convert a single shap values instance to multi-instance form.
 
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: numpy.array or list
+    :type instance_shap_values: numpy.ndarray or list
     :return: The instance converted to multi-instance form.
-    :rtype: numpy.array or list
+    :rtype: numpy.ndarray or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -314,11 +314,11 @@ def _append_shap_values_instance(shap_values, instance_shap_values):
     """Append a single instance of shap values to an existing multi-instance shap values list or array.
 
     :param shap_values: The existing shap values array or list.
-    :type shap_values: numpy.array or list
+    :type shap_values: numpy.ndarray or list
     :param instance_shap_values: The shap values calculated for a new instance.
-    :type instance_shap_values: numpy.array or list
+    :type instance_shap_values: numpy.ndarray or list
     :return: The instance appended to the existing shap values.
-    :rtype: numpy.array or list
+    :rtype: numpy.ndarray or list
     """
     classification = isinstance(instance_shap_values, list)
     if classification:
@@ -343,9 +343,9 @@ def _fix_linear_explainer_shap_values(model, shap_values):
     :param model: The linear model.
     :type model: tuple of (coefficients, intercept) or sklearn.linear.* model
     :param shap_values: The existing shap values array or list.
-    :type shap_values: numpy.array or list
+    :type shap_values: numpy.ndarray or list
     :return: The shap values reshaped into the correct form for given linear model.
-    :rtype: numpy.array or list
+    :rtype: numpy.ndarray or list
     """
     # Temporary fix for a bug in shap for regression models
     if (type(model) == tuple and len(model) == 2):
@@ -371,11 +371,11 @@ def _unsort_1d(values, order):
     """Unsort a sorted 1d array based on the order that was used to sort it.
 
     :param values: The array that has been sorted.
-    :type values: numpy.array
+    :type values: numpy.ndarray
     :param order: The order list that was originally used to sort values.
-    :type order: numpy.array
+    :type order: numpy.ndarray
     :return: The unsorted array.
-    :rtype: numpy.array
+    :rtype: numpy.ndarray
     """
     order_inverse = [None] * len(order)
     for i in range(len(order)):
@@ -503,7 +503,7 @@ def _get_feature_map_from_list_of_indexes(indices_list):
     :param indices_list: A list of lists of generated feature indices for each raw feature.
     :type indices_list: list[list[int]]
     :return: A feature map from raw to generated.
-    :rtype: numpy.array
+    :rtype: numpy.ndarray
     """
     # sets for each list of generated features
     raw_to_gen = []

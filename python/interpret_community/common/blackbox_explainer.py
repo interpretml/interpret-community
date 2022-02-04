@@ -23,7 +23,7 @@ class _Wrapper(object):
 
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     :param function: The function to explain.
     :type function: function that accepts a 2d ndarray
     """
@@ -33,7 +33,7 @@ class _Wrapper(object):
 
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param function: The function to explain.
         :type function: function that accepts a 2d ndarray
         """
@@ -44,7 +44,7 @@ class _Wrapper(object):
         """Combine the prediction function and type cast function into a single function.
 
         :param dataset: A matrix of feature vector examples (# examples x # features).
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         """
         return self.function(self.typed_wrapper_func(dataset))
 
@@ -106,7 +106,7 @@ class BlackBoxMixin(ChainedIdentity):
         """Get the predicted ys to be incorporated into a kwargs dictionary.
         :param evaluation_examples: The same ones we usually work with, must be able to be passed into the
             model or function.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param transformations: See documentation on any explainer.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations

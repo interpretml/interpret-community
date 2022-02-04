@@ -55,7 +55,7 @@ class MimicExplainer(BlackBoxExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explainable_model: The uninitialized surrogate model used to explain the black box model.
         Also known as the student model.
     :type explainable_model: interpret_community.mimic.models.BaseExplainableModel
@@ -152,7 +152,7 @@ class MimicExplainer(BlackBoxExplainer):
         :type model: object
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explainable_model: The uninitialized surrogate model used to explain the black box model.
             Also known as the student model.
         :type explainable_model: BaseExplainableModel
@@ -321,9 +321,9 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Transformed data.
-        :rtype: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :rtype: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         """
         if self.transformations is not None:
             _, transformed_evaluation_examples = get_datamapper_and_transformed_data(
@@ -339,9 +339,9 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: predictions of the surrogate model.
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
         if self.classes is not None and len(self.classes) == 2:
@@ -358,9 +358,9 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: predictions of the surrogate model.
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         transformed_evaluation_examples = self._get_transformed_data(evaluation_examples)
         return self.model.predict(transformed_evaluation_examples)
@@ -377,7 +377,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local
             explanations to aggregate to global.
@@ -440,7 +440,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which to
             explain the model's output.  If specified, computes feature importance through aggregation.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param include_local: Include the local explanations in the returned global explanation.
             If evaluation examples are specified and include_local is False, will stream the local
             explanations to aggregate to global.
@@ -504,7 +504,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param from_global: True if this is called from the explain_global API.
         :type from_global: bool
         :return: Args for explain_local.
@@ -591,7 +591,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param from_global: True if this is called from the explain_global API.
         :type from_global: bool
         :return: kwargs for building the model explanation object
@@ -621,7 +621,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param from_global: True if this is called from the explain_global API.
         :type from_global: bool
         :return: A model explanation object. It is guaranteed to be a LocalExplanation. If the model is a classifier,
@@ -643,7 +643,7 @@ class MimicExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation. If the model is a classifier,
             it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation
@@ -756,7 +756,7 @@ class MimicExplainer(BlackBoxExplainer):
         this function will return r2_score.
 
         :param training_data: The data for getting the replication metric.
-        :type training_data: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """
@@ -781,7 +781,7 @@ class MimicExplainer(BlackBoxExplainer):
         this function will return r2_score.
 
         :param training_data: The data for getting the replication metric.
-        :type training_data: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """

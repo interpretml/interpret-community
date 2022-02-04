@@ -13,11 +13,11 @@ def transform_with_datamapper(x, datamapper):
     """Transform the input using the _datamapper field in obj.
 
     :param x: input data
-    :type x: numpy.array or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
+    :type x: numpy.ndarray or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param datamapper: datamapper object
     :type datamapper: DataMapper
     :return: transformed data
-    :rtype: numpy.array or scipy.sparse matrix or DatasetWrapper
+    :rtype: numpy.ndarray or scipy.sparse matrix or DatasetWrapper
     """
     x_is_dataset_wrapper = isinstance(x, DatasetWrapper)
     input_data = x
@@ -35,7 +35,7 @@ def get_datamapper_and_transformed_data(examples=None, transformations=None, all
     """Get data mapper as well as transformed examples.
 
     :param examples: input data
-    :type examples: numpy.array or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
+    :type examples: numpy.ndarray or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
     :param transformations: transformations passed from any of DeepExplainer, KernelExplainer, MimicExplainer,
     TreeExplainer and TabularExplainer
     :type transformations: documented in constructor params of any of DeepExplainer, KernelExplainer, MimicExplainer,

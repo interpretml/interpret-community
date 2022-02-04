@@ -42,12 +42,12 @@ class ExplanationAdapter(object):
         """Create a local explanation from the list of local feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+        :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param expected_values: The expected values of the model.
-        :type expected_values: numpy.array
+        :type expected_values: numpy.ndarray
         """
         local_importance_values = np.array(local_importance_values)
         # handle the case that the local importance values have a 2d shape for classification scenario
@@ -73,12 +73,12 @@ class ExplanationAdapter(object):
         """Create a global explanation from the list of local feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+        :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param expected_values: The expected values of the model.
-        :type expected_values: numpy.array
+        :type expected_values: numpy.ndarray
         :param include_local: Include the local explanations in the returned global explanation.
             If include_local is False, will stream the local explanations to aggregate to global.
         :type include_local: bool

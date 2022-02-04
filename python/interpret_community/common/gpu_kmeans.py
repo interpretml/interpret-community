@@ -36,7 +36,7 @@ def kmeans(X, k, round_values=True):
     each represent.
     Parameters
     ----------
-    X : numpy.array or pandas.DataFrame or any scipy.sparse matrix
+    X : numpy.ndarray or pandas.DataFrame or any scipy.sparse matrix
         Matrix of data samples to summarize (# samples x # features)
     k : int
         Number of means to use for approximation.

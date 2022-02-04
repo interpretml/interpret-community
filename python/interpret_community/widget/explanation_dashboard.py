@@ -25,17 +25,17 @@ class ExplanationDashboard:
     :param dataset:  A matrix of feature vector examples (# examples x # features), the same samples
         used to build the explanation. Overwrites any existing dataset on the explanation object. Must have fewer than
         10000 rows and fewer than 1000 columns.
-    :type dataset: numpy.array or list[][]
+    :type dataset: numpy.ndarray or list[][]
     :param datasetX: Alias of the dataset parameter. If dataset is passed, this will have no effect. Must have fewer
         than 10000 rows and fewer than 1000 columns.
-    :type datasetX: numpy.array or list[][]
+    :type datasetX: numpy.ndarray or list[][]
     :param true_y: The true labels for the provided dataset. Overwrites any existing dataset on the
         explanation object.
-    :type true_y: numpy.array or list[]
+    :type true_y: numpy.ndarray or list[]
     :param classes: The class names.
-    :type classes: numpy.array or list[]
+    :type classes: numpy.ndarray or list[]
     :param features: Feature names.
-    :type features: numpy.array or list[]
+    :type features: numpy.ndarray or list[]
     :param port: The port to use on locally hosted service.
     :type port: int
     :param use_cdn: Deprecated. Whether to load latest dashboard script from cdn, fall back to local script if False.
