@@ -62,9 +62,9 @@ class FeatureMapper(ABC):
         """
 
         :param x: input data
-        :type x: pandas.DataFrame or numpy.array
+        :type x: pandas.DataFrame or numpy.ndarray
         :rtype: transformed data
-        :rtype: numpy.array or scipy.sparse matrix
+        :rtype: numpy.ndarray or scipy.sparse matrix
         """
         pass
 
@@ -73,7 +73,7 @@ class FeatureMapper(ABC):
         """
 
         :return: feature map from raw to generated
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         if self._feature_map is None:
             raise ValueError("transform not called")
@@ -83,7 +83,7 @@ class FeatureMapper(ABC):
         """
 
         :param feature_map: feature map associated with the FeatureMapper
-        :type feature_map: numpy.array
+        :type feature_map: numpy.ndarray
         """
         self._feature_map = feature_map
 
@@ -91,7 +91,7 @@ class FeatureMapper(ABC):
         """Dummy fit so that this can go in an sklearn.pipeline.Pipeline.
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: self
         :rtype: FeatureMapper
         """
@@ -121,9 +121,9 @@ class IdentityMapper(FeatureMapper):
         """Transform input data.
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: transformed data
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         result = self.transformer.transform(x)
         if self._feature_map is None:
@@ -155,9 +155,9 @@ class PassThroughMapper(FeatureMapper):
         """
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: transformed data
-        :rytpe: numpy.array or scipy.sparse matrix
+        :rytpe: numpy.ndarray or scipy.sparse matrix
         """
         x_transformed = self.transformer.transform(x)
         if self._feature_map is None:
@@ -194,9 +194,9 @@ class PipelineFeatureMapper(FeatureMapper):
         """
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: transformed data
-        :rtype: numpy.array or scipy.sparse matrix
+        :rtype: numpy.ndarray or scipy.sparse matrix
         """
         ret = self.transformer.transform(x)
         if self._feature_map is None:
@@ -249,9 +249,9 @@ class OneHotEncoderMapper(FeatureMapper):
         """
 
         :param x: input data
-        :type x: numpy.array
+        :type x: numpy.ndarray
         :return: transformed data
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         ret = self.transformer.transform(x)
         if self._feature_map is None:
@@ -285,9 +285,9 @@ class ManytoManyMapper(FeatureMapper):
         """Get transformed data from input.
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: transformed data
-        :rtype: numpy.array or scipy.sparse matrix
+        :rtype: numpy.ndarray or scipy.sparse matrix
         """
         x_transformed = self._transformer.transform(x)
         if self._feature_map is None:
@@ -301,7 +301,7 @@ class FuncTransformer:
         """
 
         :param func: function that transforms the data
-        :type func: function that takes in numpy.array/pandas.Dataframe and outputs numpy.array or scipy.sparse matrix
+        :type func: function that takes in numpy.ndarray/pandas.Dataframe and outputs numpy.ndarray/scipy.sparse matrix
         """
         self._func = func
 
@@ -309,9 +309,9 @@ class FuncTransformer:
         """
 
         :param x: input data
-        :type x: numpy.array or pandas.DataFrame
+        :type x: numpy.ndarray or pandas.DataFrame
         :return: transformed data
-        :rtype: numpy.array or scipy.sparse matrix
+        :rtype: numpy.ndarray or scipy.sparse matrix
         """
         return self._func(x)
 
