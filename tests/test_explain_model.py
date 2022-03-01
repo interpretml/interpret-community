@@ -421,7 +421,7 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_random_forest_regression')
         explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
         self.verify_housing_overall_features_rf(explanation.get_ranked_global_names(),
-                                               explanation.get_ranked_global_values())
+                                                explanation.get_ranked_global_values())
 
     def test_explain_model_local_tree_regression(self, housing, tabular_explainer):
         # Fit a random forest regression model
@@ -527,7 +527,7 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_linear_regression')
         explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
         self.verify_housing_overall_features_lr(explanation.get_ranked_global_names(),
-                                               explanation.get_ranked_global_values())
+                                                explanation.get_ranked_global_values())
 
     def test_explain_model_subset_classification_dense(self, verify_tabular):
         verify_tabular.verify_explain_model_subset_classification_dense()

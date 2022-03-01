@@ -460,7 +460,6 @@ def create_housing_data():
     return x_train, x_test, y_train, y_test, housing.feature_names
 
 
-
 def create_cancer_data():
     # Import cancer dataset
     cancer = retrieve_dataset('breast-cancer.train.csv', na_values='?').interpolate().astype('int64')

@@ -8,7 +8,7 @@ import tempfile
 
 import pytest
 from common_tabular_tests import VerifyTabularTests
-from common_utils import (create_housing_data, create_complex_titanic_data,
+from common_utils import (create_complex_titanic_data, create_housing_data,
                           create_iris_data, create_simple_titanic_data)
 from constants import DatasetConstants
 from interpret_community.mimic.mimic_explainer import MimicExplainer
