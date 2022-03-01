@@ -9,3 +9,4 @@ flake8-blind-except==0.1.1
 flake8-breakpoint
 flake8-logging-format==0.6.0
 isort
+markupsafe<2.1.0
