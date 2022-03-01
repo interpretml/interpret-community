@@ -872,8 +872,8 @@ class TestTabularExplainer(object):
     def verify_housing_overall_features_lr(self, ranked_global_names, ranked_global_values):
         # Verify order of features
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        exp_features = ['RM', 'RAD', 'DIS', 'LSTAT', 'TAX', 'PTRATIO', 'NOX', 'CRIM', 'B', 'ZN', 'AGE',
-                        'CHAS', 'INDUS']
+        exp_features = ['Latitude', 'Longitude', 'MedInc', 'AveRooms', 'HouseAge',
+                        'AveBedrms', 'AveOccup', 'Population']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
         assert(len(ranked_global_values) == len(exp_features))
 
@@ -907,19 +907,19 @@ class TestTabularExplainer(object):
 
     @property
     def housing_local_features_first_five_rf(self):
-        return [['LSTAT', 'CRIM', 'B', 'AGE', 'INDUS', 'RAD', 'CHAS', 'ZN', 'TAX', 'DIS', 'PTRATIO', 'NOX', 'RM'],
-                ['LSTAT', 'CRIM', 'NOX', 'AGE', 'B', 'TAX', 'INDUS', 'RAD', 'CHAS', 'ZN', 'PTRATIO', 'DIS', 'RM'],
-                ['LSTAT', 'NOX', 'CRIM', 'AGE', 'TAX', 'B', 'INDUS', 'RAD', 'CHAS', 'ZN', 'PTRATIO', 'DIS', 'RM'],
-                ['LSTAT', 'CRIM', 'NOX', 'AGE', 'B', 'RAD', 'INDUS', 'CHAS', 'ZN', 'TAX', 'PTRATIO', 'DIS', 'RM'],
-                ['DIS', 'INDUS', 'RAD', 'CHAS', 'ZN', 'AGE', 'B', 'TAX', 'PTRATIO', 'NOX', 'CRIM', 'RM', 'LSTAT']]
+        return [['AveRooms', 'Latitude', 'HouseAge', 'Population', 'Longitude', 'AveBedrms', 'AveOccup', 'MedInc'],
+                ['MedInc', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'AveRooms', 'AveOccup'],
+                ['AveOccup', 'MedInc', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'AveRooms'],
+                ['AveOccup', 'AveRooms', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'MedInc'],
+                ['MedInc', 'Population', 'HouseAge', 'Longitude', 'AveBedrms', 'Latitude', 'AveRooms', 'AveOccup']]
 
     @property
     def housing_local_features_first_five_lr(self):
-        return [['RAD', 'CHAS', 'DIS', 'RM', 'B', 'INDUS', 'CRIM', 'LSTAT', 'ZN', 'AGE', 'PTRATIO', 'TAX', 'NOX'],
-                ['TAX', 'LSTAT', 'CRIM', 'NOX', 'B', 'AGE', 'INDUS', 'CHAS', 'ZN', 'RAD', 'PTRATIO', 'RM', 'DIS'],
-                ['TAX', 'NOX', 'CRIM', 'B', 'AGE', 'LSTAT', 'INDUS', 'CHAS', 'ZN', 'RM', 'PTRATIO', 'RAD', 'DIS'],
-                ['LSTAT', 'TAX', 'CRIM', 'B', 'NOX', 'AGE', 'INDUS', 'CHAS', 'ZN', 'DIS', 'RAD', 'RM', 'PTRATIO'],
-                ['RAD', 'DIS', 'INDUS', 'CHAS', 'ZN', 'AGE', 'RM', 'PTRATIO', 'NOX', 'LSTAT', 'TAX', 'B', 'CRIM']]
+        return [['Latitude', 'AveRooms', 'HouseAge', 'AveBedrms', 'AveOccup', 'Population', 'Longitude', 'MedInc'],
+                ['Latitude', 'AveRooms', 'MedInc', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
+                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'Population', 'AveBedrms', 'MedInc', 'Latitude'],
+                ['Longitude', 'AveRooms', 'AveBedrms', 'AveOccup', 'Population', 'HouseAge', 'MedInc', 'Latitude'],
+                ['MedInc', 'Longitude', 'Population', 'AveOccup', 'HouseAge', 'AveBedrms', 'AveRooms', 'Latitude']]
 
     @property
     def adult_local_features_first_three_rf(self):
