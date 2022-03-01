@@ -38,7 +38,7 @@ class TransformationsListTransformer:
         """Transform data when the user provides a list of transformations in sklearn-pandas format.
 
         :param x: input data
-        :type x: numpy.array or scipy.sparse matrix
+        :type x: numpy.ndarray or scipy.sparse matrix
         :return: transformed data
         """
         results = []
@@ -65,7 +65,7 @@ class DataMapper(object):
         :param transformations: List of (column_name, transformer) tuples or sklearn.compose.ColumnTransformer
         :type transformations: list[tuple(str, (class containing .transform method))]
         :param examples: DataFrame or numpy array of input
-        :type examples: pandas.DataFrame or numpy.array
+        :type examples: pandas.DataFrame or numpy.ndarray
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
         """
@@ -80,7 +80,7 @@ class DataMapper(object):
         """Feature map from raw to generated.
 
         :return: mapping from raw to generated features
-        :rtype: numpy.array
+        :rtype: numpy.ndarray
         """
         if self._feature_map is None:
             raise ValueError("Feature map not built. Run transform first.")
@@ -202,8 +202,8 @@ class DataMapper(object):
         """Run the transform methods associated with each feature_mapper. This will set the featmaps.
 
         :param x: input data
-        :type x: numpy.array or DataFrame
-        :return: numpy.array or scipy.sparse.csr_matrix
+        :type x: numpy.ndarray or DataFrame
+        :return: numpy.ndarray or scipy.sparse.csr_matrix
         """
         for transformer_config, feature_mapper in self._feature_mappers_pipeline:
             feature_mapper.transform(extract_column(x, transformer_config))
@@ -212,9 +212,9 @@ class DataMapper(object):
         """Transform input data given the transformations.
 
         :param x: input data
-        :type x: pandas.DataFrame or numpy.array
+        :type x: pandas.DataFrame or numpy.ndarray
         :return: transformed data
-        :rtype: numpy.array or scipy.sparse.csr_matrix
+        :rtype: numpy.ndarray or scipy.sparse.csr_matrix
         """
         if self._feature_map is None:
             # pass a single example through the transformations list to build feature map

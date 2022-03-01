@@ -107,7 +107,7 @@ def _get_summary_data(initialization_examples, nclusters, framework):
 
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     :param nclusters: Number of means to use for approximation. A dataset is summarized with nclusters mean
         samples weighted by the number of data points they each represent. When the number of initialization
         examples is larger than (10 x nclusters), those examples will be summarized with k-means where
@@ -117,7 +117,7 @@ def _get_summary_data(initialization_examples, nclusters, framework):
     :type framework: str
     :return: A summarized matrix of feature vector examples (# examples x # features)
         for initializing the explainer.
-    :rtype: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix or torch.autograd.Variable
+    :rtype: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix or torch.autograd.Variable
     """
     initialization_examples.compute_summary(nclusters=nclusters)
     summary = initialization_examples.dataset
@@ -138,7 +138,7 @@ class DeepExplainer(StructuredInitModelExplainer):
     :type model: PyTorch or TensorFlow model
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation. The subset can be the top-k features
         from the model summary.
@@ -203,7 +203,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         :type model: PyTorch or TensorFlow model
         :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
             initializing the explainer.
-        :type initialization_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type initialization_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param explain_subset: List of feature indices. If specified, only selects a subset of the
             features in the evaluation dataset for explanation. The subset can be the top-k features
             from the model summary.
@@ -289,7 +289,7 @@ class DeepExplainer(StructuredInitModelExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
         :type sampling_policy: interpret_community.common.policy.SamplingPolicy
@@ -315,7 +315,7 @@ class DeepExplainer(StructuredInitModelExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Args for explain_local.
         :rtype: dict
         """
@@ -385,7 +385,7 @@ class DeepExplainer(StructuredInitModelExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: A model explanation object. It is guaranteed to be a LocalExplanation which also has the properties
             of ExpectedValuesMixin. If the model is a classifier, it will have the properties of the ClassesMixin.
         :rtype: DynamicLocalExplanation

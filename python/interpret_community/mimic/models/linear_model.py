@@ -59,7 +59,7 @@ class LinearExplainer(shap.LinearExplainer):
         """Estimate the SHAP values for a set of samples.
 
         :param evaluation_examples: The evaluation examples.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: For models with a single output this returns a matrix of SHAP values
             (# samples x # features). Each row sums to the difference between the model output for that
             sample and the expected value of the model output (which is stored as expected_value
@@ -84,9 +84,9 @@ def _create_linear_explainer(model, multiclass, mean, covariance, seed):
     :param multiclass: True if this is a multiclass model.
     :type multiclass: bool
     :param mean: The mean of the dataset by columns.
-    :type mean: numpy.array
+    :type mean: numpy.ndarray
     :param covariance: The covariance matrix of the dataset.
-    :type covariance: numpy.array
+    :type covariance: numpy.ndarray
     :param seed: Random number seed.
     :type seed: int
     """
@@ -119,7 +119,7 @@ def _compute_local_shap_values(linear_explainer, evaluation_examples, classifica
     :param linear_explainer: The linear explainer or list of linear explainers in multiclass case.
     :type linear_explainer: Union[LinearExplainer, list[LinearExplainer]]
     :param evaluation_examples: The evaluation examples.
-    :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     """
     # Multiclass case
     if isinstance(linear_explainer, list):
@@ -140,7 +140,7 @@ def _compute_background_data(dataset):
     """Compute the background data for linear explainer.
 
     :param dataset: The input dataset to compute background for.
-    :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+    :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
     """
     background = _summarize_data(dataset)
     if str(type(background)).endswith(".DenseData'>"):
@@ -221,9 +221,9 @@ class LinearExplainableModel(BaseExplainableModel):
         Store the mean and covariance of the background data for local explanation.
 
         :param dataset: The dataset to train the model on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param labels: The labels to train the model on.
-        :type labels: numpy.array
+        :type labels: numpy.ndarray
         """
         self._linear.fit(dataset, labels, **kwargs)
         self._background = _compute_background_data(dataset)
@@ -243,7 +243,7 @@ class LinearExplainableModel(BaseExplainableModel):
         """Call linear predict to predict labels using the explainable model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -259,7 +259,7 @@ class LinearExplainableModel(BaseExplainableModel):
         """Call linear predict_proba to predict probabilities using the explainable model.
 
         :param dataset: The dataset to predict probabilities on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -288,7 +288,7 @@ class LinearExplainableModel(BaseExplainableModel):
         """Use LinearExplainer to get the local feature importances from the trained explainable model.
 
         :param evaluation_examples: The evaluation examples to compute local feature importances for.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The local explanation of feature importances.
         :rtype: Union[list, numpy.ndarray]
         """
@@ -383,9 +383,9 @@ class SGDExplainableModel(BaseExplainableModel):
         Store the mean and covariance of the background data for local explanation.
 
         :param dataset: The dataset to train the model on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param labels: The labels to train the model on.
-        :type labels: numpy.array
+        :type labels: numpy.ndarray
         """
         self._sgd.fit(dataset, labels, **kwargs)
         self._background = _compute_background_data(dataset)
@@ -405,7 +405,7 @@ class SGDExplainableModel(BaseExplainableModel):
         """Call SGD predict to predict labels using the explainable model.
 
         :param dataset: The dataset to predict on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -421,7 +421,7 @@ class SGDExplainableModel(BaseExplainableModel):
         """Call SGD predict_proba to predict probabilities using the explainable model.
 
         :param dataset: The dataset to predict probabilities on.
-        :type dataset: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type dataset: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The predictions of the model.
         :rtype: list
         """
@@ -452,7 +452,7 @@ class SGDExplainableModel(BaseExplainableModel):
         """Use LinearExplainer to get the local feature importances from the trained explainable model.
 
         :param evaluation_examples: The evaluation examples to compute local feature importances for.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: The local explanation of feature importances.
         :rtype: Union[list, numpy.ndarray]
         """

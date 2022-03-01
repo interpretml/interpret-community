@@ -315,14 +315,14 @@ class LocalExplanation(FeatureImportanceExplanation):
     """The common local explanation returned by explainers.
 
     :param local_importance_values: The feature importance values.
-    :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
     """
 
     def __init__(self, local_importance_values=None, **kwargs):
         """Create the local explanation from the explainer's feature importance values.
 
         :param local_importance_values: The feature importance values.
-        :type local_importance_values: numpy.array or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+        :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
         """
         super(LocalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing LocalExplanation')
@@ -466,11 +466,11 @@ class LocalExplanation(FeatureImportanceExplanation):
             the raw to generated maps in the same order as t1, t2, etc. If the overall raw to
             generated feature map from t1 to tn is available, then just that feature map
             in a single element list can be passed.
-        :type feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
+        :type feature_maps: list[Union[numpy.ndarray, scipy.sparse.csr_matrix]]
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: numpy.array or pandas.DataFrame
+        :type eval_data: numpy.ndarray or pandas.DataFrame
         :return: raw explanation
         :rtype: LocalExplanation
         """
@@ -491,7 +491,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         local_importance_values.
 
         :param raw_to_output_maps: A list of feature maps from raw to generated feature.
-        :type raw_to_output_maps: list[numpy.array]
+        :type raw_to_output_maps: list[numpy.ndarray]
         :return: Raw feature importance.
         :rtype: list[list] or list[list[list]]
         """
@@ -641,13 +641,13 @@ class GlobalExplanation(FeatureImportanceExplanation):
     """The common global explanation returned by explainers.
 
     :param global_importance_values: The feature importance values in the order of the original features.
-    :type global_importance_values: numpy.array
+    :type global_importance_values: numpy.ndarray
     :param global_importance_rank: The feature indexes sorted by importance.
-    :type global_importance_rank: numpy.array
+    :type global_importance_rank: numpy.ndarray
     :param ranked_global_names: The feature names sorted by importance.
     :type ranked_global_names: list[str] TODO
     :param ranked_global_values: The feature importance values sorted by importance.
-    :type ranked_global_values: numpy.array
+    :type ranked_global_values: numpy.ndarray
     """
 
     def __init__(self,
@@ -659,13 +659,13 @@ class GlobalExplanation(FeatureImportanceExplanation):
         """Create the global explanation from the explainer's overall importance values and order.
 
         :param global_importance_values: The feature importance values in the order of the original features.
-        :type global_importance_values: numpy.array
+        :type global_importance_values: numpy.ndarray
         :param global_importance_rank: The feature indexes sorted by importance.
-        :type global_importance_rank: numpy.array
+        :type global_importance_rank: numpy.ndarray
         :param ranked_global_names: The feature names sorted by importance.
         :type ranked_global_names: list[str] TODO
         :param ranked_global_values: The feature importance values sorted by importance.
-        :type ranked_global_values: numpy.array
+        :type ranked_global_values: numpy.ndarray
         """
         super(GlobalExplanation, self).__init__(**kwargs)
         self._logger.debug('Initializing GlobalExplanation')
@@ -754,11 +754,11 @@ class GlobalExplanation(FeatureImportanceExplanation):
             the raw to generated maps in the same order as t1, t2, etc. If the overall raw to
             generated feature map from t1 to tn is available, then just that feature map
             in a single element list can be passed.
-        :type feature_maps: list[Union[numpy.array, scipy.sparse.csr_matrix]]
+        :type feature_maps: list[Union[numpy.ndarray, scipy.sparse.csr_matrix]]
         :param raw_feature_names: list of raw feature names
         :type raw_feature_names: [str]
         :param eval_data: Evaluation data.
-        :type eval_data: numpy.array or pandas.DataFrame
+        :type eval_data: numpy.ndarray or pandas.DataFrame
         :return: raw explanation
         :rtype: GlobalExplanation
         """
@@ -886,14 +886,14 @@ class ExpectedValuesMixin(object):
     """The explanation mixin for expected values.
 
     :param expected_values: The expected values of the model.
-    :type expected_values: numpy.array
+    :type expected_values: numpy.ndarray
     """
 
     def __init__(self, expected_values=None, **kwargs):
         """Create the expected values mixin and set the expected values.
 
         :param expected_values: The expected values of the model.
-        :type expected_values: numpy.array
+        :type expected_values: numpy.ndarray
         """
         super(ExpectedValuesMixin, self).__init__(**kwargs)
         self._expected_values = expected_values
@@ -1058,13 +1058,13 @@ class PerClassMixin(ClassesMixin):
     local importance values across different classes.
 
     :param per_class_values: The feature importance values for each class in the order of the original features.
-    :type per_class_values: numpy.array
+    :type per_class_values: numpy.ndarray
     :param per_class_importance_rank: The feature indexes for each class sorted by importance.
-    :type per_class_importance_rank: numpy.array
+    :type per_class_importance_rank: numpy.ndarray
     :param ranked_per_class_names: The feature names for each class sorted by importance.
     :type ranked_per_class_names: list[str]
     :param ranked_per_class_values: The feature importance values sorted by importance.
-    :type ranked_per_class_values: numpy.array
+    :type ranked_per_class_values: numpy.ndarray
     """
 
     def __init__(self,
@@ -1076,13 +1076,13 @@ class PerClassMixin(ClassesMixin):
         """Create the per class mixin from the explainer's importance values and order.
 
         :param per_class_values: The feature importance values for each class in the order of the original features.
-        :type per_class_values: numpy.array
+        :type per_class_values: numpy.ndarray
         :param per_class_importance_rank: The feature indexes for each class sorted by importance.
-        :type per_class_importance_rank: numpy.array
+        :type per_class_importance_rank: numpy.ndarray
         :param ranked_per_class_names: The feature names for each class sorted by importance.
         :type ranked_per_class_names: list[str]
         :param ranked_per_class_values: The feature importance values sorted by importance.
-        :type ranked_per_class_values: numpy.array
+        :type ranked_per_class_values: numpy.ndarray
         """
         super(PerClassMixin, self).__init__(**kwargs)
         self._per_class_values = per_class_values
@@ -1194,15 +1194,15 @@ class _DatasetsMixin(object):
     If this explanation has been downloaded from run history, these will always be ID strings.
 
     :param init_data: The initialization (background) data used in the explanation, or a Dataset ID.
-    :type init_data: numpy.array or str
+    :type init_data: numpy.ndarray or str
     :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
-    :type eval_data: numpy.array or str
+    :type eval_data: numpy.ndarray or str
     :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
         Not available from the DeepExplainer.
-    :type eval_y_predicted: numpy.array or str
+    :type eval_y_predicted: numpy.ndarray or str
     :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
         Not available from the DeepExplainer.
-    :type eval_y_predicted_proba: numpy.array or str
+    :type eval_y_predicted_proba: numpy.ndarray or str
     """
 
     def __init__(self,
@@ -1216,15 +1216,15 @@ class _DatasetsMixin(object):
         If this explanation has been downloaded from run history, these will always be ID strings.
 
         :param init_data: The initialization (background) data used in the explanation, or a Dataset ID.
-        :type init_data: numpy.array or str
+        :type init_data: numpy.ndarray or str
         :param eval_data: The evaluation (testing) data used in the explanation, or a Dataset ID.
-        :type eval_data: numpy.array or str
+        :type eval_data: numpy.ndarray or str
         :param eval_y_predicted: The predicted ys for the evaluation data or Dataset ID.
             Not available from the DeepExplainer.
-        :type eval_y_predicted: numpy.array or str
+        :type eval_y_predicted: numpy.ndarray or str
         :param eval_y_predicted_proba: The predicted probability ys for the evaluation data or Dataset ID.
             Not available from the DeepExplainer.
-        :type eval_y_predicted_proba: numpy.array or str
+        :type eval_y_predicted_proba: numpy.ndarray or str
         """
         super(_DatasetsMixin, self).__init__(**kwargs)
         self._init_data = init_data
@@ -1272,7 +1272,7 @@ class _DatasetsMixin(object):
         """Convert data to a Python list.
 
         :param data: The data to be converted.
-        :type data: Union[numpy.array, pandas.DataFrame, list, scipy.sparse]
+        :type data: Union[numpy.ndarray, pandas.DataFrame, list, scipy.sparse]
         :return: The data converted to a list (except for sparse or dataset ID which is unchanged).
         :rtype: list or scipy.sparse or list[scipy.sparse] or str
         """
@@ -1370,9 +1370,9 @@ def _create_local_explanation(expected_values=None, classification=True, explana
     :param eval_data: The evaluation (testing) data for the explanation.
     :type eval_data: list
     :param eval_ys_predicted: The predicted ys for the evaluation data.
-    :type eval_ys_predicted: numpy.array
+    :type eval_ys_predicted: numpy.ndarray
     :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-    :type eval_ys_predicted_proba: numpy.array
+    :type eval_ys_predicted_proba: numpy.ndarray
     :param model_id: The model ID.
     :type model_id: str
     :return: A model explanation object. It is guaranteed to be a LocalExplanation. If expected_values is not None, it
@@ -1430,9 +1430,9 @@ def _create_global_explanation_kwargs(local_explanation=None, expected_values=No
     :param eval_data: The evaluation (testing) data for the explanation.
     :type eval_data: list
     :param eval_ys_predicted: The predicted ys for the evaluation data.
-    :type eval_ys_predicted: numpy.array
+    :type eval_ys_predicted: numpy.ndarray
     :param eval_ys_predicted_proba: The predicted probability ys for the evaluation data.
-    :type eval_ys_predicted_proba: numpy.array
+    :type eval_ys_predicted_proba: numpy.ndarray
     :param eval_data: list
     :param model_id: The model ID.
     :type model_id: str

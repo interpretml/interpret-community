@@ -167,7 +167,7 @@ class TreeExplainer(PureStructuredModelExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
         :type sampling_policy: interpret_community.common.policy.SamplingPolicy
@@ -214,9 +214,9 @@ class TreeExplainer(PureStructuredModelExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param original_evals: The original data that the user passed into explain_local.
-        :type original_evals: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type original_evals: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Args for explain_local.
         :rtype: dict
         """

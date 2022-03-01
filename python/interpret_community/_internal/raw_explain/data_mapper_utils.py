@@ -25,11 +25,11 @@ def extract_column(x, transformer_config):
     """Extract column from DataFrame/numpy array x and reshape if column_name is list.
 
     :param x: input raw data
-    :type x: numpy.array or pandas.DataFrame
+    :type x: numpy.ndarray or pandas.DataFrame
     :param transformer_config: TransformerConfig used to reshape input data
     :type transformer_config: TransformerConfig
     :return: column or columns from input data
-    :rtype: numpy.array
+    :rtype: numpy.ndarray
     """
     columns = transformer_config.columns
 

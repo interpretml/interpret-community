@@ -78,7 +78,7 @@ class GPUKernelExplainer(BlackBoxExplainer):
     :type model: object
     :param initialization_examples: A matrix of feature vector examples (# examples x # features) for
         initializing the explainer.
-    :type initialization_examples: numpy.array or pandas.DataFrame
+    :type initialization_examples: numpy.ndarray or pandas.DataFrame
     :param explain_subset: List of feature indices. If specified, only selects a subset of the
         features in the evaluation dataset for explanation, which will speed up the explanation
         process when number of features is large and the user already knows the set of interested
@@ -209,7 +209,7 @@ class GPUKernelExplainer(BlackBoxExplainer):
         """Explain the model globally by aggregating local explanations to global.
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: numpy.array or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :param sampling_policy: Optional policy for sampling the evaluation examples.  See documentation on
             SamplingPolicy for more information.
         :type sampling_policy: interpret_community.common.policy.SamplingPolicy
