@@ -728,7 +728,7 @@ class TestTabularExplainer(object):
         B = np.random.random(size=num_rows)
         C = np.random.randn(num_rows)
         cat = np.random.choice(['New York', 'San Francisco', 'Los Angeles',
-                                'Atlanta', 'Denver', 'Chicago', 'Miami', 'DC', 'housing'], 100)
+                                'Atlanta', 'Denver', 'Chicago', 'Miami', 'DC', 'Boston'], 100)
         label = np.random.choice([0, 1], num_rows)
         df = pd.DataFrame(data={'A': A, 'B': B, 'C': C, 'cat': cat, 'label': label})
         df.cat = df.cat.astype('category')
