@@ -61,7 +61,7 @@ def test_explain_regression_local():
     append_scrapbook_commands(input_notebook, processed_notebook, test_values)
     pm.execute_notebook(processed_notebook, output_notebook)
     nb = sb.read_notebook(output_notebook)
-    assert 'AGE' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
+    assert 'Latitude' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
 
 
 @pytest.mark.notebooks
