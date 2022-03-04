@@ -866,8 +866,8 @@ class TestTabularExplainer(object):
     def verify_housing_overall_features_rf(self, ranked_global_names, ranked_global_values):
         # Note: the order seems to differ from one machine to another, so we won't validate exact order
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        assert(ranked_global_names[0] == 'RM')
-        assert(len(ranked_global_values) == 13)
+        assert(ranked_global_names[0] == 'MedInc')
+        assert(len(ranked_global_values) == 8)
 
     def verify_housing_overall_features_lr(self, ranked_global_names, ranked_global_values):
         # Verify order of features
