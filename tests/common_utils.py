@@ -8,7 +8,7 @@ import pandas as pd
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn import ensemble, linear_model, svm
 from sklearn.base import TransformerMixin
-from sklearn.datasets import (fetch_20newsgroups, load_boston,
+from sklearn.datasets import (fetch_20newsgroups, fetch_california_housing,
                               load_breast_cancer, load_iris)
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -451,13 +451,13 @@ def create_energy_data():
     return x_train, x_test, y_train, y_validation, feature_names
 
 
-def create_boston_data():
-    # Import Boston housing dataset
-    boston = load_boston()
-    # Split data into train and test
-    x_train, x_test, y_train, y_validation = train_test_split(boston.data, boston.target,
-                                                              test_size=0.2, random_state=7)
-    return x_train, x_test, y_train, y_validation, boston.feature_names
+def create_housing_data():
+    housing = fetch_california_housing()
+    x_train, x_test, y_train, y_test = train_test_split(
+        housing.data, housing.target,
+        test_size=0.2, random_state=7)
+
+    return x_train, x_test, y_train, y_test, housing.feature_names
 
 
 def create_cancer_data():

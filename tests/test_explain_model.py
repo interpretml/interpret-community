@@ -187,26 +187,26 @@ class TestTabularExplainer(object):
         assert len(ranked_values[0]) == len(iris[DatasetConstants.X_TEST])
         assert len(ranked_values[0][0]) == len(iris[DatasetConstants.FEATURES])
 
-    def test_explain_single_local_instance_regression(self, boston, tabular_explainer):
+    def test_explain_single_local_instance_regression(self, housing, tabular_explainer):
         # Fit an SVM model
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
 
-        local_explanation = exp.explain_local(boston[DatasetConstants.X_TEST][0])
+        local_explanation = exp.explain_local(housing[DatasetConstants.X_TEST][0])
 
-        assert len(local_explanation.local_importance_values) == len(boston[DatasetConstants.FEATURES])
-        assert local_explanation.num_features == len(boston[DatasetConstants.FEATURES])
+        assert len(local_explanation.local_importance_values) == len(housing[DatasetConstants.FEATURES])
+        assert local_explanation.num_features == len(housing[DatasetConstants.FEATURES])
 
         local_rank = local_explanation.get_local_importance_rank()
-        assert len(local_rank) == len(boston[DatasetConstants.FEATURES])
+        assert len(local_rank) == len(housing[DatasetConstants.FEATURES])
 
         ranked_names = local_explanation.get_ranked_local_names()
-        assert len(ranked_names) == len(boston[DatasetConstants.FEATURES])
+        assert len(ranked_names) == len(housing[DatasetConstants.FEATURES])
 
         ranked_values = local_explanation.get_ranked_local_values()
-        assert len(ranked_values) == len(boston[DatasetConstants.FEATURES])
+        assert len(ranked_values) == len(housing[DatasetConstants.FEATURES])
 
     def test_explain_model_pandas_input(self, verify_tabular):
         verify_tabular.verify_explain_model_pandas_input()
@@ -411,34 +411,34 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_pytorch_binary_single_output')
         self._explain_model_dnn_common(tabular_explainer, model, x_train, x_test, y_train, X.columns.values)
 
-    def test_explain_model_random_forest_regression(self, boston, tabular_explainer):
+    def test_explain_model_random_forest_regression(self, housing, tabular_explainer):
         # Fit a random forest regression model
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
         # Create tabular explainer
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
         test_logger.info('Running explain global for test_explain_model_random_forest_regression')
-        explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
-        self.verify_boston_overall_features_rf(explanation.get_ranked_global_names(),
-                                               explanation.get_ranked_global_values())
+        explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
+        self.verify_housing_overall_features_rf(explanation.get_ranked_global_names(),
+                                                explanation.get_ranked_global_values())
 
-    def test_explain_model_local_tree_regression(self, boston, tabular_explainer):
+    def test_explain_model_local_tree_regression(self, housing, tabular_explainer):
         # Fit a random forest regression model
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
         # Create tabular explainer
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
         test_logger.info('Running explain local for test_explain_model_local_tree_regression')
-        explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
+        explanation = exp.explain_local(housing[DatasetConstants.X_TEST])
         assert explanation.local_importance_values is not None
-        assert len(explanation.local_importance_values) == len(boston[DatasetConstants.X_TEST])
-        assert explanation.num_examples == len(boston[DatasetConstants.X_TEST])
-        assert len(explanation.local_importance_values[0]) == len(boston[DatasetConstants.FEATURES])
-        assert explanation.num_features == len(boston[DatasetConstants.FEATURES])
+        assert len(explanation.local_importance_values) == len(housing[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(housing[DatasetConstants.X_TEST])
+        assert len(explanation.local_importance_values[0]) == len(housing[DatasetConstants.FEATURES])
+        assert explanation.num_features == len(housing[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
-                                                                   self.boston_local_features_first_five_rf)
+                                                                   self.housing_local_features_first_five_rf)
 
     def _explain_model_local_dnn_classification_common(self, tabular_explainer, model, x_train,
                                                        x_test, y_train, features):
@@ -480,54 +480,54 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(features)
         assert explanation.num_features == len(features)
 
-    def test_explain_model_local_keras_regression(self, boston, tabular_explainer):
-        x_train = boston[DatasetConstants.X_TRAIN]
-        x_test = boston[DatasetConstants.X_TEST]
+    def test_explain_model_local_keras_regression(self, housing, tabular_explainer):
+        x_train = housing[DatasetConstants.X_TRAIN]
+        x_test = housing[DatasetConstants.X_TEST]
         # Fit a DNN keras model
-        model = create_keras_regressor(x_train, boston[DatasetConstants.Y_TRAIN])
+        model = create_keras_regressor(x_train, housing[DatasetConstants.Y_TRAIN])
         test_logger.info('Running explain local for test_explain_model_local_keras_regression')
         self._explain_model_local_dnn_regression_common(tabular_explainer, model, x_train,
-                                                        x_test, boston[DatasetConstants.Y_TRAIN],
-                                                        boston[DatasetConstants.FEATURES])
+                                                        x_test, housing[DatasetConstants.Y_TRAIN],
+                                                        housing[DatasetConstants.FEATURES])
 
-    def test_explain_model_local_pytorch_regression(self, boston, tabular_explainer):
-        x_train = boston[DatasetConstants.X_TRAIN]
-        x_test = boston[DatasetConstants.X_TEST]
+    def test_explain_model_local_pytorch_regression(self, housing, tabular_explainer):
+        x_train = housing[DatasetConstants.X_TRAIN]
+        x_test = housing[DatasetConstants.X_TEST]
         # Fit a DNN pytorch model
-        model = create_pytorch_regressor(x_train, boston[DatasetConstants.Y_TRAIN])
+        model = create_pytorch_regressor(x_train, housing[DatasetConstants.Y_TRAIN])
         test_logger.info('Running explain local for test_explain_model_local_pytorch_regression')
         self._explain_model_local_dnn_regression_common(tabular_explainer, model, x_train,
-                                                        x_test, boston[DatasetConstants.Y_TRAIN],
-                                                        boston[DatasetConstants.FEATURES])
+                                                        x_test, housing[DatasetConstants.Y_TRAIN],
+                                                        housing[DatasetConstants.FEATURES])
 
-    def test_explain_model_local_kernel_regression(self, boston, tabular_explainer):
+    def test_explain_model_local_kernel_regression(self, housing, tabular_explainer):
         # Fit a linear regression model
-        model = create_sklearn_linear_regressor(boston[DatasetConstants.X_TRAIN], boston[DatasetConstants.Y_TRAIN])
+        model = create_sklearn_linear_regressor(housing[DatasetConstants.X_TRAIN], housing[DatasetConstants.Y_TRAIN])
 
         # Create tabular explainer
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
         test_logger.info('Running explain local for test_explain_model_local_kernel_regression')
-        explanation = exp.explain_local(boston[DatasetConstants.X_TEST])
+        explanation = exp.explain_local(housing[DatasetConstants.X_TEST])
         assert explanation.local_importance_values is not None
-        assert len(explanation.local_importance_values) == len(boston[DatasetConstants.X_TEST])
-        assert explanation.num_examples == len(boston[DatasetConstants.X_TEST])
-        assert len(explanation.local_importance_values[0]) == len(boston[DatasetConstants.FEATURES])
-        assert explanation.num_features == len(boston[DatasetConstants.FEATURES])
+        assert len(explanation.local_importance_values) == len(housing[DatasetConstants.X_TEST])
+        assert explanation.num_examples == len(housing[DatasetConstants.X_TEST])
+        assert len(explanation.local_importance_values[0]) == len(housing[DatasetConstants.FEATURES])
+        assert explanation.num_features == len(housing[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
-                                                                   self.boston_local_features_first_five_lr)
+                                                                   self.housing_local_features_first_five_lr)
 
-    def test_explain_model_linear_regression(self, boston, tabular_explainer):
+    def test_explain_model_linear_regression(self, housing, tabular_explainer):
         # Fit a linear regression model
-        model = create_sklearn_linear_regressor(boston[DatasetConstants.X_TRAIN],
-                                                boston[DatasetConstants.Y_TRAIN],
+        model = create_sklearn_linear_regressor(housing[DatasetConstants.X_TRAIN],
+                                                housing[DatasetConstants.Y_TRAIN],
                                                 pipeline=True)
 
         # Create tabular explainer
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
         test_logger.info('Running explain global for test_explain_model_linear_regression')
-        explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
-        self.verify_boston_overall_features_lr(explanation.get_ranked_global_names(),
-                                               explanation.get_ranked_global_values())
+        explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
+        self.verify_housing_overall_features_lr(explanation.get_ranked_global_names(),
+                                                explanation.get_ranked_global_values())
 
     def test_explain_model_subset_classification_dense(self, verify_tabular):
         verify_tabular.verify_explain_model_subset_classification_dense()
@@ -541,11 +541,11 @@ class TestTabularExplainer(object):
     def test_explain_model_with_sampling_regression_sparse(self, verify_tabular):
         verify_tabular.verify_explain_model_with_sampling_regression_sparse()
 
-    def test_explain_raw_feats_regression(self, boston, tabular_explainer):
+    def test_explain_raw_feats_regression(self, housing, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
-        x_train = boston[DatasetConstants.X_TRAIN][DATA_SLICE]
-        x_test = boston[DatasetConstants.X_TEST][DATA_SLICE]
-        y_train = boston[DatasetConstants.Y_TRAIN][DATA_SLICE]
+        x_train = housing[DatasetConstants.X_TRAIN][DATA_SLICE]
+        x_test = housing[DatasetConstants.X_TEST][DATA_SLICE]
+        y_train = housing[DatasetConstants.Y_TRAIN][DATA_SLICE]
 
         model = create_sklearn_linear_regressor(x_train, y_train)
 
@@ -769,11 +769,11 @@ class TestTabularExplainer(object):
         gpu_explainers = _get_uninitialized_explainers(use_gpu=True)
         assert gpu_explainers == [GPUKernelExplainer]
 
-    def test_explain_model_keras_regressor(self, boston, tabular_explainer):
+    def test_explain_model_keras_regressor(self, housing, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
-        x_train = boston[DatasetConstants.X_TRAIN][DATA_SLICE]
-        x_test = boston[DatasetConstants.X_TEST][DATA_SLICE]
-        y_train = boston[DatasetConstants.Y_TRAIN][DATA_SLICE]
+        x_train = housing[DatasetConstants.X_TRAIN][DATA_SLICE]
+        x_test = housing[DatasetConstants.X_TEST][DATA_SLICE]
+        y_train = housing[DatasetConstants.Y_TRAIN][DATA_SLICE]
 
         model = create_scikit_keras_regressor(x_train, y_train)
 
@@ -863,17 +863,17 @@ class TestTabularExplainer(object):
         assert(len(ranked_per_class_values) == len(exp_features))
         assert(len(ranked_per_class_values[0]) == len(exp_features[0]))
 
-    def verify_boston_overall_features_rf(self, ranked_global_names, ranked_global_values):
+    def verify_housing_overall_features_rf(self, ranked_global_names, ranked_global_values):
         # Note: the order seems to differ from one machine to another, so we won't validate exact order
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        assert(ranked_global_names[0] == 'RM')
-        assert(len(ranked_global_values) == 13)
+        assert(ranked_global_names[0] == 'MedInc')
+        assert(len(ranked_global_values) == 8)
 
-    def verify_boston_overall_features_lr(self, ranked_global_names, ranked_global_values):
+    def verify_housing_overall_features_lr(self, ranked_global_names, ranked_global_values):
         # Verify order of features
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        exp_features = ['RM', 'RAD', 'DIS', 'LSTAT', 'TAX', 'PTRATIO', 'NOX', 'CRIM', 'B', 'ZN', 'AGE',
-                        'CHAS', 'INDUS']
+        exp_features = ['Latitude', 'Longitude', 'MedInc', 'AveRooms', 'HouseAge',
+                        'AveBedrms', 'AveOccup', 'Population']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
         assert(len(ranked_global_values) == len(exp_features))
 
@@ -906,20 +906,20 @@ class TestTabularExplainer(object):
                 ['petal length', 'petal width', 'sepal length', 'sepal width']]
 
     @property
-    def boston_local_features_first_five_rf(self):
-        return [['LSTAT', 'CRIM', 'B', 'AGE', 'INDUS', 'RAD', 'CHAS', 'ZN', 'TAX', 'DIS', 'PTRATIO', 'NOX', 'RM'],
-                ['LSTAT', 'CRIM', 'NOX', 'AGE', 'B', 'TAX', 'INDUS', 'RAD', 'CHAS', 'ZN', 'PTRATIO', 'DIS', 'RM'],
-                ['LSTAT', 'NOX', 'CRIM', 'AGE', 'TAX', 'B', 'INDUS', 'RAD', 'CHAS', 'ZN', 'PTRATIO', 'DIS', 'RM'],
-                ['LSTAT', 'CRIM', 'NOX', 'AGE', 'B', 'RAD', 'INDUS', 'CHAS', 'ZN', 'TAX', 'PTRATIO', 'DIS', 'RM'],
-                ['DIS', 'INDUS', 'RAD', 'CHAS', 'ZN', 'AGE', 'B', 'TAX', 'PTRATIO', 'NOX', 'CRIM', 'RM', 'LSTAT']]
+    def housing_local_features_first_five_rf(self):
+        return [['AveRooms', 'Latitude', 'HouseAge', 'Population', 'Longitude', 'AveBedrms', 'AveOccup', 'MedInc'],
+                ['MedInc', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'AveRooms', 'AveOccup'],
+                ['AveOccup', 'MedInc', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'AveRooms'],
+                ['AveOccup', 'AveRooms', 'HouseAge', 'Latitude', 'Population', 'Longitude', 'AveBedrms', 'MedInc'],
+                ['MedInc', 'Population', 'HouseAge', 'Longitude', 'AveBedrms', 'Latitude', 'AveRooms', 'AveOccup']]
 
     @property
-    def boston_local_features_first_five_lr(self):
-        return [['RAD', 'CHAS', 'DIS', 'RM', 'B', 'INDUS', 'CRIM', 'LSTAT', 'ZN', 'AGE', 'PTRATIO', 'TAX', 'NOX'],
-                ['TAX', 'LSTAT', 'CRIM', 'NOX', 'B', 'AGE', 'INDUS', 'CHAS', 'ZN', 'RAD', 'PTRATIO', 'RM', 'DIS'],
-                ['TAX', 'NOX', 'CRIM', 'B', 'AGE', 'LSTAT', 'INDUS', 'CHAS', 'ZN', 'RM', 'PTRATIO', 'RAD', 'DIS'],
-                ['LSTAT', 'TAX', 'CRIM', 'B', 'NOX', 'AGE', 'INDUS', 'CHAS', 'ZN', 'DIS', 'RAD', 'RM', 'PTRATIO'],
-                ['RAD', 'DIS', 'INDUS', 'CHAS', 'ZN', 'AGE', 'RM', 'PTRATIO', 'NOX', 'LSTAT', 'TAX', 'B', 'CRIM']]
+    def housing_local_features_first_five_lr(self):
+        return [['Latitude', 'AveRooms', 'HouseAge', 'AveBedrms', 'AveOccup', 'Population', 'Longitude', 'MedInc'],
+                ['Latitude', 'AveRooms', 'MedInc', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
+                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'Population', 'AveBedrms', 'MedInc', 'Latitude'],
+                ['Longitude', 'AveRooms', 'AveBedrms', 'AveOccup', 'Population', 'HouseAge', 'MedInc', 'Latitude'],
+                ['MedInc', 'Longitude', 'Population', 'AveOccup', 'HouseAge', 'AveBedrms', 'AveRooms', 'Latitude']]
 
     @property
     def adult_local_features_first_three_rf(self):

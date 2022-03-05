@@ -76,16 +76,16 @@ class TestRawExplanations:
         self.validate_global_explanation_classification(global_explanation, global_raw_explanation, feature_map,
                                                         classes, feature_names)
 
-    def test_get_global_raw_explanations_regression(self, boston, tabular_explainer):
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+    def test_get_global_raw_explanations_regression(self, housing, tabular_explainer):
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
 
-        global_explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
+        global_explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
         assert not global_explanation.is_engineered
-        num_engineered_feats = len(boston[DatasetConstants.FEATURES])
+        num_engineered_feats = len(housing[DatasetConstants.FEATURES])
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
         global_raw_explanation = global_explanation.get_raw_explanation([feature_map])
@@ -119,16 +119,16 @@ class TestRawExplanations:
         assert len(ranked_values) == len(iris[DatasetConstants.CLASSES])
         assert len(ranked_values[0]) == feature_map.shape[0]
 
-    def test_get_local_raw_explanations_regression(self, boston, tabular_explainer):
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+    def test_get_local_raw_explanations_regression(self, housing, tabular_explainer):
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
 
-        num_engineered_feats = len(boston[DatasetConstants.FEATURES])
+        num_engineered_feats = len(housing[DatasetConstants.FEATURES])
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
-        local_explanation = exp.explain_local(boston[DatasetConstants.X_TEST][0])
+        local_explanation = exp.explain_local(housing[DatasetConstants.X_TEST][0])
 
         local_raw_explanation = local_explanation.get_raw_explanation([feature_map])
 
@@ -277,19 +277,19 @@ class TestRawExplanations:
                                                         iris[DatasetConstants.CLASSES], feature_names,
                                                         has_raw_eval_data=True)
 
-    def test_get_global_raw_explanations_regression_eval_data(self, boston, tabular_explainer):
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+    def test_get_global_raw_explanations_regression_eval_data(self, housing, tabular_explainer):
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
-        exp = tabular_explainer(model, boston[DatasetConstants.X_TRAIN], features=boston[DatasetConstants.FEATURES])
+        exp = tabular_explainer(model, housing[DatasetConstants.X_TRAIN], features=housing[DatasetConstants.FEATURES])
 
-        global_explanation = exp.explain_global(boston[DatasetConstants.X_TEST])
+        global_explanation = exp.explain_global(housing[DatasetConstants.X_TEST])
         assert not global_explanation.is_raw
         assert not global_explanation.is_engineered
-        num_engineered_feats = len(boston[DatasetConstants.FEATURES])
+        num_engineered_feats = len(housing[DatasetConstants.FEATURES])
         feature_map = np.eye(num_engineered_feats - 1, num_engineered_feats)
 
-        raw_eval_data = np.ones_like(boston[DatasetConstants.X_TRAIN])
+        raw_eval_data = np.ones_like(housing[DatasetConstants.X_TRAIN])
         global_raw_explanation = global_explanation.get_raw_explanation(
             [feature_map],
             eval_data=raw_eval_data)
@@ -299,12 +299,12 @@ class TestRawExplanations:
         self.validate_global_explanation_regression(global_explanation, global_raw_explanation, feature_map,
                                                     has_raw_eval_data=True)
 
-    def test_get_raw_explanation_no_datasets_mixin(self, boston, mimic_explainer):
-        model = create_sklearn_random_forest_regressor(boston[DatasetConstants.X_TRAIN],
-                                                       boston[DatasetConstants.Y_TRAIN])
+    def test_get_raw_explanation_no_datasets_mixin(self, housing, mimic_explainer):
+        model = create_sklearn_random_forest_regressor(housing[DatasetConstants.X_TRAIN],
+                                                       housing[DatasetConstants.Y_TRAIN])
 
-        explainer = mimic_explainer(model, boston[DatasetConstants.X_TRAIN], LGBMExplainableModel)
-        global_explanation = explainer.explain_global(boston[DatasetConstants.X_TEST])
+        explainer = mimic_explainer(model, housing[DatasetConstants.X_TRAIN], LGBMExplainableModel)
+        global_explanation = explainer.explain_global(housing[DatasetConstants.X_TEST])
         assert global_explanation.method == LIGHTGBM_METHOD
 
         kwargs = {ExplainParams.METHOD: global_explanation.method}
@@ -316,7 +316,7 @@ class TestRawExplanations:
         kwargs[ExplainParams.IS_ENG] = True
         synthetic_explanation = _create_local_explanation(**kwargs)
 
-        num_engineered_feats = boston[DatasetConstants.X_TRAIN].shape[1]
+        num_engineered_feats = housing[DatasetConstants.X_TRAIN].shape[1]
         feature_map = np.eye(5, num_engineered_feats)
         feature_names = [str(i) for i in range(feature_map.shape[0])]
         raw_names = feature_names[:feature_map.shape[0]]
