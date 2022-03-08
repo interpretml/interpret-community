@@ -60,11 +60,6 @@ steps:
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
-      pip install --upgrade jupyter
-    displayName: Install jupyter
-
-  - bash: |
-      source activate  ${{parameters.condaEnv}} 
       pip install -r requirements-test.txt
     displayName: Install test required pip packages
 
