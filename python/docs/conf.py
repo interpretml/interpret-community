@@ -41,7 +41,7 @@ extensions = [
     'sphinx.ext.extlinks'
 ]
 # eventually we may be able to use intersphinx for these! TODO
-autodoc_mock_imports = ['shap', 'shap.common', 'interpret', 'interpret.utils']
+autodoc_mock_imports = ['interpret', 'interpret.utils', 'ml_wrappers']
 
 # enable links to objects in the other standard libraries, e.g., list and str in the Python standard library
 intersphinx_mapping = {
@@ -49,7 +49,8 @@ intersphinx_mapping = {
     'NumPy': ('https://docs.scipy.org/doc/numpy/', None),
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'SciPy': ('https://docs.scipy.org/doc/scipy/reference', None),
-    'sklearn': ('https://scikit-learn.org/stable', None)
+    'sklearn': ('https://scikit-learn.org/stable', None),
+    'shap': ('https://shap.readthedocs.io/en/stable', None)
 }
 
 # Add any paths that contain templates here, relative to this directory.
