@@ -18,7 +18,7 @@ from common_utils import (create_keras_classifier, create_keras_regressor,
                           create_sklearn_linear_regressor,
                           create_sklearn_random_forest_classifier,
                           create_sklearn_random_forest_regressor,
-                          create_sklearn_svm_classifier,
+                          create_sklearn_svm_classifier, create_tf_model,
                           create_xgboost_classifier,
                           wrap_classifier_without_proba)
 from constants import DatasetConstants, owner_email_tools_and_ux
@@ -30,6 +30,7 @@ from interpret_community.shap import (DeepExplainer, GPUKernelExplainer,
                                       TreeExplainer)
 from interpret_community.tabular_explainer import _get_uninitialized_explainers
 from lightgbm import LGBMClassifier
+from ml_wrappers import DatasetWrapper, wrap_model
 from raw_explain.utils import _get_feature_map_from_indices_list
 from scipy.sparse import csr_matrix
 from sklearn.compose import ColumnTransformer
@@ -40,8 +41,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (FunctionTransformer, OneHotEncoder,
                                    StandardScaler)
 
+try:
+    import tensorflow as tf
+except ImportError:
+    pass
+
+
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
+
 
 DATA_SLICE = slice(10)
 
@@ -810,6 +818,35 @@ class TestTabularExplainer(object):
         local_importance_values = local_explanation.local_importance_values
         assert len(local_importance_values) == num_classes, ('length of local importances does not match number '
                                                              'of classes')
+
+    def test_explain_model_batch_dataset(self, housing, tabular_explainer):
+        X_train = housing[DatasetConstants.X_TRAIN]
+        X_test = housing[DatasetConstants.X_TEST][DATA_SLICE]
+        y_train = housing[DatasetConstants.Y_TRAIN]
+        y_test = housing[DatasetConstants.Y_TEST][DATA_SLICE]
+        features = housing[DatasetConstants.FEATURES]
+        X_train_df = pd.DataFrame(X_train, columns=list(features))
+        X_test_df = pd.DataFrame(X_test, columns=list(features))
+        inp = (dict(X_train_df), y_train)
+        inp_ds = tf.data.Dataset.from_tensor_slices(inp).batch(32)
+        val = (dict(X_test_df), y_test)
+        val_ds = tf.data.Dataset.from_tensor_slices(val).batch(32)
+        model = create_tf_model(inp_ds, val_ds, features)
+        wrapped_dataset = DatasetWrapper(val_ds)
+        wrapped_model = wrap_model(model, wrapped_dataset, model_task='regression')
+
+        explainer = tabular_explainer(wrapped_model, inp_ds)
+
+        global_explanation = explainer.explain_global(wrapped_dataset)
+        local_explanation = explainer.explain_local(wrapped_dataset)
+        global_importance_values = global_explanation.global_importance_values
+        num_rows = X_test_df.shape[0]
+        num_feats = X_test_df.shape[1]
+        assert len(global_importance_values) == num_feats, ('length of global importances '
+                                                            'does not match number of features')
+        local_importance_values = local_explanation.local_importance_values
+        assert len(local_importance_values) == num_rows, ('length of local importances does not match number '
+                                                          'of rows')
 
     def verify_adult_overall_features(self, ranked_global_names, ranked_global_values):
         # Verify order of features

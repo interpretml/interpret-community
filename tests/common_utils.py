@@ -19,7 +19,8 @@ from xgboost import XGBClassifier
 
 try:
     from tensorflow import keras
-    from tensorflow.keras.layers import Activation, Dense, Dropout
+    from tensorflow.keras import Input, Model
+    from tensorflow.keras.layers import Activation, Dense, Dropout, concatenate
     from tensorflow.keras.models import Sequential
     from tensorflow.keras.wrappers.scikit_learn import (KerasClassifier,
                                                         KerasRegressor)
@@ -326,6 +327,35 @@ def create_pytorch_regressor(X, y):
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.0001)
     return _train_pytorch_model(epochs, criterion, optimizer, net, torch_X, torch_y)
+
+
+def create_tf_model(inp_ds, val_ds, feature_names):
+    """Create a simple TF model for regression.
+
+    :param inp_ds: input data set.
+    :type inp_ds: BatchDataset
+    :param val_ds: validation data set.
+    :type val_ds: BatchDataset
+    :param feature_names: list of feature names.
+    :type feature_names: list
+    :return: a TF model.
+    :rtype: tf.keras.Model
+    """
+    inputs = {col: Input(name=col, shape=(1,),
+                         dtype='float32') for col in list(feature_names)}
+
+    x = concatenate([inputs[col] for col in list(feature_names)])
+    x = Dense(20, activation='relu', name='hidden1')(x)
+    out = Dense(1)(x)
+
+    model = Model(inputs=inputs, outputs=out)
+
+    model.compile(optimizer='adam',
+                  loss='mse',
+                  metrics=['mae', 'mse'])
+
+    model.fit(inp_ds, epochs=5, validation_data=val_ds)
+    return model
 
 
 def create_keras_classifier(X, y):
