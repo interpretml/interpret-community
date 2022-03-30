@@ -17,6 +17,7 @@ import warnings
 from functools import wraps
 
 import numpy as np
+from ml_wrappers.model import WrappedTensorflowModel, is_sequential
 from scipy.sparse import SparseEfficiencyWarning, issparse, isspmatrix_csc
 from sklearn.metrics import (average_precision_score, explained_variance_score,
                              f1_score, fbeta_score, mean_absolute_error,
@@ -243,7 +244,10 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                 model = WrappedPytorchModel(model)
         except (NameError, AttributeError):
             log_pytorch_missing = True
-        super(PFIExplainer, self).__init__(model, is_function=is_function, **kwargs)
+        if is_sequential(model):
+            model = WrappedTensorflowModel(model)
+        super(PFIExplainer, self).__init__(
+            model, is_function=is_function, model_task=model_task, **kwargs)
         # Note: we can't log debug until after init has been called to create the logger
         if log_pytorch_missing:
             self._logger.debug('Could not import torch, required if using a pytorch model')
