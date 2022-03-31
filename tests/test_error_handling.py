@@ -8,7 +8,7 @@ from interpret_community.common.error_handling import _format_exception
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestErrorHandling(object):
     def test_format_exception(self):
         error_str = "Some error"

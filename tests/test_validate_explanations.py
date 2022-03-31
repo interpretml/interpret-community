@@ -38,7 +38,7 @@ test_logger.setLevel(logging.INFO)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures("clean_dir")
+@pytest.mark.usefixtures("_clean_dir")
 class TestExplainerValidity(object):
     def test_working(self):
         assert True

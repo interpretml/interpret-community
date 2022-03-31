@@ -657,7 +657,9 @@ class VerifyTabularTests(object):
         # Fit an SVM model, but specify that it should not define a predict_proba function
         model = create_sklearn_svm_classifier(x_train, y_train, probability=False)
         self.test_logger.info('Running explain model for verify_explain_model_throws_on_bad_classifier_and_classes')
-        with pytest.raises(ValueError):
+        with pytest.raises(
+                ValueError,
+                match="Classes is specified but model does not define predict_proba, only predict."):
             self.create_explainer(model, x_train, features=feature_names, classes=target_names)
 
     def verify_explain_model_throws_on_bad_pipeline_and_classes(self):
@@ -666,7 +668,9 @@ class VerifyTabularTests(object):
         # Fit an SVM model, but specify that it should not define a predict_proba function
         model = create_sklearn_svm_classifier(x_train, y_train, probability=False)
         self.test_logger.info('Running explain model for verify_explain_model_throws_on_bad_pipeline_and_classes')
-        with pytest.raises(ValueError):
+        with pytest.raises(
+                ValueError,
+                match="Classes is specified but function was predict, not predict_proba."):
             self.create_explainer(model.predict, x_train, is_function=True,
                                   features=feature_names, classes=target_names)
 
@@ -676,7 +680,9 @@ class VerifyTabularTests(object):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, y_train)
         self.test_logger.info('Running explain model for verify_explain_model_throws_on_classifier_and_no_classes')
-        with pytest.raises(ValueError):
+        with pytest.raises(
+                ValueError,
+                match="LIME Explainer requires classes to be specified if using a classification model"):
             self.create_explainer(model, x_train, features=feature_names)
 
     def verify_explain_model_transformations_list_classification(self, create_model=None,
@@ -898,7 +904,8 @@ class VerifyTabularTests(object):
                         predicted_probability = total_sum
                     ubound = 1.0 + PROBABILITY_TOLERANCE
                     lbound = 0.0 - PROBABILITY_TOLERANCE
-                    assert(predicted_probability <= ubound and predicted_probability >= lbound)
+                    assert predicted_probability <= ubound
+                    assert predicted_probability >= lbound
                     if model_output is not None:
                         assert abs(predicted_probability - model_output[row_idx, class_idx]) < TOLERANCE
 

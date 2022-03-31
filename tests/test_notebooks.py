@@ -38,7 +38,7 @@ def output_notebook_path(notebookname):
     return "./tests/{0}.output.ipynb".format(notebookname)
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_explain_binary_classification_local():
     notebookname = 'explain-binary-classification-local'
     input_notebook = input_notebook_path(notebookname)
@@ -51,7 +51,7 @@ def test_explain_binary_classification_local():
     assert 'worst area' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_explain_regression_local():
     notebookname = 'explain-regression-local'
     input_notebook = input_notebook_path(notebookname)
@@ -64,7 +64,7 @@ def test_explain_regression_local():
     assert 'Latitude' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_explain_regression_mimic_explainer():
     notebookname = 'explain-regression-mimic-explainer'
     input_notebook = input_notebook_path(notebookname)
@@ -77,7 +77,7 @@ def test_explain_regression_mimic_explainer():
     assert 'Latitude' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_advanced_feature_transformations_explain_local():
     notebookname = 'advanced-feature-transformations-explain-local'
     input_notebook = input_notebook_path(notebookname)
@@ -90,7 +90,7 @@ def test_advanced_feature_transformations_explain_local():
     assert 'embarked' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES][0]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_explain_multiclass_classification_local():
     notebookname = 'explain-multiclass-classification-local'
     input_notebook = input_notebook_path(notebookname)
@@ -103,7 +103,7 @@ def test_explain_multiclass_classification_local():
     assert 'petal width (cm)' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_simple_feature_transformations_explain_local():
     notebookname = 'simple-feature-transformations-explain-local'
     input_notebook = input_notebook_path(notebookname)
@@ -116,7 +116,7 @@ def test_simple_feature_transformations_explain_local():
     assert 'TotalWorkingYears' in nb.scraps.data_dict[SORTED_LOCAL_IMPORTANCE_NAMES][0]
 
 
-@pytest.mark.notebooks
+@pytest.mark.notebooks()
 def test_captum_integration_example():
     notebookname = 'captum-integration-example'
     input_notebook = input_notebook_path(notebookname)

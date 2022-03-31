@@ -34,7 +34,7 @@ test_logger = logging.getLogger(__name__)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestSerializeExplainer(object):
 
     def test_serialize_kernel(self):
@@ -120,7 +120,7 @@ class TestSerializeExplainer(object):
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestPickleUnpickleMimicExplainer(object):
     def _verify_explanations(self, explainer, test_data, surrogate_model_method):
         explanation = explainer.explain_global(test_data)
