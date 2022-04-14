@@ -95,16 +95,6 @@ class TestDataMapper:
         result = data_mapper.transform(x)
         assert np.all(result == np.array([[1, 1]]))
 
-    def test_column_exception_without_brackets(self):
-        x = np.ones((2, 3))
-        x[0, 0] = 0
-        encoder = OneHotEncoder()
-        encoder.fit(x)
-        data_mapper = DataMapper([([0, 1], encoder)])
-        data_mapper.transform(x)
-        with pytest.raises(ValueError):
-            data_mapper.transform(x)
-
     def test_pipeline_transform_list(self):
         pipeline = Pipeline([("imputer", SimpleImputer()), ("onehotencoder", OneHotEncoder())])
         x = np.ones((3, 2))
