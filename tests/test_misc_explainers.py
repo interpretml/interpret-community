@@ -25,7 +25,7 @@ test_logger.setLevel(logging.INFO)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures("clean_dir")
+@pytest.mark.usefixtures("_clean_dir")
 class TestKernelExplainer(object):
     def setup_class(self):
         def create_explainer(model, x_train, **kwargs):
@@ -47,7 +47,7 @@ class TestKernelExplainer(object):
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures("clean_dir")
+@pytest.mark.usefixtures("_clean_dir")
 class TestDeepExplainer(object):
     def setup_class(self):
         def create_explainer(model, x_train, **kwargs):
@@ -92,7 +92,7 @@ class TestDeepExplainer(object):
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures("clean_dir")
+@pytest.mark.usefixtures("_clean_dir")
 class TestTreeExplainer(object):
     def setup_class(self):
         def create_explainer(model, x_train, **kwargs):
@@ -154,7 +154,7 @@ class TestTreeExplainer(object):
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures("clean_dir")
+@pytest.mark.usefixtures("_clean_dir")
 class TestLinearExplainer(object):
     def setup_class(self):
         def create_explainer(model, x_train, **kwargs):

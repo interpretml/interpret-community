@@ -16,7 +16,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestDataMapper:
     def setup_class(self):
         self._identity_mapper_list = DataMapper([([0], IdentityTransformer()), ([1], IdentityTransformer())])
@@ -95,15 +95,6 @@ class TestDataMapper:
         result = data_mapper.transform(x)
         assert np.all(result == np.array([[1, 1]]))
 
-    def test_column_exception_without_brackets(self):
-        with pytest.raises(ValueError):
-            x = np.ones((2, 3))
-            x[0, 0] = 0
-            encoder = OneHotEncoder()
-            encoder.fit(x[0])
-            data_mapper = DataMapper([[0], encoder])
-            data_mapper.transform(x)
-
     def test_pipeline_transform_list(self):
         pipeline = Pipeline([("imputer", SimpleImputer()), ("onehotencoder", OneHotEncoder())])
         x = np.ones((3, 2))
@@ -126,18 +117,26 @@ class TestDataMapper:
     def test_many_to_many_exception_list(self):
         # A transformer that takes input many columns. Since we do not recognize this transformer and it uses
         # many input columns - it is treated as many to many/one map.
-        with pytest.raises(ValueError):
+        with pytest.raises(
+                ValueError,
+                match="Many to many or many to one transformers not supported in raw explanations when "
+                      "explainer instantiated with allow_all_transformations is set to False. Change this "
+                      "parameter to True in order to get explanations."):
             DataMapper([([0, 1], IdentityTransformer())])
 
     def test_many_to_many_exception_column_transformer(self):
         # A transformer that takes input many columns. Since we do not recognize this transformer and it uses
         # many input columns - it is treated as many to many/one map.
-        with pytest.raises(ValueError):
-            column_transformer = ColumnTransformer([
-                ("column_0_1", IdentityTransformer(), [0, 1])
-            ])
-            x = np.ones((2, 2))
-            column_transformer.fit(x)
+        column_transformer = ColumnTransformer([
+            ("column_0_1", IdentityTransformer(), [0, 1])
+        ])
+        x = np.ones((2, 2))
+        column_transformer.fit(x)
+        with pytest.raises(
+                ValueError,
+                match="Many to many or many to one transformers not supported in raw explanations when "
+                      "explainer instantiated with allow_all_transformations is set to False. Change this "
+                      "parameter to True in order to get explanations."):
             DataMapper(column_transformer)
 
     def test_many_to_many_support_transformations(self):

@@ -21,7 +21,7 @@ test_logger = logging.getLogger(__name__)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestExplanationUtils(object):
 
     def test_working(self):
@@ -80,12 +80,14 @@ class TestExplanationUtils(object):
     def test_generate_augmented_data_ndarray(self):
         x = np.ones((3, 6))
         x_augmented = _generate_augmented_data(x)
-        assert x_augmented.shape[0] == 6 and x_augmented.shape[1] == 6
+        assert x_augmented.shape[0] == 6
+        assert x_augmented.shape[1] == 6
 
     def test_generate_augmented_data_sparse(self):
         x = csr_matrix(np.zeros((3, 6)))
         x_augmented = _generate_augmented_data(x)
-        assert x_augmented.shape[0] == 6 and x_augmented.shape[1] == 6
+        assert x_augmented.shape[0] == 6
+        assert x_augmented.shape[1] == 6
 
     def test_get_raw_feats_regression(self):
         feat_imps = np.ones((2, 5))

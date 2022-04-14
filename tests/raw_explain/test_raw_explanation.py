@@ -28,7 +28,7 @@ from transformation_utils import (get_transformations_from_col_transformer,
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestRawExplanations:
     def test_get_global_raw_explanations_classification(self, iris, tabular_explainer):
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])

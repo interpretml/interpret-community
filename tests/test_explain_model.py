@@ -55,7 +55,7 @@ DATA_SLICE = slice(10)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestTabularExplainer(object):
     def test_working(self):
         assert True

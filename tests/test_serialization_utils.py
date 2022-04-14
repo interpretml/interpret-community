@@ -12,7 +12,7 @@ from interpret_community.common.serialization_utils import _serialize_json_safe
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestSerializationUtils(object):
 
     def test_serialize_json_safe_basic(self):

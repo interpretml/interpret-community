@@ -15,7 +15,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestFeatureMappers:
     def _get_nested_pipelines_and_data(self, last_transformer=None):
         # returns a pipeline that can be used to test nested pipelines. When last_transformer is not None, it is

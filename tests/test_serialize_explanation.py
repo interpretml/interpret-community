@@ -28,11 +28,11 @@ test_logger = logging.getLogger(__name__)
 def iris_svm_model(iris):
     # uses iris DatasetConstants
     model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
-    yield model
+    return model
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestSerializeExplanation(object):
 
     def test_save_explanation(self, iris, tabular_explainer, iris_svm_model):

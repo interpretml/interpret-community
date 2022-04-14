@@ -50,7 +50,7 @@ MACOS_PLATFORM = 'darwin'
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestMimicExplainer(object):
     def test_working(self):
         assert True
@@ -293,7 +293,7 @@ class TestMimicExplainer(object):
             verifier.verify_explain_model_categorical(pass_categoricals=True,
                                                       verify_same_shape=verify_same_shape)
 
-    @pytest.mark.parametrize("sample_cnt_per_grain,grains_dict", [
+    @pytest.mark.parametrize(("sample_cnt_per_grain", "grains_dict"), [
         (240, {}),
         (20, {'fruit': ['apple', 'grape'], 'store': [100, 200, 50]})])
     def test_dataframe_model(self, mimic_explainer, sample_cnt_per_grain, grains_dict):
@@ -419,7 +419,8 @@ class TestMimicExplainer(object):
         if mimic_explainer.classes is not None:
             assert mimic_explainer.classes == np.unique(predictions_main_model).tolist()
             assert mimic_explainer.classes == np.unique(predictions_surrogate_model).tolist()
-        assert replication_score is not None and isinstance(replication_score, float)
+        assert replication_score is not None
+        assert isinstance(replication_score, float)
 
         if mimic_explainer.classes is None:
             with pytest.raises(
@@ -634,7 +635,7 @@ class TestMimicExplainer(object):
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestMimicExplainerWrappedModels(object):
     def test_working(self):
         assert True

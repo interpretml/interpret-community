@@ -15,7 +15,7 @@ test_logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
-@pytest.mark.usefixtures('clean_dir')
+@pytest.mark.usefixtures('_clean_dir')
 class TestLIMEExplainer(object):
     def setup_class(self):
         def create_explainer(model, x_train, is_function=False, **kwargs):
