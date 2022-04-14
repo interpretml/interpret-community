@@ -102,17 +102,21 @@ class BlackBoxMixin(ChainedIdentity):
                 if model_task == ModelTask.Classification:
                     raise Exception("No predict_proba method on model which has model_task='classifier'")
 
-    def _get_ys_dict(self, evaluation_examples, transformations=None, allow_all_transformations=False):
+    def _get_ys_dict(self, evaluation_examples, transformations=None,
+                     allow_all_transformations=False):
         """Get the predicted ys to be incorporated into a kwargs dictionary.
-        :param evaluation_examples: The same ones we usually work with, must be able to be passed into the
-            model or function.
-        :type evaluation_examples: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
+
+        :param evaluation_examples: The same ones we usually work with,
+            must be able to be passed into the model or function.
+        :type evaluation_examples: DatasetWrapper or numpy.ndarray or
+            pandas.DataFrame or scipy.sparse.csr_matrix
         :param transformations: See documentation on any explainer.
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
-        :param allow_all_transformations: Allow many to many and many to one transformations
+        :param allow_all_transformations: Allow many to many and many to
+            one transformations
         :type allow_all_transformations: bool
-        :return: The dictionary with none, one, or both of predicted ys and predicted proba ys for eval
-            examples.
+        :return: The dictionary with none, one, or both of predicted ys
+            and predicted proba ys for eval examples.
         :rtype: dict
         """
         if transformations is not None:
@@ -123,7 +127,7 @@ class BlackBoxMixin(ChainedIdentity):
             )
         if isinstance(evaluation_examples, DatasetWrapper):
             evaluation_examples = evaluation_examples.original_dataset_with_type
-        if len(evaluation_examples.shape) == 1:
+        if hasattr(evaluation_examples, 'shape') and len(evaluation_examples.shape) == 1:
             evaluation_examples = evaluation_examples.reshape(1, -1)
         ys_dict = {}
         if self.model is not None:
@@ -238,7 +242,21 @@ def add_prepare_function_and_summary_method(cls):
         return wrapper
 
     def _prepare_function_and_summary(self, function, original_data_ref,
-                                      current_index_list, explain_subset=None, **kwargs):
+                                      current_index_list,
+                                      explain_subset=None, **kwargs):
+        """Prepare the initialization dataset and the wrapper function for predictions.
+
+        :param function: The prediction function.
+        :type function: function
+        :param original_data_ref: The original data reference.
+        :type original_data_ref: list
+        :param current_index_list: Pointer to the current row to be evaluated.
+        :type current_index_list: list
+        :param explain_subset: The subset of feature indexes to explain.
+        :type explain_subset: list
+        :return: The prepared function and the summary dataset.
+        :rtype: function, ndarray
+        """
         if explain_subset:
             # Note: need to take subset before compute summary
             self.initialization_examples.take_subset(explain_subset)

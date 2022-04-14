@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.operatingSystem }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
@@ -67,7 +67,7 @@ jobs:
       run: |
         pytest ./tests -m "not notebooks" -s -v --cov=${{ matrix.packageDirectory }} --cov-report=xml --cov-report=html
     - name: Upload code coverage results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.packageDirectory }}-code-coverage-results
         path: htmlcov
