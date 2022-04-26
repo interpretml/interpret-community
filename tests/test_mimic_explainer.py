@@ -165,6 +165,17 @@ class TestMimicExplainer(object):
             verifier.verify_explain_model_hashing(summarize_background=False,
                                                   include_evaluation_examples=False)
 
+    @pytest.mark.parametrize(("batch_size"), [None, 1, 100])
+    @pytest.mark.parametrize(("include_evaluation_examples"), [True, False])
+    def test_explain_model_hashing_without_include_local(self, verify_sparse_mimic,
+                                                         batch_size,
+                                                         include_evaluation_examples):
+        for verifier in verify_sparse_mimic:
+            verifier.verify_explain_model_hashing(summarize_background=False,
+                                                  include_evaluation_examples=include_evaluation_examples,
+                                                  include_local=False,
+                                                  batch_size=batch_size)
+
     def test_explain_model_subset_classification_dense(self, verify_mimic_regressor):
         for verifier in verify_mimic_regressor:
             verifier.verify_explain_model_subset_classification_dense(is_local=False)

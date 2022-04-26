@@ -12,8 +12,7 @@ from interpret_community.common.blackbox_explainer import (
     BlackBoxExplainer, add_prepare_function_and_summary_method,
     init_blackbox_decorator)
 from interpret_community.common.constants import (Defaults, ExplainParams,
-                                                  ExplainType,
-                                                  ExplanationParams, Extension,
+                                                  ExplainType, Extension,
                                                   ModelTask)
 from interpret_community.common.model_wrapper import _wrap_model
 from interpret_community.common.progress import get_tqdm
@@ -277,10 +276,10 @@ class LIMEExplainer(BlackBoxExplainer):
                   ExplainParams.BATCH_SIZE: batch_size}
 
         if self.classification:
-            kwargs[ExplanationParams.CLASSES] = self.classes
-            kwargs[ExplainType.MODEL_TASK] = ExplainType.CLASSIFICATION
+            kwargs[ExplainParams.CLASSES] = self.classes
+            kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
         else:
-            kwargs[ExplainType.MODEL_TASK] = ExplainType.REGRESSION
+            kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
 
         kwargs[ExplainParams.EVAL_DATA] = evaluation_examples.typed_dataset
 
@@ -330,12 +329,12 @@ class LIMEExplainer(BlackBoxExplainer):
 
         self._logger.debug('Running LIMEExplainer')
         if self.classification:
-            kwargs[ExplanationParams.CLASSES] = self.classes
-            kwargs[ExplainType.MODEL_TASK] = ExplainType.CLASSIFICATION
+            kwargs[ExplainParams.CLASSES] = self.classes
+            kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
             num_classes = len(self.classes)
             labels = list(range(num_classes))
         else:
-            kwargs[ExplainType.MODEL_TASK] = ExplainType.REGRESSION
+            kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
             num_classes = 1
             labels = None
         lime_explanations = []

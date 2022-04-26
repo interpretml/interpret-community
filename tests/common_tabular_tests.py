@@ -457,27 +457,31 @@ class VerifyTabularTests(object):
             explainer.explain_global(**policy)
 
     def verify_explain_model_hashing(self, summarize_background=True, include_evaluation_examples=True,
-                                     true_labels_required=False):
-        # verifies we can run on very sparse data similar to what is done in auto ML
-        # Note: we are using a multi-class classification dataset for testing regression
-        x_train, x_test, y_train, y_test, _, _ = create_multiclass_sparse_newsgroups_data()
+                                     true_labels_required=False, include_local=True, batch_size=None):
+        # verifies we can run on very sparse data
+        x_train, x_test, y_train, y_test, target_names, _ = create_multiclass_sparse_newsgroups_data()
         x_train = x_train[DATA_SLICE]
         x_test = x_test[DATA_SLICE]
         y_train = y_train[DATA_SLICE]
         y_test = y_test[DATA_SLICE]
-        # Fit a linear regression model
-        model = create_sklearn_linear_regressor(x_train, y_train)
+        # Fit a logistic regression model for the multiclass classification data
+        model = create_sklearn_logistic_regressor(x_train, y_train)
         self.test_logger.info('Running explain global for verify_explain_model_hashing')
         if summarize_background:
             background = _summarize_data(x_train)
         else:
             background = x_train
         # Create tabular explainer
-        explainer = self.create_explainer(model, background)
+        explainer = self.create_explainer(
+            model, background, model_task=ModelTask.Classification, classes=target_names)
         if self.specify_policy:
             policy = {ExplainParams.SAMPLING_POLICY: SamplingPolicy(allow_eval_sampling=True)}
         else:
             policy = {}
+        if not include_local:
+            policy[ExplainParams.INCLUDE_LOCAL] = include_local
+        if batch_size is not None:
+            policy[ExplainParams.BATCH_SIZE] = batch_size
         if include_evaluation_examples:
             if true_labels_required:
                 explainer.explain_global(x_test, y_test, **policy)

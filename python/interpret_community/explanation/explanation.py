@@ -1661,7 +1661,7 @@ def _get_local_explanation_row(explainer, evaluation_examples, i, batch_size):
     return explainer.explain_local(rows)
 
 
-def _aggregate_streamed_local_explanations(explainer, evaluation_examples, classification, features,
+def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task, features,
                                            batch_size, **kwargs):
     """Aggregate the local explanations via streaming fashion to global.
 
@@ -1669,9 +1669,9 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
     :type explainer: BaseExplainer
     :param evaluation_examples: The evaluation examples.
     :type evaluation_examples: DatasetWrapper
-    :param classification: Indicates if this is a classification or regression explanation.
+    :param task: Indicates if this is a classification or regression explanation.
         Unknown by default.
-    :type classification: ModelTask
+    :type task: ModelTask
     :param features: The feature names.
     :type features: list
     :param batch_size: If include_local is True, specifies the batch size for aggregating
@@ -1684,35 +1684,53 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, class
         raise ValueError("Specified argument batch_size must be greater than 0")
     importance_values = None
     expected_values = None
-    dataset_len = evaluation_examples.dataset.shape[0]
+    eval_dataset = evaluation_examples.dataset
+    dataset_len, dataset_feats = eval_dataset.shape
+    classification = task is ModelTask.Classification
     for i in range(0, dataset_len, batch_size):
         local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
         local_importance_values = local_explanation_row._local_importance_values
+        if importance_values is None:
+            if task is ModelTask.Unknown and ClassesMixin._does_quack(local_explanation_row):
+                classification = True
+            is_multiclass_sparse = classification and local_explanation_row.is_local_sparse
         # in-place abs
-        if issparse(local_importance_values):
-            local_importance_values = abs(local_importance_values)
+        if local_explanation_row.is_local_sparse:
+            if is_multiclass_sparse:
+                # sparse case for multiclass classification
+                for i in range(len(local_importance_values)):
+                    local_importance_values[i] = abs(local_importance_values[i])
+            else:
+                local_importance_values = abs(local_importance_values)
         else:
             np.abs(local_importance_values, out=local_importance_values)
-        reduction_axis = len(local_importance_values.shape) - 2
+        if not is_multiclass_sparse:
+            reduction_axis = len(local_importance_values.shape) - 2
         if importance_values is None:
-            importance_values = np.sum(local_importance_values, axis=reduction_axis)
-            importance_values_buffer = np.ndarray(importance_values.shape)
+            if is_multiclass_sparse:
+                importance_values = np.zeros((len(local_importance_values), dataset_feats))
+                for i in range(len(local_importance_values)):
+                    importance_values[i] = np.sum(local_importance_values[i].A, axis=0)
+            else:
+                importance_values = np.sum(local_importance_values, axis=reduction_axis)
+                importance_values_buffer = np.ndarray(importance_values.shape)
             expected_values = local_explanation_row.expected_values
-            if classification is ModelTask.Unknown and ClassesMixin._does_quack(local_explanation_row):
-                classification = ModelTask.Classification
         else:
-            # Compute sum of feature importance values
-            # NOTE: if we ever overflow here we can use the streaming approach instead
-            # Formula: avg_{n+1} = (avg_{n} * n + x_{n+1}) / (n + 1)
-            # Code: importance_values = (importance_values * n + local_importance_values) / (n + 1)
-            np.sum(local_importance_values, axis=reduction_axis, out=importance_values_buffer)
-            importance_values += importance_values_buffer
+            if is_multiclass_sparse:
+                for i in range(len(local_importance_values)):
+                    importance_values[i] += np.sum(local_importance_values[i].A, axis=0)
+            else:
+                # Compute sum of feature importance values
+                # NOTE: if we ever overflow here we can use the streaming approach instead
+                # Formula: avg_{n+1} = (avg_{n} * n + x_{n+1}) / (n + 1)
+                # Code: importance_values = (importance_values * n + local_importance_values) / (n + 1)
+                np.sum(local_importance_values, axis=reduction_axis, out=importance_values_buffer)
+                importance_values += importance_values_buffer
         local_importance_values = None
         local_explanation_row = None
         if batch_size > Defaults.DEFAULT_BATCH_SIZE:
             gc.collect()
-    importance_values /= evaluation_examples.dataset.shape[0]
-    classification = classification is ModelTask.Classification
+    importance_values /= dataset_len
     if classification:
         global_importance_values = np.mean(importance_values, axis=0)
         per_class_rank = _order_imp(importance_values)
