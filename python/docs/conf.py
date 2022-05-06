@@ -78,6 +78,11 @@ master_doc = 'index'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = []
 
+# Include images in the documentation
+imgpath = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "img"))
+
+html_extra_path = [imgpath]
+
 
 def run_apidoc(_):
     package_path = os.path.join("..", "interpret_community")
