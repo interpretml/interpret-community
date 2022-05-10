@@ -89,220 +89,31 @@ Besides the interpretability techniques described above, Interpret-Community sup
 
 <a name=Example></a>
 
-# Use Interpret-Community
+### Using Interpret-Community
 
+The explainers in interpret-community have one common API, where you first construct the explainer from the model or prediction function:
 
-## Interpretability in training
-
-
-1. Train your model
-
-
-    ```python
-    # load breast cancer dataset, a well-known small dataset that comes with scikit-learn
-    from sklearn.datasets import load_breast_cancer
-    from sklearn import svm
-    from sklearn.model_selection import train_test_split
-    breast_cancer_data = load_breast_cancer()
-    classes = breast_cancer_data.target_names.tolist()
-    
-    # split data into train and test
-    from sklearn.model_selection import train_test_split
-    x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,            
-                                                        breast_cancer_data.target,  
-                                                        test_size=0.2,
-                                                        random_state=0)
-    clf = svm.SVC(gamma=0.001, C=100., probability=True)
-    model = clf.fit(x_train, y_train)
-    
-    # alternatively, a cuML estimator can be trained here for GPU model
-    # ensure RAPIDS is installed - refer to https://rapids.ai/ for more information
-    import cuml
-    from cuml.model_selection import train_test_split
-    x_train, x_test, y_train, y_test = train_test_split(breast_cancer_data.data,            
-                                                        breast_cancer_data.target,  
-                                                        test_size=0.2,
-                                                        random_state=0)
-    clf = cuml.svm.SVC(gamma=0.001, C=100., probability=True)
-    model = clf.fit(x_train, y_train)
-    ```
-
-2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, `KernelExplainer`, or `GPUKernelExplainer`), and automatically selects the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
-
-    ```python
-    from interpret.ext.blackbox import TabularExplainer
-
-    # "features" and "classes" fields are optional
-    explainer = TabularExplainer(model, 
-                                 x_train, 
-                                 features=breast_cancer_data.feature_names, 
-                                 classes=classes)
-   # to utilise the GPU KernelExplainer, set parameter `use_gpu=True`                    
-    ```
-
-    or
-
-    ```python
-
-    from interpret.ext.blackbox import MimicExplainer
-    
-    # you can use one of the following four interpretable models as a global surrogate to the black box model
-    
-    from interpret.ext.glassbox import LGBMExplainableModel
-    from interpret.ext.glassbox import LinearExplainableModel
-    from interpret.ext.glassbox import SGDExplainableModel
-    from interpret.ext.glassbox import DecisionTreeExplainableModel
-
-    # "features" and "classes" fields are optional
-    # augment_data is optional and if true, oversamples the initialization examples to improve surrogate model accuracy to fit original model.  Useful for high-dimensional data where the number of rows is less than the number of columns. 
-    # max_num_of_augmentations is optional and defines max number of times we can increase the input data size.
-    # LGBMExplainableModel can be replaced with LinearExplainableModel, SGDExplainableModel, or DecisionTreeExplainableModel
-    explainer = MimicExplainer(model, 
-                               x_train, 
-                               LGBMExplainableModel, 
-                               augment_data=True, 
-                               max_num_of_augmentations=10, 
-                               features=breast_cancer_data.feature_names, 
-                               classes=classes)
-    ```
-   or
-
-    ```python
-    from interpret.ext.blackbox import PFIExplainer 
-    
-    # "features" and "classes" fields are optional
-    explainer = PFIExplainer(model, 
-                             features=breast_cancer_data.feature_names, 
-                             classes=classes)
-    ```
-
-
-
-The following two sections demonstrate how you can get aggregate (global) and instance-level (local) feature importance values. Instance-level feature importance measures focus on the contribution of features for a specific prediction (e.g., why did the model predict an 80% chance of breast cancer for Mary?), whereas aggregate-level feature importance takes all predictions into account (Overall, what are the top important features in predicting a high risk for breast cancer?):
-## Overall (Global) feature importance values
-
-Get the aggregate feature importance values.
-    
 ```python
+from interpret.ext.blackbox import TabularExplainer
 
+# "features" and "classes" fields are optional
+explainer = TabularExplainer(model,
+                             x_train,
+                             features=breast_cancer_data.feature_names,
+                             classes=classes)
+```
+
+Explanations can then be computed on the evaluation examples:
+
+```python
 # you can use the training data or the test data here
 global_explanation = explainer.explain_global(x_train)
 
-# if you used the PFIExplainer in the previous step, use the next line of code instead
-# global_explanation = explainer.explain_global(x_train, true_labels=y_test)
-
-# sorted feature importance values and feature names
-sorted_global_importance_values = global_explanation.get_ranked_global_values()
-sorted_global_importance_names = global_explanation.get_ranked_global_names()
-
-
-# alternatively, you can print out a dictionary that holds the top K feature names and values
-global_explanation.get_feature_importance_dict()
-```
-
-## Instance-level (local) feature importance values
-Get the instance-level feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support instance-level explanations.
-
-```python
-# explain the first data point in the test set
-local_explanation = explainer.explain_local(x_test[0])
-
-# sorted feature importance values and feature names
-sorted_local_importance_names = local_explanation.get_ranked_local_names()
-sorted_local_importance_values = local_explanation.get_ranked_local_values()
-```
-
-or
-
-```python
 # explain the first five data points in the test set
 local_explanation = explainer.explain_local(x_test[0:5])
-
-# sorted feature importance values and feature names
-sorted_local_importance_names = local_explanation.get_ranked_local_names()
-sorted_local_importance_values = local_explanation.get_ranked_local_values()
 ```
 
-
-## Raw feature transformations
-
-Optionally, you can pass your feature transformation pipeline to the explainer to receive explanations in terms of the raw features before the transformation (rather than engineered features). If you skip this, the explainer provides explanations in terms of engineered features.
-
-
-The format of supported transformations is same as the one described in [sklearn-pandas](https://github.com/scikit-learn-contrib/sklearn-pandas). In general, any transformations are supported as long as they operate on a single column and are therefore clearly one to many. 
-
-We can explain raw features by either using a `sklearn.compose.ColumnTransformer` or a list of fitted transformer tuples. The cell below uses `sklearn.compose.ColumnTransformer`. 
-
-```python
-from sklearn.compose import ColumnTransformer
-
-numeric_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler())])
-
-categorical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-    ('onehot', OneHotEncoder(handle_unknown='ignore'))])
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', numeric_transformer, numeric_features),
-        ('cat', categorical_transformer, categorical_features)])
-
-# append classifier to preprocessing pipeline.
-# now we have a full prediction pipeline.
-clf = Pipeline(steps=[('preprocessor', preprocessor),
-                      ('classifier', LogisticRegression(solver='lbfgs'))])
-
-
-# append classifier to preprocessing pipeline.
-# now we have a full prediction pipeline.
-clf = Pipeline(steps=[('preprocessor', preprocessor),
-                      ('classifier', LogisticRegression(solver='lbfgs'))])
-
-
-# clf.steps[-1][1] returns the trained classification model
-# pass transformation as an input to create the explanation object
-# "features" and "classes" fields are optional
-tabular_explainer = TabularExplainer(clf.steps[-1][1],
-                                     initialization_examples=x_train,
-                                     features=dataset_feature_names,
-                                     classes=dataset_classes,
-                                     transformations=preprocessor)
-```
-
-In case you want to run the example with the list of fitted transformer tuples, use the following code: 
-```python
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.linear_model import LogisticRegression
-from sklearn_pandas import DataFrameMapper
-
-# assume that we have created two arrays, numerical and categorical, which holds the numerical and categorical feature names
-
-numeric_transformations = [([f], Pipeline(steps=[('imputer', SimpleImputer(
-    strategy='median')), ('scaler', StandardScaler())])) for f in numerical]
-
-categorical_transformations = [([f], OneHotEncoder(
-    handle_unknown='ignore', sparse=False)) for f in categorical]
-
-transformations = numeric_transformations + categorical_transformations
-
-# append model to preprocessing pipeline.
-# now we have a full prediction pipeline.
-clf = Pipeline(steps=[('preprocessor', DataFrameMapper(transformations)),
-                      ('classifier', LogisticRegression(solver='lbfgs'))])
-
-# clf.steps[-1][1] returns the trained classification model
-# pass transformation as an input to create the explanation object
-# "features" and "classes" fields are optional
-tabular_explainer = TabularExplainer(clf.steps[-1][1],
-                                     initialization_examples=x_train,
-                                     features=dataset_feature_names,
-                                     classes=dataset_classes,
-                                     transformations=transformations)
-```
+For more usage information, please see [Use Interpret-Community](https://interpret-community.readthedocs.io/en/latest/usage.html)
 
 
 <a name=Visualizations></a>
@@ -329,55 +140,7 @@ Once you load the visualization dashboard, you can investigate different aspects
 * Aggregate Feature Importance
 * Individual Feature Importance and What-If	
 
->[!NOTE]
-> Click on "Open in a new tab" on the top left corner to get a better view of the dashboard in a new tab.
-
-
-You can further create custom cohorts (subgroups of your dataset) to explore the insights across different subgroups (e.g., women vs. men). The created cohorts can contain more than one filter (e.g., age < 30 and sex = female) and will be visible from all of the four tabs. The following sections demonstrate the visualization dashboard capabilities on a [classification model trained on employee attrition dataset]((https://github.com/interpretml/interpret-community/blob/master/notebooks/simple-feature-transformations-explain-local.ipynb)). Besides the default cohort (including the whole dataset), there are two additional cohorts created: employees with Age <= 35 and employees with Age > 35.
-
-
-![Visualization Dashboard Cohorts](./img/Cohorts.png)
-
-
-### Model performance 
-This tab enables you to evaluate your model by observing its performance metrics and prediction probabilities/classes/values across different cohorts.
-
-![Visualization Dashboard Cohorts](./img/ModelPerformance.png)
-
-### Dataset explorer
-You can explore your dataset statistics by selecting different filters along the X, Y, and color axes of this tab to slice your data into different dimensions.
-
-![Visualization Dashboard Cohorts](./img/DatasetExplorer.png)
-
-The following plots provide a global view of the trained model along with its predictions and explanations.
-
-### Aggregate feature importance (global explanation)
-
-This view consists of two charts:
-|Plot|Description|
-|----|-----------|
-|Feature Importance| Explore the top K important features that impact your overall model predictions (a.k.a. global explanation). Use the slider to show additional less important feature values. Select up to three cohorts to see their feature importance values side by side.|
-|Dependence Plot|Click on any of the feature bars in the feature importance graph to see the relationship of the values of the selected feature to its corresponding feature importance values. Overall, this plot show how values of the selected feature impact model prediction.|
-
-
-![Visualization Dashboard Global](./img/GlobalExplanation.png)
-
-
-
-### Individual feature importance (local explanation) and what-if 
-You can click on any individual data point on the scatter plot to view its local feature importance values (local explanation) and individual conditional expectation (ICE) plot below. These are the capabilities covered in this tab:
-
-
-|Plot|Description|
-|----|-----------|
-|Feature Importance Plot|Shows the top K (configurable K) important features for an individual prediction. Helps illustrate the local behavior of the underlying model on a specific data point.|
-|Individual Conditional Expectation (ICE)| Allows feature value changes from a minimum value to a maximum value. Helps illustrate how the data point's prediction changes when a feature changes.|
-|Perturbation Exploration (what if analysis)|Allows changes to feature values of the selected data point and observe resulting changes to prediction value. You can then save your hypothetical what-if data point.|
-
-![Visualization Dashboard Global](./img/LocalExplanation.png)
-
-![Visualization Dashboard Global](./img/WhatIf.gif)
-
+For more information about the visualizations, please see [Visualizations](https://interpret-community.readthedocs.io/en/latest/visualizations.html)
 
 <a name=Contributing></a>
 

@@ -3,7 +3,7 @@
 Overview
 ========
 
-Interpret-Community extends the [Interpret](https://github.com/interpretml/interpret) repository and incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios.
+Interpret-Community extends the `Interpret <https://github.com/interpretml/interpret>`_ repository and incorporates further community developed and experimental interpretability techniques and functionalities that are designed to enable interpretability for real world scenarios.
 Interpret-Community enables adding new experimental techniques (or functionalities) and performing comparative analysis to evaluate them.
 
 Interpret-Community 

@@ -36,6 +36,14 @@ The package can be installed from `pypi <https://pypi.org/project/interpret-comm
 
    notebooks
 
+   usage
+
+   importances
+
+   transformations
+
+   visualizations
+
    api_reference/main
 
 
