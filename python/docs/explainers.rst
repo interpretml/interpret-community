@@ -17,6 +17,7 @@ Supported Explainers
 The following are a list of the explainers available in the community repository:
 
 .. list-table:: Explainers
+   :widths: 15 70 15
    :header-rows: 1
 
    * - Interpretability Technique
@@ -43,11 +44,15 @@ The following are a list of the explainers available in the community repository
    * - Permutation Feature Importance Explainer (PFI)
      - Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by `Breiman's Random Forests paper <https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf>`_ (see section 10). At a high level, the way it works is by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest changes. The larger the change, the more important that feature is. PFI can explain the overall behavior of **any underlying model** but does not explain individual predictions.
      - Model-agnostic
+   * - LIME Explainer
+     - Local Interpretable Model-agnostic Explanations (LIME) is a local linear approximation of the model's behavior. The explainer wraps the `LIME tabular explainer <https://github.com/marcotcr/lime>`_ with a uniform API and additional functionality.
+     - Model-agnostic
 
 
 Besides the interpretability techniques described above, Interpret-Community supports another `SHAP-based explainer <https://github.com/slundberg/shap>`_, called `TabularExplainer`. Depending on the model, `TabularExplainer` uses one of the supported SHAP explainers:
 
 .. list-table:: TabularExplainer
+   :widths: 25 50
    :header-rows: 1
 
    * - Original Model

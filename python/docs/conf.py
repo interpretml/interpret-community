@@ -76,17 +76,17 @@ master_doc = 'index'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = [os.path.abspath(os.path.join('.', '_static'))]
 
 # Include images in the documentation
-imgpath = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "img"))
+imgpath = os.path.abspath(os.path.join(os.getcwd(), '..', '..', 'img'))
 
 html_extra_path = [imgpath]
 
 
 def run_apidoc(_):
-    package_path = os.path.join("..", "interpret_community")
-    api_reference_path = os.path.join(".", "api_reference")
+    package_path = os.path.join('..', 'interpret_community')
+    api_reference_path = os.path.join('.', 'api_reference')
     argv = ["-f", "-T", "-e", "-M", "-o", api_reference_path, package_path]
 
     from sphinx.ext import apidoc
@@ -95,3 +95,4 @@ def run_apidoc(_):
 
 def setup(app):
     app.connect('builder-inited', run_apidoc)
+    app.add_css_file('theme_overrides.css')

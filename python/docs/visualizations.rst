@@ -3,7 +3,7 @@
 Visualizations
 ==============
 
-Install the raiwidgets package, the ExplanationDashboard has moved to the `responsible-ai-widgets <https://github.com/microsoft/responsible-ai-widgets>`_ repo:
+Install the raiwidgets package, the ExplanationDashboard has moved to the `responsible-ai-toolbox <https://github.com/microsoft/responsible-ai-toolbox>`_ repo:
 
    .. code-block:: bash
 
@@ -63,6 +63,7 @@ This view consists of two charts:
 
 
 .. list-table:: Aggregate feature importance
+   :widths: 25 50
    :header-rows: 1
 
    * - Plot
@@ -84,6 +85,7 @@ You can click on any individual data point on the scatter plot to view its local
 
 
 .. list-table:: Individual feature importance
+   :widths: 25 50
    :header-rows: 1
 
    * - Plot

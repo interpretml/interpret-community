@@ -44,6 +44,8 @@ The package can be installed from `pypi <https://pypi.org/project/interpret-comm
 
    visualizations
 
+   contributing
+
    api_reference/main
 
 
