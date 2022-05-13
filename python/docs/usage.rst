@@ -40,7 +40,7 @@ Interpretability in training
       model = clf.fit(x_train, y_train)
 
 
-2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the four SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, `KernelExplainer`, or `GPUKernelExplainer`), and automatically selects the most appropriate one for your use case. You can however, call each of its four underlying explainers directly.
+2. Call the explainer: To initialize an explainer object, you need to pass your model and some training data to the explainer's constructor. You can also optionally pass in feature names and output class names (if doing classification) which will be used to make your explanations and visualizations more informative. Here is how to instantiate an explainer object using `TabularExplainer`, `MimicExplainer`, or `PFIExplainer` locally. `TabularExplainer` calls one of the five SHAP explainers underneath (`TreeExplainer`, `DeepExplainer`, `LinearExplainer`, `KernelExplainer`, or `GPUKernelExplainer`), and automatically selects the most appropriate one for your use case. You can also call any of its four underlying explainers directly.
 
    .. code-block:: python
 

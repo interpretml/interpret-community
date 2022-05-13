@@ -75,7 +75,7 @@ Interpretability Technique|Description|Type
 |SHAP Linear Explainer| [SHAP](https://github.com/slundberg/shap)'s Linear explainer computes SHAP values for a **linear model**, optionally accounting for inter-feature correlations.|Model-specific|
 |Mimic Explainer (Global Surrogate)| Mimic explainer is based on the idea of training [global surrogate models](https://christophm.github.io/interpretable-ml-book/global.html) to mimic blackbox models. A global surrogate model is an intrinsically interpretable model that is trained to approximate the predictions of **any black box model** as accurately as possible. Data scientists can interpret the surrogate model to draw conclusions about the black box model. You can use one of the following interpretable models as your surrogate model: LightGBM (LGBMExplainableModel), Linear Regression (LinearExplainableModel), Stochastic Gradient Descent explainable model (SGDExplainableModel), and Decision Tree (DecisionTreeExplainableModel).|Model-agnostic|
 |Permutation Feature Importance Explainer (PFI)| Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by [Breiman's Random Forests paper](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) (see section 10). At a high level, the way it works is by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest changes. The larger the change, the more important that feature is. PFI can explain the overall behavior of **any underlying model** but does not explain individual predictions. |Model-agnostic|
-
+|LIME Explainer|Local Interpretable Model-agnostic Explanations (LIME) is a local linear approximation of the model's behavior. The explainer wraps the [LIME tabular explainer](https://github.com/marcotcr/lime) with a uniform API and additional functionality.|Model-agnostic|
 
 Besides the interpretability techniques described above, Interpret-Community supports another [SHAP-based explainer](https://github.com/slundberg/shap), called `TabularExplainer`. Depending on the model, `TabularExplainer` uses one of the supported SHAP explainers:
 
@@ -120,7 +120,7 @@ For more usage information, please see [Use Interpret-Community](https://interpr
 
 ## Visualizations
 
-Install the raiwidgets package, the ExplanationDashboard has moved to the [responsible-ai-widgets](https://github.com/microsoft/responsible-ai-widgets) repo:
+Install the raiwidgets package, the ExplanationDashboard has moved to the [responsible-ai-toolbox](https://github.com/microsoft/responsible-ai-toolbox) repo:
 
 ```
 pip install raiwidgets

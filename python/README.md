@@ -32,4 +32,4 @@ Auto-generated sphinx API documentation can be found here:
 https://interpret-community.readthedocs.io/en/latest/index.html
 
 More information on the ExplanationDashboard can be found here:
-https://github.com/microsoft/responsible-ai-widgets
+https://github.com/microsoft/responsible-ai-toolbox

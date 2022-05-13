@@ -37,7 +37,7 @@ Get the aggregate feature importance values.
       global_explanation.get_feature_importance_dict()
 
 
-Instance-level (local) feature importance values
+Instance-level (Local) feature importance values
 ------------------------------------------------
 
 Get the instance-level feature importance values: use the following function calls to explain an individual instance or a group of instances. Please note that PFIExplainer does not support instance-level explanations.
