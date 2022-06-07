@@ -30,7 +30,7 @@ Once you load the visualization dashboard, you can investigate different aspects
    Click on "Open in a new tab" on the top left corner to get a better view of the dashboard in a new tab.
 
 
-You can further create custom cohorts (subgroups of your dataset) to explore the insights across different subgroups (e.g., women vs. men). The created cohorts can contain more than one filter (e.g., age < 30 and sex = female) and will be visible from all of the four tabs. The following sections demonstrate the visualization dashboard capabilities on a `classification model trained on employee attrition dataset <https://github.com/interpretml/interpret-community/blob/master/notebooks/simple-feature-transformations-explain-local.ipynb>`_. Besides the default cohort (including the whole dataset), there are two additional cohorts created: employees with Age <= 35 and employees with Age > 35.
+You can further create custom cohorts (subgroups of your dataset) to explore the insights across different subgroups (e.g., women vs. men). The created cohorts can contain more than one filter (e.g., age < 30 and sex = female) and will be visible from all of the four tabs. The following sections demonstrate the visualization dashboard capabilities on a `classification model trained on employee attrition dataset <https://github.com/interpretml/interpret-community/blob/main/notebooks/simple-feature-transformations-explain-local.ipynb>`_. Besides the default cohort (including the whole dataset), there are two additional cohorts created: employees with Age <= 35 and employees with Age > 35.
 
 .. image:: ./Cohorts.png
    :alt: Visualization Dashboard Cohorts
