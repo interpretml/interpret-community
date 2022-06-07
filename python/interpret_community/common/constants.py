@@ -181,6 +181,7 @@ class LightGBMParams(object):
     """Provide constants for LightGBM."""
 
     CATEGORICAL_FEATURE = 'categorical_feature'
+    MIN_DATA_IN_LEAF = 'min_data_in_leaf'
 
 
 class ShapValuesOutput(str, Enum):

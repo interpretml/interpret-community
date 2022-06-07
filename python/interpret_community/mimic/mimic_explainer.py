@@ -42,6 +42,8 @@ from .models import LGBMExplainableModel
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Starting from version 2.2.1', UserWarning)
 
+SMALL_DATA_THRESHOLD = 50
+
 
 class MimicExplainer(BlackBoxExplainer):
     available_explanations = [Extension.GLOBAL, Extension.LOCAL]
@@ -307,6 +309,9 @@ class MimicExplainer(BlackBoxExplainer):
         if str(type(training_data)).endswith(".DenseData'>"):
             training_data = training_data.data
 
+        self._set_dataset_size_params(explainable_model, is_tree_model,
+                                      explainable_model_args, training_data)
+
         explainable_model_args[ExplainParams.CLASSIFICATION] = self.predict_proba_flag
         if self._supports_shap_values_output(explainable_model):
             explainable_model_args[ExplainParams.SHAP_VALUES_OUTPUT] = shap_values_output
@@ -366,10 +371,57 @@ class MimicExplainer(BlackBoxExplainer):
         return self.model.predict(transformed_evaluation_examples)
 
     def _supports_categoricals(self, explainable_model):
-        return issubclass(explainable_model, LGBMExplainableModel)
+        """Return whether the model supports categoricals parameter.
+
+        :param explainable_model: The explainable model.
+        :type explainable_model: BaseExplainableModel
+        :return: True if the model supports categoricals, False otherwise.
+        :rtype: bool
+        """
+        return self._is_lightgbm_surrogate(explainable_model)
 
     def _supports_shap_values_output(self, explainable_model):
+        """Return True if the surrogate model supports outputting shap values.
+
+        :param explainable_model: The explainable model.
+        :type explainable_model: BaseExplainableModel
+        :return: True if the surrogate model supports outputting shap values.
+        :rtype: bool
+        """
+        return self._is_lightgbm_surrogate(explainable_model)
+
+    def _is_lightgbm_surrogate(self, explainable_model):
+        """Return True if the given explainable model is a LightGBM surrogate model.
+
+        :param explainable_model: The explainable model to check.
+        :type explainable_model: BaseExplainableModel
+        :return: True if the given explainable model is a LightGBM surrogate model.
+        :rtype: bool
+        """
         return issubclass(explainable_model, LGBMExplainableModel)
+
+    def _set_dataset_size_params(self, explainable_model, is_tree_model,
+                                 explainable_model_args, training_data):
+        """Set parameters that are related to the dataset size.
+
+        Specifically, for a lightgbm surrogate model, sets the min data in
+        leaf to 1 to avoid returning constant results for small datasets.
+
+        :param explainable_model: The explainable model.
+        :type explainable_model: BaseExplainableModel
+        :param is_tree_model: Whether the model is a tree model.
+        :type is_tree_model: bool
+        :param explainable_model_args: The arguments for the explainable model.
+        :type explainable_model_args: dict
+        :param training_data: The training data.
+        :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
+        """
+        if is_tree_model:
+            is_lightgbm = self._is_lightgbm_surrogate(explainable_model)
+            is_small_data = training_data.shape[0] < SMALL_DATA_THRESHOLD
+            # For small training data, set min data in leaf to avoid constant results
+            if is_lightgbm and is_small_data:
+                explainable_model_args[LightGBMParams.MIN_DATA_IN_LEAF] = 1
 
     def _get_explain_global_kwargs(self, evaluation_examples=None, include_local=True,
                                    batch_size=Defaults.DEFAULT_BATCH_SIZE):
