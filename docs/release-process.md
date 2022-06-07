@@ -10,13 +10,13 @@ _patch = <enter new patch version here>
 
 In the notes make sure to mention all of the changes that have been introduced since the last release.  Usually you can take the main description in the PR.
 
-After the PR has been merged, checkout the master branch and get the latest code.
+After the PR has been merged, checkout the main branch and get the latest code.
 
 ## Release notes
 
 On the main page, click on releases, and select "Draft a new release".
 
-In "tag version", enter the version in the format v0.*.*, for example v0.10.0.  Keep the target as master branch.
+In "tag version", enter the version in the format v0.*.*, for example v0.10.0.  Keep the target as main branch.
 
 In release title, enter either "Patch release v0.*.*" or "Release v0.*.*".
 
@@ -63,7 +63,7 @@ password: PASSWORD_REMOVED
 
 ### Clean repo
 
-Make sure the repo is clean prior to release on the master branch, run:
+Make sure the repo is clean prior to release on the main branch, run:
 
 ```
 git clean -fdx
