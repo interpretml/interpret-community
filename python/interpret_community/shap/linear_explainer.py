@@ -12,7 +12,7 @@ from .._internal.raw_explain.raw_explain_utils import (
 from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
 from ..common.constants import (Attributes, Defaults, ExplainParams,
-                                ExplainType, Extension, SHAPDefaults, SKLearn)
+                                ExplainType, Extension, SKLearn)
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
@@ -147,8 +147,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         super(LinearExplainer, self).__init__(model, initialization_examples, **kwargs)
         self._logger.debug('Initializing LinearExplainer')
         self._method = 'shap.linear'
-        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples,
-                                              feature_dependence=SHAPDefaults.INDEPENDENT)
+        self.explainer = shap.LinearExplainer(self.model, self.initialization_examples)
         self.explain_subset = explain_subset
         self.features = features
         self.classes = classes
