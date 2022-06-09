@@ -22,6 +22,7 @@ from constants import ModelType, owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from interpret_community.common.constants import ModelTask, ShapValuesOutput
 from interpret_community.common.exception import ScenarioNotSupportedException
+from interpret_community.mimic.mimic_explainer import SMALL_DATA_THRESHOLD
 from interpret_community.mimic.models.lightgbm_model import \
     LGBMExplainableModel
 from interpret_community.mimic.models.linear_model import (
@@ -396,6 +397,23 @@ class TestMimicExplainer(object):
         assert len(np.unique(model_predictions)) == 2
         assert np.isclose(surrogate_predictions, model_predictions).all()
         assert global_explanation.method == LIGHTGBM_METHOD
+
+    def test_explain_model_small_data(self, mimic_explainer):
+        num_features = 5
+        num_rows = 100
+        test_size = 0.8
+        X, y = make_regression(n_samples=num_rows, n_features=num_features)
+        x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
+        assert x_train.shape[0] < SMALL_DATA_THRESHOLD
+        # Fit a regression model
+        lin = LinearRegression(normalize=True)
+        model = lin.fit(x_train, y_train)
+        explainable_model = LGBMExplainableModel
+        explainer = mimic_explainer(model, x_train, explainable_model)
+        global_explanation = explainer.explain_global(x_test, include_local=True)
+        # Verify feature importances are non-zero despite
+        # the small training data size
+        assert np.count_nonzero(global_explanation._local_importance_values) > 0
 
     def test_explain_raw_feats_regression(self, mimic_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
