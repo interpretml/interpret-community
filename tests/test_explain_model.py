@@ -23,7 +23,7 @@ from common_utils import (create_keras_classifier, create_keras_regressor,
                           wrap_classifier_without_proba)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
-from interpret_community.common.constants import ModelTask
+from interpret_community.common.constants import InterpretData, ModelTask
 from interpret_community.common.policy import SamplingPolicy
 from interpret_community.shap import (DeepExplainer, GPUKernelExplainer,
                                       KernelExplainer, LinearExplainer,
@@ -62,14 +62,15 @@ class TestTabularExplainer(object):
 
     def test_pandas_with_feature_names(self, iris, tabular_explainer, verify_tabular):
         # create pandas dataframes
-        x_train = pd.DataFrame(data=iris[DatasetConstants.X_TRAIN], columns=iris[DatasetConstants.FEATURES])
-        x_test = pd.DataFrame(data=iris[DatasetConstants.X_TEST], columns=iris[DatasetConstants.FEATURES])
+        features = iris[DatasetConstants.FEATURES]
+        x_train = pd.DataFrame(data=iris[DatasetConstants.X_TRAIN], columns=features)
+        x_test = pd.DataFrame(data=iris[DatasetConstants.X_TEST], columns=features)
         # Fit an SVM model
         model = create_sklearn_svm_classifier(x_train, iris[DatasetConstants.Y_TRAIN])
 
         exp = tabular_explainer(model,
                                 x_train,
-                                features=iris[DatasetConstants.FEATURES],
+                                features=features,
                                 classes=iris[DatasetConstants.CLASSES])
         test_logger.info("Running explain global for test_pandas_with_feature_names")
         explanation = exp.explain_global(x_test)
@@ -80,6 +81,11 @@ class TestTabularExplainer(object):
 
         self.verify_iris_overall_features(ranked_global_names, ranked_global_values, verify_tabular)
         self.verify_iris_per_class_features(ranked_per_class_names, ranked_per_class_values)
+
+        global_data = explanation.data()
+        self.verify_global_mli_data(global_data, explanation, features, is_full=False)
+        full_data = explanation.data(key=-1)
+        self.verify_global_mli_data(full_data, explanation, features, is_full=True)
 
     def test_pandas_no_feature_names(self, iris, tabular_explainer, verify_tabular):
         # create pandas dataframes
@@ -141,59 +147,67 @@ class TestTabularExplainer(object):
     def test_explain_single_local_instance_classification(self, iris, tabular_explainer):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
-
-        exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
-                                classes=iris[DatasetConstants.CLASSES])
+        features = iris[DatasetConstants.FEATURES]
+        classes = iris[DatasetConstants.CLASSES]
+        exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=features,
+                                classes=classes)
 
         local_explanation = exp.explain_local(iris[DatasetConstants.X_TEST][0])
 
-        assert len(local_explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
-        assert local_explanation.num_classes == len(iris[DatasetConstants.CLASSES])
-        assert len(local_explanation.local_importance_values[0]) == len(iris[DatasetConstants.FEATURES])
-        assert local_explanation.num_features == len(iris[DatasetConstants.FEATURES])
+        assert len(local_explanation.local_importance_values) == len(classes)
+        assert local_explanation.num_classes == len(classes)
+        assert len(local_explanation.local_importance_values[0]) == len(features)
+        assert local_explanation.num_features == len(features)
 
         local_rank = local_explanation.get_local_importance_rank()
-        assert len(local_rank) == len(iris[DatasetConstants.CLASSES])
-        assert len(local_rank[0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(local_rank) == len(classes)
+        assert len(local_rank[0]) == len(features)
 
         ranked_names = local_explanation.get_ranked_local_names()
-        assert len(ranked_names) == len(iris[DatasetConstants.CLASSES])
-        assert len(ranked_names[0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(ranked_names) == len(classes)
+        assert len(ranked_names[0]) == len(features)
 
         ranked_values = local_explanation.get_ranked_local_values()
-        assert len(ranked_values) == len(iris[DatasetConstants.CLASSES])
-        assert len(ranked_values[0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(ranked_values) == len(classes)
+        assert len(ranked_values[0]) == len(features)
+
+        data = local_explanation.data()
+        self.verify_local_mli_data(data)
 
     def test_explain_multi_local_instance_classification(self, iris, tabular_explainer):
         # Fit an SVM model
         model = create_sklearn_svm_classifier(iris[DatasetConstants.X_TRAIN], iris[DatasetConstants.Y_TRAIN])
-
-        exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=iris[DatasetConstants.FEATURES],
-                                classes=iris[DatasetConstants.CLASSES])
+        features = iris[DatasetConstants.FEATURES]
+        classes = iris[DatasetConstants.CLASSES]
+        exp = tabular_explainer(model, iris[DatasetConstants.X_TRAIN], features=features,
+                                classes=classes)
 
         local_explanation = exp.explain_local(iris[DatasetConstants.X_TEST])
 
-        assert len(local_explanation.local_importance_values) == len(iris[DatasetConstants.CLASSES])
-        assert local_explanation.num_classes == len(iris[DatasetConstants.CLASSES])
+        assert len(local_explanation.local_importance_values) == len(classes)
+        assert local_explanation.num_classes == len(classes)
         assert len(local_explanation.local_importance_values[0]) == len(iris[DatasetConstants.X_TEST])
         assert local_explanation.num_examples == len(iris[DatasetConstants.X_TEST])
-        assert len(local_explanation.local_importance_values[0][0]) == len(iris[DatasetConstants.FEATURES])
-        assert local_explanation.num_features == len(iris[DatasetConstants.FEATURES])
+        assert len(local_explanation.local_importance_values[0][0]) == len(features)
+        assert local_explanation.num_features == len(features)
 
         local_rank = local_explanation.get_local_importance_rank()
-        assert len(local_rank) == len(iris[DatasetConstants.CLASSES])
+        assert len(local_rank) == len(classes)
         assert len(local_rank[0]) == len(iris[DatasetConstants.X_TEST])
-        assert len(local_rank[0][0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(local_rank[0][0]) == len(features)
 
         ranked_names = local_explanation.get_ranked_local_names()
-        assert len(ranked_names) == len(iris[DatasetConstants.CLASSES])
+        assert len(ranked_names) == len(classes)
         assert len(ranked_names[0]) == len(iris[DatasetConstants.X_TEST])
-        assert len(ranked_names[0][0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(ranked_names[0][0]) == len(features)
 
         ranked_values = local_explanation.get_ranked_local_values()
-        assert len(ranked_values) == len(iris[DatasetConstants.CLASSES])
+        assert len(ranked_values) == len(classes)
         assert len(ranked_values[0]) == len(iris[DatasetConstants.X_TEST])
-        assert len(ranked_values[0][0]) == len(iris[DatasetConstants.FEATURES])
+        assert len(ranked_values[0][0]) == len(features)
+
+        data = local_explanation.data()
+        self.verify_local_mli_data(data)
 
     def test_explain_single_local_instance_regression(self, housing, tabular_explainer):
         # Fit an SVM model
@@ -935,6 +949,21 @@ class TestTabularExplainer(object):
             top_rows_local_names_k_2 = explanation.get_ranked_local_names(top_k=2)[:top_rows]
             # Validate topk parameter works correctly
             assert top_rows_local_names_k_2 == np.array(local_features)[:, :2].tolist()
+
+    def verify_global_mli_data(self, data, explanation, features, is_full=False):
+        if is_full:
+            assert InterpretData.MLI in data
+            full_data_scores = data[InterpretData.MLI][0][InterpretData.VALUE][InterpretData.SCORES]
+            assert full_data_scores == explanation.local_importance_values
+        else:
+            assert InterpretData.MLI in data
+            assert InterpretData.NAMES in data
+            assert InterpretData.SCORES in data
+            assert data[InterpretData.NAMES] == features
+            assert data[InterpretData.SCORES] == explanation.global_importance_values
+
+    def verify_local_mli_data(self, data):
+        assert data == {InterpretData.MLI: []}
 
     @property
     def iris_per_class_expected_features(self):
