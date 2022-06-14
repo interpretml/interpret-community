@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from interpret.utils import (gen_global_selector, gen_local_selector,
                              gen_name_from_class)
+from ml_wrappers import DatasetWrapper
 from scipy.sparse import issparse
 
 from ..common.chained_identity import ChainedIdentity
@@ -23,7 +24,6 @@ from ..common.explanation_utils import (_FEATURES, _RANKING, _VALUES,
                                         _sort_feature_list_multiclass,
                                         _sort_feature_list_single,
                                         _sort_values, _sparse_order_imp)
-from ..dataset.dataset_wrapper import DatasetWrapper
 
 
 class BaseExplanation(ABC, ChainedIdentity):
@@ -1691,8 +1691,19 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
     dataset_len, dataset_feats = eval_dataset.shape
     classification = task is ModelTask.Classification
     for i in range(0, dataset_len, batch_size):
-        local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples, i, batch_size)
-        local_importance_values = local_explanation_row._local_importance_values
+        if ExplainParams.LOCAL_EXPLANATION in kwargs:
+            # If local explanation already exists, use it.
+            local_explanation = kwargs[ExplainParams.LOCAL_EXPLANATION]
+            local_explanation_row = local_explanation
+            local_importance_values = local_explanation._local_importance_values
+            if len(local_importance_values.shape) == 3:
+                local_importance_values = local_importance_values[:, i:i + batch_size]
+            else:
+                local_importance_values = local_importance_values[i:i + batch_size]
+        else:
+            local_explanation_row = _get_local_explanation_row(explainer, evaluation_examples,
+                                                               i, batch_size)
+            local_importance_values = local_explanation_row._local_importance_values
         if importance_values is None:
             if task is ModelTask.Unknown and ClassesMixin._does_quack(local_explanation_row):
                 classification = True
@@ -1717,7 +1728,8 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
             else:
                 importance_values = np.sum(local_importance_values, axis=reduction_axis)
                 importance_values_buffer = np.ndarray(importance_values.shape)
-            expected_values = local_explanation_row.expected_values
+            if ExpectedValuesMixin._does_quack(local_explanation_row):
+                expected_values = local_explanation_row.expected_values
         else:
             if is_multiclass_sparse:
                 for i in range(len(local_importance_values)):
@@ -1741,7 +1753,9 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
         kwargs[ExplainParams.PER_CLASS_RANK] = per_class_rank
     else:
         global_importance_values = importance_values
-    kwargs[ExplainParams.EXPECTED_VALUES] = np.array(expected_values)
+    if expected_values is not None:
+        expected_values = np.array(expected_values)
+    kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
     kwargs[ExplainParams.CLASSIFICATION] = classification
     kwargs[ExplainParams.GLOBAL_IMPORTANCE_VALUES] = global_importance_values
     kwargs[ExplainParams.GLOBAL_IMPORTANCE_RANK] = _order_imp(global_importance_values)

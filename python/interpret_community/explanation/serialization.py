@@ -9,10 +9,10 @@ import os
 
 import numpy as np
 import pandas as pd
+from ml_wrappers import DatasetWrapper
 from scipy.sparse import csr_matrix, issparse
 
 from ..common.constants import ExplainParams, ExplainType
-from ..dataset.dataset_wrapper import DatasetWrapper
 from ..explanation import explanation as patched_explanation
 from .explanation import (ClassesMixin, FeatureImportanceExplanation,
                           GlobalExplanation, LocalExplanation,

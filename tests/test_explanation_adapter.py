@@ -35,21 +35,34 @@ class TestExplanationAdapter(object):
     def test_working(self):
         assert True
 
-    def test_explanation_adapter_shap_classifier(self):
+    @pytest.mark.parametrize(("include_local"), [True, False])
+    @pytest.mark.parametrize(("include_expected_values"), [True, False])
+    def test_explanation_adapter_shap_classifier(self, include_local,
+                                                 include_expected_values):
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=7)
         model = create_sklearn_random_forest_classifier(x_train.values, y_train)
         explainer = shap.KernelExplainer(model.predict_proba, shap.kmeans(x_train.values, 10))
         shap_values = explainer.shap_values(x_test.values, nsamples=1000)
         adapter = ExplanationAdapter(features=list(x_train.columns), classification=True)
-        global_explanation = adapter.create_global(shap_values, evaluation_examples=x_test.values)
+        expected_values = None
+        if include_expected_values:
+            expected_values = explainer.expected_value
+        global_explanation = adapter.create_global(shap_values, evaluation_examples=x_test.values,
+                                                   include_local=include_local,
+                                                   expected_values=expected_values)
         verify_serialization(global_explanation, exist_ok=True)
-        validate_global_classification_explanation_shape(global_explanation, x_test)
-        local_explanation = adapter.create_local(shap_values, evaluation_examples=x_test.values)
+        validate_global_classification_explanation_shape(global_explanation, x_test,
+                                                         include_local=include_local)
+        local_explanation = adapter.create_local(shap_values, evaluation_examples=x_test.values,
+                                                 expected_values=expected_values)
         verify_serialization(local_explanation, exist_ok=True)
         validate_local_classification_explanation_shape(local_explanation, x_test)
 
-    def test_explanation_adapter_shap_regressor(self, housing):
+    @pytest.mark.parametrize(("include_local"), [True, False])
+    @pytest.mark.parametrize(("include_expected_values"), [True, False])
+    def test_explanation_adapter_shap_regressor(self, housing, include_local,
+                                                include_expected_values):
         x_train = housing[DatasetConstants.X_TRAIN]
         x_test = housing[DatasetConstants.X_TEST]
         features = housing[DatasetConstants.FEATURES]
@@ -58,10 +71,17 @@ class TestExplanationAdapter(object):
         explainer = shap.KernelExplainer(model.predict, shap.kmeans(x_train, 10))
         shap_values = explainer.shap_values(x_test, nsamples=1000)
         adapter = ExplanationAdapter(features=features, classification=False)
-        global_explanation = adapter.create_global(shap_values, evaluation_examples=x_test)
+        expected_values = None
+        if include_expected_values:
+            expected_values = explainer.expected_value
+        global_explanation = adapter.create_global(shap_values, evaluation_examples=x_test,
+                                                   include_local=include_local,
+                                                   expected_values=expected_values)
         verify_serialization(global_explanation, exist_ok=True)
-        validate_global_regression_explanation_shape(global_explanation, x_test)
-        local_explanation = adapter.create_local(shap_values, evaluation_examples=x_test)
+        validate_global_regression_explanation_shape(global_explanation, x_test,
+                                                     include_local=include_local)
+        local_explanation = adapter.create_local(shap_values, evaluation_examples=x_test,
+                                                 expected_values=expected_values)
         verify_serialization(local_explanation, exist_ok=True)
         validate_local_regression_explanation_shape(local_explanation, x_test)
 
