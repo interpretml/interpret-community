@@ -72,7 +72,7 @@ class LinearExplainer(shap.LinearExplainer):
             mean_multiplier = csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
             return (evaluation_examples - mean_multiplier * self._background).multiply(self.coef[0]).tocsr()
         else:
-            return super().shap_values(evaluation_examples)
+            return super(LinearExplainer, self).shap_values(evaluation_examples)
 
 
 def _create_linear_explainer(model, multiclass, mean, covariance, seed):

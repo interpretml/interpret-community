@@ -119,6 +119,8 @@ class BaseExplanation(ABC, ChainedIdentity):
 
         # Handle overall graphs
         if key is None:
+            if not GlobalExplanation._does_quack(self):
+                raise ValueError("Only global explanation can be visualized with key=None.")
             data_dict = sort_take(
                 data_dict, sort_fn=lambda x: -abs(x), top_n=15, reverse_results=True
             )
@@ -566,7 +568,7 @@ class LocalExplanation(FeatureImportanceExplanation):
         :return: The explanation with local importance values metadata added.
         :rtype: dict
         """
-        parent_data = super().data(key=key)
+        parent_data = super(LocalExplanation, self).data(key=key)
         if key is None:
             return parent_data
         elif key == -1:
@@ -816,7 +818,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         :return: The explanation with global importance values added.
         :rtype: dict
         """
-        parent_data = super().data(key=key)
+        parent_data = super(GlobalExplanation, self).data(key=key)
         if key is None:
             return self._global_data(parent_data)
         elif key == -1:
@@ -882,7 +884,7 @@ class GlobalExplanation(FeatureImportanceExplanation):
         return True
 
 
-class ExpectedValuesMixin(object):
+class ExpectedValuesMixin(BaseExplanation):
     """The explanation mixin for expected values.
 
     :param expected_values: The expected values of the model.
@@ -938,7 +940,8 @@ class ExpectedValuesMixin(object):
         :return: The global data with expected values metadata added.
         :rtype: dict
         """
-        global_data[InterpretData.INTERCEPT] = self.expected_values
+        if GlobalExplanation._does_quack(self):
+            global_data[InterpretData.INTERCEPT] = self.expected_values
         return global_data
 
     def data(self, key=None):
@@ -950,7 +953,7 @@ class ExpectedValuesMixin(object):
         :rtype: dict
         """
         # Add expected values to data
-        parent_data = super().data(key=key)
+        parent_data = super(ExpectedValuesMixin, self).data(key=key)
         if key is None:
             return self._add_expected_value_global(parent_data)
         elif key == -1:
@@ -988,7 +991,7 @@ class ExpectedValuesMixin(object):
         return True
 
 
-class ClassesMixin(object):
+class ClassesMixin(BaseExplanation):
     """The explanation mixin for classes.
 
     This mixin is added when you specify classes in the classification
@@ -1188,7 +1191,7 @@ class PerClassMixin(ClassesMixin):
         return True
 
 
-class _DatasetsMixin(object):
+class _DatasetsMixin(BaseExplanation):
     """The dataset mixin for storing datasets or their reference IDs.
 
     If this explanation has been downloaded from run history, these will always be ID strings.
@@ -1316,7 +1319,7 @@ class _DatasetsMixin(object):
         return eval_y_reference or eval_y_proba_reference or eval_data_reference or init_data_reference
 
 
-class _ModelIdMixin(object):
+class _ModelIdMixin(BaseExplanation):
     """The model ID mixin for storing model IDs when they are available.
 
     :param model_id: The ID of an MMS model.
