@@ -87,6 +87,9 @@ class TestLIMEExplainer(object):
     def test_explain_model_throws_on_bad_pipeline_and_classes(self):
         self.verify_tabular.verify_explain_model_throws_on_bad_pipeline_and_classes()
 
+    def test_explain_model_throws_on_bad_pipeline_and_no_classes(self):
+        self.verify_tabular.verify_explain_model_throws_on_bad_pipeline_and_no_classes()
+
     def test_explain_model_throws_on_classifier_and_no_classes(self):
         self.verify_tabular.verify_explain_model_throws_on_classifier_and_no_classes()
 

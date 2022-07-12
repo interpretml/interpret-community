@@ -678,6 +678,18 @@ class VerifyTabularTests(object):
             self.create_explainer(model.predict, x_train, is_function=True,
                                   features=feature_names, classes=target_names)
 
+    def verify_explain_model_throws_on_bad_pipeline_and_no_classes(self):
+        # Verify that explain model throws when specifying a predict pipeline but no classes parameter
+        x_train, _, y_train, _, feature_names, _ = create_iris_data()
+        # Fit an SVM model
+        model = create_sklearn_svm_classifier(x_train, y_train)
+        self.test_logger.info('Running explain model for verify_explain_model_throws_on_bad_pipeline_and_no_classes')
+        with pytest.raises(
+                ValueError,
+                match="LIME Explainer requires classes to be specified if using a classification model"):
+            self.create_explainer(model.predict, x_train, is_function=True,
+                                  features=feature_names)
+
     def verify_explain_model_throws_on_classifier_and_no_classes(self):
         # Verify that explain model throws when specifying a classifier but no classes parameter
         x_train, x_test, y_train, _, feature_names, _ = create_iris_data()
