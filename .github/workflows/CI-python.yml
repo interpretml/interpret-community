@@ -22,11 +22,10 @@ jobs:
       with:
         auto-update-conda: true
         python-version: ${{ matrix.pythonVersion }}
-    - if: ${{ matrix.operatingSystem == 'macos-latest' }}
-      name: Use Homebrew to install libomp on MacOS
+    - name: Install numpy
       shell: bash -l {0}
       run: |
-        brew install libomp
+        conda install --yes --quiet numpy==1.19.5 -c conda-forge
     - if: ${{ matrix.operatingSystem != 'macos-latest' }}
       name: Install pytorch on non-MacOS
       shell: bash -l {0}
