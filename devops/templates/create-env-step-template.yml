@@ -14,23 +14,19 @@ parameters:
   default: interpret_conda_env
 
 steps:
-  - bash: brew install libomp
-    displayName: Use Homebrew to install libomp on MacOS
-    condition:  eq(variables['Agent.OS'], 'Darwin')
-
   - bash: conda create --yes --quiet --name ${{parameters.condaEnv}} python=${{parameters.pythonVersion}}
     displayName: Create Anaconda environment
 
   - bash: |
       source activate ${{parameters.condaEnv}}
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.20.3
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.19.5 -c conda-forge
       conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision captum cpuonly -c pytorch
     displayName: Install Anaconda packages
     condition:  ne(variables['Agent.OS'], 'Darwin')
 
   - bash: |
       source activate ${{parameters.condaEnv}}
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.20.3
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} numpy==1.19.5 -c conda-forge
       conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision captum -c pytorch
     displayName: Install Anaconda packages on MacOS, which should not include cpuonly according to official docs
     condition:  eq(variables['Agent.OS'], 'Darwin')
