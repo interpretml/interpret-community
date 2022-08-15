@@ -386,7 +386,8 @@ class TestTabularExplainer(object):
         # Create tabular explainer
         exp = tabular_explainer(model, x_train, features=X.columns.values,
                                 classes=classes)
-        test_logger.info('Running explain global for {}'.format(test_name))
+        exp_glob_info_message = 'Running explain global for {}'.format(test_name)
+        test_logger.info(exp_glob_info_message)
         explanation = exp.explain_global(x_test)
         assert len(explanation.local_importance_values[0]) == len(x_test)
         assert len(explanation.local_importance_values) == len(classes)
@@ -783,7 +784,7 @@ class TestTabularExplainer(object):
         test_logger.info('Running explain global for test_explain_model_classification_with_predict_only')
         explanation = exp.explain_global(x_test)
         # Validate predicted y values are boolean
-        assert(np.all(np.isin(explanation.eval_y_predicted, [0, 1])))
+        assert np.all(np.isin(explanation.eval_y_predicted, [0, 1]))
 
     def test_tabular_explainer_get_explainers(self):
         non_gpu_explainers = _get_uninitialized_explainers(use_gpu=False)
@@ -870,7 +871,7 @@ class TestTabularExplainer(object):
                         'Age', 'Hours per week', 'Capital Loss', 'Sex', 'Occupation',
                         'Country', 'Race', 'Workclass']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == len(exp_features))
+        assert len(ranked_global_values) == len(exp_features)
 
     def verify_adult_per_class_features(self, ranked_per_class_names, ranked_per_class_values):
         # Verify order of features
@@ -881,29 +882,29 @@ class TestTabularExplainer(object):
                         ['Relationship', 'Marital Status', 'Education-Num', 'Capital Gain', 'Age', 'Hours per week',
                          'Capital Loss', 'Sex', 'Occupation', 'Country', 'Race', 'Workclass']]
         np.testing.assert_array_equal(ranked_per_class_names, exp_features)
-        assert(len(ranked_per_class_values) == len(exp_features))
-        assert(len(ranked_per_class_values[0]) == len(exp_features[0]))
+        assert len(ranked_per_class_values) == len(exp_features)
+        assert len(ranked_per_class_values[0]) == len(exp_features[0])
 
     def verify_iris_overall_features(self, ranked_global_names, ranked_global_values, verify_tabular):
         # Verify order of features
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
         exp_features = verify_tabular.iris_overall_expected_features
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == 4)
+        assert len(ranked_global_values) == 4
 
     def verify_iris_overall_features_no_names(self, ranked_global_names, ranked_global_values):
         # Verify order of features
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
         exp_features = [2, 3, 0, 1]
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == len(exp_features))
+        assert len(ranked_global_values) == len(exp_features)
 
     def verify_iris_per_class_features(self, ranked_per_class_names, ranked_per_class_values):
         # Verify order of features
         exp_features = self.iris_per_class_expected_features
         np.testing.assert_array_equal(ranked_per_class_names, exp_features)
-        assert(len(ranked_per_class_values) == 3)
-        assert(len(ranked_per_class_values[0]) == 4)
+        assert len(ranked_per_class_values) == 3
+        assert len(ranked_per_class_values[0]) == 4
 
     def verify_iris_per_class_features_no_names(self, ranked_per_class_names, ranked_per_class_values):
         # Verify order of features
@@ -911,14 +912,14 @@ class TestTabularExplainer(object):
                         [2, 3, 0, 1],
                         [2, 3, 0, 1]]
         np.testing.assert_array_equal(ranked_per_class_names, exp_features)
-        assert(len(ranked_per_class_values) == len(exp_features))
-        assert(len(ranked_per_class_values[0]) == len(exp_features[0]))
+        assert len(ranked_per_class_values) == len(exp_features)
+        assert len(ranked_per_class_values[0]) == len(exp_features[0])
 
     def verify_housing_overall_features_rf(self, ranked_global_names, ranked_global_values):
         # Note: the order seems to differ from one machine to another, so we won't validate exact order
         test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        assert(ranked_global_names[0] == 'MedInc')
-        assert(len(ranked_global_values) == 8)
+        assert ranked_global_names[0] == 'MedInc'
+        assert len(ranked_global_values) == 8
 
     def verify_housing_overall_features_lr(self, ranked_global_names, ranked_global_values):
         # Verify order of features
@@ -926,7 +927,7 @@ class TestTabularExplainer(object):
         exp_features = ['Latitude', 'Longitude', 'MedInc', 'AveRooms', 'HouseAge',
                         'AveBedrms', 'AveOccup', 'Population']
         np.testing.assert_array_equal(ranked_global_names, exp_features)
-        assert(len(ranked_global_values) == len(exp_features))
+        assert len(ranked_global_values) == len(exp_features)
 
     def verify_top_rows_local_features_with_and_without_top_k(self, explanation, local_features,
                                                               is_classification=False, top_rows=5):
