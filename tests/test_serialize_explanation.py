@@ -154,8 +154,8 @@ def _assert_sparse_data_equivalence(actual, expected, rtol=None, atol=None):
 def _assert_numpy_explanation_types(actual, expected, rtol=None, atol=None):
     # assert "_" variables equivalence
     if hasattr(actual, ExplainParams.get_private(ExplainParams.LOCAL_IMPORTANCE_VALUES)):
-        assert(isinstance(actual._local_importance_values, np.ndarray))
-        assert(isinstance(expected._local_importance_values, np.ndarray))
+        assert (isinstance(actual._local_importance_values, np.ndarray))
+        assert (isinstance(expected._local_importance_values, np.ndarray))
         if rtol is None:
             np.testing.assert_array_equal(actual._local_importance_values,
                                           expected._local_importance_values)
@@ -165,8 +165,8 @@ def _assert_numpy_explanation_types(actual, expected, rtol=None, atol=None):
                                        rtol=rtol,
                                        atol=atol)
     if hasattr(actual, ExplainParams.get_private(ExplainParams.EVAL_DATA)):
-        assert(isinstance(actual._eval_data, np.ndarray))
-        assert(isinstance(expected._eval_data, np.ndarray))
+        assert (isinstance(actual._eval_data, np.ndarray))
+        assert (isinstance(expected._eval_data, np.ndarray))
         if rtol is None:
             np.testing.assert_array_equal(actual._eval_data, expected._eval_data)
         else:

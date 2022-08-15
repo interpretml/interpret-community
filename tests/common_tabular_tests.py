@@ -200,7 +200,7 @@ class VerifyTabularTests(object):
         assert not explanation.is_raw
         # Validate data has global info
         global_data = explanation.data(key=-1)
-        assert(InterpretData.OVERALL in global_data)
+        assert (InterpretData.OVERALL in global_data)
         ranked_global_values = explanation.get_ranked_global_values()
         ranked_global_names = explanation.get_ranked_global_names()
         # Note: DNNs may be too random to validate here
@@ -224,10 +224,10 @@ class VerifyTabularTests(object):
             assert explanation_local.num_classes == len(target_names)
             # Validate data has local info
             local_data = explanation_local.data(key=-1)
-            assert(InterpretData.SPECIFIC in local_data)
+            assert (InterpretData.SPECIFIC in local_data)
             local_data_0 = explanation_local.data(key=0)
             for key in [InterpretData.NAMES, InterpretData.SCORES, InterpretData.TYPE]:
-                assert(key in local_data_0)
+                assert (key in local_data_0)
 
     def verify_explain_model_local(self, expected_overall_features, expected_per_class_features=None,
                                    is_per_class=True, include_evaluation_examples=True,
@@ -390,13 +390,13 @@ class VerifyTabularTests(object):
             explanation = explainer.explain_global(x_test)
         else:
             explanation = explainer.explain_global()
-        assert(len(explanation.get_ranked_global_names()) == len(feature_names))
+        assert (len(explanation.get_ranked_global_names()) == len(feature_names))
         if is_per_class:
             ranked_per_class_values = explanation.get_ranked_per_class_values()
-            assert(len(ranked_per_class_values) == len(target_names))
+            assert (len(ranked_per_class_values) == len(target_names))
         explanation_local = explainer.explain_local(x_test)
         # Validate there is a local explanation per class for binary case
-        assert(np.array(explanation_local.local_importance_values).shape[0] == 2)
+        assert (np.array(explanation_local.local_importance_values).shape[0] == 2)
 
     def verify_explain_model_npz_linear(self, include_evaluation_examples=True, true_labels_required=False):
         # run explain model on a real sparse dataset from the field
@@ -585,7 +585,7 @@ class VerifyTabularTests(object):
             total_elems = res.shape[0] * res.shape[1]
             correct_ratio = total_in_threshold / total_elems
             # Surprisingly, they are almost identical!
-            assert(correct_ratio > 0.9)
+            assert (correct_ratio > 0.9)
 
     def verify_explain_model_subset_classification_sparse(self, is_local=True,
                                                           true_labels_required=False):
@@ -629,7 +629,7 @@ class VerifyTabularTests(object):
                 total_elems = res.shape[0] * res.shape[1]
                 correct_ratio = total_in_threshold / total_elems
                 # Surprisingly, they are almost identical!
-                assert(correct_ratio > 0.9)
+                assert (correct_ratio > 0.9)
 
     def verify_explain_model_with_sampling_regression_sparse(self, true_labels_required=False):
         # Verify that evaluation dataset can be downsampled
@@ -764,7 +764,7 @@ class VerifyTabularTests(object):
         self.validate_explanation(explanation, is_multiclass=True, is_probability=is_probability)
         # validate explanation has init_data on it in mimic explainer case (note there is none for TreeExplainer)
         if hasattr(explainer, SURROGATE_MODEL):
-            assert(explanation.init_data is not None)
+            assert (explanation.init_data is not None)
 
     def verify_explain_model_shap_values_binary(self, shap_values_output=ShapValuesOutput.DEFAULT,
                                                 model_type=ModelType.DEFAULT):
@@ -918,8 +918,8 @@ class VerifyTabularTests(object):
                                        ranked_global_values):
         # Verify order of features
         self.test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        assert(len(ranked_global_values) == len(ranked_global_values))
-        assert(len(ranked_global_values) == 8)
+        assert (len(ranked_global_values) == len(ranked_global_values))
+        assert (len(ranked_global_values) == 8)
 
     def verify_iris_overall_features(self,
                                      ranked_global_names,
@@ -933,7 +933,7 @@ class VerifyTabularTests(object):
         else:
             np.testing.assert_array_equal(ranked_global_names[0:num_overall_features_equal - 1],
                                           expected_overall_features[0:num_overall_features_equal - 1])
-        assert(len(ranked_global_values) == 4)
+        assert (len(ranked_global_values) == 4)
 
     def verify_iris_per_class_features(self,
                                        ranked_per_class_names,
@@ -941,8 +941,8 @@ class VerifyTabularTests(object):
                                        expected_per_class_features):
         # Verify order of features
         np.testing.assert_array_equal(ranked_per_class_names, expected_per_class_features)
-        assert(len(ranked_per_class_values) == np.array(expected_per_class_features).shape[0])
-        assert(len(ranked_per_class_values[0]) == np.array(expected_per_class_features).shape[1])
+        assert (len(ranked_per_class_values) == np.array(expected_per_class_features).shape[0])
+        assert (len(ranked_per_class_values[0]) == np.array(expected_per_class_features).shape[1])
 
     @property
     def iris_overall_expected_features(self):

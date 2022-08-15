@@ -189,13 +189,15 @@ class TabularExplainer(BaseExplainer):
                         allow_all_transformations=allow_all_transformations,
                         **kwargs)
                 self._method = self.explainer._method
-                self._logger.info('Initialized valid explainer {} with args {}'.format(self.explainer, kwargs))
+                exp_init = 'Initialized valid explainer {} with args {}'.format(self.explainer, kwargs)
+                self._logger.info(exp_init)
                 is_valid = True
                 break
             except Exception as ex:
                 last_exception = ex
-                self._logger.info('Failed to initialize explainer {} due to error: {}'
-                                  .format(uninitialized_explainer, ex))
+                exp_init_failed = ('Failed to initialize explainer {} due to error: {}'
+                                   .format(uninitialized_explainer, ex))
+                self._logger.info(exp_init_failed)
         if not is_valid:
             self._logger.info(InvalidExplainerErr)
             raise ValueError(InvalidExplainerErr) from last_exception

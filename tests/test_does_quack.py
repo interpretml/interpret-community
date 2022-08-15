@@ -123,7 +123,7 @@ class _DatasetsValid(object):
 
     @property
     def eval_data(self):
-        return[[.2, .4, .01], [.3, .2, 0]]
+        return [[.2, .4, .01], [.3, .2, 0]]
 
     @property
     def eval_y_predicted(self):
@@ -610,7 +610,7 @@ class TestDoesQuack(object):
 
             @property
             def eval_data(self):
-                return[[.2, .4, .01], [.3, .2, 0]]
+                return [[.2, .4, .01], [.3, .2, 0]]
 
             @property
             def eval_y_predicted_proba(self):
@@ -625,7 +625,7 @@ class TestDoesQuack(object):
 
             @property
             def eval_data(self):
-                return[[.2, .4, .01], [.3, .2, 0]]
+                return [[.2, .4, .01], [.3, .2, 0]]
 
             @property
             def eval_y_predicted(self):

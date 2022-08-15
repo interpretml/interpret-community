@@ -174,16 +174,18 @@ def tabular_explainer_imp(model, x_train, x_test, allow_eval_sampling=True, use_
 
 def validate_correlation(true_order, validate_order, threshold, top_values=10):
     computed_ndcg = ndcg(true_order, validate_order, top_values)
-    test_logger.info("ndcg: " + str(computed_ndcg))
-    assert(computed_ndcg > threshold)
+    ndcg_info = "ndcg: " + str(computed_ndcg)
+    test_logger.info(ndcg_info)
+    assert (computed_ndcg > threshold)
 
 
 def validate_spearman_correlation(overall_imp, shap_overall_imp, threshold):
     # Calculate the spearman rank-order correlation
     rho, p_val = stats.spearmanr(overall_imp, shap_overall_imp)
     # Validate that the coefficients from the linear model are highly correlated with the results from shap
-    test_logger.info("Calculated spearman correlation coefficient rho: " + str(rho) + " and p_val: " + str(p_val))
-    assert(rho > threshold)
+    spearman_info = "Calculated spearman correlation coefficient rho: " + str(rho) + " and p_val: " + str(p_val)
+    test_logger.info(spearman_info)
+    assert (rho > threshold)
 
 
 def get_shap_imp_classification(explanation):

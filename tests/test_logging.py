@@ -20,7 +20,7 @@ def test_import_tabular():
 
     import interpret_community
     importlib.reload(interpret_community)
-    assert(os.path.exists(not_existing_path))
+    assert (os.path.exists(not_existing_path))
 
     del os.environ[INTERPRET_C_LOGS]
     importlib.reload(interpret_community)
