@@ -7,11 +7,11 @@
 from functools import wraps
 
 import numpy as np
+from ml_wrappers import DatasetWrapper
 from scipy.sparse import csr_matrix, issparse, isspmatrix_csr
 
 from .._internal.raw_explain.raw_explain_utils import \
     get_datamapper_and_transformed_data
-from ..dataset.dataset_wrapper import DatasetWrapper
 from .aggregate import init_aggregator_decorator
 from .base_explainer import BaseExplainer
 from .chained_identity import ChainedIdentity

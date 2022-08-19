@@ -5,6 +5,7 @@
 """Defines the TreeExplainer for returning explanations for tree-based models."""
 
 import numpy as np
+from ml_wrappers import DatasetWrapper
 
 from .._internal.raw_explain.raw_explain_utils import (
     get_datamapper_and_transformed_data, transform_with_datamapper)
@@ -16,7 +17,6 @@ from ..common.explanation_utils import (_convert_to_list, _get_dense_examples,
                                         _scale_tree_shap)
 from ..common.structured_model_explainer import PureStructuredModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
-from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,

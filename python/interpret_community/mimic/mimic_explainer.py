@@ -15,6 +15,7 @@ import logging
 import warnings
 
 import numpy as np
+from ml_wrappers import DatasetWrapper
 from scipy.sparse import issparse
 from sklearn.metrics import accuracy_score, r2_score
 
@@ -28,7 +29,6 @@ from ..common.constants import (Defaults, ExplainableModelType, ExplainParams,
 from ..common.exception import ScenarioNotSupportedException
 from ..common.explanation_utils import _order_imp
 from ..common.model_wrapper import _wrap_model
-from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
 from ..explanation.explanation import (
     _aggregate_global_from_local_explanation,

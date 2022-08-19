@@ -5,6 +5,7 @@
 """Defines the LinearExplainer for returning explanations for linear models."""
 
 import numpy as np
+from ml_wrappers import DatasetWrapper
 
 from .._internal.raw_explain.raw_explain_utils import (
     get_datamapper_and_transformed_data, transform_with_datamapper)
@@ -15,7 +16,6 @@ from ..common.constants import (Attributes, Defaults, ExplainParams,
 from ..common.explanation_utils import _fix_linear_explainer_shap_values
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
-from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,

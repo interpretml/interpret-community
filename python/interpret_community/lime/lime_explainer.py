@@ -291,7 +291,7 @@ class LIMEExplainer(BlackBoxExplainer):
 
         :param evaluation_examples: A matrix of feature vector examples (# examples x # features) on which
             to explain the model's output.
-        :type evaluation_examples: interpret_community.dataset.dataset_wrapper.DatasetWrapper
+        :type evaluation_examples: ml_wrappers.dataset.dataset_wrapper.DatasetWrapper
         :param features: A list of feature names.
         :type features: list[str]
         :param classes: Class names as a list of strings. The order of the class names should match

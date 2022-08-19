@@ -17,6 +17,7 @@
 """Defines the GPUKernelExplainer for computing explanations on black box models or functions."""
 
 import numpy as np
+from ml_wrappers import DatasetWrapper
 
 from .._internal.raw_explain.raw_explain_utils import (
     get_datamapper_and_transformed_data, transform_with_datamapper)
@@ -30,7 +31,6 @@ from ..common.explanation_utils import (_append_shap_values_instance,
                                         _convert_single_instance_to_multi,
                                         _convert_to_list)
 from ..common.model_wrapper import _wrap_model
-from ..dataset.dataset_wrapper import DatasetWrapper
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,

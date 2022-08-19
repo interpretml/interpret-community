@@ -11,6 +11,7 @@ from interpret_community.explanation.explanation import (
     ExpectedValuesMixin, _aggregate_global_from_local_explanation,
     _aggregate_streamed_local_explanations, _create_global_explanation,
     _create_local_explanation)
+from ml_wrappers import DatasetWrapper
 
 
 class ExplanationAdapter(object):
@@ -91,18 +92,16 @@ class ExplanationAdapter(object):
         kwargs[ExplainParams.FEATURES] = self.features
         if ExpectedValuesMixin._does_quack(local_explanation):
             kwargs[ExplainParams.EXPECTED_VALUES] = local_explanation.expected_values
+        kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
         if include_local:
-            kwargs[ExplainParams.LOCAL_EXPLANATION] = local_explanation
             # Aggregate local explanation to global
             return _aggregate_global_from_local_explanation(**kwargs)
         else:
-            if ExplainParams.CLASSIFICATION in kwargs:
-                if kwargs[ExplainParams.CLASSIFICATION]:
-                    model_task = ModelTask.Classification
-                else:
-                    model_task = ModelTask.Regression
+            if self.classification:
+                model_task = ModelTask.Classification
             else:
-                model_task = ModelTask.Unknown
-            kwargs = _aggregate_streamed_local_explanations(self, evaluation_examples, model_task,
-                                                            self.features, batch_size, **kwargs)
+                model_task = ModelTask.Regression
+            wrapped_dataset = DatasetWrapper(evaluation_examples)
+            kwargs = _aggregate_streamed_local_explanations(self, wrapped_dataset, model_task,
+                                                            batch_size=batch_size, **kwargs)
             return _create_global_explanation(**kwargs)

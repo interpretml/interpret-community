@@ -4,7 +4,7 @@
 
 """Contains functions useful for generating raw explanation."""
 
-from interpret_community.dataset.dataset_wrapper import DatasetWrapper
+from ml_wrappers import DatasetWrapper
 
 from .data_mapper import DataMapper
 
@@ -13,7 +13,7 @@ def transform_with_datamapper(x, datamapper):
     """Transform the input using the _datamapper field in obj.
 
     :param x: input data
-    :type x: numpy.ndarray or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
+    :type x: numpy.ndarray or pandas.DataFrame or ml_wrappers.dataset.dataset_wrapper.DatasetWrapper
     :param datamapper: datamapper object
     :type datamapper: DataMapper
     :return: transformed data
@@ -35,7 +35,7 @@ def get_datamapper_and_transformed_data(examples=None, transformations=None, all
     """Get data mapper as well as transformed examples.
 
     :param examples: input data
-    :type examples: numpy.ndarray or pandas.DataFrame or interpret_community.dataset.dataset_wrapper.DatasetWrapper
+    :type examples: numpy.ndarray or pandas.DataFrame or ml_wrappers.dataset.dataset_wrapper.DatasetWrapper
     :param transformations: transformations passed from any of DeepExplainer, KernelExplainer, MimicExplainer,
     TreeExplainer and TabularExplainer
     :type transformations: documented in constructor params of any of DeepExplainer, KernelExplainer, MimicExplainer,

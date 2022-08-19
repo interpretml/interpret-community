@@ -6,7 +6,7 @@
 
 from functools import wraps
 
-from .dataset_wrapper import DatasetWrapper
+from ml_wrappers import DatasetWrapper
 
 
 def tabular_decorator(explain_func):
