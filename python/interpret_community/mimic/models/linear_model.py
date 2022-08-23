@@ -4,12 +4,14 @@
 
 """Defines an explainable linear model."""
 
+import warnings
+
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
 from sklearn.linear_model import (Lasso, LinearRegression, LogisticRegression,
                                   SGDClassifier, SGDRegressor)
 
-from ...common.constants import ExplainableModelType, Extension, SHAPDefaults
+from ...common.constants import ExplainableModelType, Extension
 from ...common.explanation_utils import _summarize_data
 from ...common.warnings_suppressor import shap_warnings_suppressor
 from .explainable_model import (BaseExplainableModel, _clean_doc,
@@ -19,7 +21,6 @@ with shap_warnings_suppressor():
     import shap
 
 DEFAULT_RANDOM_STATE = 123
-FEATURE_DEPENDENCE = 'interventional'
 LINEAR_PENALTY = 'penalty'
 LINEAR_L2 = 'l2'
 LINEAR_SOLVER = 'solver'
@@ -32,16 +33,22 @@ LINEAR_RANDOM_STATE = 'random_state'
 class LinearExplainer(shap.LinearExplainer):
     """Linear explainer with support for sparse data and sparse output."""
 
-    def __init__(self, model, data, feature_dependence=FEATURE_DEPENDENCE):
+    def __init__(self, model, masker, **kwargs):
         """Initialize the LinearExplainer.
 
         :param model: The linear model to compute the shap values for as a (coef, intercept) tuple.
         :type model: (numpy.matrix, double)
-        :param data: The mean and covariance of the dataset.
-        :type data: (scipy.csr_matrix, None)
-        :param feature_dependence: Indicates the type of feature dependency, interventional by default.
-        :type feature_dependence: str
+        :param masker: The mean and covariance of the dataset or the masker used to "mask" out hidden features.
+        :type masker: (scipy.csr_matrix, None) or function
         """
+        if kwargs.get('feature_dependence') is not None:
+            warnings.warn(("The feature_dependence parameter is deprecated and removed."
+                           "Please use appropriate masker instead."),
+                          DeprecationWarning)
+        data = masker
+        # Get the underlying data
+        if not issubclass(type(masker), tuple):
+            data = masker.data
         self.is_sparse = data[1] is None
         if self.is_sparse:
             # Sparse case
@@ -53,7 +60,7 @@ class LinearExplainer(shap.LinearExplainer):
             self.expected_value = np.array(self._background.dot(self.coef.T) + self.intercept).flatten()
         else:
             # Dense case
-            super(LinearExplainer, self).__init__(model, data, feature_dependence=feature_dependence)
+            super(LinearExplainer, self).__init__(model, masker)
 
     def shap_values(self, evaluation_examples):
         """Estimate the SHAP values for a set of samples.
@@ -102,15 +109,13 @@ def _create_linear_explainer(model, multiclass, mean, covariance, seed):
         else:
             coef_intercept_list = [(coef, intercepts) for coef in coefs]
         for class_coef, intercept in coef_intercept_list:
-            linear_explainer = LinearExplainer((class_coef, intercept), (mean, covariance),
-                                               feature_dependence=SHAPDefaults.INDEPENDENT)
+            linear_explainer = LinearExplainer((class_coef, intercept), (mean, covariance))
             explainers.append(linear_explainer)
         return explainers
     else:
         model_coef = model.coef_
         model_intercept = model.intercept_
-        return LinearExplainer((model_coef, model_intercept), (mean, covariance),
-                               feature_dependence=SHAPDefaults.INDEPENDENT)
+        return LinearExplainer((model_coef, model_intercept), (mean, covariance))
 
 
 def _compute_local_shap_values(linear_explainer, evaluation_examples, classification):
