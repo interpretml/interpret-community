@@ -45,7 +45,7 @@ steps:
 
   - bash: |
       source activate ${{parameters.condaEnv}} 
-      pip install --upgrade pip --user
+      python -m pip install --upgrade pip --user
     displayName: Upgrade pip to latest for windows
     condition:  eq(variables['Agent.OS'], 'Windows_NT')
 
