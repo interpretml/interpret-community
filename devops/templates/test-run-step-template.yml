@@ -66,7 +66,10 @@ steps:
     condaEnv: ${{parameters.condaEnv}}
 
 - bash: |
-    source activate  ${{parameters.condaEnv}} 
+    source activate  ${{parameters.condaEnv}}
+    pip install responsibleai
+    pip install rai-core-flask==0.5.0
+    pip install raiwidgets --no-deps
     pip install -r requirements-vis.txt
   displayName: Install vis required pip packages
 

@@ -58,6 +58,7 @@ jobs:
     - name: Install visualization dependencies
       shell: bash -l {0}
       run: |
+        pip install raiwidgets
         pip install -r requirements-vis.txt
     - name: Install test dependencies
       shell: bash -l {0}
