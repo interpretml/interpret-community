@@ -19,7 +19,7 @@ parameters:
 
 variables:
   poolImage: "ubuntu-latest"
-  poolPythonVersion: 3.6
+  poolPythonVersion: 3.7
   packageArtifactName: Wheels
   versionArtifactName: Version
   versionFileName: versionInfo.txt
