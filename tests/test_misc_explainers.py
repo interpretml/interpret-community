@@ -75,6 +75,7 @@ class TestDeepExplainer(object):
         self._verify_tabular.verify_explain_model_transformations_column_transformer_classification(
             self._get_create_model(classification=True))
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_deep_explainer_raw_transformations_list_regression(self):
         # retrying 4 times in case this test fails due to shap summation bug
         for i in range(4):
@@ -86,6 +87,7 @@ class TestDeepExplainer(object):
                 print("Retrying deep explainer test: " + str(i))
                 pass
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_deep_explainer_raw_transformations_column_transformer_regression(self):
         self._verify_tabular.verify_explain_model_transformations_column_transformer_regression(
             self._get_create_model(classification=False))

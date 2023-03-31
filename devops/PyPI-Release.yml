@@ -40,7 +40,7 @@ stages:
   - template: templates/all-tests-job-template.yml
     parameters:
       platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
-      pyVersions: [3.6, 3.7]
+      pyVersions: [3.7, 3.8]
       installationType: PipLocal
       envArtifactStem: PredeployFreeze
       envFileStem: redeploy-requirements
@@ -110,7 +110,7 @@ stages:
     - template: templates/all-tests-job-template.yml
       parameters:
         platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
-        pyVersions: [3.6, 3.7]
+        pyVersions: [3.7, 3.8]
         installationType: 'WheelArtifact'
         envArtifactStem: TestWheelFreeze
         envFileStem: requirements-wheel-test
@@ -191,7 +191,7 @@ stages:
   - template: templates/all-tests-job-template.yml
     parameters:
       platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
-      pyVersions: [3.6, 3.7]
+      pyVersions: [3.7, 3.8]
       envArtifactStem: TestPyPIFreeze
       envFileStem: requirements-pypi-test
       installationType: 'PyPI'
