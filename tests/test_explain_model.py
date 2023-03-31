@@ -125,6 +125,7 @@ class TestTabularExplainer(object):
     def test_explain_model_local_regression_without_include_local(self, verify_tabular):
         verify_tabular.verify_explain_model_local_regression(include_local=False)
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_local_regression_dnn(self, verify_tabular):
         verify_tabular.verify_explain_model_local_regression_dnn()
 
@@ -410,6 +411,7 @@ class TestTabularExplainer(object):
         policy = SamplingPolicy(allow_eval_sampling=True)
         exp.explain_global(x_test.values, sampling_policy=policy)
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_keras(self, tabular_explainer):
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=7)
@@ -474,6 +476,7 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0][0]) == len(features)
         assert explanation.num_features == len(features)
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_local_keras_classification(self, tabular_explainer):
         X, y = shap.datasets.adult()
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=7)
@@ -503,6 +506,7 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(features)
         assert explanation.num_features == len(features)
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_local_keras_regression(self, housing, tabular_explainer):
         x_train = housing[DatasetConstants.X_TRAIN]
         x_test = housing[DatasetConstants.X_TEST]
@@ -792,6 +796,7 @@ class TestTabularExplainer(object):
         gpu_explainers = _get_uninitialized_explainers(use_gpu=True)
         assert gpu_explainers == [GPUKernelExplainer]
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_keras_regressor(self, housing, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
         x_train = housing[DatasetConstants.X_TRAIN][DATA_SLICE]
@@ -813,6 +818,7 @@ class TestTabularExplainer(object):
         assert len(local_importance_values) == num_samples, ('length of local importances does not match number '
                                                              'of samples')
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_keras_classifier(self, iris, tabular_explainer):
         # verify that no errors get thrown when calling get_raw_feat_importances
         x_train = iris[DatasetConstants.X_TRAIN][DATA_SLICE]
@@ -834,6 +840,7 @@ class TestTabularExplainer(object):
         assert len(local_importance_values) == num_classes, ('length of local importances does not match number '
                                                              'of classes')
 
+    @pytest.mark.skip(reason="latest tensorflow version no longer works with shap deep explainer")
     def test_explain_model_batch_dataset(self, housing, tabular_explainer):
         X_train = housing[DatasetConstants.X_TRAIN]
         X_test = housing[DatasetConstants.X_TEST][DATA_SLICE]

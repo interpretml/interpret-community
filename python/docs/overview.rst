@@ -38,7 +38,7 @@ To setup on your local machine:
     </style>
     <details><summary><strong><em>1. Set up Environment</em></strong></summary>
 
-        a. Install Anaconda with Python >= 3.6
+        a. Install Anaconda with Python >= 3.7
         <br/>
         <a href="https://conda.io/projects/conda/en/latest/user-guide/install/index.html">Miniconda</a> is a quick way to get started.
         <br/>
@@ -49,7 +49,7 @@ To setup on your local machine:
         <blockquote>
             <div>
                 <div class="highlight-bash notranslate">
-                    <pre>conda create --name interp python=3.6 anaconda</pre>
+                    <pre>conda create --name interp python=3.7 anaconda</pre>
                 </div>
             </div>
         </blockquote>
