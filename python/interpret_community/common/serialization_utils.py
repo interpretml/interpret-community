@@ -7,7 +7,6 @@
 import datetime
 
 import numpy as np
-
 from raiutils.data_processing import serialize_json_safe
 
 

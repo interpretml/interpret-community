@@ -42,7 +42,7 @@ DEPENDENCIES = [
     'ml-wrappers~=0.4.3',
     'scikit-learn',
     'packaging',
-    'interpret-core[required]>=0.1.20, <=0.2.7',
+    'interpret-core[required]>=0.1.20, <=0.3.2',
     'shap>=0.20.0, <=0.41.0',
     'raiutils~=0.4.0'
 ]
