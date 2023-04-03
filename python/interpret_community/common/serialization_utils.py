@@ -4,9 +4,6 @@
 
 """Defines utility functions for serialization of data."""
 
-import datetime
-
-import numpy as np
 from raiutils.data_processing import serialize_json_safe
 
 
