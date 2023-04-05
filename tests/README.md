@@ -6,7 +6,9 @@ All tests are in the test folder.
 If you intend to run repository tests:
 
 '''
-pip install -r requirements.txt
+pip install -e ./python
+pip install -r requirements-dev.txt
+pip install -r requirements-test.txt
 '''
 
 ## Execute the tests from the root folder:
