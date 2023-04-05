@@ -54,4 +54,4 @@ class ExplanationDashboard:
                  with_credentials=False, use_cdn=None):
         warnings.warn("ExplanationDashboard in interpret-community package is deprecated and removed."
                       "Please use the ExplanationDashboard from raiwidgets package instead.",
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)

@@ -20,7 +20,7 @@ jobs:
 - template: templates/all-tests-job-template.yml
   parameters:
     platforms:  { Linux: ubuntu-latest }
-    pyVersions: [3.6]
+    pyVersions: [3.8]
     testRunTypes: [ 'CodeCoverage' ]
     installationType: PipLocal
     envArtifactStem: $(EnvArtifactStem)

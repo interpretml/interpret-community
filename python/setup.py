@@ -26,9 +26,9 @@ CLASSIFIERS = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
@@ -37,13 +37,14 @@ CLASSIFIERS = [
 
 DEPENDENCIES = [
     'numpy',
-    'pandas',
+    'pandas<2.0.0',
     'scipy',
-    'ml-wrappers~=0.4.2',
+    'ml-wrappers~=0.4.3',
     'scikit-learn',
     'packaging',
-    'interpret-core[required]>=0.1.20, <=0.2.7',
-    'shap>=0.20.0, <=0.41.0'
+    'interpret-core[required]>=0.1.20, <=0.3.2',
+    'shap>=0.20.0, <=0.41.0',
+    'raiutils~=0.4.0'
 ]
 
 EXTRAS = {

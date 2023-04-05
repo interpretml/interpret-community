@@ -44,7 +44,7 @@ class LinearExplainer(shap.LinearExplainer):
         if kwargs.get('feature_dependence') is not None:
             warnings.warn(("The feature_dependence parameter is deprecated and removed."
                            "Please use appropriate masker instead."),
-                          DeprecationWarning)
+                          DeprecationWarning, stacklevel=2)
         data = masker
         # Get the underlying data
         if not issubclass(type(masker), tuple):
