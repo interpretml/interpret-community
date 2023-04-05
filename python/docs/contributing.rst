@@ -32,7 +32,6 @@ To run tests locally, please install all of the dependencies in your python envi
 
    .. code-block:: bash
 
-      pip install -r requirements.txt
       pip install -r requirements-dev.txt
       pip install -r requirements-vis.txt
       pip install -r requirements-test.txt

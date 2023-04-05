@@ -66,11 +66,6 @@ steps:
 
   - bash: |
       source activate  ${{parameters.condaEnv}} 
-      pip install -r requirements.txt
-    displayName: Install required pip packages
-
-  - bash: |
-      source activate  ${{parameters.condaEnv}} 
       pip install papermill
       pip install scrapbook
     displayName: List Jupyter Kernel and fix
