@@ -5,3 +5,4 @@ hdbscan
 lightgbm
 xgboost
 sklearn_pandas
+lime>=0.2.0.0
