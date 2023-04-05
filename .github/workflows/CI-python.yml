@@ -47,10 +47,6 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install -e ./python
-    - name: Install main dependencies
-      shell: bash -l {0}
-      run: |
-        pip install -r requirements.txt
     - name: Install dev dependencies
       shell: bash -l {0}
       run: |
