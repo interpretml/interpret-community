@@ -27,7 +27,6 @@ sphinx:
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-   - requirements: requirements.txt
    - requirements: requirements-doc.txt
 
 # Build PDF & ePub
