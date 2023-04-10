@@ -683,7 +683,7 @@ class TestTabularExplainer(object):
 
         # creating dummy columns for each categorical feature
         categorical = []
-        for col, value in attritionXData.iteritems():
+        for col, value in attritionXData.items():
             if value.dtype == 'object':
                 categorical.append(col)
 
