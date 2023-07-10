@@ -59,16 +59,11 @@ class TestMimicExplainer(object):
     def test_explain_model_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
-        num_overall_features_equal = -1
+        num_overall_features_equal = 2
         is_macos = platform.startswith(MACOS_PLATFORM)
-        if is_macos:
-            num_overall_features_equal = 2
         # Don't check per class features on MACOS
         is_per_class = not is_macos
         for idx, verifier in enumerate(verify_mimic_classifier):
-            # SGD test results differ from one machine to another, not sure where the difference comes from
-            if idx == SGD_MODEL_IDX and not is_macos:
-                num_overall_features_equal = 2
             verifier.verify_explain_model_local(iris_overall_expected_features[idx],
                                                 iris_per_class_expected_features[idx],
                                                 num_overall_features_equal=num_overall_features_equal,
@@ -94,10 +89,8 @@ class TestMimicExplainer(object):
     def test_explain_model_local_without_include_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
-        num_overall_features_equal = -1
+        num_overall_features_equal = 2
         is_macos = platform.startswith(MACOS_PLATFORM)
-        if is_macos:
-            num_overall_features_equal = 2
         # Don't check per class features on MACOS
         is_per_class = not is_macos
         for idx, verifier in enumerate(verify_mimic_classifier):
@@ -406,7 +399,7 @@ class TestMimicExplainer(object):
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
         assert x_train.shape[0] < SMALL_DATA_THRESHOLD
         # Fit a regression model
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         model = lin.fit(x_train, y_train)
         explainable_model = LGBMExplainableModel
         explainer = mimic_explainer(model, x_train, explainable_model)
@@ -423,7 +416,7 @@ class TestMimicExplainer(object):
         X, y = make_regression(n_samples=num_rows, n_features=num_features)
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
 
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         scaler_transformer = Pipeline(steps=[('scaler', StandardScaler())])
         transformations = [(list(range(num_features)), scaler_transformer)]
         clf = Pipeline(steps=[('preprocessor', scaler_transformer), ('regressor', lin)])
@@ -502,7 +495,7 @@ class TestMimicExplainer(object):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
         transformations = [(list(range(num_features)), one_hot_transformer)]
         clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])
@@ -716,7 +709,7 @@ class TestMimicExplainerWrappedModels(object):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
         transformations = [(list(range(num_features)), one_hot_transformer)]
         clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])

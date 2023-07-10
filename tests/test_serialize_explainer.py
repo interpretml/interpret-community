@@ -159,7 +159,7 @@ class TestPickleUnpickleMimicExplainer(object):
         X, y = make_regression(n_samples=num_rows, n_features=num_features)
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
 
-        model = LinearRegression(normalize=True)
+        model = LinearRegression()
         model.fit(x_train, y_train)
         surrogate_model = surrogate_model
         explainer = MimicExplainer(model, x_train, surrogate_model)
