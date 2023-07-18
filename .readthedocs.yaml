@@ -28,6 +28,12 @@ sphinx:
 python:
    install:
    - requirements: requirements-doc.txt
+   - method: pip
+     path: python
+     extra_requirements:
+        - sample
+        - mimic
+        - lime
 
 # Build PDF & ePub
 formats:
