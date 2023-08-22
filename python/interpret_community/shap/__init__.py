@@ -9,4 +9,4 @@ from .kernel_explainer import KernelExplainer
 from .linear_explainer import LinearExplainer
 from .tree_explainer import TreeExplainer
 
-__all__ = ['DeepExplainer', 'KernelExplainer', TreeExplainer, 'LinearExplainer', 'GPUKernelExplainer']
+__all__ = ['DeepExplainer', 'KernelExplainer', 'TreeExplainer', 'LinearExplainer', 'GPUKernelExplainer']
