@@ -4,4 +4,5 @@ flake8-blind-except==0.1.1
 flake8-breakpoint
 flake8-logging-format
 flake8-pytest-style
+flake8-all-not-strings
 isort
