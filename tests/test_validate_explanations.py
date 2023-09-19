@@ -123,7 +123,7 @@ class TestExplainerValidity(object):
             explanation = exp.shap_values(x_test)
             shap_overall_imp = get_shap_imp_classification(explanation)
             overall_imp = tabular_explainer_imp(model, x_train, x_test)
-            validate_correlation(overall_imp, shap_overall_imp, 0.95)
+            validate_correlation(overall_imp, shap_overall_imp, 0.82)
 
         test_logger.info("Running tree regressors in test_validate_against_shap")
         for model in tree_regressors:

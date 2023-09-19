@@ -65,11 +65,13 @@ steps:
     wheelArtifactName: ${{parameters.wheelArtifactName}}
     condaEnv: ${{parameters.condaEnv}}
 
+# Note we upgrade shap due to econml pin to lower version
 - bash: |
     source activate  ${{parameters.condaEnv}}
     pip install responsibleai
     pip install rai-core-flask==0.5.0
     pip install raiwidgets --no-deps
+    pip install --upgrade "shap<=0.42.1"
     pip install -r requirements-vis.txt
   displayName: Install vis required pip packages
 
