@@ -990,8 +990,8 @@ class TestTabularExplainer(object):
     @property
     def housing_local_features_first_five_lr(self):
         return [['Latitude', 'AveRooms', 'HouseAge', 'AveBedrms', 'AveOccup', 'Population', 'Longitude', 'MedInc'],
-                ['Latitude', 'AveRooms', 'MedInc', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
-                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'Population', 'AveBedrms', 'MedInc', 'Latitude'],
+                ['Latitude', 'MedInc', 'AveRooms', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
+                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'MedInc', 'Population', 'AveBedrms', 'Latitude'],
                 ['Longitude', 'AveRooms', 'AveBedrms', 'AveOccup', 'Population', 'HouseAge', 'MedInc', 'Latitude'],
                 ['MedInc', 'Longitude', 'Population', 'AveOccup', 'HouseAge', 'AveBedrms', 'AveRooms', 'Latitude']]
 
