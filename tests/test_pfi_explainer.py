@@ -36,7 +36,6 @@ class TestPFIExplainer(object):
                                                        has_explain_local=False,
                                                        true_labels_required=True)
 
-    @pytest.mark.skip(reason="requires fix in ml-wrappers repository")
     def test_explain_model_local_dnn(self):
         self.verify_tabular.verify_explain_model_local_dnn(is_per_class=False,
                                                            has_explain_local=False,
