@@ -1,6 +1,6 @@
 xmlrunner
 mlflow
-tensorflow
+tensorflow<2.14.0
 hdbscan
 lightgbm
 xgboost
