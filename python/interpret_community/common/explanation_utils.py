@@ -348,7 +348,7 @@ def _fix_linear_explainer_shap_values(model, shap_values):
     :rtype: numpy.ndarray or list
     """
     # Temporary fix for a bug in shap for regression models
-    if (type(model) == tuple and len(model) == 2):
+    if (isinstance(model, tuple) and len(model) == 2):
         coef = model[0]
     elif hasattr(model, 'coef_') and hasattr(model, 'intercept_'):
         coef = model.coef_

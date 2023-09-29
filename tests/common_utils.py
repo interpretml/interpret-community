@@ -212,7 +212,7 @@ def wrap_classifier_without_proba(classifier):
 
 
 def create_sklearn_linear_regressor(X, y, pipeline=False):
-    lin = linear_model.LinearRegression(normalize=True)
+    lin = linear_model.LinearRegression()
     if pipeline:
         lin = Pipeline([('lin', lin)])
     model = lin.fit(X, y)

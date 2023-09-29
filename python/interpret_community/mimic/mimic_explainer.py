@@ -728,8 +728,12 @@ class MimicExplainer(BlackBoxExplainer):
 
         Currently only supported scenario is Mimic Explainer with LightGBM surrogate model.
 
-        :param model: The serialized ONNX model with a scikit-learn like API.
-        :type model: ONNX model.
+        :param model: The original model with a scikit-learn like API.
+            Note: In previous customer scenarios this model has often been an ONNX model.
+            The model must be saved and loaded external to the mimic explainer, since
+            often this code is very specific to the type of model which the explainer
+            doesn't have control over.
+        :type model: serialized model.
         :param properties: A serialized dictionary representation of the mimic explainer.
         :type properties: dict
         :return: The deserialized MimicExplainer.

@@ -10,8 +10,17 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
-from interpret.utils import (gen_global_selector, gen_local_selector,
-                             gen_name_from_class)
+
+try:
+    from interpret.utils._explanation import (gen_global_selector,
+                                              gen_local_selector,
+                                              gen_name_from_class)
+except ImportError:
+    # backcompat with older versions of interpret-core
+    from interpret.utils import (gen_global_selector,
+                                 gen_local_selector,
+                                 gen_name_from_class)
+
 from ml_wrappers import DatasetWrapper
 from scipy.sparse import issparse
 
