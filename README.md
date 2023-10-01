@@ -1,9 +1,8 @@
-
-
-[![Build Status](https://dev.azure.com/responsibleai/interpret-community/_apis/build/status/Nightly?branchName=main)](https://dev.azure.com/responsibleai/interpret-community/_build/latest?definitionId=41&branchName=main)
+![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue?link=http://pypi.org/project/interpret-community/)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
 ![versions](https://img.shields.io/pypi/pyversions/interpret-community)
-![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue?link=http://pypi.org/project/interpret-community/)
+
+[![Build Status](https://dev.azure.com/responsibleai/interpret-community/_apis/build/status/Nightly?branchName=main)](https://dev.azure.com/responsibleai/interpret-community/_build/latest?definitionId=41&branchName=main)
 
 Interpret Community SDK
 =============================================================
