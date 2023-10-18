@@ -43,7 +43,7 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core[required]>=0.1.20, <=0.4.4',
-    'shap>=0.20.0, <=0.42.1',
+    'shap>=0.20.0, <=0.43.0',
     'raiutils~=0.4.0'
 ]
 

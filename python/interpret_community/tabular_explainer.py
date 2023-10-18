@@ -184,6 +184,10 @@ class TabularExplainer(BaseExplainer):
                         kwargs[ExplainParams.MODEL_TASK] = model_task
                     else:
                         kwargs.pop(ExplainParams.MODEL_TASK, None)
+                    if uninitialized_explainer == DeepExplainer:
+                        kwargs[ExplainParams.CHECK_ADDITIVITY] = False
+                    else:
+                        kwargs.pop(ExplainParams.CHECK_ADDITIVITY, None)
                     self.explainer = uninitialized_explainer(
                         self.model, initialization_examples, transformations=transformations,
                         allow_all_transformations=allow_all_transformations,
