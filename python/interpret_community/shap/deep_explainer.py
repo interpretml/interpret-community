@@ -190,13 +190,20 @@ class DeepExplainer(StructuredInitModelExplainer):
     :type allow_all_transformations: bool
     :param model_task: Optional parameter to specify whether the model is a classification or regression model.
     :type model_task: str
+    :param is_classifier: Optional parameter to specify whether the model is a classification or regression model.
+        In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
+        has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
+        outputs a 1 dimensional array.
+    :type is_classifier: bool
+    :param check_additivity: Optional parameter to specify whether to check the additivity of the SHAP values.
+    :type check_additivity: bool
     """
 
     @init_tabular_decorator
     @init_aggregator_decorator
     def __init__(self, model, initialization_examples, explain_subset=None, nclusters=10,
                  features=None, classes=None, transformations=None, allow_all_transformations=False,
-                 model_task=ModelTask.Unknown, is_classifier=None, **kwargs):
+                 model_task=ModelTask.Unknown, is_classifier=None, check_additivity=True, **kwargs):
         """Initialize the DeepExplainer.
 
         :param model: The DNN model to explain.
@@ -253,13 +260,15 @@ class DeepExplainer(StructuredInitModelExplainer):
         :type transformations: sklearn.compose.ColumnTransformer or list[tuple]
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
+        :param model_task: Optional parameter to specify whether the model is a classification or regression model.
+        :type model_task: str
         :param is_classifier: Optional parameter to specify whether the model is a classification or regression model.
             In most cases, the type of the model can be inferred based on the shape of the output, where a classifier
             has a predict_proba method and outputs a 2 dimensional array, while a regressor has a predict method and
             outputs a 1 dimensional array.
         :type is_classifier: bool
-        :param model_task: Optional parameter to specify whether the model is a classification or regression model.
-        :type model_task: str
+        :param check_additivity: Optional parameter to specify whether to check the additivity of the SHAP values.
+        :type check_additivity: bool
         """
         self._datamapper = None
         if transformations is not None:
@@ -277,6 +286,7 @@ class DeepExplainer(StructuredInitModelExplainer):
         self.transformations = transformations
         self.model_task = model_task
         self.framework = _get_dnn_model_framework(self.model)
+        self._check_additivity = check_additivity
         summary = _get_summary_data(self.initialization_examples, nclusters, self.framework)
         # Suppress warning message from Keras
         with logger_redirector(self._logger):
@@ -340,7 +350,8 @@ class DeepExplainer(StructuredInitModelExplainer):
         dense_examples = _get_dense_examples(evaluation_examples)
         if self.framework == DNNFramework.PYTORCH:
             dense_examples = torch.Tensor(dense_examples)
-        shap_values = self.explainer.shap_values(dense_examples)
+        shap_values = self.explainer.shap_values(
+            dense_examples, check_additivity=self._check_additivity)
         # use model task to update structure of shap values
         single_output = isinstance(shap_values, list) and len(shap_values) == 1
         if single_output:

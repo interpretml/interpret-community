@@ -48,6 +48,7 @@ class ExplainParams(object):
     """Provide constants for interpret community (init, explain_local and explain_global) parameters."""
 
     BATCH_SIZE = 'batch_size'
+    CHECK_ADDITIVITY = 'check_additivity'
     CLASSES = 'classes'
     CLASSIFICATION = 'classification'
     EVAL_DATA = 'eval_data'
