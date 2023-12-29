@@ -136,7 +136,8 @@ To setup on your local machine:
     <blockquote>
         <div>
             <div class="highlight-bash notranslate">
-                <pre>conda install --yes --quiet pytorch torchvision captum cpuonly -c pytorch</pre>
+                <pre>conda install --yes --quiet pytorch torchvision cpuonly -c pytorch
+                <br/>pip install captum</pre>
             </div>
         </div>
     </blockquote>
@@ -160,7 +161,8 @@ To setup on your local machine:
     <blockquote>
         <div>
             <div class="highlight-bash notranslate">
-                <pre>conda install --yes --quiet pytorch torchvision captum cpuonly -c pytorch</pre>
+                <pre>conda install --yes --quiet pytorch torchvision cpuonly -c pytorch
+                <br/>pip install captum</pre>
             </div>
         </div>
     </blockquote>
@@ -183,7 +185,8 @@ To setup on your local machine:
     <blockquote>
         <div>
             <div class="highlight-bash notranslate">
-                <pre>conda install --yes --quiet pytorch torchvision captum -c pytorch</pre>
+                <pre>conda install --yes --quiet pytorch torchvision -c pytorch
+                <br/>pip install captum</pre>
             </div>
         </div>
     </blockquote>
@@ -216,13 +219,21 @@ To setup on your local machine:
     <summary><strong><em>4. Set up and run Jupyter Notebook server </em></strong></summary>
 
     Install and run Jupyter Notebook
+    if needed:
     <blockquote>
         <div>
             <div class="highlight-bash notranslate">
-                <pre>if needed:
-                </br>pip install jupyter
-                <br/>then:
-                <br/>jupyter notebook</pre>
+                <pre>
+                </br>pip install jupyter</pre>
+            </div>
+        </div>
+    </blockquote>
+    then:
+    <blockquote>
+        <div>
+            <div class="highlight-bash notranslate">
+                <pre>
+                </br>jupyter notebook</pre>
             </div>
         </div>
     </blockquote>
