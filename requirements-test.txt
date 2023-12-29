@@ -7,3 +7,4 @@ itsdangerous==2.0.1
 markupsafe<2.1.0
 jupyter
 jinja2==2.11.3
+captum
