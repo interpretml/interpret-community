@@ -8,3 +8,5 @@ markupsafe<2.1.0
 jupyter
 jinja2==2.11.3
 captum
+# workaround for mlflow installing older version
+importlib-metadata==6.7.0; python_version <= '3.7'
