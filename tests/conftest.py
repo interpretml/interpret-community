@@ -29,7 +29,7 @@ def pytest_itemcollected(item):
         item.add_marker(pytest.mark.domain(["explain", "model"]))
 
 
-@pytest.fixture()
+@pytest.fixture
 def _clean_dir():
     old_cwd = os.getcwd()
     new_path = tempfile.mkdtemp()

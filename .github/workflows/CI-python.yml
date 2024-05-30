@@ -53,12 +53,15 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Install visualization dependencies
       shell: bash -l {0}
-      # install scikit-learn to workaround raiwidgets dependency
       run: |
         pip install raiwidgets
         pip install -r requirements-vis.txt
-        pip install --upgrade scikit-learn
         pip install --upgrade "shap<=0.44.0"
+    - if: ${{ matrix.pythonVersion == '3.9' }}
+      name: Install scikit-learn to work around raiwidgets dependency
+      shell: bash -l {0}
+      run: |
+        pip install "scikit-learn==1.4.2"
     - name: Install test dependencies
       shell: bash -l {0}
       run: |
