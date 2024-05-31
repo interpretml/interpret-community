@@ -23,7 +23,7 @@ jobs:
 - template: templates/all-tests-job-template.yml
   parameters:
     platforms:  { Linux: ubuntu-latest, MacOS: macos-latest, Windows: windows-latest }
-    pyVersions: [3.7, 3.8]
+    pyVersions: [3.8, 3.9]
     installationType: PipLocal
     envArtifactStem: $(EnvArtifactStem)
     envFileStem: $(EnvFileStem)

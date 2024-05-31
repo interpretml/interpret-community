@@ -64,7 +64,7 @@ In case you want to run the example with the list of fitted transformer tuples, 
           strategy='median')), ('scaler', StandardScaler())])) for f in numerical]
 
       categorical_transformations = [([f], OneHotEncoder(
-          handle_unknown='ignore', sparse=False)) for f in categorical]
+          handle_unknown='ignore', sparse_output=False)) for f in categorical]
 
       transformations = numeric_transformations + categorical_transformations
 
