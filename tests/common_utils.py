@@ -5,7 +5,9 @@
 # Defines common utilities for explanations
 import numpy as np
 import pandas as pd
+import sklearn
 from lightgbm import LGBMClassifier, LGBMRegressor
+from packaging import version
 from sklearn import ensemble, linear_model, svm
 from sklearn.base import TransformerMixin
 from sklearn.datasets import (fetch_20newsgroups, fetch_california_housing,
@@ -60,6 +62,18 @@ def get_mimic_method(surrogate_model):
         return TREE_METHOD
     else:
         raise Exception("Unsupported surrogate model")
+
+
+def get_ohe_params(sparse=False, use_simple_features_combiner=False):
+    # for older scikit-learn versions use sparse, for newer sparse_output:
+    if version.parse(sklearn.__version__) < version.parse('1.2'):
+        ohe_params = {"sparse": sparse}
+    else:
+        ohe_params = {"sparse_output": sparse}
+    version_above_1_3 = version.parse(sklearn.__version__) >= version.parse('1.3')
+    if version_above_1_3 and use_simple_features_combiner:
+        ohe_params["feature_name_combiner"] = _simple_ohe_callable
+    return ohe_params
 
 
 def create_binary_sparse_newsgroups_data():
@@ -668,3 +682,7 @@ def _common_model_generator(feature_number, output_length=1):
     model.add(Dense(output_length, activation='relu', input_shape=(32,)))
     model.add(Dropout(0.5))
     return model
+
+
+def _simple_ohe_callable(input_feature, category):
+    return str(category)

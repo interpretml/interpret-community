@@ -21,7 +21,7 @@ from common_utils import (create_cancer_data, create_energy_data,
                           create_sklearn_random_forest_classifier,
                           create_sklearn_random_forest_regressor,
                           create_sklearn_svm_classifier,
-                          create_xgboost_classifier)
+                          create_xgboost_classifier, get_ohe_params)
 from constants import ModelType
 from datasets import retrieve_dataset
 from interpret_community.common.constants import (ExplainParams, InterpretData,
@@ -860,7 +860,8 @@ class VerifyTabularTests(object):
                 return X.astype('U')
 
         custom_text = CustomTextTransformer()
-        encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        ohe_params = get_ohe_params(use_simple_features_combiner=True)
+        encoder = OneHotEncoder(handle_unknown='ignore', **ohe_params)
         ct1 = ColumnTransformer([('cu', custom_text, categorical_col_indices)], remainder='passthrough')
         ct2 = ColumnTransformer([('ord', encoder, slice(0, len(categorical_col_indices)))], remainder='passthrough')
         pipeline = Pipeline([('cu', ct1), ('ct', ct2), ('lgbm', lgbm_regressor)])
