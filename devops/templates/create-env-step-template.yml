@@ -19,15 +19,13 @@ steps:
 
   - bash: |
       source activate ${{parameters.condaEnv}}
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} "numpy<1.24.0" -c conda-forge
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision cpuonly -c pytorch
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision cpuonly -c pytorch -c conda-forge --strict-channel-priority
     displayName: Install Anaconda packages
     condition:  ne(variables['Agent.OS'], 'Darwin')
 
   - bash: |
       source activate ${{parameters.condaEnv}}
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} "numpy<1.24.0" -c conda-forge
-      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision -c pytorch
+      conda install --yes --quiet --name  ${{parameters.condaEnv}} pytorch torchvision -c pytorch -c conda-forge --strict-channel-priority
     displayName: Install Anaconda packages on MacOS, which should not include cpuonly according to official docs
     condition:  eq(variables['Agent.OS'], 'Darwin')
 
