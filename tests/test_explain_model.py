@@ -19,7 +19,7 @@ from common_utils import (create_keras_classifier, create_keras_regressor,
                           create_sklearn_random_forest_classifier,
                           create_sklearn_random_forest_regressor,
                           create_sklearn_svm_classifier, create_tf_model,
-                          create_xgboost_classifier,
+                          create_xgboost_classifier, get_ohe_params,
                           wrap_classifier_without_proba)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
@@ -638,6 +638,7 @@ class TestTabularExplainer(object):
         many_to_many_transformer = FunctionTransformer(lambda x: np.hstack(
             (conv(np.prod(x, axis=1)).reshape(-1, 1), conv(np.prod(x, axis=1)**2).reshape(-1, 1))
         ))
+        ohe_params = get_ohe_params()
         transformations = ColumnTransformer([
             ("age_fare_1", Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='median')),
@@ -647,8 +648,8 @@ class TestTabularExplainer(object):
             ("age_fare_3", many_to_many_transformer, ["age", "fare"]),
             ("embarked", Pipeline(steps=[
                 ("imputer", SimpleImputer(strategy='constant', fill_value='missing')),
-                ("encoder", OneHotEncoder(sparse=False))]), ["embarked"]),
-            ("sex_pclass", OneHotEncoder(sparse=False), ["sex", "pclass"])
+                ("encoder", OneHotEncoder(**ohe_params))]), ["embarked"]),
+            ("sex_pclass", OneHotEncoder(**ohe_params), ["sex", "pclass"])
         ])
         clf = Pipeline(steps=[('preprocessor', transformations),
                               ('classifier', LogisticRegression(solver='lbfgs'))])

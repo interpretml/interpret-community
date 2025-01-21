@@ -14,13 +14,13 @@ jobs:
       matrix:
         packageDirectory: ["interpret_community"]
         operatingSystem: [ubuntu-latest]
-        pythonVersion: [3.7, 3.8, 3.9]
+        pythonVersion: [3.9]
 
     runs-on: ${{ matrix.operatingSystem }}
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
         python-version: ${{ matrix.pythonVersion }}
@@ -53,12 +53,15 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Install visualization dependencies
       shell: bash -l {0}
-      # install scikit-learn to workaround raiwidgets dependency
       run: |
         pip install raiwidgets
         pip install -r requirements-vis.txt
-        pip install --upgrade scikit-learn
         pip install --upgrade "shap<=0.44.0"
+    - if: ${{ matrix.pythonVersion == '3.9' }}
+      name: Install scikit-learn to work around raiwidgets dependency
+      shell: bash -l {0}
+      run: |
+        pip install "scikit-learn==1.4.2"
     - name: Install test dependencies
       shell: bash -l {0}
       run: |
@@ -67,15 +70,15 @@ jobs:
       shell: bash -l {0}
       run: |
         pytest ./tests -m "not notebooks" -s -v --cov=${{ matrix.packageDirectory }} --cov-report=xml --cov-report=html
-    - name: Upload code coverage results
-      uses: actions/upload-artifact@v3
+
+    - if: ${{ matrix.pythonVersion == '3.9' }}
+      name: Upload code coverage results
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.packageDirectory }}-code-coverage-results
         path: htmlcov
-      # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
 
-    - if: ${{ matrix.pythonVersion == '3.8' }}
+    - if: ${{ matrix.pythonVersion == '3.9' }}
       name: Upload to codecov
       id: codecovupload1
       uses: codecov/codecov-action@v3
@@ -90,7 +93,7 @@ jobs:
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
 
-    - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.8') }}
+    - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.9') }}
       name: Retry upload to codecov
       id: codecovupload2
       uses: codecov/codecov-action@v3
@@ -105,7 +108,7 @@ jobs:
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
 
-    - if: ${{ matrix.pythonVersion == '3.8' }}
+    - if: ${{ matrix.pythonVersion == '3.9' }}
       name: Set codecov status
       shell: bash
       run: |
