@@ -7,7 +7,8 @@
 from scipy.special import expit
 
 from ...common.constants import ShapValuesOutput
-from ...common.explanation_utils import _scale_tree_shap
+from ...common.explanation_utils import (_scale_tree_shap,
+                                         reformat_importance_values)
 
 
 def _explain_local_tree_surrogate(tree_model, evaluation_examples, tree_explainer,
@@ -44,6 +45,7 @@ def _explain_local_tree_surrogate(tree_model, evaluation_examples, tree_explaine
     # In binary case, we are using regressor on logit.  In multiclass case, shap TreeExplainer
     # outputs the margin instead of probabilities.
     shap_values = tree_explainer.shap_values(evaluation_examples)
+    shap_values = reformat_importance_values(shap_values, convert_to_list=True)
     is_probability = shap_values_output == ShapValuesOutput.PROBABILITY
     is_teacher_probability = shap_values_output == ShapValuesOutput.TEACHER_PROBABILITY
     if is_probability or is_teacher_probability:

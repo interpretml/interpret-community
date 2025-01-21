@@ -17,7 +17,8 @@ from interpret_community.common.constants import (Attributes, Defaults,
 
 from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
-from ..common.explanation_utils import _convert_to_list, _get_dense_examples
+from ..common.explanation_utils import (_convert_to_list, _get_dense_examples,
+                                        reformat_importance_values)
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
@@ -352,6 +353,7 @@ class DeepExplainer(StructuredInitModelExplainer):
             dense_examples = torch.Tensor(dense_examples)
         shap_values = self.explainer.shap_values(
             dense_examples, check_additivity=self._check_additivity)
+        shap_values = reformat_importance_values(shap_values, convert_to_list=True)
         # use model task to update structure of shap values
         single_output = isinstance(shap_values, list) and len(shap_values) == 1
         if single_output:

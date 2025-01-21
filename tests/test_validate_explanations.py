@@ -28,6 +28,8 @@ from common_utils import (create_cancer_data, create_cuml_svm_classifier,
                           create_sklearn_random_forest_regressor)
 from constants import owner_email_tools_and_ux
 from interpret_community.common.constants import ExplainParams
+from interpret_community.common.explanation_utils import \
+    reformat_importance_values
 from interpret_community.common.metrics import ndcg
 from interpret_community.common.policy import SamplingPolicy
 from interpret_community.tabular_explainer import TabularExplainer
@@ -190,6 +192,7 @@ def validate_spearman_correlation(overall_imp, shap_overall_imp, threshold):
 
 
 def get_shap_imp_classification(explanation):
+    explanation = reformat_importance_values(explanation, convert_to_list=True)
     global_importance_values = np.mean(np.mean(np.absolute(explanation), axis=1), axis=0)
     return global_importance_values.argsort()[..., ::-1]
 

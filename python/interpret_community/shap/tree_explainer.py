@@ -14,7 +14,8 @@ from ..common.aggregate import (add_explain_global_method,
 from ..common.constants import (Defaults, ExplainParams, ExplainType,
                                 Extension, ShapValuesOutput, SKLearn)
 from ..common.explanation_utils import (_convert_to_list, _get_dense_examples,
-                                        _scale_tree_shap)
+                                        _scale_tree_shap,
+                                        reformat_importance_values)
 from ..common.structured_model_explainer import PureStructuredModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.decorator import tabular_decorator
@@ -233,10 +234,15 @@ class TreeExplainer(PureStructuredModelExplainer):
         # until TreeExplainer sparse support is added
         typed_dense_evaluation_examples = typed_wrapper_func(_get_dense_examples(evaluation_examples))
         shap_values = self.explainer.shap_values(typed_dense_evaluation_examples)
+        shap_values = reformat_importance_values(shap_values, convert_to_list=True)
         expected_values = self.explainer.expected_value
         classification = isinstance(shap_values, list)
-        if str(type(self.model)).endswith("XGBClassifier'>") and not classification:
-            # workaround for XGBoost binary classifier output from SHAP
+        model_type = str(type(self.model))
+        is_xgb = model_type.endswith("XGBClassifier'>")
+        is_lgbm = model_type.endswith("LGBMClassifier'>")
+        is_gbm = is_xgb or is_lgbm
+        if is_gbm and not classification:
+            # workaround for XGBoost and LightGBM binary classifier output from SHAP
             classification = True
             shap_values = [-shap_values, shap_values]
             expected_values = np.array((-expected_values, expected_values))
@@ -259,7 +265,7 @@ class TreeExplainer(PureStructuredModelExplainer):
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.CLASSIFICATION
         else:
             kwargs[ExplainParams.MODEL_TASK] = ExplainType.REGRESSION
-        kwargs[ExplainParams.MODEL_TYPE] = str(type(self.model))
+        kwargs[ExplainParams.MODEL_TYPE] = model_type
         kwargs[ExplainParams.LOCAL_IMPORTANCE_VALUES] = np.array(local_importance_values)
         kwargs[ExplainParams.EXPECTED_VALUES] = expected_values
         kwargs[ExplainParams.CLASSIFICATION] = classification
