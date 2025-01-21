@@ -3,6 +3,6 @@ mlflow
 tensorflow<2.14.0
 hdbscan
 lightgbm
-xgboost
+xgboost<2.1.0
 sklearn_pandas
 lime>=0.2.0.0

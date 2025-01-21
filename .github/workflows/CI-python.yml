@@ -14,7 +14,7 @@ jobs:
       matrix:
         packageDirectory: ["interpret_community"]
         operatingSystem: [ubuntu-latest]
-        pythonVersion: [3.7, 3.8, 3.9]
+        pythonVersion: [3.9]
 
     runs-on: ${{ matrix.operatingSystem }}
 
@@ -71,14 +71,14 @@ jobs:
       run: |
         pytest ./tests -m "not notebooks" -s -v --cov=${{ matrix.packageDirectory }} --cov-report=xml --cov-report=html
 
-    - if: ${{ matrix.pythonVersion == '3.8' }}
+    - if: ${{ matrix.pythonVersion == '3.9' }}
       name: Upload code coverage results
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.packageDirectory }}-code-coverage-results
         path: htmlcov
 
-    - if: ${{ matrix.pythonVersion == '3.8' }}
+    - if: ${{ matrix.pythonVersion == '3.9' }}
       name: Upload to codecov
       id: codecovupload1
       uses: codecov/codecov-action@v3
@@ -93,7 +93,7 @@ jobs:
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
 
-    - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.8') }}
+    - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.9') }}
       name: Retry upload to codecov
       id: codecovupload2
       uses: codecov/codecov-action@v3
@@ -108,7 +108,7 @@ jobs:
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
 
-    - if: ${{ matrix.pythonVersion == '3.8' }}
+    - if: ${{ matrix.pythonVersion == '3.9' }}
       name: Set codecov status
       shell: bash
       run: |
