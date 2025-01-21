@@ -42,7 +42,7 @@ DEPENDENCIES = [
     'packaging',
     'interpret-core>=0.1.20, <0.5.0; python_version <= "3.7"',
     'interpret-core>=0.1.20, <=0.5.0; python_version >= "3.8"',
-    'shap>=0.20.0, <=0.44.0',
+    'shap>=0.20.0, <=0.46.0',
     'raiutils~=0.4.0'
 ]
 
