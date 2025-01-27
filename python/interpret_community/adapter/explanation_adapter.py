@@ -50,7 +50,13 @@ class ExplanationAdapter(object):
         :param expected_values: The expected values of the model.
         :type expected_values: numpy.ndarray
         """
-        local_importance_values = np.array(local_importance_values)
+        if isinstance(local_importance_values, np.ndarray) and local_importance_values.ndim == 3:
+            # Note: this is logic for shap>=0.46.0, which outputs 3d array
+            # with shape (# examples x # features x # classes)
+            # Move first dimension to last
+            local_importance_values = np.moveaxis(local_importance_values, 2, 0)
+        else:
+            local_importance_values = np.array(local_importance_values)
         # handle the case that the local importance values have a 2d shape for classification scenario
         # and only specify the positive class
         if len(local_importance_values.shape) == 2 and self.classification:
@@ -87,6 +93,12 @@ class ExplanationAdapter(object):
             local explanations to global.
         :type batch_size: int
         """
+        if isinstance(local_importance_values, np.ndarray) and local_importance_values.ndim == 3:
+            # Note: this is logic for shap>=0.46.0, which outputs 3d array
+            # with shape (# examples x # features x # classes)
+            # Move first dimension to last and convert to list
+            local_importance_values = np.moveaxis(local_importance_values, 2, 0)
+            local_importance_values = list(local_importance_values)
         local_explanation = self.create_local(local_importance_values, evaluation_examples, expected_values)
         kwargs = {ExplainParams.METHOD: self.method}
         kwargs[ExplainParams.FEATURES] = self.features
