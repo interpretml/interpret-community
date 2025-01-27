@@ -50,7 +50,7 @@ jobs:
           pip install raiwidgets
           pip install -r requirements-vis.txt
           pip install --upgrade scikit-learn
-          pip install --upgrade "shap<=0.44.0"
+          pip install --upgrade "shap<=0.46.0"
 
       - name: Install test dependencies
         shell: bash -l {0}

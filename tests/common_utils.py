@@ -247,7 +247,7 @@ def create_keras_regressor(X, y):
     epochs = 12
     model = _common_model_generator(X.shape[1])
     model.add(Activation('linear'))
-    model.compile(loss=keras.losses.mean_squared_error,
+    model.compile(loss=keras.losses.MeanSquaredError,
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
     model.fit(X, y,
