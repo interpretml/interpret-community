@@ -12,7 +12,8 @@ from sklearn.linear_model import (Lasso, LinearRegression, LogisticRegression,
                                   SGDClassifier, SGDRegressor)
 
 from ...common.constants import ExplainableModelType, Extension
-from ...common.explanation_utils import _summarize_data
+from ...common.explanation_utils import (_summarize_data,
+                                         reformat_importance_values)
 from ...common.warnings_suppressor import shap_warnings_suppressor
 from .explainable_model import (BaseExplainableModel, _clean_doc,
                                 _get_initializer_args)
@@ -79,7 +80,9 @@ class LinearExplainer(shap.LinearExplainer):
             mean_multiplier = csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
             return (evaluation_examples - mean_multiplier * self._background).multiply(self.coef[0]).tocsr()
         else:
-            return super(LinearExplainer, self).shap_values(evaluation_examples)
+            shap_values = super(LinearExplainer, self).shap_values(evaluation_examples)
+            shap_values = reformat_importance_values(shap_values, convert_to_list=True)
+            return shap_values
 
 
 def _create_linear_explainer(model, multiclass, mean, covariance, seed):

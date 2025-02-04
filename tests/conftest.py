@@ -128,6 +128,8 @@ def get_mimic_explainers(classifier=True):
     else:
         explainable_models_args = [{}, {}, {}, {}]
     for explainer, explainable_model_args in zip(explainers, explainable_models_args):
+        if explainer == LGBMExplainableModel:
+            explainable_model_args['verbosity'] = -1
         generated_create_explainer = generate_create_method(explainer, explainable_model_args=explainable_model_args)
         verify_mimic.append(VerifyTabularTests(test_logger, generated_create_explainer, specify_policy=False))
     return verify_mimic

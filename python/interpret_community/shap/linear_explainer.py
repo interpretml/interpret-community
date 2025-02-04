@@ -13,7 +13,8 @@ from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
 from ..common.constants import (Attributes, Defaults, ExplainParams,
                                 ExplainType, Extension, SKLearn)
-from ..common.explanation_utils import _fix_linear_explainer_shap_values
+from ..common.explanation_utils import (_fix_linear_explainer_shap_values,
+                                        reformat_importance_values)
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.decorator import tabular_decorator
@@ -216,6 +217,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         evaluation_examples = evaluation_examples.dataset
 
         shap_values = self.explainer.shap_values(evaluation_examples)
+        shap_values = reformat_importance_values(shap_values, convert_to_list=True)
         # Temporary fix for a bug in shap for regression models
         shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)
         expected_values = None

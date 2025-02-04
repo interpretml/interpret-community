@@ -17,7 +17,8 @@ from ..common.constants import (Attributes, Defaults, ExplainParams,
                                 ExplainType, Extension, ModelTask)
 from ..common.explanation_utils import (_append_shap_values_instance,
                                         _convert_single_instance_to_multi,
-                                        _convert_to_list)
+                                        _convert_to_list,
+                                        reformat_importance_values)
 from ..common.model_wrapper import _wrap_model
 from ..common.warnings_suppressor import shap_warnings_suppressor
 from ..dataset.decorator import init_tabular_decorator, tabular_decorator
@@ -202,6 +203,7 @@ class KernelExplainer(BlackBoxExplainer):
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(KernelExplainer, self).__init__(wrapped_model, is_function=is_function,
                                               model_task=eval_ml_domain, **kwargs)
+        self.model_task = eval_ml_domain
         self._logger.debug('Initializing KernelExplainer')
         self._method = 'shap.kernel'
         self.initialization_examples = initialization_examples
@@ -317,6 +319,7 @@ class KernelExplainer(BlackBoxExplainer):
                 self._reset_evaluation_background(self.function, nclusters=self.nclusters)
                 tmp_shap_values = self.explainer.shap_values(example, silent=not self.show_progress,
                                                              nsamples=self.nsamples)
+                tmp_shap_values = reformat_importance_values(tmp_shap_values, convert_to_list=True)
                 if output_shap_values is None:
                     output_shap_values = _convert_single_instance_to_multi(tmp_shap_values)
                 else:
@@ -327,6 +330,13 @@ class KernelExplainer(BlackBoxExplainer):
         else:
             shap_values = self.explainer.shap_values(evaluation_examples, silent=not self.show_progress,
                                                      nsamples=self.nsamples)
+            is_classification_task = self.model_task == ModelTask.Classification
+            is_single_row = len(evaluation_examples.shape) == 1
+            if is_classification_task and len(shap_values.shape) == 2 and is_single_row:
+                # special case for single instance classification
+                shap_values = list(np.moveaxis(shap_values, 1, 0))
+            else:
+                shap_values = reformat_importance_values(shap_values, convert_to_list=True)
 
         classification = isinstance(shap_values, list)
         expected_values = None

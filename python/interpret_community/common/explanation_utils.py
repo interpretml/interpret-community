@@ -28,6 +28,32 @@ _RANKING = 'ranking'
 _FEATURES = 'features'
 
 
+def reformat_importance_values(local_importance_values, convert_to_list=False):
+    """Reformat to match the expected values from different shap versions.
+
+    With shap 0.45.0, the local_importance_values format changed
+    from (# classes x # examples x # features)
+    to (# examples x # classes x # features).
+
+    :param local_importance_values: The feature importance values.
+    :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :param convert_to_list: Whether to convert the output to a list.
+    :type convert_to_list: bool
+    :return: The reformatted feature importance values.
+    :rtype: numpy.ndarray or list
+    """
+    if isinstance(local_importance_values, np.ndarray) and local_importance_values.ndim == 3:
+        # Note: this is logic for shap>=0.46.0, which outputs 3d array
+        # with shape (# examples x # features x # classes)
+        # Move first dimension to last
+        local_importance_values = np.moveaxis(local_importance_values, 2, 0)
+        if convert_to_list:
+            local_importance_values = list(local_importance_values)
+    elif not convert_to_list:
+        local_importance_values = np.array(local_importance_values)
+    return local_importance_values
+
+
 def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     """Summarize a dataset.
 
