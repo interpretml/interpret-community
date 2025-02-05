@@ -66,6 +66,7 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install -r requirements-test.txt
+        pip install --upgrade "pandas>2.0"
     - name: Test with pytest
       shell: bash -l {0}
       run: |

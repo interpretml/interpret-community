@@ -300,7 +300,11 @@ def _scale_single_shap_matrix(shap_values, expectation, prediction):
     mimic_prediction = np.sum(shap_values, axis=1)
     error = prediction - mimic_prediction - expectation
     absolute_error = np.abs(error)
+    if not isinstance(absolute_error, np.ndarray):
+        absolute_error = np.array(absolute_error)
     error_sign = np.sign(error)
+    if not isinstance(error_sign, np.ndarray):
+        error_sign = np.array(error_sign)
     absolute_shap_vector = np.abs(shap_values)
     absolute_shap_magnitude = np.sum(absolute_shap_vector, axis=1)
     # We divide by one, when we know the numerator is 0
