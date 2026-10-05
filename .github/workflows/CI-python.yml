@@ -118,3 +118,31 @@ jobs:
         else
           exit 1
         fi
+
+  ci-numpy-compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        numpyVersion: ['1.26.4', '2.0.2', '2.2.6']
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install package with NumPy ${{ matrix.numpyVersion }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install "numpy==${{ matrix.numpyVersion }}" -e ./python pytest
+
+    - name: Verify dependency consistency
+      run: |
+        python -c "import numpy; assert numpy.__version__ == '${{ matrix.numpyVersion }}'"
+        pip check
+
+    - name: Run NumPy compatibility test
+      run: |
+        pytest numpy_compatibility_tests -v
