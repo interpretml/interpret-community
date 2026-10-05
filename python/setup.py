@@ -34,15 +34,15 @@ CLASSIFIERS = [
 ]
 
 DEPENDENCIES = [
-    'numpy',
-    'pandas',
-    'scipy',
-    'ml-wrappers~=0.6.0',
-    'scikit-learn',
+    'numpy>=1.26,<3',
+    'pandas>=2.2.2,<3',
+    'scipy>=1.13,<1.15',
+    'ml-wrappers>=0.6.0,<0.7',
+    'scikit-learn>=1.4.2,<=1.5.1',
     'packaging',
-    'interpret-core>=0.1.20, <=0.6.9',
-    'shap>=0.20.0, <=0.46.0',
-    'raiutils~=0.4.0'
+    'interpret-core==0.6.9',
+    'shap==0.46.0',
+    'raiutils>=0.4.2,<0.5'
 ]
 
 EXTRAS = {
