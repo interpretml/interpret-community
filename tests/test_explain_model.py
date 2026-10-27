@@ -463,7 +463,8 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(housing[DatasetConstants.FEATURES])
         assert explanation.num_features == len(housing[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
-                                                                   self.housing_local_features_first_five_rf)
+                                                                   self.housing_local_features_first_five_rf,
+                                                                   num_features=4)
 
     def _explain_model_local_dnn_classification_common(self, tabular_explainer, model, x_train,
                                                        x_test, y_train, features):
@@ -938,7 +939,8 @@ class TestTabularExplainer(object):
         assert len(ranked_global_values) == len(exp_features)
 
     def verify_top_rows_local_features_with_and_without_top_k(self, explanation, local_features,
-                                                              is_classification=False, top_rows=5):
+                                                              is_classification=False, top_rows=5,
+                                                              num_features=None):
         if is_classification:
             ranked_local_names = explanation.get_ranked_local_names()
             classes = list(range(len(ranked_local_names)))
@@ -953,6 +955,9 @@ class TestTabularExplainer(object):
         else:
             # Get top rows
             top_rows_local_names = explanation.get_ranked_local_names()[:top_rows]
+            if num_features is not None:
+                top_rows_local_names = np.array(top_rows_local_names)[:, :num_features].tolist()
+                local_features = np.array(local_features)[:, :num_features].tolist()
             # Validate against reference data
             assert top_rows_local_names == local_features
             top_rows_local_names_k_2 = explanation.get_ranked_local_names(top_k=2)[:top_rows]

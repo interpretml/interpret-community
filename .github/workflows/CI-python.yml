@@ -67,6 +67,10 @@ jobs:
       run: |
         pip install -r requirements-test.txt
         pip install --upgrade "pandas>2.0"
+    - name: Restore editable package
+      shell: bash -l {0}
+      run: |
+        pip install --no-deps -e ./python
     - name: Test with pytest
       shell: bash -l {0}
       run: |
@@ -118,3 +122,45 @@ jobs:
         else
           exit 1
         fi
+
+  ci-numpy-compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - numpyVersion: '1.26.4'
+            dependencySet: latest
+          - numpyVersion: '2.0.2'
+            dependencySet: latest
+          - numpyVersion: '2.0.2'
+            dependencySet: minimum
+          - numpyVersion: '2.2.6'
+            dependencySet: latest
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install ${{ matrix.dependencySet }} dependencies with NumPy ${{ matrix.numpyVersion }}
+      run: |
+        python -m pip install --upgrade pip
+        constraint_file="${{ github.workspace }}/numpy-constraints.txt"
+        echo "numpy==${{ matrix.numpyVersion }}" > "$constraint_file"
+        if [[ "${{ matrix.dependencySet }}" == "minimum" ]]; then
+          cat numpy_compatibility_tests/requirements-minimum.txt >> "$constraint_file"
+        fi
+        PIP_CONSTRAINT="$constraint_file" pip install \
+          "numpy==${{ matrix.numpyVersion }}" -e ./python pytest
+
+    - name: Verify dependency consistency
+      run: |
+        python -c "import numpy; assert numpy.__version__ == '${{ matrix.numpyVersion }}'"
+        pip check
+
+    - name: Run NumPy compatibility test
+      run: |
+        pytest numpy_compatibility_tests -v
