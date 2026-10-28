@@ -2,8 +2,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
+import os
 # Common tests for tabular explainers
 from enum import Enum
+from importlib.util import find_spec
 
 import numpy as np
 import pandas as pd
@@ -42,6 +44,12 @@ from transformation_utils import (get_transformations_from_col_transformer,
                                   get_transformations_many_to_many,
                                   get_transformations_one_to_many_greater,
                                   get_transformations_one_to_many_smaller)
+
+
+def _dependency_enabled(module, environment_variable):
+    return (os.environ.get(environment_variable, '1') != '0' and
+            find_spec(module) is not None)
+
 
 DATA_SLICE = slice(10)
 
@@ -250,30 +258,34 @@ class VerifyTabularTests(object):
                                        include_local=True, has_explain_local=True, true_labels_required=False,
                                        num_overall_features_equal=-1):
         x_train, x_test, y_train, y_test, feature_names, target_names = create_iris_data()
-        # Fit a keras dnn classification model
-        model = create_keras_multiclass_classifier(x_train, y_train)
-        self._verify_explain_model_local_common(model, x_train, x_test, y_train, y_test,
-                                                feature_names, target_names,
-                                                expected_overall_features=None,
-                                                expected_per_class_features=None,
-                                                is_per_class=is_per_class,
-                                                include_evaluation_examples=include_evaluation_examples,
-                                                include_local=include_local,
-                                                has_explain_local=has_explain_local,
-                                                true_labels_required=true_labels_required,
-                                                num_overall_features_equal=num_overall_features_equal)
-        # Similar but now for pytorch multiclass model as well
-        model = create_pytorch_multiclass_classifier(x_train, y_train)
-        self._verify_explain_model_local_common(model, x_train, x_test, y_train, y_test,
-                                                feature_names, target_names,
-                                                expected_overall_features=None,
-                                                expected_per_class_features=None,
-                                                is_per_class=is_per_class,
-                                                include_evaluation_examples=include_evaluation_examples,
-                                                include_local=include_local,
-                                                has_explain_local=has_explain_local,
-                                                true_labels_required=true_labels_required,
-                                                num_overall_features_equal=num_overall_features_equal)
+        if _dependency_enabled('tensorflow', 'INTERPRET_TEST_TENSORFLOW'):
+            # Fit a keras dnn classification model
+            model = create_keras_multiclass_classifier(x_train, y_train)
+            self._verify_explain_model_local_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names, target_names,
+                expected_overall_features=None,
+                expected_per_class_features=None,
+                is_per_class=is_per_class,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required,
+                num_overall_features_equal=num_overall_features_equal)
+        if _dependency_enabled('torch', 'INTERPRET_TEST_PYTORCH'):
+            # Similar but now for pytorch multiclass model as well
+            model = create_pytorch_multiclass_classifier(x_train, y_train)
+            self._verify_explain_model_local_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names, target_names,
+                expected_overall_features=None,
+                expected_per_class_features=None,
+                is_per_class=is_per_class,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required,
+                num_overall_features_equal=num_overall_features_equal)
 
     def _verify_explain_model_local_regression_common(self, model, x_train, x_test, y_train, y_test,
                                                       feature_names, include_evaluation_examples=True,
@@ -328,22 +340,26 @@ class VerifyTabularTests(object):
         x_scaler.fit(x_train)
         x_train = x_scaler.transform(x_train)
         x_test = x_scaler.transform(x_test)
-        # Fit a dnn keras regression model
-        model = create_keras_regressor(x_train, y_train)
-        self._verify_explain_model_local_regression_common(model, x_train, x_test, y_train, y_test,
-                                                           feature_names,
-                                                           include_evaluation_examples=include_evaluation_examples,
-                                                           include_local=include_local,
-                                                           has_explain_local=has_explain_local,
-                                                           true_labels_required=true_labels_required)
-        # Similar but now for a pytorch model as well
-        model = create_pytorch_regressor(x_train, y_train)
-        self._verify_explain_model_local_regression_common(model, x_train, x_test, y_train, y_test,
-                                                           feature_names,
-                                                           include_evaluation_examples=include_evaluation_examples,
-                                                           include_local=include_local,
-                                                           has_explain_local=has_explain_local,
-                                                           true_labels_required=true_labels_required)
+        if _dependency_enabled('tensorflow', 'INTERPRET_TEST_TENSORFLOW'):
+            # Fit a dnn keras regression model
+            model = create_keras_regressor(x_train, y_train)
+            self._verify_explain_model_local_regression_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required)
+        if _dependency_enabled('torch', 'INTERPRET_TEST_PYTORCH'):
+            # Similar but now for a pytorch model as well
+            model = create_pytorch_regressor(x_train, y_train)
+            self._verify_explain_model_local_regression_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required)
 
     def verify_explain_model_local_single(self):
         x_train, x_test, y_train, _, feature_names, target_names = create_iris_data()

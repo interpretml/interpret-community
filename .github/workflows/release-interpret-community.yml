@@ -25,12 +25,12 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: 3.9
+          python-version: "3.10"
 
       - name: Install pytorch on non-MacOS
         shell: bash -l {0}
         run: |
-          conda install --yes --quiet pytorch torchvision cpuonly -c pytorch
+          conda install --yes --quiet pytorch torchvision cpuonly "mkl<2024.1" -c pytorch
 
       - name: update and upgrade pip, setuptools, wheel, and twine
         shell: bash -l {0}

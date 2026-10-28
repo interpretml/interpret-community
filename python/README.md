@@ -1,6 +1,6 @@
 # Microsoft Interpret Community SDK for Python
 
-### This package has been tested with Python 3.7, 3.8 and 3.9
+### This package is tested with Python 3.10, 3.11, 3.12, 3.13 and 3.14
 
 The Interpret Community SDK builds on Interpret, an open source python package from Microsoft Research for training interpretable models, and helps to explain blackbox systems by adding additional extensions from the community to interpret ML models.
 

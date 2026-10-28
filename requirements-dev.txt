@@ -1,4 +1,4 @@
-xmlrunner
+xmlrunner; python_version < "3.12"
 mlflow
 tensorflow
 hdbscan

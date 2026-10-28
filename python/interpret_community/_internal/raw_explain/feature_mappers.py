@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.sparse import csr_matrix, eye
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (Binarizer, KernelCenterer, LabelEncoder,
                                    MaxAbsScaler, MinMaxScaler, Normalizer,
@@ -40,7 +41,7 @@ def get_feature_mapper_for_pipeline(pipeline_obj):
     return PipelineFeatureMapper(Pipeline(steps))
 
 
-class FeatureMapper(ABC):
+class FeatureMapper(TransformerMixin, BaseEstimator, ABC):
     """A class that supports both feature map from raw to engineered as well as a transform method."""
 
     @abstractmethod
@@ -87,15 +88,21 @@ class FeatureMapper(ABC):
         """
         self._feature_map = feature_map
 
-    def fit(self, x):
+    def fit(self, x, y=None):
         """Dummy fit so that this can go in an sklearn.pipeline.Pipeline.
 
         :param x: input data
         :type x: numpy.ndarray or pandas.DataFrame
+        :param y: ignored target values
+        :type y: numpy.ndarray or pandas.Series
         :return: self
         :rtype: FeatureMapper
         """
         return self
+
+    def __sklearn_is_fitted__(self):
+        """Return whether this wrapper is ready to transform data."""
+        return True
 
 
 class IdentityMapper(FeatureMapper):

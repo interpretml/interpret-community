@@ -5,6 +5,7 @@
 import logging
 import os
 import tempfile
+from importlib.util import find_spec
 
 import pytest
 from common_tabular_tests import VerifyTabularTests
@@ -22,6 +23,21 @@ from interpret_community.tabular_explainer import TabularExplainer
 
 test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
+
+
+def pytest_collection_modifyitems(items):
+    """Skip optional framework tests when that framework is unavailable."""
+    tensorflow_enabled = (
+        os.environ.get('INTERPRET_TEST_TENSORFLOW', '1') != '0' and
+        find_spec('tensorflow') is not None)
+    if not tensorflow_enabled:
+        tensorflow_skip = pytest.mark.skip(
+            reason='TensorFlow is not available on this Python version')
+        tensorflow_test_names = ('keras', 'deepexplainer')
+        for item in items:
+            if any(name in item.nodeid.lower()
+                   for name in tensorflow_test_names):
+                item.add_marker(tensorflow_skip)
 
 
 def pytest_itemcollected(item):
