@@ -10,14 +10,15 @@ on:
 
 jobs:
   ci-python:
+    defaults:
+      run:
+        shell: bash -el {0}
     strategy:
       fail-fast: false
       matrix:
-        packageDirectory: ["interpret_community"]
-        operatingSystem: [ubuntu-latest]
         pythonVersion: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-    runs-on: ${{ matrix.operatingSystem }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -26,116 +27,67 @@ jobs:
         auto-update-conda: true
         python-version: ${{ matrix.pythonVersion }}
     - name: Configure legacy suite constraints
-      shell: bash -el {0}
       run: |
         printf 'pandas<3\nscikit-learn<1.8\n' > "$RUNNER_TEMP/legacy-constraints.txt"
         echo "PIP_CONSTRAINT=$RUNNER_TEMP/legacy-constraints.txt" >> "$GITHUB_ENV"
-    - if: ${{ matrix.operatingSystem != 'macos-latest' && matrix.pythonVersion == '3.10' }}
+    - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Install PyTorch from Conda on Python 3.10
-      shell: bash -el {0}
       run: |
         conda install --yes --quiet pytorch torchvision cpuonly "mkl<2024.1" -c pytorch
-    - if: ${{ matrix.operatingSystem != 'macos-latest' && matrix.pythonVersion != '3.10' }}
+    - if: ${{ matrix.pythonVersion != '3.10' }}
       name: Install PyTorch from pip
-      shell: bash -el {0}
       run: |
         pip install torch torchvision
-    - if: ${{ matrix.operatingSystem == 'macos-latest' }}
-      name: Install Anaconda packages on MacOS, which should not include cpuonly according to official docs
-      shell: bash -el {0}
-      run: |
-        conda install --yes --quiet pytorch torchvision -c pytorch
-    - if: ${{ matrix.operatingSystem == 'macos-latest' }}
-      name: Install lightgbm from conda on MacOS
-      shell: bash -el {0}
-      run: |
-        conda install --yes -c conda-forge lightgbm
     - name: Install package in editable mode
-      shell: bash -el {0}
       run: |
         pip install --upgrade pip
         pip install -e ./python
     - name: Install dev dependencies
-      shell: bash -el {0}
       run: |
-        if [[ "${{ matrix.pythonVersion }}" == "3.14" ]]; then
-          grep -v '^tensorflow$' requirements-dev.txt > requirements-dev-supported.txt
-          pip install -r requirements-dev-supported.txt
-        else
-          pip install -r requirements-dev.txt
-        fi
+        pip install -r requirements-dev.txt
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Install dashboard dependencies
-      shell: bash -el {0}
       run: |
         pip install raiwidgets
     - name: Install visualization dependencies
-      shell: bash -el {0}
       run: |
         pip install -r requirements-vis.txt
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Restore Python 3.10 SHAP dependency
-      shell: bash -el {0}
       run: |
         pip install --upgrade "shap<=0.46.0"
     - if: ${{ matrix.pythonVersion != '3.10' }}
       name: Restore modern SHAP dependency
-      shell: bash -el {0}
       run: |
         pip install --upgrade "shap>=0.48.0"
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Install scikit-learn to work around raiwidgets dependency
-      shell: bash -el {0}
       run: |
         pip install "scikit-learn==1.4.2"
     - name: Install test dependencies
-      shell: bash -el {0}
       run: |
         pip install -r requirements-test.txt
         pip install --upgrade "pandas>2.0"
     - name: Restore editable package install
-      shell: bash -el {0}
       run: |
         pip install --no-deps --force-reinstall -e ./python
-    - name: Test with pytest
-      shell: bash -el {0}
+    - name: Run all tests
       run: |
-        PYTHONPATH=tests INTERPRET_TEST_TENSORFLOW=0 \
-          INTERPRET_TEST_PYTORCH=1 pytest -p framework_isolation \
-          ./tests numpy_compatibility_tests python_compatibility_tests \
-          ${{ matrix.pythonVersion != '3.10' && '--ignore=tests/test_explanation_dashboard.py' || '' }} \
-          -m "not notebooks" -s -v \
-          --cov=${{ matrix.packageDirectory }} \
-          --cov-report=xml --cov-report=html
-    - if: ${{ matrix.pythonVersion != '3.14' }}
-      name: Test TensorFlow integrations
-      shell: bash -el {0}
-      run: |
-        PYTHONPATH=tests INTERPRET_TEST_TENSORFLOW=1 \
-          INTERPRET_TEST_PYTORCH=0 pytest -p framework_isolation ./tests \
-          --ignore=tests/test_explanation_adapter.py \
-          ${{ matrix.pythonVersion != '3.10' && '--ignore=tests/test_explanation_dashboard.py' || '' }} \
-          -m "not notebooks" -k "dnn or keras or deepexplainer" \
-          -s -v --cov=${{ matrix.packageDirectory }} --cov-append \
-          --cov-report=xml --cov-report=html
+        python tests/run_tests.py --coverage
     - if: ${{ matrix.pythonVersion != '3.10' }}
       name: Test public APIs with latest core dependencies
-      shell: bash -el {0}
       run: |
         env -u PIP_CONSTRAINT pip install --upgrade \
           numpy pandas scipy scikit-learn "shap>=0.48.0"
         env -u PIP_CONSTRAINT pip install --no-deps \
           --force-reinstall -e ./python
-        PYTHONPATH=tests INTERPRET_TEST_TENSORFLOW=0 \
-          INTERPRET_TEST_PYTORCH=0 pytest -p framework_isolation \
-          numpy_compatibility_tests python_compatibility_tests \
-          -v --durations=10
+        python tests/run_tests.py --compatibility-only
 
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Upload code coverage results
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.packageDirectory }}-code-coverage-results
+        name: interpret_community-code-coverage-results
         path: htmlcov
 
     - if: ${{ matrix.pythonVersion == '3.10' }}
@@ -170,7 +122,6 @@ jobs:
 
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Set codecov status
-      shell: bash
       run: |
         if ${{ (steps.codecovupload1.outcome == 'success') || (steps.codecovupload2.outcome == 'success') }} ; then
           echo fine
@@ -219,5 +170,4 @@ jobs:
 
     - name: Run NumPy compatibility tests
       run: |
-        pytest numpy_compatibility_tests python_compatibility_tests \
-          -v --durations=10
+        python tests/run_tests.py --compatibility-only
