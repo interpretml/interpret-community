@@ -50,12 +50,11 @@ jobs:
       shell: bash -el {0}
       run: |
         conda install --yes -c conda-forge lightgbm
-    - name: Build and install package wheel
+    - name: Install package in editable mode
       shell: bash -el {0}
       run: |
-        pip install --upgrade pip build
-        python -m build --wheel python
-        pip install python/dist/*.whl
+        pip install --upgrade pip
+        pip install -e ./python
     - name: Install dev dependencies
       shell: bash -el {0}
       run: |
@@ -94,10 +93,10 @@ jobs:
       run: |
         pip install -r requirements-test.txt
         pip install --upgrade "pandas>2.0"
-    - name: Restore package wheel
+    - name: Restore editable package install
       shell: bash -el {0}
       run: |
-        pip install --no-deps --force-reinstall python/dist/*.whl
+        pip install --no-deps --force-reinstall -e ./python
     - name: Test with pytest
       shell: bash -el {0}
       run: |
@@ -126,7 +125,7 @@ jobs:
         env -u PIP_CONSTRAINT pip install --upgrade \
           numpy pandas scipy scikit-learn "shap>=0.48.0"
         env -u PIP_CONSTRAINT pip install --no-deps \
-          --force-reinstall python/dist/*.whl
+          --force-reinstall -e ./python
         PYTHONPATH=tests INTERPRET_TEST_TENSORFLOW=0 \
           INTERPRET_TEST_PYTORCH=0 pytest -p framework_isolation \
           numpy_compatibility_tests python_compatibility_tests \
