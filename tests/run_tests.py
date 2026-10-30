@@ -52,7 +52,7 @@ def _coverage_arguments(append=False):
     return arguments
 
 
-def _run_compatibility_tests(coverage, pytest_arguments):
+def _run_compatibility_tests(coverage, append_coverage, pytest_arguments):
     arguments = [
         'numpy_compatibility_tests',
         'python_compatibility_tests',
@@ -60,14 +60,15 @@ def _run_compatibility_tests(coverage, pytest_arguments):
         '--durations=10'
     ] + pytest_arguments
     if coverage:
-        arguments += _coverage_arguments()
+        arguments += _coverage_arguments(append_coverage)
     _run_pytest(arguments, tensorflow=False, pytorch=False)
 
 
-def _run_selected_tests(coverage, framework, pytest_arguments):
+def _run_selected_tests(
+        coverage, append_coverage, framework, pytest_arguments):
     arguments = pytest_arguments
     if coverage:
-        arguments += _coverage_arguments()
+        arguments += _coverage_arguments(append_coverage)
     _run_pytest(
         arguments,
         tensorflow=framework == 'tensorflow',
@@ -122,25 +123,42 @@ def main():
         action='store_true',
         help='Collect XML and HTML coverage reports.')
     parser.add_argument(
+        '--append-coverage',
+        action='store_true',
+        help='Append to coverage data from an earlier test process.')
+    parser.add_argument(
         '--framework',
         choices=('none', 'pytorch', 'tensorflow'),
         help='Framework to enable for a targeted pytest invocation.')
     arguments, pytest_arguments = parser.parse_known_args()
     if pytest_arguments[:1] == ['--']:
         pytest_arguments = pytest_arguments[1:]
+    if arguments.append_coverage and not arguments.coverage:
+        parser.error('--append-coverage requires --coverage')
+    if (arguments.append_coverage and not arguments.compatibility_only and
+            not pytest_arguments):
+        parser.error(
+            '--append-coverage requires targeted tests or '
+            '--compatibility-only')
 
     if arguments.compatibility_only:
         if arguments.framework:
             parser.error(
                 '--framework cannot be used with --compatibility-only')
-        _run_compatibility_tests(arguments.coverage, pytest_arguments)
+        _run_compatibility_tests(
+            arguments.coverage,
+            arguments.append_coverage,
+            pytest_arguments)
     elif pytest_arguments:
         if not arguments.framework:
             parser.error(
                 'targeted tests require --framework none, pytorch, or '
                 'tensorflow')
         _run_selected_tests(
-            arguments.coverage, arguments.framework, pytest_arguments)
+            arguments.coverage,
+            arguments.append_coverage,
+            arguments.framework,
+            pytest_arguments)
     elif arguments.framework:
         parser.error('--framework requires pytest arguments')
     else:

@@ -26,10 +26,6 @@ jobs:
       with:
         auto-update-conda: true
         python-version: ${{ matrix.pythonVersion }}
-    - name: Configure legacy suite constraints
-      run: |
-        printf 'pandas<3\nscikit-learn<1.8\n' > "$RUNNER_TEMP/legacy-constraints.txt"
-        echo "PIP_CONSTRAINT=$RUNNER_TEMP/legacy-constraints.txt" >> "$GITHUB_ENV"
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Install PyTorch from Conda on Python 3.10
       run: |
@@ -38,50 +34,35 @@ jobs:
       name: Install PyTorch from pip
       run: |
         pip install torch torchvision
-    - name: Install package in editable mode
+    - name: Install package and test dependencies
       run: |
         pip install --upgrade pip
-        pip install -e ./python
-    - name: Install dev dependencies
+        pip install --upgrade \
+          numpy pandas scipy scikit-learn shap \
+          -e ./python \
+          -r requirements-dev.txt \
+          -r requirements-test.txt \
+          -r requirements-vis.txt
+    - name: Verify dependency consistency
       run: |
-        pip install -r requirements-dev.txt
-    - if: ${{ matrix.pythonVersion == '3.10' }}
-      name: Install dashboard dependencies
-      run: |
-        pip install raiwidgets
-    - name: Install visualization dependencies
-      run: |
-        pip install -r requirements-vis.txt
-    - if: ${{ matrix.pythonVersion == '3.10' }}
-      name: Restore Python 3.10 SHAP dependency
-      run: |
-        pip install --upgrade "shap<=0.46.0"
-    - if: ${{ matrix.pythonVersion != '3.10' }}
-      name: Restore modern SHAP dependency
-      run: |
-        pip install --upgrade "shap>=0.48.0"
-    - if: ${{ matrix.pythonVersion == '3.10' }}
-      name: Install scikit-learn to work around raiwidgets dependency
-      run: |
-        pip install "scikit-learn==1.4.2"
-    - name: Install test dependencies
-      run: |
-        pip install -r requirements-test.txt
-        pip install --upgrade "pandas>2.0"
-    - name: Restore editable package install
-      run: |
-        pip install --no-deps --force-reinstall -e ./python
+        pip check
     - name: Run all tests
       run: |
         python tests/run_tests.py --coverage
-    - if: ${{ matrix.pythonVersion != '3.10' }}
-      name: Test public APIs with latest core dependencies
+    - if: ${{ matrix.pythonVersion == '3.10' }}
+      name: Test dashboard with legacy integration dependencies
       run: |
-        env -u PIP_CONSTRAINT pip install --upgrade \
-          numpy pandas scipy scikit-learn "shap>=0.48.0"
-        env -u PIP_CONSTRAINT pip install --no-deps \
-          --force-reinstall -e ./python
-        python tests/run_tests.py --compatibility-only
+        python -m venv "$RUNNER_TEMP/dashboard-env"
+        dashboard_python="$RUNNER_TEMP/dashboard-env/bin/python"
+        "$dashboard_python" -m pip install --upgrade pip
+        "$dashboard_python" -m pip install \
+          -e ./python raiwidgets "scikit-learn==1.4.2" \
+          lightgbm "xgboost<2.1.0" matplotlib pytest-cov \
+          -r requirements-vis.txt
+        "$dashboard_python" -m pip check
+        "$dashboard_python" tests/run_tests.py \
+          --coverage --append-coverage \
+          --framework none tests/test_explanation_dashboard.py
 
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Upload code coverage results

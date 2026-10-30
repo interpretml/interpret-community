@@ -57,6 +57,9 @@ framework:
       python tests/run_tests.py --framework pytorch tests/test_file.py -k test_name
       python tests/run_tests.py --framework tensorflow tests/test_file.py -k test_name
 
+Use ``--coverage --append-coverage`` when a targeted run should contribute to
+coverage data produced by an earlier test process.
+
 Notebook tests can also be run via the command:
 
    .. code-block:: bash

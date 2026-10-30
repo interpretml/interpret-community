@@ -945,11 +945,12 @@ class VerifyTabularTests(object):
                                      num_overall_features_equal=-1):
         # Verify order of features
         self.test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        if num_overall_features_equal < 0:
-            np.testing.assert_array_equal(ranked_global_names, expected_overall_features)
-        else:
-            np.testing.assert_array_equal(ranked_global_names[0:num_overall_features_equal - 1],
-                                          expected_overall_features[0:num_overall_features_equal - 1])
+        if expected_overall_features is not None:
+            if num_overall_features_equal < 0:
+                np.testing.assert_array_equal(ranked_global_names, expected_overall_features)
+            else:
+                np.testing.assert_array_equal(ranked_global_names[0:num_overall_features_equal - 1],
+                                              expected_overall_features[0:num_overall_features_equal - 1])
         assert len(ranked_global_values) == 4
 
     def verify_iris_per_class_features(self,

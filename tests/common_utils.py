@@ -239,7 +239,8 @@ def create_sklearn_linear_regressor(X, y, pipeline=False):
 
 
 def create_sklearn_logistic_regressor(X, y, pipeline=False):
-    lin = linear_model.LogisticRegression(solver='liblinear')
+    solver = 'liblinear' if len(np.unique(y)) <= 2 else 'lbfgs'
+    lin = linear_model.LogisticRegression(solver=solver)
     if pipeline:
         lin = Pipeline([('lin', lin)])
     model = lin.fit(X, y)
@@ -597,8 +598,8 @@ def create_simple_titanic_data():
                    'scipy-2017-sklearn/091d371/notebooks/datasets/titanic3.csv')
     data = read_csv(titanic_url)
     # fill missing values
-    data = data.fillna(method="ffill")
-    data = data.fillna(method="bfill")
+    data = data.ffill()
+    data = data.bfill()
     numeric_features = ['age', 'fare']
     categorical_features = ['embarked', 'sex', 'pclass']
 

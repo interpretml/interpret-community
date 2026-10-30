@@ -32,3 +32,6 @@ Select the matching isolated process for framework-specific tests:
 python tests/run_tests.py --framework pytorch path/to/test_filename.py -k test_name
 python tests/run_tests.py --framework tensorflow path/to/test_filename.py -k test_name
 ```
+
+Use `--coverage --append-coverage` when a targeted run should contribute to
+coverage data produced by an earlier test process.
