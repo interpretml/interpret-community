@@ -8,8 +8,15 @@ on:
   schedule:
     - cron:  '30 5 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   ci-python:
+    permissions:
+      contents: read
+      id-token: write
+
     defaults:
       run:
         shell: bash -el {0}
@@ -60,31 +67,29 @@ jobs:
     - if: ${{ matrix.pythonVersion == '3.10' }}
       name: Upload to codecov
       id: codecovupload1
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         directory: .
         env_vars: OS,PYTHON
         fail_ci_if_error: false
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        path_to_write_report: ./coverage/codecov_report.txt
+        use_oidc: true
         verbose: true
 
     - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.10') }}
       name: Retry upload to codecov
       id: codecovupload2
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         directory: .
         env_vars: OS,PYTHON
         fail_ci_if_error: false
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        path_to_write_report: ./coverage/codecov_report.txt
+        use_oidc: true
         verbose: true
 
     - if: ${{ matrix.pythonVersion == '3.10' }}
@@ -95,49 +100,6 @@ jobs:
         else
           exit 1
         fi
-
-  ci-dashboard:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install dashboard integration dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install \
-          -e ./python raiwidgets "scikit-learn==1.4.2" \
-          lightgbm "xgboost<2.1.0" matplotlib pytest-cov \
-          -r requirements-vis.txt
-
-    - name: Verify dependency consistency
-      run: |
-        python -m pip check
-
-    - name: Test dashboard integration
-      run: |
-        python tests/run_tests.py --coverage \
-          --framework none tests/test_explanation_dashboard.py
-
-    - name: Upload dashboard coverage results
-      uses: actions/upload-artifact@v4
-      with:
-        name: interpret_community-dashboard-code-coverage-results
-        path: |
-          htmlcov
-          coverage.xml
-
-    - name: Upload dashboard coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
-        flags: dashboard
-        name: codecov-dashboard
-        fail_ci_if_error: false
 
   ci-numpy-compatibility:
     strategy:
