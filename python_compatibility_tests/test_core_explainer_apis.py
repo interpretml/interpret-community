@@ -157,6 +157,10 @@ def test_pfi_and_lime_public_apis(iris_data):
         metric_args={'average': 'micro'}, features=FEATURES)
     _assert_global_explanation(
         pfi.explain_global(x_test, y_test), 'pfi')
+    with pytest.raises(Exception, match='not in supported list'):
+        PFIExplainer(
+            classifier, metric='not-a-metric',
+            metric_args={'average': 'micro'}, features=FEATURES)
 
     lime = LIMEExplainer(
         classifier, x_train, features=FEATURES,

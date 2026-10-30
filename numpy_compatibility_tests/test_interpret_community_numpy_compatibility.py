@@ -6,10 +6,12 @@
 
 import numpy as np
 import pandas as pd
+import pytest
 from interpret_community import TabularExplainer
 from interpret_community._internal.raw_explain.raw_explain_utils import \
     get_datamapper_and_transformed_data
 from interpret_community.common.serialization_utils import _serialize_json_safe
+from interpret_community.mimic.models import linear_model
 from interpret_community.mimic.models.linear_model import \
     LinearExplainableModel
 from sklearn.compose import ColumnTransformer
@@ -52,3 +54,28 @@ def test_latest_scikit_learn_compatibility():
     model = LinearExplainableModel(multiclass=True)
     model.fit(np.eye(6), np.array([0, 1, 2, 0, 1, 2]))
     assert model.predict(np.eye(6)).shape == (6,)
+
+
+def test_scikit_learn_without_multi_class_parameter(monkeypatch):
+    """Verify liblinear falls back when sklearn removes multi_class."""
+    class LogisticRegressionWithoutMultiClass(
+            linear_model.LogisticRegression):
+        def __init__(self, solver='lbfgs', random_state=None):
+            super().__init__(
+                solver=solver,
+                random_state=random_state)
+
+    monkeypatch.setattr(
+        linear_model,
+        'LogisticRegression',
+        LogisticRegressionWithoutMultiClass)
+
+    with pytest.warns(
+            UserWarning,
+            match='liblinear solver no longer supports multiclass'):
+        model = LinearExplainableModel(
+            multiclass=True,
+            solver='liblinear',
+            multi_class='auto')
+
+    assert model.model.solver == 'lbfgs'
