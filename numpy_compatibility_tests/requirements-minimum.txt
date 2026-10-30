@@ -3,5 +3,5 @@ scipy==1.13.0
 scikit-learn==1.4.2
 ml-wrappers==0.6.4
 interpret-core==0.6.9
-shap==0.46.0
+shap==0.48.0
 raiutils==0.4.2

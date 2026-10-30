@@ -621,8 +621,8 @@ class TestTabularExplainer(object):
                        'scipy-2017-sklearn/091d371/notebooks/datasets/titanic3.csv')
         data = pd.read_csv(titanic_url)
         # fill missing values
-        data = data.fillna(method="ffill")
-        data = data.fillna(method="bfill")
+        data = data.ffill()
+        data = data.bfill()
         numeric_features = ['age', 'fare']
         categorical_features = ['embarked', 'sex', 'pclass']
         y = data['survived'].values
@@ -686,7 +686,7 @@ class TestTabularExplainer(object):
         # creating dummy columns for each categorical feature
         categorical = []
         for col, value in attritionXData.items():
-            if value.dtype == 'object':
+            if pd.api.types.is_string_dtype(value.dtype):
                 categorical.append(col)
 
         # store the numerical columns

@@ -26,7 +26,11 @@ CLASSIFIERS = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
@@ -41,7 +45,8 @@ DEPENDENCIES = [
     'scikit-learn',
     'packaging',
     'interpret-core>=0.1.20, <=0.6.9',
-    'shap>=0.20.0, <=0.46.0',
+    'shap>=0.20.0, <=0.46.0; python_version < "3.11"',
+    'shap>=0.48.0; python_version >= "3.11"',
     'raiutils~=0.4.0'
 ]
 
@@ -81,6 +86,8 @@ setup(
     classifiers=CLASSIFIERS,
 
     packages=find_packages(exclude=["*.tests"]),
+
+    python_requires='>=3.10',
 
     install_requires=DEPENDENCIES,
 

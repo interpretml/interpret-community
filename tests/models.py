@@ -6,6 +6,8 @@ import os
 
 import numpy as np
 import pandas as pd
+from packaging.version import Version
+from sklearn.base import BaseEstimator
 
 
 def retrieve_model(model, **kwargs):
@@ -30,13 +32,17 @@ def retrieve_model(model, **kwargs):
         raise Exception('Unrecognized file extension: ' + extension)
 
 
-class DataFrameTestModel(object):
+class DataFrameTestModel(BaseEstimator):
     def __init__(self, sample_df, assert_index_present=True):
-        self._sample_df = sample_df
-        self._assert_index_present = assert_index_present
+        self.sample_df = sample_df
+        self.assert_index_present = assert_index_present
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         self._assert_df_index_and_columns(X)
+        return self
+
+    def __sklearn_is_fitted__(self):
+        return True
 
     def predict(self, X_pred):
         self._assert_df_index_and_columns(X_pred)
@@ -44,12 +50,21 @@ class DataFrameTestModel(object):
 
     def _assert_df_index_and_columns(self, X):
         assert isinstance(X, pd.DataFrame)
-        assert list(X.columns) == list(self._sample_df.columns)
-        assert list(X.dtypes) == list(self._sample_df.dtypes)
-        if self._assert_index_present:
-            assert list(X.index.names) == list(self._sample_df.index.names)
+        assert list(X.columns) == list(self.sample_df.columns)
+        assert list(X.dtypes) == list(self.sample_df.dtypes)
+        if self.assert_index_present:
+            assert list(X.index.names) == list(self.sample_df.index.names)
             for i in range(len(X.index.names)):
-                assert X.index.get_level_values(i).dtype == self._sample_df.index.get_level_values(i).dtype
+                actual = X.index.get_level_values(i)
+                expected = self.sample_df.index.get_level_values(i)
+                if Version(pd.__version__).major < 3:
+                    assert actual.dtype == expected.dtype
+                else:
+                    # pandas 3 retains object dtype when ml-wrappers
+                    # reconstructs a one-row integer MultiIndex.
+                    assert pd.api.types.infer_dtype(
+                        actual, skipna=True) == pd.api.types.infer_dtype(
+                            expected, skipna=True)
 
 
 class SkewedTestModel(object):
