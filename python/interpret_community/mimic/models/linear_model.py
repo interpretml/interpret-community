@@ -5,6 +5,7 @@
 """Defines an explainable linear model."""
 
 import warnings
+from inspect import signature
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
@@ -22,12 +23,9 @@ with shap_warnings_suppressor():
     import shap
 
 DEFAULT_RANDOM_STATE = 123
-LINEAR_PENALTY = 'penalty'
-LINEAR_L2 = 'l2'
 LINEAR_SOLVER = 'solver'
 LINEAR_LBFGS = 'lbfgs'
 LINEAR_MULTICLASS = 'multi_class'
-LINEAR_MULTINOMIAL = 'multinomial'
 LINEAR_RANDOM_STATE = 'random_state'
 
 
@@ -198,11 +196,18 @@ class LinearExplainableModel(BaseExplainableModel):
         self._sparse_data = sparse_data
         if self.multiclass:
             initializer = LogisticRegression
-            if self._sparse_data:
-                kwargs[LINEAR_PENALTY] = LINEAR_L2
+            supports_multi_class = LINEAR_MULTICLASS in signature(LogisticRegression).parameters
             if LINEAR_SOLVER not in kwargs:
                 kwargs[LINEAR_SOLVER] = LINEAR_LBFGS
-                kwargs[LINEAR_MULTICLASS] = LINEAR_MULTINOMIAL
+            if not supports_multi_class:
+                kwargs.pop(LINEAR_MULTICLASS, None)
+                if kwargs.get(LINEAR_SOLVER) == 'liblinear':
+                    warnings.warn(
+                        "The liblinear solver no longer supports multiclass "
+                        "classification; using lbfgs instead.",
+                        UserWarning,
+                        stacklevel=2)
+                    kwargs[LINEAR_SOLVER] = LINEAR_LBFGS
             kwargs[LINEAR_RANDOM_STATE] = random_state
         else:
             if self._sparse_data:

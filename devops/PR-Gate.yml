@@ -18,7 +18,7 @@ jobs:
   parameters:
     platforms:  { MacOS: macos-latest }
     testRunTypes: ['Notebooks']
-    pyVersions: [3.9]
+    pyVersions: ['3.10']
     installationType: PipLocal
     envArtifactStem: $(EnvArtifactStem)
     envFileStem: $(EnvFileStem)

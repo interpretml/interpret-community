@@ -1733,7 +1733,8 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
             if is_multiclass_sparse:
                 importance_values = np.zeros((len(local_importance_values), dataset_feats))
                 for i in range(len(local_importance_values)):
-                    importance_values[i] = np.sum(local_importance_values[i].A, axis=0)
+                    importance_values[i] = np.asarray(
+                        local_importance_values[i].sum(axis=0)).ravel()
             else:
                 importance_values = np.sum(local_importance_values, axis=reduction_axis)
                 importance_values_buffer = np.ndarray(importance_values.shape)
@@ -1742,7 +1743,8 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
         else:
             if is_multiclass_sparse:
                 for i in range(len(local_importance_values)):
-                    importance_values[i] += np.sum(local_importance_values[i].A, axis=0)
+                    importance_values[i] += np.asarray(
+                        local_importance_values[i].sum(axis=0)).ravel()
             else:
                 # Compute sum of feature importance values
                 # NOTE: if we ever overflow here we can use the streaming approach instead

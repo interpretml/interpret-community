@@ -6,6 +6,7 @@
 import json
 import logging
 import uuid
+from inspect import signature
 from sys import platform
 
 import numpy as np
@@ -48,6 +49,8 @@ test_logger.setLevel(logging.DEBUG)
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
 MACOS_PLATFORM = 'darwin'
+SUPPORTS_LOGISTIC_MULTICLASS = (
+    'multi_class' in signature(LogisticRegression).parameters)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -460,8 +463,10 @@ class TestMimicExplainer(object):
         features = X.columns.values.tolist()
         classes = y['income'].unique().tolist()
         pipe_cfg = {
-            'num_cols': X.dtypes[X.dtypes == 'int64'].index.values.tolist(),
-            'cat_cols': X.dtypes[X.dtypes == 'object'].index.values.tolist(),
+            'num_cols': X.select_dtypes(
+                include=np.number).columns.values.tolist(),
+            'cat_cols': X.select_dtypes(
+                include=['object', 'string']).columns.values.tolist(),
         }
         num_pipe = Pipeline([
             ('num_imputer', SimpleImputer(strategy='median')),
@@ -622,19 +627,28 @@ class TestMimicExplainer(object):
 
     @property
     def iris_overall_expected_features_without_evaluation(self):
+        linear_expected = (
+            ['petal length', 'petal width', 'sepal length', 'sepal width']
+            if SUPPORTS_LOGISTIC_MULTICLASS else None)
         return [['petal length', 'sepal length', 'petal width', 'sepal width'],
-                ['petal length', 'petal width', 'sepal length', 'sepal width'],
+                linear_expected,
                 ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal width', 'sepal length']]
 
     @property
     def iris_per_class_expected_features(self):
+        linear_expected = (
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal width', 'sepal length'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']]
+            if SUPPORTS_LOGISTIC_MULTICLASS else
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal length', 'sepal width'],
+             ['petal length', 'petal width', 'sepal width', 'sepal length']])
         return [[['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal width', 'petal length', 'sepal width', 'sepal length']],
-                [['petal length', 'petal width', 'sepal width', 'sepal length'],
-                 ['petal width', 'petal length', 'sepal width', 'sepal length'],
-                 ['petal length', 'petal width', 'sepal length', 'sepal width']],
+                linear_expected,
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal width', 'sepal width', 'petal length', 'sepal length'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width']],
@@ -644,12 +658,18 @@ class TestMimicExplainer(object):
 
     @property
     def iris_per_class_expected_features_special_args(self):
+        linear_expected = (
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal width', 'sepal length'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']]
+            if SUPPORTS_LOGISTIC_MULTICLASS else
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'sepal length', 'petal length', 'sepal width'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']])
         return [[['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length']],
-                [['petal length', 'petal width', 'sepal width', 'sepal length'],
-                 ['petal width', 'petal length', 'sepal width', 'sepal length'],
-                 ['petal length', 'petal width', 'sepal length', 'sepal width']],
+                linear_expected,
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width']],

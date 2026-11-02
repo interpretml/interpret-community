@@ -294,11 +294,11 @@ class PFIExplainer(GlobalExplainer, BlackBoxMixin):
                           MetricConstants.FBETA_SCORE: fbeta_score,
                           MetricConstants.PRECISION_SCORE: precision_score,
                           MetricConstants.RECALL_SCORE: recall_score}
-        if metric is str:
+        if isinstance(metric, str):
             try:
                 self.metric = metric_to_func[metric]
                 self.is_error_metric = metric in error_metrics
-            except: # noqa
+            except KeyError:
                 raise Exception('Metric \'{}\' not in supported list of metrics, please pass function instead'
                                 .format(metric))
         if self.classes is not None and not self.predict_proba_flag:

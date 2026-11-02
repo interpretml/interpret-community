@@ -11,8 +11,11 @@ class IdentityTransformer(BaseEstimator):
     def __init__(self):
         pass
 
-    def fit(self, x, y):
+    def fit(self, x, y=None):
         return self
+
+    def __sklearn_is_fitted__(self):
+        return True
 
     def transform(self, x):
         return x
@@ -22,8 +25,11 @@ class FuncTransformer(BaseEstimator):
     def __init__(self, func):
         self.func = func
 
-    def fit(self, x, y):
+    def fit(self, x, y=None):
         return self
+
+    def __sklearn_is_fitted__(self):
+        return True
 
     def transform(self, x):
         return self.func(x)
@@ -33,8 +39,11 @@ class SparseTransformer(BaseEstimator):
     def __init__(self):
         pass
 
-    def fit(self, x, y):
+    def fit(self, x, y=None):
         return self
+
+    def __sklearn_is_fitted__(self):
+        return True
 
     def transform(self, x):
         return csr_matrix(x)

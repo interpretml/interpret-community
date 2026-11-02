@@ -1,6 +1,6 @@
-xmlrunner
+xmlrunner; python_version < "3.12"
 mlflow
-tensorflow
+tensorflow; python_version < "3.14"
 hdbscan
 lightgbm
 xgboost<2.1.0
