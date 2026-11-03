@@ -1,8 +1,9 @@
-![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue?link=http://pypi.org/project/interpret-community/)
+[![PyPI](https://img.shields.io/pypi/v/interpret-community?color=blue)](https://pypi.org/project/interpret-community/)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)
-![versions](https://img.shields.io/pypi/pyversions/interpret-community)
+![Python versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)
 
-[![Build Status](https://dev.azure.com/responsibleai/interpret-community/_apis/build/status/Nightly?branchName=main)](https://dev.azure.com/responsibleai/interpret-community/_build/latest?definitionId=41&branchName=main)
+[![CI Python](https://github.com/interpretml/interpret-community/actions/workflows/CI-python.yml/badge.svg?branch=main)](https://github.com/interpretml/interpret-community/actions/workflows/CI-python.yml)
+[![CI Dashboard](https://github.com/interpretml/interpret-community/actions/workflows/CI-dashboard.yml/badge.svg?branch=main)](https://github.com/interpretml/interpret-community/actions/workflows/CI-dashboard.yml)
 
 Interpret Community SDK
 =============================================================
@@ -180,4 +181,3 @@ receive a response within 24 hours. If for some reason you do not, please follow
 email to ensure we received your original message. Further information, including the
 [MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155) key, can be found in
 the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
-
