@@ -7,7 +7,7 @@
 from .common.base_explainer import BaseExplainer
 from .common.constants import Defaults, ExplainParams, Extension, ModelTask
 from .common.structured_model_explainer import PureStructuredModelExplainer
-from .dataset.decorator import tabular_decorator
+from .dataset.decorator import _validate_features, tabular_decorator
 from .shap.deep_explainer import DeepExplainer
 from .shap.gpu_kernel_explainer import GPUKernelExplainer
 from .shap.kernel_explainer import KernelExplainer
@@ -154,6 +154,8 @@ class TabularExplainer(BaseExplainer):
             outputs a 1 dimensional array.
         :type model_task: str
         """
+        self._input_features = features
+        _validate_features(features, initialization_examples)
         super(TabularExplainer, self).__init__(**kwargs)
         self._logger.debug('Initializing TabularExplainer')
 
