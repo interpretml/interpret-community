@@ -17,7 +17,7 @@ from ..common.explanation_utils import (_fix_linear_explainer_shap_values,
                                         reformat_importance_values)
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
-from ..dataset.decorator import tabular_decorator
+from ..dataset.decorator import _validate_features, tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,
     _get_raw_explainer_create_explanation_kwargs)
@@ -140,6 +140,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
         """
+        self._input_features = features
+        _validate_features(features, initialization_examples)
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(

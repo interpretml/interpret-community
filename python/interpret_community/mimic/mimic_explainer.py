@@ -240,6 +240,8 @@ class MimicExplainer(BlackBoxExplainer):
         """
         if transformations is not None and explain_subset is not None:
             raise ValueError("explain_subset not supported with transformations")
+        if features is None and transformations is not None:
+            features = initialization_examples.get_features()
         self.reset_index = reset_index
         self._datamapper = None
         if transformations is not None:
