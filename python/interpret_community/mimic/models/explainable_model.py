@@ -82,7 +82,7 @@ class BaseExplainableModel(ABC, ChainedIdentity):
         pass
 
     def __getstate__(self):
-        """Influence how SGDExplainableModel is pickled.
+        """Influence how BaseExplainableModel is pickled.
 
         Removes logger which is not serializable.
 
@@ -94,7 +94,7 @@ class BaseExplainableModel(ABC, ChainedIdentity):
         return odict
 
     def __setstate__(self, state):
-        """Influence how SGDExplainableModel is unpickled.
+        """Influence how BaseExplainableModel is unpickled.
 
         Re-adds logger which is not serializable.
 

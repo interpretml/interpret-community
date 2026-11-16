@@ -5,6 +5,7 @@
 """Defines an explainable linear model."""
 
 import warnings
+from inspect import signature
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse
@@ -12,7 +13,8 @@ from sklearn.linear_model import (Lasso, LinearRegression, LogisticRegression,
                                   SGDClassifier, SGDRegressor)
 
 from ...common.constants import ExplainableModelType, Extension
-from ...common.explanation_utils import _summarize_data
+from ...common.explanation_utils import (_summarize_data,
+                                         reformat_importance_values)
 from ...common.warnings_suppressor import shap_warnings_suppressor
 from .explainable_model import (BaseExplainableModel, _clean_doc,
                                 _get_initializer_args)
@@ -21,12 +23,9 @@ with shap_warnings_suppressor():
     import shap
 
 DEFAULT_RANDOM_STATE = 123
-LINEAR_PENALTY = 'penalty'
-LINEAR_L2 = 'l2'
 LINEAR_SOLVER = 'solver'
 LINEAR_LBFGS = 'lbfgs'
 LINEAR_MULTICLASS = 'multi_class'
-LINEAR_MULTINOMIAL = 'multinomial'
 LINEAR_RANDOM_STATE = 'random_state'
 
 
@@ -79,7 +78,9 @@ class LinearExplainer(shap.LinearExplainer):
             mean_multiplier = csr_matrix(np.ones((evaluation_examples.shape[0], 1)))
             return (evaluation_examples - mean_multiplier * self._background).multiply(self.coef[0]).tocsr()
         else:
-            return super(LinearExplainer, self).shap_values(evaluation_examples)
+            shap_values = super(LinearExplainer, self).shap_values(evaluation_examples)
+            shap_values = reformat_importance_values(shap_values, convert_to_list=True)
+            return shap_values
 
 
 def _create_linear_explainer(model, multiclass, mean, covariance, seed):
@@ -195,11 +196,18 @@ class LinearExplainableModel(BaseExplainableModel):
         self._sparse_data = sparse_data
         if self.multiclass:
             initializer = LogisticRegression
-            if self._sparse_data:
-                kwargs[LINEAR_PENALTY] = LINEAR_L2
+            supports_multi_class = LINEAR_MULTICLASS in signature(LogisticRegression).parameters
             if LINEAR_SOLVER not in kwargs:
                 kwargs[LINEAR_SOLVER] = LINEAR_LBFGS
-                kwargs[LINEAR_MULTICLASS] = LINEAR_MULTINOMIAL
+            if not supports_multi_class:
+                kwargs.pop(LINEAR_MULTICLASS, None)
+                if kwargs.get(LINEAR_SOLVER) == 'liblinear':
+                    warnings.warn(
+                        "The liblinear solver no longer supports multiclass "
+                        "classification; using lbfgs instead.",
+                        UserWarning,
+                        stacklevel=2)
+                    kwargs[LINEAR_SOLVER] = LINEAR_LBFGS
             kwargs[LINEAR_RANDOM_STATE] = random_state
         else:
             if self._sparse_data:

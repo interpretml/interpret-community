@@ -197,6 +197,8 @@ class LIMEExplainer(BlackBoxExplainer):
         """
         if lime_import_failed:
             raise Exception("Could not import LIME, required for LIMEExplainer")
+        if features is None and transformations is not None:
+            features = initialization_examples.get_features()
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(

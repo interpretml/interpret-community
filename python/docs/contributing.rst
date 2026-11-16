@@ -36,17 +36,26 @@ To run tests locally, please install all of the dependencies in your python envi
       pip install -r requirements-vis.txt
       pip install -r requirements-test.txt
 
-The unit tests can then be run via the command:
+All standard tests can then be run via the command:
 
    .. code-block:: bash
 
-      pytest ./tests -m "not notebooks" -s -v
+      python tests/run_tests.py
 
 Code coverage can be run locally via the command:
 
    .. code-block:: bash
 
-      pytest ./tests -m "not notebooks" -s -v --cov='interpret_community' --cov-report=xml --cov-report=html
+      python tests/run_tests.py --coverage
+
+Individual tests can be run in an isolated process by selecting their
+framework:
+
+   .. code-block:: bash
+
+      python tests/run_tests.py --framework none tests/test_file.py
+      python tests/run_tests.py --framework pytorch tests/test_file.py -k test_name
+      python tests/run_tests.py --framework tensorflow tests/test_file.py -k test_name
 
 Notebook tests can also be run via the command:
 

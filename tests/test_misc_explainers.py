@@ -103,12 +103,11 @@ class TestTreeExplainer(object):
         self._verify_tabular = VerifyTabularTests(test_logger, create_explainer)
 
     def _get_create_model(self, classification):
-        if classification:
-            model = LGBMClassifier()
-        else:
-            model = LGBMRegressor()
-
         def create_model(x, y):
+            if classification:
+                model = LGBMClassifier()
+            else:
+                model = LGBMRegressor()
             return model.fit(x, y)
 
         return create_model

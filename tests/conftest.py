@@ -5,6 +5,7 @@
 import logging
 import os
 import tempfile
+from importlib.util import find_spec
 
 import pytest
 from common_tabular_tests import VerifyTabularTests
@@ -24,12 +25,27 @@ test_logger = logging.getLogger(__name__)
 test_logger.setLevel(logging.DEBUG)
 
 
+def pytest_collection_modifyitems(items):
+    """Skip optional framework tests when that framework is unavailable."""
+    tensorflow_enabled = (
+        os.environ.get('INTERPRET_TEST_TENSORFLOW', '1') != '0' and
+        find_spec('tensorflow') is not None)
+    if not tensorflow_enabled:
+        tensorflow_skip = pytest.mark.skip(
+            reason='TensorFlow is not available on this Python version')
+        tensorflow_test_names = ('keras', 'deepexplainer')
+        for item in items:
+            if any(name in item.nodeid.lower()
+                   for name in tensorflow_test_names):
+                item.add_marker(tensorflow_skip)
+
+
 def pytest_itemcollected(item):
     if not item.get_closest_marker("domain"):
         item.add_marker(pytest.mark.domain(["explain", "model"]))
 
 
-@pytest.fixture()
+@pytest.fixture
 def _clean_dir():
     old_cwd = os.getcwd()
     new_path = tempfile.mkdtemp()
@@ -128,6 +144,8 @@ def get_mimic_explainers(classifier=True):
     else:
         explainable_models_args = [{}, {}, {}, {}]
     for explainer, explainable_model_args in zip(explainers, explainable_models_args):
+        if explainer == LGBMExplainableModel:
+            explainable_model_args['verbosity'] = -1
         generated_create_explainer = generate_create_method(explainer, explainable_model_args=explainable_model_args)
         verify_mimic.append(VerifyTabularTests(test_logger, generated_create_explainer, specify_policy=False))
     return verify_mimic

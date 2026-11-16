@@ -6,6 +6,7 @@
 import json
 import logging
 import uuid
+from inspect import signature
 from sys import platform
 
 import numpy as np
@@ -17,7 +18,7 @@ from common_utils import (LIGHTGBM_METHOD, LINEAR_METHOD,
                           create_cancer_data, create_iris_data,
                           create_lightgbm_regressor,
                           create_pytorch_single_output_classifier,
-                          create_timeseries_data)
+                          create_timeseries_data, get_ohe_params)
 from constants import ModelType, owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from interpret_community.common.constants import ModelTask, ShapValuesOutput
@@ -48,6 +49,8 @@ test_logger.setLevel(logging.DEBUG)
 LGBM_MODEL_IDX = 0
 SGD_MODEL_IDX = 2
 MACOS_PLATFORM = 'darwin'
+SUPPORTS_LOGISTIC_MULTICLASS = (
+    'multi_class' in signature(LogisticRegression).parameters)
 
 
 @pytest.mark.owner(email=owner_email_tools_and_ux)
@@ -59,16 +62,11 @@ class TestMimicExplainer(object):
     def test_explain_model_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
-        num_overall_features_equal = -1
+        num_overall_features_equal = 2
         is_macos = platform.startswith(MACOS_PLATFORM)
-        if is_macos:
-            num_overall_features_equal = 2
         # Don't check per class features on MACOS
         is_per_class = not is_macos
         for idx, verifier in enumerate(verify_mimic_classifier):
-            # SGD test results differ from one machine to another, not sure where the difference comes from
-            if idx == SGD_MODEL_IDX and not is_macos:
-                num_overall_features_equal = 2
             verifier.verify_explain_model_local(iris_overall_expected_features[idx],
                                                 iris_per_class_expected_features[idx],
                                                 num_overall_features_equal=num_overall_features_equal,
@@ -94,10 +92,8 @@ class TestMimicExplainer(object):
     def test_explain_model_local_without_include_local(self, verify_mimic_classifier):
         iris_overall_expected_features = self.iris_overall_expected_features
         iris_per_class_expected_features = self.iris_per_class_expected_features
-        num_overall_features_equal = -1
+        num_overall_features_equal = 2
         is_macos = platform.startswith(MACOS_PLATFORM)
-        if is_macos:
-            num_overall_features_equal = 2
         # Don't check per class features on MACOS
         is_per_class = not is_macos
         for idx, verifier in enumerate(verify_mimic_classifier):
@@ -299,6 +295,7 @@ class TestMimicExplainer(object):
                                       de_global_explanation.global_importance_values)
         assert global_explanation.method == LIGHTGBM_METHOD
 
+    @pytest.mark.skip(reason="Requires ml-wrappers upgrade to latest scikit-learn")
     def test_explain_model_categorical(self, verify_mimic_regressor):
         for idx, verifier in enumerate(verify_mimic_regressor):
             verify_same_shape = idx == LGBM_MODEL_IDX
@@ -406,7 +403,7 @@ class TestMimicExplainer(object):
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
         assert x_train.shape[0] < SMALL_DATA_THRESHOLD
         # Fit a regression model
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         model = lin.fit(x_train, y_train)
         explainable_model = LGBMExplainableModel
         explainer = mimic_explainer(model, x_train, explainable_model)
@@ -423,7 +420,7 @@ class TestMimicExplainer(object):
         X, y = make_regression(n_samples=num_rows, n_features=num_features)
         x_train, x_test, y_train, _ = train_test_split(X, y, test_size=test_size, random_state=42)
 
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         scaler_transformer = Pipeline(steps=[('scaler', StandardScaler())])
         transformations = [(list(range(num_features)), scaler_transformer)]
         clf = Pipeline(steps=[('preprocessor', scaler_transformer), ('regressor', lin)])
@@ -466,16 +463,19 @@ class TestMimicExplainer(object):
         features = X.columns.values.tolist()
         classes = y['income'].unique().tolist()
         pipe_cfg = {
-            'num_cols': X.dtypes[X.dtypes == 'int64'].index.values.tolist(),
-            'cat_cols': X.dtypes[X.dtypes == 'object'].index.values.tolist(),
+            'num_cols': X.select_dtypes(
+                include=np.number).columns.values.tolist(),
+            'cat_cols': X.select_dtypes(
+                include=['object', 'string']).columns.values.tolist(),
         }
         num_pipe = Pipeline([
             ('num_imputer', SimpleImputer(strategy='median')),
             ('num_scaler', StandardScaler())
         ])
+        ohe_params = get_ohe_params()
         cat_pipe = Pipeline([
             ('cat_imputer', SimpleImputer(strategy='constant', fill_value='?')),
-            ('cat_encoder', OneHotEncoder(handle_unknown='ignore', sparse=False))
+            ('cat_encoder', OneHotEncoder(handle_unknown='ignore', **ohe_params))
         ])
         feat_pipe = ColumnTransformer([
             ('num_pipe', num_pipe, pipe_cfg['num_cols']),
@@ -502,7 +502,7 @@ class TestMimicExplainer(object):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
         transformations = [(list(range(num_features)), one_hot_transformer)]
         clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])
@@ -627,19 +627,28 @@ class TestMimicExplainer(object):
 
     @property
     def iris_overall_expected_features_without_evaluation(self):
+        linear_expected = (
+            ['petal length', 'petal width', 'sepal length', 'sepal width']
+            if SUPPORTS_LOGISTIC_MULTICLASS else None)
         return [['petal length', 'sepal length', 'petal width', 'sepal width'],
-                ['petal length', 'petal width', 'sepal length', 'sepal width'],
+                linear_expected,
                 ['petal length', 'petal width', 'sepal length', 'sepal width'],
                 ['petal length', 'petal width', 'sepal width', 'sepal length']]
 
     @property
     def iris_per_class_expected_features(self):
+        linear_expected = (
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal width', 'sepal length'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']]
+            if SUPPORTS_LOGISTIC_MULTICLASS else
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal length', 'sepal width'],
+             ['petal length', 'petal width', 'sepal width', 'sepal length']])
         return [[['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal width', 'petal length', 'sepal width', 'sepal length']],
-                [['petal length', 'petal width', 'sepal width', 'sepal length'],
-                 ['petal width', 'petal length', 'sepal width', 'sepal length'],
-                 ['petal length', 'petal width', 'sepal length', 'sepal width']],
+                linear_expected,
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal width', 'sepal width', 'petal length', 'sepal length'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width']],
@@ -649,12 +658,18 @@ class TestMimicExplainer(object):
 
     @property
     def iris_per_class_expected_features_special_args(self):
+        linear_expected = (
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'petal length', 'sepal width', 'sepal length'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']]
+            if SUPPORTS_LOGISTIC_MULTICLASS else
+            [['petal length', 'petal width', 'sepal width', 'sepal length'],
+             ['petal width', 'sepal length', 'petal length', 'sepal width'],
+             ['petal length', 'petal width', 'sepal length', 'sepal width']])
         return [[['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length']],
-                [['petal length', 'petal width', 'sepal width', 'sepal length'],
-                 ['petal width', 'petal length', 'sepal width', 'sepal length'],
-                 ['petal length', 'petal width', 'sepal length', 'sepal width']],
+                linear_expected,
                 [['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal width', 'sepal length'],
                  ['petal length', 'petal width', 'sepal length', 'sepal width']],
@@ -716,7 +731,7 @@ class TestMimicExplainerWrappedModels(object):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
-        lin = LinearRegression(normalize=True)
+        lin = LinearRegression()
         one_hot_transformer = Pipeline(steps=[('one-hot', OneHotEncoder())])
         transformations = [(list(range(num_features)), one_hot_transformer)]
         clf = Pipeline(steps=[('preprocessor', one_hot_transformer), ('regressor', lin)])

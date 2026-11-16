@@ -10,8 +10,17 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
-from interpret.utils import (gen_global_selector, gen_local_selector,
-                             gen_name_from_class)
+
+try:
+    from interpret.utils._explanation import (gen_global_selector,
+                                              gen_local_selector,
+                                              gen_name_from_class)
+except ImportError:
+    # backcompat with older versions of interpret-core
+    from interpret.utils import (gen_global_selector,
+                                 gen_local_selector,
+                                 gen_name_from_class)
+
 from ml_wrappers import DatasetWrapper
 from scipy.sparse import issparse
 
@@ -1724,7 +1733,8 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
             if is_multiclass_sparse:
                 importance_values = np.zeros((len(local_importance_values), dataset_feats))
                 for i in range(len(local_importance_values)):
-                    importance_values[i] = np.sum(local_importance_values[i].A, axis=0)
+                    importance_values[i] = np.asarray(
+                        local_importance_values[i].sum(axis=0)).ravel()
             else:
                 importance_values = np.sum(local_importance_values, axis=reduction_axis)
                 importance_values_buffer = np.ndarray(importance_values.shape)
@@ -1733,7 +1743,8 @@ def _aggregate_streamed_local_explanations(explainer, evaluation_examples, task,
         else:
             if is_multiclass_sparse:
                 for i in range(len(local_importance_values)):
-                    importance_values[i] += np.sum(local_importance_values[i].A, axis=0)
+                    importance_values[i] += np.asarray(
+                        local_importance_values[i].sum(axis=0)).ravel()
             else:
                 # Compute sum of feature importance values
                 # NOTE: if we ever overflow here we can use the streaming approach instead

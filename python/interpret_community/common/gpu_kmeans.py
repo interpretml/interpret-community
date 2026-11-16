@@ -26,7 +26,7 @@ try:
     from cuml import KMeans
     from cuml.preprocessing import SimpleImputer
     rapids_installed = True
-except BaseException:
+except BaseException:  # noqa: B036
     rapids_installed = False
 from scipy.sparse import issparse
 

@@ -1,0 +1,13 @@
+{
+  "retryOn429": true,
+  "retryCount": 2,
+  "fallbackRetryDelay": "10s",
+  "ignorePatterns": [
+    {
+      "pattern": "^https://github\\.com/eedeleon/?$"
+    },
+    {
+      "pattern": "^https://github\\.com/jahavi13/?$"
+    }
+  ]
+}

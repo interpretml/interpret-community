@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from common_utils import (create_cancer_data, create_cancer_data_booleans,
                           create_lightgbm_classifier,
-                          create_sklearn_svm_classifier)
+                          create_sklearn_svm_classifier, get_ohe_params)
 from constants import owner_email_tools_and_ux
 from datasets import retrieve_dataset
 from interpret import show
@@ -35,10 +35,11 @@ class TestExplanationDashboard:
         dt_cols = df_X.select_dtypes(include=[np.datetime64]).columns.tolist()
         numeric_cols = df_X.select_dtypes(include=[np.number]).columns.tolist()
         transforms_list = []
+        ohe_params = get_ohe_params()
         for str_col in str_cols:
             transforms_list.append((str_col, Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='most_frequent')),
-                ('ohe', OneHotEncoder(sparse=False))
+                ('ohe', OneHotEncoder(**ohe_params))
                 ]), [str_col]
             ))
         for numeric_col in numeric_cols:

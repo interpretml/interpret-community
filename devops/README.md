@@ -1,6 +1,3 @@
 # Testing Strategy
 
-Currently, test pipelines are run when PRs are made to main and nightly. The nightly badge on the root README of the repo reflects the nightly unit tests.
-
-The Windows test pipelines are run against PRs and nightly and should run successfully.
-The Mac test pipeline also runs nightly, but currently has known failures. These failures are not expected to affect the user experience of Mac users.
+The GitHub Actions test workflows run on Ubuntu for pull requests, pushes to main, and nightly schedules. The badges on the root README reflect the main Python and dashboard workflows.

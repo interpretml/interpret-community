@@ -28,6 +28,32 @@ _RANKING = 'ranking'
 _FEATURES = 'features'
 
 
+def reformat_importance_values(local_importance_values, convert_to_list=False):
+    """Reformat to match the expected values from different shap versions.
+
+    With shap 0.45.0, the local_importance_values format changed
+    from (# classes x # examples x # features)
+    to (# examples x # classes x # features).
+
+    :param local_importance_values: The feature importance values.
+    :type local_importance_values: numpy.ndarray or scipy.sparse.csr_matrix or list[scipy.sparse.csr_matrix]
+    :param convert_to_list: Whether to convert the output to a list.
+    :type convert_to_list: bool
+    :return: The reformatted feature importance values.
+    :rtype: numpy.ndarray or list
+    """
+    if isinstance(local_importance_values, np.ndarray) and local_importance_values.ndim == 3:
+        # Note: this is logic for shap>=0.46.0, which outputs 3d array
+        # with shape (# examples x # features x # classes)
+        # Move first dimension to last
+        local_importance_values = np.moveaxis(local_importance_values, 2, 0)
+        if convert_to_list:
+            local_importance_values = list(local_importance_values)
+    elif not convert_to_list:
+        local_importance_values = np.array(local_importance_values)
+    return local_importance_values
+
+
 def _summarize_data(X, k=10, use_gpu=False, to_round_values=True):
     """Summarize a dataset.
 
@@ -274,7 +300,11 @@ def _scale_single_shap_matrix(shap_values, expectation, prediction):
     mimic_prediction = np.sum(shap_values, axis=1)
     error = prediction - mimic_prediction - expectation
     absolute_error = np.abs(error)
+    if not isinstance(absolute_error, np.ndarray):
+        absolute_error = np.array(absolute_error)
     error_sign = np.sign(error)
+    if not isinstance(error_sign, np.ndarray):
+        error_sign = np.array(error_sign)
     absolute_shap_vector = np.abs(shap_values)
     absolute_shap_magnitude = np.sum(absolute_shap_vector, axis=1)
     # We divide by one, when we know the numerator is 0
@@ -348,7 +378,7 @@ def _fix_linear_explainer_shap_values(model, shap_values):
     :rtype: numpy.ndarray or list
     """
     # Temporary fix for a bug in shap for regression models
-    if (type(model) == tuple and len(model) == 2):
+    if (isinstance(model, tuple) and len(model) == 2):
         coef = model[0]
     elif hasattr(model, 'coef_') and hasattr(model, 'intercept_'):
         coef = model.coef_

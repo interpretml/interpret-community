@@ -13,10 +13,11 @@ from ..common.aggregate import (add_explain_global_method,
                                 init_aggregator_decorator)
 from ..common.constants import (Attributes, Defaults, ExplainParams,
                                 ExplainType, Extension, SKLearn)
-from ..common.explanation_utils import _fix_linear_explainer_shap_values
+from ..common.explanation_utils import (_fix_linear_explainer_shap_values,
+                                        reformat_importance_values)
 from ..common.structured_model_explainer import StructuredInitModelExplainer
 from ..common.warnings_suppressor import shap_warnings_suppressor
-from ..dataset.decorator import tabular_decorator
+from ..dataset.decorator import _validate_features, tabular_decorator
 from ..explanation.explanation import (
     _create_local_explanation, _create_raw_feats_local_explanation,
     _get_raw_explainer_create_explanation_kwargs)
@@ -139,6 +140,8 @@ class LinearExplainer(StructuredInitModelExplainer):
         :param allow_all_transformations: Allow many to many and many to one transformations
         :type allow_all_transformations: bool
         """
+        self._input_features = features
+        _validate_features(features, initialization_examples)
         self._datamapper = None
         if transformations is not None:
             self._datamapper, initialization_examples = get_datamapper_and_transformed_data(
@@ -216,6 +219,7 @@ class LinearExplainer(StructuredInitModelExplainer):
         evaluation_examples = evaluation_examples.dataset
 
         shap_values = self.explainer.shap_values(evaluation_examples)
+        shap_values = reformat_importance_values(shap_values, convert_to_list=True)
         # Temporary fix for a bug in shap for regression models
         shap_values = _fix_linear_explainer_shap_values(self.model, shap_values)
         expected_values = None

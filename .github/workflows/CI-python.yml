@@ -8,78 +8,138 @@ on:
   schedule:
     - cron:  '30 5 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   ci-python:
-    strategy:
-      matrix:
-        packageDirectory: ["interpret_community"]
-        operatingSystem: [ubuntu-latest]
-        pythonVersion: [3.7, 3.8, 3.9]
+    permissions:
+      contents: read
+      id-token: write
 
-    runs-on: ${{ matrix.operatingSystem }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        pythonVersion: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
         python-version: ${{ matrix.pythonVersion }}
-    - name: Install numpy
-      shell: bash -l {0}
+    - if: ${{ matrix.pythonVersion == '3.10' }}
+      name: Install PyTorch from Conda on Python 3.10
       run: |
-        conda install --yes --quiet numpy==1.19.5 -c conda-forge
-    - if: ${{ matrix.operatingSystem != 'macos-latest' }}
-      name: Install pytorch on non-MacOS
-      shell: bash -l {0}
+        conda install --yes --quiet pytorch torchvision cpuonly "mkl<2024.1" -c pytorch
+    - if: ${{ matrix.pythonVersion != '3.10' }}
+      name: Install PyTorch from pip
       run: |
-        conda install --yes --quiet pytorch torchvision captum cpuonly -c pytorch
-    - if: ${{ matrix.operatingSystem == 'macos-latest' }}
-      name: Install Anaconda packages on MacOS, which should not include cpuonly according to official docs
-      shell: bash -l {0}
+        pip install torch torchvision
+    - name: Install package and test dependencies
       run: |
-        conda install --yes --quiet pytorch torchvision captum -c pytorch
-    - if: ${{ matrix.operatingSystem == 'macos-latest' }}
-      name: Install lightgbm from conda on MacOS
-      shell: bash -l {0}
+        pip install --upgrade pip
+        pip install --upgrade \
+          numpy pandas scipy scikit-learn shap \
+          -e ./python \
+          -r requirements-dev.txt \
+          -r requirements-test.txt \
+          -r requirements-vis.txt
+    - name: Verify dependency consistency
       run: |
-        conda install --yes -c conda-forge lightgbm
-    - name: Install package
-      shell: bash -l {0}
+        pip check
+    - name: Run all tests
       run: |
-        pip install -e ./python
-    - name: Install dev dependencies
-      shell: bash -l {0}
-      run: |
-        pip install -r requirements-dev.txt
-    - name: Install visualization dependencies
-      shell: bash -l {0}
-      run: |
-        pip install raiwidgets
-        pip install -r requirements-vis.txt
-    - name: Install test dependencies
-      shell: bash -l {0}
-      run: |
-        pip install -r requirements-test.txt
-    - name: Test with pytest
-      shell: bash -l {0}
-      run: |
-        pytest ./tests -m "not notebooks" -s -v --cov=${{ matrix.packageDirectory }} --cov-report=xml --cov-report=html
-    - name: Upload code coverage results
-      uses: actions/upload-artifact@v3
+        python tests/run_tests.py --coverage
+
+    - if: ${{ matrix.pythonVersion == '3.10' }}
+      name: Upload code coverage results
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.packageDirectory }}-code-coverage-results
+        name: interpret_community-code-coverage-results
         path: htmlcov
-      # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+
+    - if: ${{ matrix.pythonVersion == '3.10' }}
+      name: Upload to codecov
+      id: codecovupload1
+      uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         directory: .
         env_vars: OS,PYTHON
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        path_to_write_report: ./coverage/codecov_report.txt
+        use_oidc: true
         verbose: true
+
+    - if: ${{ (steps.codecovupload1.outcome == 'failure') && (matrix.pythonVersion == '3.10') }}
+      name: Retry upload to codecov
+      id: codecovupload2
+      uses: codecov/codecov-action@v5
+      with:
+        directory: .
+        env_vars: OS,PYTHON
+        fail_ci_if_error: false
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        use_oidc: true
+        verbose: true
+
+    - if: ${{ matrix.pythonVersion == '3.10' }}
+      name: Set codecov status
+      run: |
+        if ${{ (steps.codecovupload1.outcome == 'success') || (steps.codecovupload2.outcome == 'success') }} ; then
+          echo fine
+        else
+          exit 1
+        fi
+
+  ci-numpy-compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - numpyVersion: '1.26.4'
+            dependencySet: latest
+          - numpyVersion: '2.0.2'
+            dependencySet: latest
+          - numpyVersion: '2.0.2'
+            dependencySet: minimum
+          - numpyVersion: '2.2.6'
+            dependencySet: latest
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install ${{ matrix.dependencySet }} dependencies with NumPy ${{ matrix.numpyVersion }}
+      run: |
+        python -m pip install --upgrade pip
+        constraint_file="${{ github.workspace }}/numpy-constraints.txt"
+        echo "numpy==${{ matrix.numpyVersion }}" > "$constraint_file"
+        if [[ "${{ matrix.dependencySet }}" == "minimum" ]]; then
+          cat numpy_compatibility_tests/requirements-minimum.txt >> "$constraint_file"
+        fi
+        PIP_CONSTRAINT="$constraint_file" pip install \
+          "numpy==${{ matrix.numpyVersion }}" -e ./python pytest \
+          "lime>=0.2.0.0"
+
+    - name: Verify dependency consistency
+      run: |
+        python -c "import numpy; assert numpy.__version__ == '${{ matrix.numpyVersion }}'"
+        pip check
+
+    - name: Run NumPy compatibility tests
+      run: |
+        python tests/run_tests.py --compatibility-only

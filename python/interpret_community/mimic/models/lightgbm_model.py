@@ -402,7 +402,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                     objective = LightGBMSerializationConstants.MULTICLASS
                 else:
                     objective = LightGBMSerializationConstants.REGRESSION
-                if LightGBMSerializationConstants.MODEL_STR in inspect.getargspec(Booster).args:
+                if LightGBMSerializationConstants.MODEL_STR in inspect.getfullargspec(Booster).args:
                     extras = {LightGBMSerializationConstants.OBJECTIVE: objective}
                     lgbm_booster = Booster(**booster_args, params=extras)
                 else:

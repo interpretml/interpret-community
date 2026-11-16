@@ -2,8 +2,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # ---------------------------------------------------------
 
+import os
 # Common tests for tabular explainers
 from enum import Enum
+from importlib.util import find_spec
 
 import numpy as np
 import pandas as pd
@@ -21,7 +23,7 @@ from common_utils import (create_cancer_data, create_energy_data,
                           create_sklearn_random_forest_classifier,
                           create_sklearn_random_forest_regressor,
                           create_sklearn_svm_classifier,
-                          create_xgboost_classifier)
+                          create_xgboost_classifier, get_ohe_params)
 from constants import ModelType
 from datasets import retrieve_dataset
 from interpret_community.common.constants import (ExplainParams, InterpretData,
@@ -42,6 +44,12 @@ from transformation_utils import (get_transformations_from_col_transformer,
                                   get_transformations_many_to_many,
                                   get_transformations_one_to_many_greater,
                                   get_transformations_one_to_many_smaller)
+
+
+def _dependency_enabled(module, environment_variable):
+    return (os.environ.get(environment_variable, '1') != '0' and
+            find_spec(module) is not None)
+
 
 DATA_SLICE = slice(10)
 
@@ -250,30 +258,34 @@ class VerifyTabularTests(object):
                                        include_local=True, has_explain_local=True, true_labels_required=False,
                                        num_overall_features_equal=-1):
         x_train, x_test, y_train, y_test, feature_names, target_names = create_iris_data()
-        # Fit a keras dnn classification model
-        model = create_keras_multiclass_classifier(x_train, y_train)
-        self._verify_explain_model_local_common(model, x_train, x_test, y_train, y_test,
-                                                feature_names, target_names,
-                                                expected_overall_features=None,
-                                                expected_per_class_features=None,
-                                                is_per_class=is_per_class,
-                                                include_evaluation_examples=include_evaluation_examples,
-                                                include_local=include_local,
-                                                has_explain_local=has_explain_local,
-                                                true_labels_required=true_labels_required,
-                                                num_overall_features_equal=num_overall_features_equal)
-        # Similar but now for pytorch multiclass model as well
-        model = create_pytorch_multiclass_classifier(x_train, y_train)
-        self._verify_explain_model_local_common(model, x_train, x_test, y_train, y_test,
-                                                feature_names, target_names,
-                                                expected_overall_features=None,
-                                                expected_per_class_features=None,
-                                                is_per_class=is_per_class,
-                                                include_evaluation_examples=include_evaluation_examples,
-                                                include_local=include_local,
-                                                has_explain_local=has_explain_local,
-                                                true_labels_required=true_labels_required,
-                                                num_overall_features_equal=num_overall_features_equal)
+        if _dependency_enabled('tensorflow', 'INTERPRET_TEST_TENSORFLOW'):
+            # Fit a keras dnn classification model
+            model = create_keras_multiclass_classifier(x_train, y_train)
+            self._verify_explain_model_local_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names, target_names,
+                expected_overall_features=None,
+                expected_per_class_features=None,
+                is_per_class=is_per_class,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required,
+                num_overall_features_equal=num_overall_features_equal)
+        if _dependency_enabled('torch', 'INTERPRET_TEST_PYTORCH'):
+            # Similar but now for pytorch multiclass model as well
+            model = create_pytorch_multiclass_classifier(x_train, y_train)
+            self._verify_explain_model_local_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names, target_names,
+                expected_overall_features=None,
+                expected_per_class_features=None,
+                is_per_class=is_per_class,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required,
+                num_overall_features_equal=num_overall_features_equal)
 
     def _verify_explain_model_local_regression_common(self, model, x_train, x_test, y_train, y_test,
                                                       feature_names, include_evaluation_examples=True,
@@ -328,22 +340,26 @@ class VerifyTabularTests(object):
         x_scaler.fit(x_train)
         x_train = x_scaler.transform(x_train)
         x_test = x_scaler.transform(x_test)
-        # Fit a dnn keras regression model
-        model = create_keras_regressor(x_train, y_train)
-        self._verify_explain_model_local_regression_common(model, x_train, x_test, y_train, y_test,
-                                                           feature_names,
-                                                           include_evaluation_examples=include_evaluation_examples,
-                                                           include_local=include_local,
-                                                           has_explain_local=has_explain_local,
-                                                           true_labels_required=true_labels_required)
-        # Similar but now for a pytorch model as well
-        model = create_pytorch_regressor(x_train, y_train)
-        self._verify_explain_model_local_regression_common(model, x_train, x_test, y_train, y_test,
-                                                           feature_names,
-                                                           include_evaluation_examples=include_evaluation_examples,
-                                                           include_local=include_local,
-                                                           has_explain_local=has_explain_local,
-                                                           true_labels_required=true_labels_required)
+        if _dependency_enabled('tensorflow', 'INTERPRET_TEST_TENSORFLOW'):
+            # Fit a dnn keras regression model
+            model = create_keras_regressor(x_train, y_train)
+            self._verify_explain_model_local_regression_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required)
+        if _dependency_enabled('torch', 'INTERPRET_TEST_PYTORCH'):
+            # Similar but now for a pytorch model as well
+            model = create_pytorch_regressor(x_train, y_train)
+            self._verify_explain_model_local_regression_common(
+                model, x_train, x_test, y_train, y_test,
+                feature_names,
+                include_evaluation_examples=include_evaluation_examples,
+                include_local=include_local,
+                has_explain_local=has_explain_local,
+                true_labels_required=true_labels_required)
 
     def verify_explain_model_local_single(self):
         x_train, x_test, y_train, _, feature_names, target_names = create_iris_data()
@@ -860,7 +876,8 @@ class VerifyTabularTests(object):
                 return X.astype('U')
 
         custom_text = CustomTextTransformer()
-        encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        ohe_params = get_ohe_params(use_simple_features_combiner=True)
+        encoder = OneHotEncoder(handle_unknown='ignore', **ohe_params)
         ct1 = ColumnTransformer([('cu', custom_text, categorical_col_indices)], remainder='passthrough')
         ct2 = ColumnTransformer([('ord', encoder, slice(0, len(categorical_col_indices)))], remainder='passthrough')
         pipeline = Pipeline([('cu', ct1), ('ct', ct2), ('lgbm', lgbm_regressor)])
@@ -928,11 +945,12 @@ class VerifyTabularTests(object):
                                      num_overall_features_equal=-1):
         # Verify order of features
         self.test_logger.info("length of ranked_global_values: %s", str(len(ranked_global_values)))
-        if num_overall_features_equal < 0:
-            np.testing.assert_array_equal(ranked_global_names, expected_overall_features)
-        else:
-            np.testing.assert_array_equal(ranked_global_names[0:num_overall_features_equal - 1],
-                                          expected_overall_features[0:num_overall_features_equal - 1])
+        if expected_overall_features is not None:
+            if num_overall_features_equal < 0:
+                np.testing.assert_array_equal(ranked_global_names, expected_overall_features)
+            else:
+                np.testing.assert_array_equal(ranked_global_names[0:num_overall_features_equal - 1],
+                                              expected_overall_features[0:num_overall_features_equal - 1])
         assert len(ranked_global_values) == 4
 
     def verify_iris_per_class_features(self,

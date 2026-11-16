@@ -3,9 +3,13 @@
 # ---------------------------------------------------------
 
 # Defines common utilities for explanations
+import os
+
 import numpy as np
 import pandas as pd
+import sklearn
 from lightgbm import LGBMClassifier, LGBMRegressor
+from packaging import version
 from sklearn import ensemble, linear_model, svm
 from sklearn.base import TransformerMixin
 from sklearn.datasets import (fetch_20newsgroups, fetch_california_housing,
@@ -17,22 +21,25 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
-try:
-    from tensorflow import keras
-    from tensorflow.keras import Input, Model
-    from tensorflow.keras.layers import Activation, Dense, Dropout, concatenate
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.wrappers.scikit_learn import (KerasClassifier,
-                                                        KerasRegressor)
-except ImportError:
-    pass
+if os.environ.get('INTERPRET_TEST_TENSORFLOW', '1') != '0':
+    try:
+        from tensorflow import keras
+        from tensorflow.keras import Input, Model
+        from tensorflow.keras.layers import (Activation, Dense, Dropout,
+                                             concatenate)
+        from tensorflow.keras.models import Sequential
+        from tensorflow.keras.wrappers.scikit_learn import (KerasClassifier,
+                                                            KerasRegressor)
+    except ImportError:
+        pass
 
-try:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-except ImportError:
-    pass
+if os.environ.get('INTERPRET_TEST_PYTORCH', '1') != '0':
+    try:
+        import torch
+        import torch.nn as nn
+        import torch.nn.functional as F
+    except ImportError:
+        pass
 
 from datasets import retrieve_dataset
 from pandas import read_csv
@@ -60,6 +67,18 @@ def get_mimic_method(surrogate_model):
         return TREE_METHOD
     else:
         raise Exception("Unsupported surrogate model")
+
+
+def get_ohe_params(sparse=False, use_simple_features_combiner=False):
+    # for older scikit-learn versions use sparse, for newer sparse_output:
+    if version.parse(sklearn.__version__) < version.parse('1.2'):
+        ohe_params = {"sparse": sparse}
+    else:
+        ohe_params = {"sparse_output": sparse}
+    version_above_1_3 = version.parse(sklearn.__version__) >= version.parse('1.3')
+    if version_above_1_3 and use_simple_features_combiner:
+        ohe_params["feature_name_combiner"] = _simple_ohe_callable
+    return ohe_params
 
 
 def create_binary_sparse_newsgroups_data():
@@ -212,7 +231,7 @@ def wrap_classifier_without_proba(classifier):
 
 
 def create_sklearn_linear_regressor(X, y, pipeline=False):
-    lin = linear_model.LinearRegression(normalize=True)
+    lin = linear_model.LinearRegression()
     if pipeline:
         lin = Pipeline([('lin', lin)])
     model = lin.fit(X, y)
@@ -220,7 +239,8 @@ def create_sklearn_linear_regressor(X, y, pipeline=False):
 
 
 def create_sklearn_logistic_regressor(X, y, pipeline=False):
-    lin = linear_model.LogisticRegression(solver='liblinear')
+    solver = 'liblinear' if len(np.unique(y)) <= 2 else 'lbfgs'
+    lin = linear_model.LogisticRegression(solver=solver)
     if pipeline:
         lin = Pipeline([('lin', lin)])
     model = lin.fit(X, y)
@@ -233,7 +253,7 @@ def create_keras_regressor(X, y):
     epochs = 12
     model = _common_model_generator(X.shape[1])
     model.add(Activation('linear'))
-    model.compile(loss=keras.losses.mean_squared_error,
+    model.compile(loss=keras.losses.MeanSquaredError(),
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
     model.fit(X, y,
@@ -578,8 +598,8 @@ def create_simple_titanic_data():
                    'scipy-2017-sklearn/091d371/notebooks/datasets/titanic3.csv')
     data = read_csv(titanic_url)
     # fill missing values
-    data = data.fillna(method="ffill")
-    data = data.fillna(method="bfill")
+    data = data.ffill()
+    data = data.bfill()
     numeric_features = ['age', 'fare']
     categorical_features = ['embarked', 'sex', 'pclass']
 
@@ -668,3 +688,7 @@ def _common_model_generator(feature_number, output_length=1):
     model.add(Dense(output_length, activation='relu', input_shape=(32,)))
     model.add(Dropout(0.5))
     return model
+
+
+def _simple_ohe_callable(input_feature, category):
+    return str(category)

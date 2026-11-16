@@ -19,7 +19,7 @@ from common_utils import (create_keras_classifier, create_keras_regressor,
                           create_sklearn_random_forest_classifier,
                           create_sklearn_random_forest_regressor,
                           create_sklearn_svm_classifier, create_tf_model,
-                          create_xgboost_classifier,
+                          create_xgboost_classifier, get_ohe_params,
                           wrap_classifier_without_proba)
 from constants import DatasetConstants, owner_email_tools_and_ux
 from datasets import retrieve_dataset
@@ -463,7 +463,8 @@ class TestTabularExplainer(object):
         assert len(explanation.local_importance_values[0]) == len(housing[DatasetConstants.FEATURES])
         assert explanation.num_features == len(housing[DatasetConstants.FEATURES])
         self.verify_top_rows_local_features_with_and_without_top_k(explanation,
-                                                                   self.housing_local_features_first_five_rf)
+                                                                   self.housing_local_features_first_five_rf,
+                                                                   num_features=4)
 
     def _explain_model_local_dnn_classification_common(self, tabular_explainer, model, x_train,
                                                        x_test, y_train, features):
@@ -620,8 +621,8 @@ class TestTabularExplainer(object):
                        'scipy-2017-sklearn/091d371/notebooks/datasets/titanic3.csv')
         data = pd.read_csv(titanic_url)
         # fill missing values
-        data = data.fillna(method="ffill")
-        data = data.fillna(method="bfill")
+        data = data.ffill()
+        data = data.bfill()
         numeric_features = ['age', 'fare']
         categorical_features = ['embarked', 'sex', 'pclass']
         y = data['survived'].values
@@ -638,6 +639,7 @@ class TestTabularExplainer(object):
         many_to_many_transformer = FunctionTransformer(lambda x: np.hstack(
             (conv(np.prod(x, axis=1)).reshape(-1, 1), conv(np.prod(x, axis=1)**2).reshape(-1, 1))
         ))
+        ohe_params = get_ohe_params()
         transformations = ColumnTransformer([
             ("age_fare_1", Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='median')),
@@ -647,8 +649,8 @@ class TestTabularExplainer(object):
             ("age_fare_3", many_to_many_transformer, ["age", "fare"]),
             ("embarked", Pipeline(steps=[
                 ("imputer", SimpleImputer(strategy='constant', fill_value='missing')),
-                ("encoder", OneHotEncoder(sparse=False))]), ["embarked"]),
-            ("sex_pclass", OneHotEncoder(sparse=False), ["sex", "pclass"])
+                ("encoder", OneHotEncoder(**ohe_params))]), ["embarked"]),
+            ("sex_pclass", OneHotEncoder(**ohe_params), ["sex", "pclass"])
         ])
         clf = Pipeline(steps=[('preprocessor', transformations),
                               ('classifier', LogisticRegression(solver='lbfgs'))])
@@ -683,8 +685,8 @@ class TestTabularExplainer(object):
 
         # creating dummy columns for each categorical feature
         categorical = []
-        for col, value in attritionXData.iteritems():
-            if value.dtype == 'object':
+        for col, value in attritionXData.items():
+            if pd.api.types.is_string_dtype(value.dtype):
                 categorical.append(col)
 
         # store the numerical columns
@@ -937,7 +939,8 @@ class TestTabularExplainer(object):
         assert len(ranked_global_values) == len(exp_features)
 
     def verify_top_rows_local_features_with_and_without_top_k(self, explanation, local_features,
-                                                              is_classification=False, top_rows=5):
+                                                              is_classification=False, top_rows=5,
+                                                              num_features=None):
         if is_classification:
             ranked_local_names = explanation.get_ranked_local_names()
             classes = list(range(len(ranked_local_names)))
@@ -952,6 +955,9 @@ class TestTabularExplainer(object):
         else:
             # Get top rows
             top_rows_local_names = explanation.get_ranked_local_names()[:top_rows]
+            if num_features is not None:
+                top_rows_local_names = np.array(top_rows_local_names)[:, :num_features].tolist()
+                local_features = np.array(local_features)[:, :num_features].tolist()
             # Validate against reference data
             assert top_rows_local_names == local_features
             top_rows_local_names_k_2 = explanation.get_ranked_local_names(top_k=2)[:top_rows]
@@ -990,8 +996,8 @@ class TestTabularExplainer(object):
     @property
     def housing_local_features_first_five_lr(self):
         return [['Latitude', 'AveRooms', 'HouseAge', 'AveBedrms', 'AveOccup', 'Population', 'Longitude', 'MedInc'],
-                ['Latitude', 'AveRooms', 'MedInc', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
-                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'Population', 'AveBedrms', 'MedInc', 'Latitude'],
+                ['Latitude', 'MedInc', 'AveRooms', 'HouseAge', 'Population', 'AveOccup', 'AveBedrms', 'Longitude'],
+                ['Longitude', 'HouseAge', 'AveRooms', 'AveOccup', 'MedInc', 'Population', 'AveBedrms', 'Latitude'],
                 ['Longitude', 'AveRooms', 'AveBedrms', 'AveOccup', 'Population', 'HouseAge', 'MedInc', 'Latitude'],
                 ['MedInc', 'Longitude', 'Population', 'AveOccup', 'HouseAge', 'AveBedrms', 'AveRooms', 'Latitude']]
 

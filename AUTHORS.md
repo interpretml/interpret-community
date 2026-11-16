@@ -20,6 +20,8 @@ They have admin access to the repo and provide support reviewing issues and pull
    * Raw and engineered feature explanations and transformations
 * **[Ilya Matiach](https://github.com/imatiach-msft)**
    * TabularExplainer, MimicExplainer, PFI and SHAP explainers
+* **[Janhavi Mahajan](https://github.com/jahavi13)**
+   * Explanation Visualization dashboard: Cohort Editor
 * **[Mark Soper](https://github.com/marksoper)**
    * Explanation serialization
 * **[Mehrnoosh Sameki](https://github.com/mesameki)**
