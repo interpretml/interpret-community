@@ -21,7 +21,7 @@ Interpret-Community is an experimental repository extending [Interpret](https://
 - [Use Interpret-Community](#Example)
 - [Visualizations](#Visualizations)
 - [Contributing](#Contributing)
-- [Code of Conduct](#code)
+- [Code of Conduct](#Code)
 
 # <a name="intro"></a>
 # Overview of Interpret-Community
@@ -62,6 +62,8 @@ The explanation functions accept both models and pipelines as input as long as t
 If a pipeline script is provided, the explanation function assumes that the running pipeline script returns a prediction. The repository also supports models trained via **PyTorch**, **TensorFlow**, and **Keras** deep learning frameworks.
 
 
+<a name="explainers"></a>
+
 # Supported Explainers
 
 The following are a list of the explainers available in the community repository:
@@ -87,7 +89,7 @@ Besides the interpretability techniques described above, Interpret-Community sup
   | Linear models | SHAP LinearExplainer |
   | None of the above  | SHAP KernelExplainer or GPUKernelExplainer |
 
-<a name=Example></a>
+<a name="Example"></a>
 
 ### Using Interpret-Community
 
@@ -116,7 +118,7 @@ local_explanation = explainer.explain_local(x_test[0:5])
 For more usage information, please see [Use Interpret-Community](https://interpret-community.readthedocs.io/en/latest/usage.html)
 
 
-<a name=Visualizations></a>
+<a name="Visualizations"></a>
 
 ## Visualizations
 
@@ -142,7 +144,7 @@ Once you load the visualization dashboard, you can investigate different aspects
 
 For more information about the visualizations, please see [Visualizations](https://interpret-community.readthedocs.io/en/latest/visualizations.html)
 
-<a name=Contributing></a>
+<a name="Contributing"></a>
 
 # Contributing
 
@@ -167,7 +169,7 @@ $ git commit -s -m 'This is my commit message'
 When you submit a pull request, a DCO bot will automatically determine whether you need to certify.
 Simply follow the instructions provided by the bot. 
 
-<a name=Code></a>
+<a name="Code"></a>
 
 # Code of Conduct
 
