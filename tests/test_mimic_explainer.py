@@ -495,15 +495,10 @@ class TestMimicExplainer(object):
                                     transformations=feat_pipe)
         global_explanation = explainer.explain_global(X.iloc[:1000])
         assert global_explanation.method == LINEAR_METHOD
-        assert explainer._all_replication_scores is not None
-        assert 'linear' in explainer._all_replication_scores
-        assert explainer._all_replication_scores['linear'] is None
-        assert explainer._best_replication_score is None
 
         self._verify_predictions_and_replication_metric(explainer, X.iloc[:1000])
 
-    @pytest.mark.parametrize('auto_select_explainable_model', [True, False])
-    def test_linear_explainable_model_regression(self, mimic_explainer, auto_select_explainable_model):
+    def test_linear_explainable_model_regression(self, mimic_explainer):
         num_features = 3
         x_train = np.array([['a', 'E', 'x'], ['c', 'D', 'y']])
         y_train = np.array([1, 2])
@@ -515,24 +510,9 @@ class TestMimicExplainer(object):
         explainable_model = LinearExplainableModel
         explainer = mimic_explainer(model.named_steps['regressor'], x_train, explainable_model,
                                     transformations=transformations, augment_data=False,
-                                    auto_select_explainable_model=auto_select_explainable_model,
                                     explainable_model_args={'sparse_data': True}, features=['f1', 'f2', 'f3'])
         global_explanation = explainer.explain_global(x_train)
         assert global_explanation.method == LINEAR_METHOD
-        assert explainer._all_replication_scores is not None
-        assert explainer._best_replication_score is not None
-        if not auto_select_explainable_model:
-            assert 'linear' in explainer._all_replication_scores
-            assert explainer._all_replication_scores['linear'] is not None
-        else:
-            assert 'linear' in explainer._all_replication_scores
-            assert explainer._all_replication_scores['linear'] is not None
-            assert 'sgd' in explainer._all_replication_scores
-            assert explainer._all_replication_scores['sgd'] is not None
-            assert 'lightgbm' in explainer._all_replication_scores
-            assert explainer._all_replication_scores['lightgbm'] is not None
-            assert 'tree' in explainer._all_replication_scores
-            assert explainer._all_replication_scores['tree'] is not None
 
         self._verify_predictions_and_replication_metric(explainer, x_train)
 

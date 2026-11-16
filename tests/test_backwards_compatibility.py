@@ -9,7 +9,9 @@ from os import path
 
 import numpy as np
 import pandas as pd
+import pytest
 from datasets import retrieve_dataset
+from sklearn.metrics import r2_score
 
 
 def test_model_backcompat_global(mimic_explainer):
@@ -55,3 +57,22 @@ def test_model_backcompat_local(mimic_explainer):
     assert local_explanation._local_importance_values.shape[1] == explainer.surrogate_model.model._n_features
     global_explanation = explainer.explain_global(eval_data)
     assert len(global_explanation.global_importance_values) == explainer.surrogate_model.model._n_features
+
+
+def test_model_backcompat_replication_metric(mimic_explainer):
+    class DummyModel:
+        def predict(self, X):
+            return X['TotalBalance']
+
+    dummy_model = DummyModel()
+    model_file = 'old_mimic_model2.json'
+    if not path.exists(model_file):
+        model_file = path.join('tests', model_file)
+    with open(model_file, 'r') as file:
+        properties = json.load(file)
+    explainer = mimic_explainer._load(dummy_model, properties)
+    data = pd.DataFrame(np.random.RandomState(7).normal(
+        size=(10, explainer.surrogate_model.model._n_features)))
+    data.rename(columns={0: 'TotalBalance'}, inplace=True)
+    expected = r2_score(dummy_model.predict(data), explainer.surrogate_model.predict(data))
+    assert explainer.get_surrogate_model_replication_measure(data) == pytest.approx(expected)
