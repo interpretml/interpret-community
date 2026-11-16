@@ -13,14 +13,14 @@ They have admin access to the repo and provide support reviewing issues and pull
    * Documentation
 * **[Brandon Horn](https://github.com/rihorn2)**
    * Explanation Visualization dashboard
-* **[Eduardo de Leon](https://github.com/eedeleon)**
+* **[Eduardo de Leon](https://github.com/eddiestudies)**
    * Extensions system to interpret
    * Feature planning
 * **[Himanshu Chandola](https://github.com/hchandola)**
    * Raw and engineered feature explanations and transformations
 * **[Ilya Matiach](https://github.com/imatiach-msft)**
    * TabularExplainer, MimicExplainer, PFI and SHAP explainers
-* **[Janhavi Mahajan](https://github.com/jahavi13)**
+* **[Janhavi Mahajan](https://github.com/janhavi13)**
    * Explanation Visualization dashboard: Cohort Editor
 * **[Mark Soper](https://github.com/marksoper)**
    * Explanation serialization
