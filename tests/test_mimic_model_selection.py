@@ -6,6 +6,7 @@
 
 import pickle
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
@@ -313,10 +314,12 @@ def test_fitted_index_levels_use_saved_preprocessing(index_type):
 
 @pytest.mark.parametrize('fallback_fails', [False, True])
 def test_all_failures_use_only_configured_fallback(
-        monkeypatch, regression_data, caplog, fallback_fails):
+        monkeypatch, regression_data, fallback_fails):
     teacher, train, evaluation = regression_data
     calls = []
     fallback_args = {'fit_intercept': False}
+    log_warning = Mock()
+    monkeypatch.setattr(selection._logger, 'warning', log_warning)
 
     def construct(model, data, candidate, explainable_model_args, **kwargs):
         calls.append((candidate, explainable_model_args.copy()))
@@ -339,7 +342,8 @@ def test_all_failures_use_only_configured_fallback(
         assert scores == {LGBMExplainableModel: None}
     assert calls == [(LGBMExplainableModel, {}), (LinearExplainableModel, fallback_args)]
     assert fallback_args == {'fit_intercept': False}
-    assert 'candidate fit failed' in caplog.text
+    log_warning.assert_called_once()
+    assert log_warning.call_args.kwargs['exc_info'] is True
 
 
 def test_nonfinite_score_is_unavailable(monkeypatch, regression_data):
