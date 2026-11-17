@@ -49,6 +49,57 @@ The following are a list of the explainers available in the community repository
      - Model-agnostic
 
 
+Selecting a Mimic surrogate
+---------------------------
+
+Use ``select_mimic_explainer`` to compare surrogate models without changing the
+single-surrogate ``MimicExplainer`` API:
+
+.. code-block:: python
+
+   from interpret_community.mimic import select_mimic_explainer
+   from interpret_community.mimic.models import (
+       DecisionTreeExplainableModel, LinearExplainableModel)
+
+   # teacher is fitted; X_validation has the same raw columns as X_train.
+   explainer, scores = select_mimic_explainer(
+       teacher, X_train, X_validation,
+       candidates=[LinearExplainableModel, DecisionTreeExplainableModel],
+       candidate_args={DecisionTreeExplainableModel: {"max_depth": 4}},
+       explainable_model=LinearExplainableModel,
+       explainable_model_args={"fit_intercept": True},
+       augment_data=False)
+   explanation = explainer.explain_local(X_validation[:5])
+
+By default the candidates are LightGBM, linear, SGD and decision tree, in that
+order. Scores are keyed by candidate class. Classification uses accuracy against
+the probability-argmax targets used for distillation, not class display names or
+a custom teacher ``predict`` threshold. Regression uses scikit-learn's R2.
+Selection reuses ``MimicExplainer.get_surrogate_model_replication_measure``.
+That existing metric now applies each model's fitted preprocessing and scores the
+distillation targets consistently, including callable teachers and arbitrary class labels.
+Its signature and float return type are unchanged.
+Only finite scores compete, including negative R2 values; ties favor the first
+candidate. A failed candidate is logged and has score ``None``.
+
+The evaluation data must have at least two rows and the same feature schema as
+the initialization data. Use a held-out validation set: scoring on training data
+favors overfitted surrogates. Fitted transformations and each candidate's saved
+categorical, timestamp and index preprocessing are applied to validation data;
+preprocessing is not fitted on validation data. Each candidate gets copied input
+data and its own model argument dictionary.
+
+The selected explainer is returned without retraining and was trained only on
+the initialization data (including any requested augmentation). Each candidate
+requires a complete construction and additional teacher queries. If all scores
+are ``None``, a new explainer using ``explainable_model`` and
+``explainable_model_args`` is returned as an unscored fallback. These fallback
+arguments are not passed to competing candidates. Fallback construction errors
+propagate rather than being hidden.
+
+Choosing a SHAP explainer
+-------------------------
+
 Besides the interpretability techniques described above, Interpret-Community supports another `SHAP-based explainer <https://github.com/slundberg/shap>`_, called `TabularExplainer`. Depending on the model, `TabularExplainer` uses one of the supported SHAP explainers:
 
 .. list-table:: TabularExplainer

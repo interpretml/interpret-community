@@ -15,6 +15,7 @@ import logging
 import warnings
 
 import numpy as np
+import pandas as pd
 from ml_wrappers import DatasetWrapper
 from scipy.sparse import issparse
 from sklearn.metrics import accuracy_score, r2_score
@@ -251,8 +252,11 @@ class MimicExplainer(BlackBoxExplainer):
             # memory optimization to clear all internal references so they can be gc'ed as soon as possible
             initialization_examples._clear()
             initialization_examples = new_initialization_examples
+        self._index_feature_count = 0
         if reset_index != ResetIndex.Ignore:
+            num_columns = initialization_examples.num_features
             initialization_examples.reset_index()
+            self._index_feature_count = initialization_examples.num_features - num_columns
         wrapped_model, eval_ml_domain = _wrap_model(model, initialization_examples, model_task, is_function)
         super(MimicExplainer, self).__init__(wrapped_model, is_function=is_function,
                                              model_task=eval_ml_domain, **kwargs)
@@ -810,36 +814,80 @@ class MimicExplainer(BlackBoxExplainer):
     def _get_surrogate_model_replication_measure(self, training_data):
         """Return the metric which tells how well the surrogate model replicates the teacher model.
 
-        For classification scenarios, this function will return accuracy. For regression scenarios,
-        this function will return r2_score.
+        Compare the teacher's distillation targets with the surrogate's predictions,
+        reusing the fitted preprocessing for each model.
 
         :param training_data: The data for getting the replication metric.
         :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """
-        if self.classes is None and training_data.shape[0] == 1:
+        if isinstance(training_data, DatasetWrapper):
+            training_data = training_data.original_dataset_with_type
+        examples = DatasetWrapper(training_data.copy())
+        if self._datamapper is not None:
+            examples = transform_with_datamapper(examples, self._datamapper)
+        teacher_data = examples.original_dataset_with_type
+        teacher_model_predictions = np.array(self.function(teacher_data), dtype=float, copy=True)
+        if not np.isfinite(teacher_model_predictions).all():
+            raise ValueError('Teacher model predictions must be finite.')
+        if (self.model is not None and not self.predict_proba_flag
+                and teacher_model_predictions.ndim == 2 and teacher_model_predictions.shape[1] == 1):
+            teacher_model_predictions = teacher_model_predictions[:, 0]
+        if teacher_model_predictions.ndim != 2 and training_data.shape[0] == 1:
             raise ScenarioNotSupportedException(
                 "Replication measure for regression surrogate not supported "
                 "because of single instance in training data")
 
-        surrogate_model_predictions = self._get_surrogate_model_predictions(training_data)
-        teacher_model_predictions = self._get_teacher_model_predictions(training_data)
-
-        if self.classes is not None:
-            replication_measure = accuracy_score(teacher_model_predictions, surrogate_model_predictions)
+        index_feature_count = getattr(self, '_index_feature_count', None)
+        if index_feature_count is None:
+            fitted_examples = getattr(self, 'initialization_examples', None)
+            if fitted_examples is not None:
+                index_feature_count = 0
+                if not getattr(fitted_examples, '_default_index', True):
+                    index_feature_count = len(fitted_examples._default_index_cols)
+            else:
+                init_features = getattr(self, '_init_features', None)
+                index_feature_count = (
+                    0 if self._datamapper is not None or init_features is None
+                    else max(0, len(init_features) - examples.num_features))
+        if self.reset_index not in (ResetIndex.Ignore, ResetIndex.ResetTeacher) and index_feature_count:
+            if not isinstance(teacher_data, pd.DataFrame) or teacher_data.index.nlevels != index_feature_count:
+                raise ValueError('Evaluation data must retain the fitted index levels.')
+            index_data = teacher_data.index.to_frame(index=False)
+            examples = DatasetWrapper(pd.concat([teacher_data.reset_index(drop=True), index_data], axis=1))
+        if self._timestamp_featurizer:
+            examples.apply_timestamp_featurizer(self._timestamp_featurizer)
+        if self._column_indexer:
+            examples.apply_indexer(self._column_indexer, bucket_unknown=True)
+        if self._one_hot_encoder:
+            examples.apply_one_hot_encoder(self._one_hot_encoder)
+        surrogate_model_predictions = np.asarray(self.surrogate_model.predict(examples.dataset), dtype=float)
+        if not np.isfinite(surrogate_model_predictions).all():
+            raise ValueError('Surrogate model predictions must be finite.')
+        if teacher_model_predictions.ndim == 2:
+            if teacher_model_predictions.shape[1] == 1:
+                teacher_model_predictions = np.column_stack(
+                    (1 - teacher_model_predictions, teacher_model_predictions))
+            if teacher_model_predictions.shape[1] == 2:
+                surrogate_model_predictions = _inverse_soft_logit(surrogate_model_predictions)
+            replication_measure = accuracy_score(
+                np.argmax(teacher_model_predictions, axis=1), surrogate_model_predictions)
         else:
             replication_measure = r2_score(teacher_model_predictions, surrogate_model_predictions)
-        return replication_measure
+        return float(replication_measure)
 
     def get_surrogate_model_replication_measure(self, training_data):
         """Return the metric which tells how well the surrogate model replicates the teacher model.
 
-        For classification scenarios, this function will return accuracy. For regression scenarios,
-        this function will return r2_score.
+        Classification returns accuracy against the probability-argmax targets used for
+        distillation, independent of class display names or a custom teacher predict threshold.
+        Regression returns r2_score. Pass examples in the same raw feature schema as the
+        initialization examples; fitted transformations, categorical and timestamp encoders,
+        and index handling are reused without modifying the input.
 
         :param training_data: The data for getting the replication metric.
-        :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix
+        :type training_data: numpy.ndarray or pandas.DataFrame or scipy.sparse.csr_matrix or DatasetWrapper
         :return: Metric that tells how well the surrogate model replicates the behavior of teacher model.
         :rtype: float
         """

@@ -79,6 +79,12 @@ Interpretability Technique|Description|Type
 |Permutation Feature Importance Explainer (PFI)| Permutation Feature Importance is a technique used to explain classification and regression models that is inspired by [Breiman's Random Forests paper](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf) (see section 10). At a high level, the way it works is by randomly shuffling data one feature at a time for the entire dataset and calculating how much the performance metric of interest changes. The larger the change, the more important that feature is. PFI can explain the overall behavior of **any underlying model** but does not explain individual predictions. |Model-agnostic|
 |LIME Explainer|Local Interpretable Model-agnostic Explanations (LIME) is a local linear approximation of the model's behavior. The explainer wraps the [LIME tabular explainer](https://github.com/marcotcr/lime) with a uniform API and additional functionality.|Model-agnostic|
 
+To compare Mimic surrogates, use `interpret_community.mimic.select_mimic_explainer`.
+It trains each candidate independently and returns the best trained `MimicExplainer`
+plus class-keyed fidelity scores on caller-provided held-out data. Selection stays
+separate from the existing single-surrogate `MimicExplainer` API. See the
+[surrogate selection example](python/docs/explainers.rst#selecting-a-mimic-surrogate).
+
 Besides the interpretability techniques described above, Interpret-Community supports another [SHAP-based explainer](https://github.com/slundberg/shap), called `TabularExplainer`. Depending on the model, `TabularExplainer` uses one of the supported SHAP explainers:
 
 

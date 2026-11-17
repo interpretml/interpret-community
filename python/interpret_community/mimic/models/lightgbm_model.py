@@ -420,6 +420,7 @@ class LGBMExplainableModel(BaseExplainableModel):
                 if fitted_ is not None:
                     new_lgbm.fitted_ = fitted_
                 new_lgbm._n_features = _n_features
+                new_lgbm._n_features_in = _n_features
                 lgbm_model.__dict__[key] = new_lgbm
             elif key in LightGBMSerializationConstants.enum_properties:
                 # NOTE: If more enums added in future, will need to handle this differently
